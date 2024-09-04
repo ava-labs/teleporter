@@ -38,19 +38,13 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
             )
         );
         _initializeValidatorRegistration(
-            DEFAULT_NODE_ID,
-            DEFAULT_EXPIRY,
-            DEFAULT_MINIMUM_DELEGATION_FEE_RATE,
-            DEFAULT_BLS_PUBLIC_KEY,
-            DEFAULT_WEIGHT
+            DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY, DEFAULT_WEIGHT
         );
     }
 
     function _initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 registrationExpiry,
-        // solhint-disable-next-line no-unused-vars
-        uint256 delegationFeeRate,
         bytes memory signature,
         uint64 weight
     ) internal virtual override returns (bytes32) {

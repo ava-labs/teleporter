@@ -53,7 +53,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         0x4317713f7ecbdddd4bc99e95d903adedaa883b2e7c2551610bd13e2c7e473d00;
 
     // The maximum delegation fee rate in basis points. This is 99.99%
-    uint256 private constant _MAXIMUM_DELEGATION_FEE_RATE = 1e4 - 1;
+    uint256 public constant MAXIMUM_DELEGATION_FEE_RATE = 1e4 - 1;
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
@@ -91,8 +91,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
         require(
-            minimumDelegationFeeRate > 0 && minimumDelegationFeeRate < _MAXIMUM_DELEGATION_FEE_RATE,
-            "PoSValidatorManager: invalid delegation fee rate"
+            minimumDelegationFeeRate > 0 && minimumDelegationFeeRate < MAXIMUM_DELEGATION_FEE_RATE,
+            "PoSValidatorManager: invalid minimum delegation fee rate"
         );
         PoSValidatorManagerStorage storage s = _getPoSValidatorManagerStorage();
         s._minimumStakeAmount = minimumStakeAmount;
@@ -139,7 +139,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     function _setDelegationFeeRate(bytes32 validationID, uint256 feeRate) internal {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         require(
-            feeRate >= $._minimumDelegationFeeRate && feeRate <= _MAXIMUM_DELEGATION_FEE_RATE,
+            feeRate >= $._minimumDelegationFeeRate && feeRate <= MAXIMUM_DELEGATION_FEE_RATE,
             "PoSValidatorManager: invalid delegation fee rate"
         );
         $._validatorDelegationFeeRates[validationID] = feeRate;

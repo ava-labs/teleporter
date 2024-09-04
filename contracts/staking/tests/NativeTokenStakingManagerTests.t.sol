@@ -34,25 +34,15 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
+        delegationFeeRate = DEFAULT_MINIMUM_DELEGATION_FEE_RATE;
         validatorManager = app;
         posValidatorManager = app;
-    }
-
-    function testInvalidDelegationFeeRate() public {
-        _initializeValidatorRegistration(
-            DEFAULT_NODE_ID,
-            DEFAULT_EXPIRY,
-            DEFAULT_MINIMUM_DELEGATION_FEE_RATE + 1,
-            DEFAULT_BLS_PUBLIC_KEY,
-            DEFAULT_WEIGHT
-        );
     }
 
     // Helpers
     function _initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 registrationExpiry,
-        uint256 delegationFeeRate,
         bytes memory signature,
         uint64 weight
     ) internal virtual override returns (bytes32) {

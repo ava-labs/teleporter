@@ -42,6 +42,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
             }),
             token
         );
+        delegationFeeRate = DEFAULT_MINIMUM_DELEGATION_FEE_RATE;
         validatorManager = app;
         posValidatorManager = app;
     }
@@ -49,7 +50,6 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     function _initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 registrationExpiry,
-        uint256 delegationFeeRate,
         bytes memory signature,
         uint64 weight
     ) internal virtual override returns (bytes32) {

@@ -13,7 +13,7 @@ contract ExampleRewardCalculatorTest is Test {
 
     uint256 public constant DEFAULT_STAKE_AMOUNT = 1e12;
     uint64 public constant DEFAULT_START_TIME = 1000;
-    uint64 public constant DEFAULT_END_TIME = 31537000; // a year + 1000 seonds
+    uint64 public constant DEFAULT_END_TIME = 31537000; // a year + 1000 seconds
     uint64 public constant DEFAULT_REWARD_BASIS_POINTS = 42;
 
     function setUp() public {

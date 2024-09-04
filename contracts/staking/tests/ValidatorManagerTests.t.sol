@@ -233,9 +233,7 @@ abstract contract ValidatorManagerTest is Test {
             validationID, DEFAULT_NODE_ID, bytes32(0), weight, DEFAULT_EXPIRY
         );
 
-        _initializeValidatorRegistration(
-            nodeID, registrationExpiry, DEFAULT_MINIMUM_DELEGATION_FEE_RATE, blsPublicKey, weight
-        );
+        _initializeValidatorRegistration(nodeID, registrationExpiry, blsPublicKey, weight);
     }
 
     function _setUpCompleteValidatorRegistration(
@@ -332,7 +330,6 @@ abstract contract ValidatorManagerTest is Test {
     function _initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 registrationExpiry,
-        uint256 delegationFeeRate,
         bytes memory blsPublicKey,
         uint64 weight
     ) internal virtual returns (bytes32);

@@ -22,6 +22,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     address public constant DEFAULT_DELEGATOR_ADDRESS =
         address(0x1234123412341234123412341234123412341234);
 
+    // This is the rate that will be passed into the child contract `initializeValidatorRegistration` calls
+    // It is set here to avoid having to pass irrelevant initializers to the parent contract.
+    uint256 public delegationFeeRate;
+
     PoSValidatorManager public posValidatorManager;
 
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
