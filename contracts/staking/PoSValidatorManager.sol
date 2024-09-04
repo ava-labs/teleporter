@@ -296,7 +296,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         Validator memory validator = _getValidator(validationID);
         // The received nonce should be no greater than the highest sent nonce
         require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
-        // It should also be greater than or equal to the delegator's starting nonce
+        // It should also be greater than or equal to the delegator's ending nonce
         require(
             $._delegatorStakes[validationID][delegator].endingNonce <= nonce,
             "PoSValidatorManager: nonce does not match"
