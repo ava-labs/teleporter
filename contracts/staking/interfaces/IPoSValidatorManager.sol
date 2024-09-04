@@ -25,12 +25,12 @@ struct PoSValidatorManagerSettings {
 }
 
 struct Delegator {
+    DelegatorStatus status;
     uint64 weight;
     uint64 startedAt;
     uint64 endedAt;
     uint64 startingNonce;
     uint64 endingNonce;
-    DelegatorStatus status;
 }
 
 interface IPoSValidatorManager is IValidatorManager {

@@ -180,12 +180,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Store the delegator information
         $._delegatorStakes[validationID][delegator] = Delegator({
+            status: DelegatorStatus.PendingAdded,
             weight: weight,
             startedAt: 0,
             endedAt: 0,
             startingNonce: nonce,
-            endingNonce: 0,
-            status: DelegatorStatus.PendingAdded
+            endingNonce: 0
         });
 
         emit DelegatorAdded({
