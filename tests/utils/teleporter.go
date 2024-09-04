@@ -81,6 +81,7 @@ func DeployTestMessenger(
 		subnet.RPCClient,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
+		big.NewInt(1),
 	)
 	Expect(err).Should(BeNil())
 

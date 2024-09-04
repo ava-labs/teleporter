@@ -16,13 +16,18 @@ import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 contract TeleporterRegistryOwnableAppTest is BaseTeleporterRegistryOwnableAppTest {
     function setUp() public virtual override {
         BaseTeleporterRegistryOwnableAppTest.setUp();
-        ownerApp = new ExampleRegistryOwnableApp(address(teleporterRegistry), DEFAULT_OWNER_ADDRESS);
+        ownerApp = new ExampleRegistryOwnableApp(
+            address(teleporterRegistry), DEFAULT_OWNER_ADDRESS, teleporterRegistry.latestVersion()
+        );
         app = ExampleRegistryApp(address(ownerApp));
     }
 
     function testZeroInitialOwner() public virtual {
+        uint256 minTeleporterVersion = teleporterRegistry.latestVersion();
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
-        ownerApp = new ExampleRegistryOwnableApp(address(teleporterRegistry), address(0));
+        ownerApp = new ExampleRegistryOwnableApp(
+            address(teleporterRegistry), address(0), minTeleporterVersion
+        );
     }
 }
 
@@ -31,7 +36,9 @@ contract TeleporterRegistryOwnableAppUpgradeableTest is BaseTeleporterRegistryOw
         BaseTeleporterRegistryOwnableAppTest.setUp();
         ExampleRegistryOwnableAppUpgradeable upgradeableApp =
             new ExampleRegistryOwnableAppUpgradeable();
-        upgradeableApp.initialize(address(teleporterRegistry), DEFAULT_OWNER_ADDRESS);
+        upgradeableApp.initialize(
+            address(teleporterRegistry), DEFAULT_OWNER_ADDRESS, teleporterRegistry.latestVersion()
+        );
         ownerApp = ExampleRegistryOwnableApp(address(upgradeableApp));
         app = ExampleRegistryApp(address(ownerApp));
     }
@@ -39,7 +46,8 @@ contract TeleporterRegistryOwnableAppUpgradeableTest is BaseTeleporterRegistryOw
     function testZeroInitialOwner() public {
         ExampleRegistryOwnableAppUpgradeable upgradeableApp =
             new ExampleRegistryOwnableAppUpgradeable();
+        uint256 minTeleporterVersion = teleporterRegistry.latestVersion();
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
-        upgradeableApp.initialize(address(teleporterRegistry), address(0));
+        upgradeableApp.initialize(address(teleporterRegistry), address(0), minTeleporterVersion);
     }
 }
