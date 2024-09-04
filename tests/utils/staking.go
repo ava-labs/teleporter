@@ -131,10 +131,11 @@ func DeployAndInitializeERC20TokenStakingManager(
 				SubnetID:           subnet.SubnetID,
 				MaximumHourlyChurn: 0,
 			},
-			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration: uint64(24 * time.Hour),
-			RewardCalculator:     common.Address{},
+			MinimumStakeAmount:       big.NewInt(0).SetUint64(1e6),
+			MaximumStakeAmount:       big.NewInt(0).SetUint64(10e6),
+			MinimumStakeDuration:     uint64(24 * time.Hour),
+			MinimumDelegationFeeRate: big.NewInt(0).SetUint64(100),
+			RewardCalculator:         common.Address{},
 		},
 		erc20Address,
 	)
@@ -213,6 +214,7 @@ func InitializeNativeValidatorRegistration(
 		opts,
 		nodeID,
 		uint64(time.Now().Add(24*time.Hour).Unix()),
+		big.NewInt(0).SetUint64(100),
 		blsPublicKey[:],
 	)
 	Expect(err).Should(BeNil())
@@ -252,6 +254,7 @@ func InitializeERC20ValidatorRegistration(
 		stakeAmount,
 		nodeID,
 		uint64(time.Now().Add(24*time.Hour).Unix()),
+		big.NewInt(0).SetUint64(100),
 		blsPublicKey[:],
 	)
 	Expect(err).Should(BeNil())
