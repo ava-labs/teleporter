@@ -222,4 +222,9 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 		func() {
 			staking.NativeDelegation(LocalNetworkInstance)
 		})
+	ginkgo.It("PoA migration to PoS",
+		ginkgo.Label(validatorManagerLabel),
+		func() {
+			staking.PoAMigrationToPoS(LocalNetworkInstance)
+		})
 })

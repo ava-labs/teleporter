@@ -375,6 +375,200 @@ func CallWarpReceiver(
 	return SendTransactionAndWaitForSuccess(context.Background(), subnet, signedRegistrationTx)
 }
 
+func InitializeAndCompleteNativeValidatorRegistration(
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+	fundedKey *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
+	stakingManagerContractAddress common.Address,
+	weight uint64,
+	nodeID ids.ID,
+	blsPublicKey [bls.PublicKeyLen]byte,
+	stakeAmount *big.Int,
+) ids.ID {
+	receipt, validationID := InitializeNativeValidatorRegistration(
+		fundedKey,
+		subnetInfo,
+		stakeAmount,
+		nodeID,
+		blsPublicKey,
+		stakingManager,
+	)
+
+	// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
+	// (Sending to the P-Chain will be skipped for now)
+	signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetInfo, pChainInfo)
+
+	// Validate the Warp message, (this will be done on the P-Chain in the future)
+	ValidateRegisterSubnetValidatorMessage(
+		signedWarpMessage,
+		nodeID,
+		weight,
+		subnetInfo.SubnetID,
+		blsPublicKey,
+	)
+
+	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
+	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
+		validationID,
+		true,
+		subnetInfo,
+		pChainInfo,
+		network,
+		signatureAggregator,
+	)
+
+	// Deliver the Warp message to the subnet
+	receipt = CompleteNativeValidatorRegistration(
+		fundedKey,
+		subnetInfo,
+		stakingManagerContractAddress,
+		registrationSignedMessage,
+	)
+	// Check that the validator is registered in the staking contract
+	registrationEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		stakingManager.ParseValidationPeriodRegistered,
+	)
+	Expect(err).Should(BeNil())
+	Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+
+	return validationID
+}
+
+func InitializeAndCompleteERC20ValidatorRegistration(
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+	fundedKey *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
+	stakingManagerAddress common.Address,
+	weight uint64,
+	erc20 *exampleerc20.ExampleERC20,
+	stakeAmount *big.Int,
+) ids.ID {
+	// Initiate validator registration
+	nodeID := ids.GenerateTestID()
+	blsPublicKey := [bls.PublicKeyLen]byte{}
+	var receipt *types.Receipt
+	receipt, validationID := InitializeERC20ValidatorRegistration(
+		fundedKey,
+		subnetInfo,
+		stakeAmount,
+		erc20,
+		stakingManagerAddress,
+		nodeID,
+		blsPublicKey,
+		stakingManager,
+	)
+
+	// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
+	// (Sending to the P-Chain will be skipped for now)
+	signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetInfo, pChainInfo)
+
+	// Validate the Warp message, (this will be done on the P-Chain in the future)
+	ValidateRegisterSubnetValidatorMessage(
+		signedWarpMessage,
+		nodeID,
+		weight,
+		subnetInfo.SubnetID,
+		blsPublicKey,
+	)
+
+	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
+	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
+		validationID,
+		true,
+		subnetInfo,
+		pChainInfo,
+		network,
+		signatureAggregator,
+	)
+
+	// Deliver the Warp message to the subnet
+	receipt = CompleteERC20ValidatorRegistration(
+		fundedKey,
+		subnetInfo,
+		stakingManagerAddress,
+		registrationSignedMessage,
+	)
+	// Check that the validator is registered in the staking contract
+	registrationEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		stakingManager.ParseValidationPeriodRegistered,
+	)
+	Expect(err).Should(BeNil())
+	Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+
+	return validationID
+}
+
+func InitializeAndCompletePoAValidatorRegistration(
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+	ownerKey *ecdsa.PrivateKey,
+	fundedKey *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	validatorManager *poavalidatormanager.PoAValidatorManager,
+	validatorManagerAddress common.Address,
+	weight uint64,
+	nodeID ids.ID,
+	blsPublicKey [bls.PublicKeyLen]byte,
+) ids.ID {
+	receipt, validationID := InitializePoAValidatorRegistration(
+		ownerKey,
+		subnetInfo,
+		weight,
+		nodeID,
+		blsPublicKey,
+		validatorManager,
+	)
+
+	// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
+	// (Sending to the P-Chain will be skipped for now)
+	signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetInfo, pChainInfo)
+
+	// Validate the Warp message, (this will be done on the P-Chain in the future)
+	ValidateRegisterSubnetValidatorMessage(
+		signedWarpMessage,
+		nodeID,
+		weight,
+		subnetInfo.SubnetID,
+		blsPublicKey,
+	)
+
+	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
+	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
+		validationID,
+		true,
+		subnetInfo,
+		pChainInfo,
+		network,
+		signatureAggregator,
+	)
+
+	// Deliver the Warp message to the subnet
+	receipt = CompletePoAValidatorRegistration(
+		fundedKey,
+		subnetInfo,
+		validatorManagerAddress,
+		registrationSignedMessage,
+	)
+	// Check that the validator is registered in the staking contract
+	registrationEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		validatorManager.ParseValidationPeriodRegistered,
+	)
+	Expect(err).Should(BeNil())
+	Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+
+	return validationID
+}
+
 func InitializeEndNativeValidation(
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
@@ -655,6 +849,190 @@ func CompleteEndNativeDelegation(
 		stakingManagerContractAddress,
 		signedMessage,
 	)
+}
+
+func InitializeAndCompleteEndNativeValidation(
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+	fundedKey *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
+	stakingManagerAddress common.Address,
+	validationID ids.ID,
+	weight uint64,
+	nonce uint64,
+) {
+	receipt := InitializeEndNativeValidation(
+		fundedKey,
+		subnetInfo,
+		stakingManager,
+		validationID,
+	)
+	validatorRemovalEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		stakingManager.ParseValidatorRemovalInitialized,
+	)
+	Expect(err).Should(BeNil())
+	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
+	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(weight))
+
+	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
+	// (Sending to the P-Chain will be skipped for now)
+	signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetInfo, pChainInfo)
+	Expect(err).Should(BeNil())
+
+	// Validate the Warp message, (this will be done on the P-Chain in the future)
+	ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, nonce)
+
+	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
+	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
+		validationID,
+		false,
+		subnetInfo,
+		pChainInfo,
+		network,
+		signatureAggregator,
+	)
+
+	// Deliver the Warp message to the subnet
+	receipt = CompleteEndNativeValidation(
+		fundedKey,
+		subnetInfo,
+		stakingManagerAddress,
+		registrationSignedMessage,
+	)
+
+	// Check that the validator is has been delisted from the staking contract
+	registrationEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		stakingManager.ParseValidationPeriodEnded,
+	)
+	Expect(err).Should(BeNil())
+	Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+}
+
+func InitializeAndCompleteEndERC20Validation(
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+	fundedKey *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
+	stakingManagerAddress common.Address,
+	validationID ids.ID,
+	weight uint64,
+	nonce uint64,
+) {
+	receipt := InitializeEndERC20Validation(
+		fundedKey,
+		subnetInfo,
+		stakingManager,
+		validationID,
+	)
+	validatorRemovalEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		stakingManager.ParseValidatorRemovalInitialized,
+	)
+	Expect(err).Should(BeNil())
+	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
+	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(weight))
+
+	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
+	// (Sending to the P-Chain will be skipped for now)
+	signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetInfo, pChainInfo)
+	Expect(err).Should(BeNil())
+
+	// Validate the Warp message, (this will be done on the P-Chain in the future)
+	ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, nonce)
+
+	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
+	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
+		validationID,
+		false,
+		subnetInfo,
+		pChainInfo,
+		network,
+		signatureAggregator,
+	)
+
+	// Deliver the Warp message to the subnet
+	receipt = CompleteEndERC20Validation(
+		fundedKey,
+		subnetInfo,
+		stakingManagerAddress,
+		registrationSignedMessage,
+	)
+
+	// Check that the validator is has been delisted from the staking contract
+	registrationEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		stakingManager.ParseValidationPeriodEnded,
+	)
+	Expect(err).Should(BeNil())
+	Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+}
+
+func InitializeAndCompleteEndPoAValidation(
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+	ownerKey *ecdsa.PrivateKey,
+	fundedKey *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	validatorManager *poavalidatormanager.PoAValidatorManager,
+	validatorManagerAddress common.Address,
+	validationID ids.ID,
+	weight uint64,
+	nonce uint64,
+) {
+	receipt := InitializeEndPoAValidation(
+		ownerKey,
+		subnetInfo,
+		validatorManager,
+		validationID,
+	)
+	validatorRemovalEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		validatorManager.ParseValidatorRemovalInitialized,
+	)
+	Expect(err).Should(BeNil())
+	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
+	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(weight))
+
+	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
+	// (Sending to the P-Chain will be skipped for now)
+	signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetInfo, pChainInfo)
+	Expect(err).Should(BeNil())
+
+	// Validate the Warp message, (this will be done on the P-Chain in the future)
+	ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, nonce)
+
+	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
+	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
+		validationID,
+		false,
+		subnetInfo,
+		pChainInfo,
+		network,
+		signatureAggregator,
+	)
+
+	// Deliver the Warp message to the subnet
+	receipt = CompleteEndPoAValidation(
+		ownerKey,
+		subnetInfo,
+		validatorManagerAddress,
+		registrationSignedMessage,
+	)
+
+	// Check that the validator is has been delisted from the staking contract
+	registrationEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		validatorManager.ParseValidationPeriodEnded,
+	)
+	Expect(err).Should(BeNil())
+	Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
 }
 
 //
