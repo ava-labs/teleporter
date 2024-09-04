@@ -53,14 +53,13 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	//
 	// Register a validator
 	//
-	var validationID ids.ID // To be used in the delisting step
 	stakeAmount := uint64(1e18)
 	weight, err := stakingManager.ValueToWeight(
 		&bind.CallOpts{},
 		big.NewInt(int64(stakeAmount)),
 	)
 	Expect(err).Should(BeNil())
-	utils.InitializeAndCompleteERC20ValidatorRegistration(
+	validationID := utils.InitializeAndCompleteERC20ValidatorRegistration(
 		network,
 		signatureAggregator,
 		fundedKey,
@@ -68,7 +67,6 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		pChainInfo,
 		stakingManager,
 		stakingManagerAddress,
-		validationID,
 		weight,
 		erc20,
 		stakeAmount,

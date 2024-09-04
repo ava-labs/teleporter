@@ -442,16 +442,15 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	pChainInfo interfaces.SubnetTestInfo,
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	stakingManagerAddress common.Address,
-	validationID ids.ID,
 	weight uint64,
 	erc20 *exampleerc20.ExampleERC20,
 	stakeAmount uint64,
-) {
+) ids.ID {
 	// Initiate validator registration
 	nodeID := ids.GenerateTestID()
 	blsPublicKey := [bls.PublicKeyLen]byte{}
 	var receipt *types.Receipt
-	receipt, validationID = InitializeERC20ValidatorRegistration(
+	receipt, validationID := InitializeERC20ValidatorRegistration(
 		fundedKey,
 		subnetInfo,
 		stakeAmount,
@@ -499,6 +498,8 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	)
 	Expect(err).Should(BeNil())
 	Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+
+	return validationID
 }
 
 func InitializeAndCompletePoAValidatorRegistration(
