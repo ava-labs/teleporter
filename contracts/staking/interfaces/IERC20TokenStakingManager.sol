@@ -12,7 +12,7 @@ interface IERC20TokenStakingManager is IPoSValidatorManager {
      * @notice Begins the validator registration process. Locks the {stakeAmount} of the managers specified ERC20 token.
      * @param stakeAmount The amount of the ERC20 token to stake.
      * @param nodeID The node ID of the validator being registered.
-     * @param registrationExpiry The time at which the reigistration is no longer valid on the P-Chain.
+     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
      * @param delegationFeeRate The fee rate in basis points charged by this validator for delegations.
      * @param blsPublicKey The BLS public key of the validator.
      */

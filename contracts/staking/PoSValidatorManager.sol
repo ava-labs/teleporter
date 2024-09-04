@@ -30,8 +30,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _minimumDelegationFeeRate;
         /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
-        /// @notice Maps the validationID to the uptime of the validator.
-        mapping(bytes32 validationID => uint64) _uptimes;
         /// @notice Maps the validationID to a mapping of delegator address to delegator information.
         mapping(bytes32 validationID => mapping(address delegator => Delegator)) _delegatorStakes;
         /// @notice Maps the validationID to a mapping of delegator address to pending register delegator messages.
@@ -206,10 +204,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Store the delegator information
         $._delegatorStakes[validationID][delegator] = Delegator({
+            status: DelegatorStatus.PendingAdded,
             weight: weight,
             startedAt: 0,
             endedAt: 0,
-            status: DelegatorStatus.PendingAdded
+            startingNonce: nonce,
+            endingNonce: 0
         });
 
         emit DelegatorAdded({
@@ -239,10 +239,21 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         _checkPendingRegisterDelegatorMessages(validationID, delegator);
         delete $._pendingRegisterDelegatorMessages[validationID][delegator];
 
-        // Update the validator weight and delegator status
         Validator memory validator = _getValidator(validationID);
-        require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
 
+        // The received nonce should be no greater than the highest sent nonce
+        require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
+        // It should also be greater than or equal to the delegator's starting nonce
+        require(
+            $._delegatorStakes[validationID][delegator].startingNonce <= nonce,
+            "PoSValidatorManager: nonce does not match"
+        );
+
+        require(
+            $._delegatorStakes[validationID][delegator].status == DelegatorStatus.PendingAdded,
+            "PoSValidatorManager: delegator not pending added"
+        );
+        // Update the delegator status
         $._delegatorStakes[validationID][delegator].status = DelegatorStatus.Active;
         $._delegatorStakes[validationID][delegator].startedAt = uint64(block.timestamp);
 
@@ -262,8 +273,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         require(
             delegator.status == DelegatorStatus.Active, "ValidatorManager: delegator not active"
         );
+        uint64 nonce = _getAndIncrementNonce(validationID);
         delegator.status = DelegatorStatus.PendingRemoved;
         delegator.endedAt = uint64(block.timestamp);
+        delegator.endingNonce = nonce;
 
         $._delegatorStakes[validationID][_msgSender()] = delegator;
 
@@ -273,7 +286,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         _setValidator(validationID, validator);
 
         // Submit the message to the Warp precompile.
-        uint64 nonce = _getAndIncrementNonce(validationID);
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSetSubnetValidatorWeightMessage(validationID, nonce, validator.weight);
         $._pendingEndDelegatorMessages[validationID][_msgSender()] = setValidatorWeightPayload;
@@ -305,9 +317,21 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         _checkPendingEndDelegatorMessage(validationID, delegator);
         delete $._pendingEndDelegatorMessages[validationID][delegator];
 
-        // Update the validator weight and delegator status
         Validator memory validator = _getValidator(validationID);
+        // The received nonce should be no greater than the highest sent nonce
         require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
+        // It should also be greater than or equal to the delegator's starting nonce
+        require(
+            $._delegatorStakes[validationID][delegator].endingNonce <= nonce,
+            "PoSValidatorManager: nonce does not match"
+        );
+
+        require(
+            $._delegatorStakes[validationID][delegator].status == DelegatorStatus.PendingRemoved,
+            "PoSValidatorManager: delegator not pending added"
+        );
+
+        // Update the delegator status
         $._delegatorStakes[validationID][delegator].status = DelegatorStatus.Completed;
 
         emit DelegationEnded(validationID, delegator, nonce);

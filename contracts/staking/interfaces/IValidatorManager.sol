@@ -47,7 +47,7 @@ interface IValidatorManager {
      * @param registerValidationMessageID The ID of the Warp message that will be sent to the P-Chain to register the
      * validation period.
      * @param weight The weight of the validator being registered.
-     * @param registrationExpiry The time at which the registration is no longer valid on the P-Chain.
+     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
      */
     event ValidationPeriodCreated(
         bytes32 indexed validationID,

@@ -26,10 +26,12 @@ struct PoSValidatorManagerSettings {
 }
 
 struct Delegator {
+    DelegatorStatus status;
     uint64 weight;
     uint64 startedAt;
     uint64 endedAt;
-    DelegatorStatus status;
+    uint64 startingNonce;
+    uint64 endingNonce;
 }
 
 interface IPoSValidatorManager is IValidatorManager {
@@ -50,6 +52,7 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Event emitted when a delegator registration is initiated
      * @param validationID The ID of the validation period
+     * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
      * @param delegator The address of the delegator
      * @param delegatorWeight The weight of the delegator
      * @param validatorWeight The updated validator weight that is sent to the P-Chain
@@ -133,6 +136,8 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Completes the delegator registration process by returning an acknowledgement of the registration of a
      * validationID from the P-Chain. After this function is called, the validator's weight is updated in the contract state.
+     * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize registration of the
+     * delegator is valid, as long as that nonce has been sent by the contract.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegator The address of the delegator being registered.
      */
@@ -156,6 +161,8 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Completes the process of ending a delegation by receiving an acknowledgement from the P-Chain.
      * After this function is called, the validator's weight is updated in the contract state.
+     * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize the end of the
+     * delegator's delegation is valid, as long as that nonce has been sent by the contract.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegator The address of the delegator being removed.
      */
