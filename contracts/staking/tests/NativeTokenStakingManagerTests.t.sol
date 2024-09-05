@@ -57,9 +57,8 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         bytes memory signature,
         uint256 value
     ) internal virtual override returns (bytes32) {
-        return app.initializeValidatorRegistration{value: value}(
-            nodeID, registrationExpiry, signature
-        );
+        return
+            app.initializeValidatorRegistration{value: value}(nodeID, registrationExpiry, signature);
     }
 
     function _beforeSend(uint64 weight) internal override {
