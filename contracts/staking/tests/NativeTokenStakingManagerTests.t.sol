@@ -53,7 +53,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         bytes32 validationID,
         address delegator,
         uint64 weight
-    ) internal virtual override returns (bytes32){
+    ) internal virtual override returns (bytes32) {
         uint256 value = app.weightToValue(weight);
         vm.prank(delegator);
         vm.deal(delegator, value);

@@ -31,11 +31,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         /// @notice Maps the validationID to a mapping of delegator address to delegator information.
         mapping(bytes32 delegationID => Delegator) _delegatorStakes;
         /// @notice Maps the validationID to a mapping of delegator address to pending register delegator messages.
-        mapping(bytes32 delegationID => bytes)
-            _pendingRegisterDelegatorMessages;
+        mapping(bytes32 delegationID => bytes) _pendingRegisterDelegatorMessages;
         /// @notice Maps the validationID to a mapping of delegator address to pending end delegator messages.
-        mapping(bytes32 delegationID => bytes)
-            _pendingEndDelegatorMessages;
+        mapping(bytes32 delegationID => bytes) _pendingEndDelegatorMessages;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -330,9 +328,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         emit DelegationEnded(validationID, delegationID, nonce);
     }
 
-    function _checkPendingEndDelegatorMessage(
-        bytes32 delegationID
-    ) private view {
+    function _checkPendingEndDelegatorMessage(bytes32 delegationID) private view {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         require(
             $._pendingEndDelegatorMessages[delegationID].length > 0
@@ -341,9 +337,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         );
     }
 
-    function _checkPendingRegisterDelegatorMessages(
-        bytes32 delegationID
-    ) private view {
+    function _checkPendingRegisterDelegatorMessages(bytes32 delegationID) private view {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         require(
             $._pendingRegisterDelegatorMessages[delegationID].length > 0
