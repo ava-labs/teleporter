@@ -23,10 +23,15 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
+    function newNodeID() public returns (bytes32) {
+        validatorCounter++;
+        return sha256(new bytes(validatorCounter));
+    }
+
     function registerValidators(uint64 n) public {
-        for (uint64 i = validatorCounter; validatorCounter <= i + n; validatorCounter++) {
+        for (uint64 i = 0; i < n; i++) {
             _setUpCompleteValidatorRegistration({
-                nodeID: sha256(new bytes(validatorCounter)),
+                nodeID: newNodeID(),
                 subnetID: DEFAULT_SUBNET_ID,
                 weight: DEFAULT_WEIGHT,
                 registrationExpiry: DEFAULT_EXPIRY,
@@ -38,26 +43,41 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     function testInvalidChurnRegistration() public {
         // First registration should work
-        _setUpCompleteValidatorRegistration({
-            nodeID: sha256(new bytes(1)),
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_CHURN_TRACKER_START_TIME + 1 days,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-            registrationTimestamp: DEFAULT_CHURN_TRACKER_START_TIME - 1
-        });
+        registerValidators(1);
 
         vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
 
-        bytes32 nodeID = sha256(new bytes(2));
         _beforeSend(DEFAULT_WEIGHT);
-
         uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
+
+        bytes32 nodeID = newNodeID();
         vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
         _initializeValidatorRegistrationWithValue(
             nodeID, DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
         );
     }
+
+    // function testValidChurnRegistration() public {
+    //     // First registration should work
+    //     _setUpCompleteValidatorRegistration({
+    //         nodeID: sha256(new bytes(1)),
+    //         subnetID: DEFAULT_SUBNET_ID,
+    //         weight: DEFAULT_WEIGHT,
+    //         registrationExpiry: DEFAULT_CHURN_TRACKER_START_TIME + 1 days,
+    //         blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+    //         registrationTimestamp: DEFAULT_CHURN_TRACKER_START_TIME - 1
+    //     });
+
+    //     vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
+
+    //     _beforeSend(DEFAULT_WEIGHT);
+    //     uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
+
+    //     vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
+    //     _initializeValidatorRegistrationWithValue(
+    //         sha256(new bytes(2)), DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
+    //     );
+    // }
 
     function testInitializeEndValidationWithUptimeProof() public {
         bytes32 validationID = _setUpCompleteValidatorRegistration({
