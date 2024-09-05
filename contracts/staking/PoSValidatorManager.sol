@@ -7,6 +7,7 @@ pragma solidity 0.8.25;
 
 import {IPoSValidatorManager} from "./interfaces/IPoSValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
+import {Validator} from "./interfaces/IValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
 import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
@@ -102,6 +103,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         }
 
         _initializeEndValidation(validationID);
+    }
+
+    function completeEndValidation(uint32 messageIndex) external {
+        Validator memory validator = _completeEndValidation(messageIndex);
+        _unlock(validator.weight, validator.owner);
     }
 
     function _processStake(uint256 stakeAmount) internal virtual returns (uint64) {

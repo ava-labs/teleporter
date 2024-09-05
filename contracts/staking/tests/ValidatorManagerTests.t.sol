@@ -62,6 +62,9 @@ abstract contract ValidatorManagerTest is Test {
 
     event ValidationPeriodEnded(bytes32 indexed validationID, ValidatorStatus indexed status);
 
+    receive() external payable {}
+    fallback() external payable {}
+
     function testInitializeValidatorRegistrationSuccess() public {
         _setUpInitializeValidatorRegistration(
             DEFAULT_NODE_ID,
