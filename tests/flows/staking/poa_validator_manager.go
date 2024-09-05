@@ -131,6 +131,7 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 			validatorManagerAddress,
 			validationID,
 			weight,
+			1,
 		)
 	}
 }

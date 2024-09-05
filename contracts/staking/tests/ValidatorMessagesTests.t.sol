@@ -65,6 +65,17 @@ contract ValidatorMessagesTest is Test {
         assertEq(weight, DEFAULT_WEIGHT);
     }
 
+    function testSubnetValidatorWeightUpdateMessag() public pure {
+        bytes memory packed = ValidatorMessages.packSubnetValidatorWeightUpdateMessage(
+            DEFAULT_VALIDATION_ID, 100, DEFAULT_WEIGHT
+        );
+        (bytes32 validationID, uint64 nonce, uint64 weight) =
+            ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(packed);
+        assertEq(validationID, DEFAULT_VALIDATION_ID);
+        assertEq(nonce, 100);
+        assertEq(weight, DEFAULT_WEIGHT);
+    }
+
     function testValidationUptimeMessage() public pure {
         bytes memory packed =
             ValidatorMessages.packValidationUptimeMessage(DEFAULT_VALIDATION_ID, 100);

@@ -83,14 +83,33 @@ contract ERC20TokenStakingManager is
         $._token = token;
     }
 
+    /**
+     * @notice Begins the validator registration process. Locks the configured ERC20 in the contract as the stake.
+     * @param stakeAmount The amount to be staked.
+     * @param nodeID The node ID of the validator being registered.
+     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
+     * @param blsPublicKey The BLS public key of the validator.
+     */
     function initializeValidatorRegistration(
         uint256 stakeAmount,
         bytes32 nodeID,
         uint64 registrationExpiry,
         bytes memory blsPublicKey
-    ) external override returns (bytes32 validationID) {
+    ) external returns (bytes32 validationID) {
         uint64 weight = _processStake(stakeAmount);
         return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
+    }
+
+    /**
+     * @notice Begins the delegator registration process. Locks the configured ERC20 in the contract as the delegated stake.
+     * @param validationID The ID of the validation period being delegated to.
+     * @param delegationAmount The amount to be delegated.
+     */
+    function initializeDelegatorRegistration(
+        bytes32 validationID,
+        uint256 delegationAmount
+    ) external {
+        return _initializeDelegatorRegistration(validationID, _msgSender(), delegationAmount);
     }
 
     // Must be guarded with reentrancy guard for safe transfer from

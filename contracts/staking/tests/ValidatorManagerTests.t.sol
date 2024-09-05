@@ -151,7 +151,7 @@ abstract contract ValidatorManagerTest is Test {
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         validatorManager.resendEndValidatorMessage(validationID);
     }
@@ -226,7 +226,7 @@ abstract contract ValidatorManagerTest is Test {
         vm.warp(registrationExpiry - 1);
         _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
 
-        _beforeSend(weight);
+        _beforeSend(weight, address(this));
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidationPeriodCreated(validationID, nodeID, bytes32(0), weight, registrationExpiry);
 
@@ -276,7 +276,7 @@ abstract contract ValidatorManagerTest is Test {
 
         vm.warp(completionTimestamp);
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp);
@@ -333,6 +333,6 @@ abstract contract ValidatorManagerTest is Test {
 
     function _initializeEndValidation(bytes32 validationID) internal virtual;
 
-    function _beforeSend(uint64 weight) internal virtual;
+    function _beforeSend(uint64 weight, address spender) internal virtual;
 }
 // solhint-enable no-empty-blocks

@@ -12,7 +12,6 @@ import (
 	warpMessages "github.com/ava-labs/avalanchego/vms/platformvm/warp/messages"
 	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
 	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
-	"github.com/ava-labs/subnet-evm/accounts/abi"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
@@ -201,14 +200,14 @@ func DeployAndInitializePoAValidatorManager(
 func InitializeNativeValidatorRegistration(
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
-	stakeAmount uint64,
+	stakeAmount *big.Int,
 	nodeID ids.ID,
 	blsPublicKey [bls.PublicKeyLen]byte,
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
 ) (*types.Receipt, ids.ID) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	opts.Value = big.NewInt(0).SetUint64(stakeAmount)
+	opts.Value = stakeAmount
 
 	tx, err := stakingManager.InitializeValidatorRegistration(
 		opts,
@@ -229,7 +228,7 @@ func InitializeNativeValidatorRegistration(
 func InitializeERC20ValidatorRegistration(
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
-	stakeAmount uint64,
+	stakeAmount *big.Int,
 	token *exampleerc20.ExampleERC20,
 	stakingManagerAddress common.Address,
 	nodeID ids.ID,
@@ -240,7 +239,7 @@ func InitializeERC20ValidatorRegistration(
 		context.Background(),
 		token,
 		stakingManagerAddress,
-		big.NewInt(0).SetUint64(stakeAmount),
+		stakeAmount,
 		subnet,
 		senderKey,
 	)
@@ -250,7 +249,7 @@ func InitializeERC20ValidatorRegistration(
 
 	tx, err := stakingManager.InitializeValidatorRegistration(
 		opts,
-		big.NewInt(0).SetUint64(stakeAmount),
+		stakeAmount,
 		nodeID,
 		uint64(time.Now().Add(24*time.Hour).Unix()),
 		blsPublicKey[:],
@@ -301,8 +300,10 @@ func CompleteNativeValidatorRegistration(
 ) *types.Receipt {
 	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	return completeValidatorRegistration(
-		abi,
+	callData, err := abi.Pack("completeValidatorRegistration", uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
 		sendingKey,
 		subnet,
 		stakingManagerContractAddress,
@@ -318,8 +319,10 @@ func CompleteERC20ValidatorRegistration(
 ) *types.Receipt {
 	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	return completeValidatorRegistration(
-		abi,
+	callData, err := abi.Pack("completeValidatorRegistration", uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
 		sendingKey,
 		subnet,
 		stakingManagerContractAddress,
@@ -335,8 +338,10 @@ func CompletePoAValidatorRegistration(
 ) *types.Receipt {
 	abi, err := poavalidatormanager.PoAValidatorManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	return completeValidatorRegistration(
-		abi,
+	callData, err := abi.Pack("completeValidatorRegistration", uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
 		sendingKey,
 		subnet,
 		validatorManagerAddress,
@@ -344,20 +349,19 @@ func CompletePoAValidatorRegistration(
 	)
 }
 
-func completeValidatorRegistration(
-	abi *abi.ABI,
+// Calls a method that retreived a signed Warp message from the transaction's access list
+func CallWarpReceiver(
+	callData []byte,
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
-	stakingManagerContractAddress common.Address,
-	registrationSignedMessage *avalancheWarp.Message,
+	contract common.Address,
+	signedMessage *avalancheWarp.Message,
 ) *types.Receipt {
-	callData, err := abi.Pack("completeValidatorRegistration", uint32(0))
-	Expect(err).Should(BeNil())
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(context.Background(), subnet, PrivateKeyToAddress(sendingKey))
 	registrationTx := predicateutils.NewPredicateTx(
 		subnet.EVMChainID,
 		nonce,
-		&stakingManagerContractAddress,
+		&contract,
 		2_000_000,
 		gasFeeCap,
 		gasTipCap,
@@ -365,7 +369,7 @@ func completeValidatorRegistration(
 		callData,
 		types.AccessList{},
 		warp.ContractAddress,
-		registrationSignedMessage.Bytes(),
+		signedMessage.Bytes(),
 	)
 	signedRegistrationTx := SignTransaction(registrationTx, sendingKey, subnet.EVMChainID)
 	return SendTransactionAndWaitForSuccess(context.Background(), subnet, signedRegistrationTx)
@@ -382,7 +386,7 @@ func InitializeAndCompleteNativeValidatorRegistration(
 	weight uint64,
 	nodeID ids.ID,
 	blsPublicKey [bls.PublicKeyLen]byte,
-	stakeAmount uint64,
+	stakeAmount *big.Int,
 ) ids.ID {
 	receipt, validationID := InitializeNativeValidatorRegistration(
 		fundedKey,
@@ -444,7 +448,7 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	stakingManagerAddress common.Address,
 	weight uint64,
 	erc20 *exampleerc20.ExampleERC20,
-	stakeAmount uint64,
+	stakeAmount *big.Int,
 ) ids.ID {
 	// Initiate validator registration
 	nodeID := ids.GenerateTestID()
@@ -625,8 +629,10 @@ func CompleteEndNativeValidation(
 ) *types.Receipt {
 	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	return callCompleteEndValidation(
-		abi,
+	callData, err := abi.Pack("completeEndValidation", uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
 		sendingKey,
 		subnet,
 		stakingManagerContractAddress,
@@ -642,8 +648,10 @@ func CompleteEndERC20Validation(
 ) *types.Receipt {
 	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	return callCompleteEndValidation(
-		abi,
+	callData, err := abi.Pack("completeEndValidation", uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
 		sendingKey,
 		subnet,
 		stakingManagerContractAddress,
@@ -659,8 +667,10 @@ func CompleteEndPoAValidation(
 ) *types.Receipt {
 	abi, err := poavalidatormanager.PoAValidatorManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	return callCompleteEndValidation(
-		abi,
+	callData, err := abi.Pack("completeEndValidation", uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
 		sendingKey,
 		subnet,
 		validatorManagerAddress,
@@ -668,31 +678,177 @@ func CompleteEndPoAValidation(
 	)
 }
 
-func callCompleteEndValidation(
-	abi *abi.ABI,
+func InitializeERC20DelegatorRegistration(
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	validationID ids.ID,
+	delegationAmount *big.Int,
+	token *exampleerc20.ExampleERC20,
+	stakingManagerAddress common.Address,
+	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
+) *types.Receipt {
+	ERC20Approve(
+		context.Background(),
+		token,
+		stakingManagerAddress,
+		delegationAmount,
+		subnet,
+		senderKey,
+	)
+
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+
+	tx, err := stakingManager.InitializeDelegatorRegistration(
+		opts,
+		validationID,
+		delegationAmount,
+	)
+	Expect(err).Should(BeNil())
+	receipt := WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
+	_, err = GetEventFromLogs(
+		receipt.Logs,
+		stakingManager.ParseDelegatorAdded,
+	)
+	Expect(err).Should(BeNil())
+	return receipt
+}
+
+func CompleteERC20DelegatorRegistration(
 	sendingKey *ecdsa.PrivateKey,
+	delegator common.Address,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
-	registrationSignedMessage *avalancheWarp.Message,
+	signedMessage *avalancheWarp.Message,
 ) *types.Receipt {
-	callData, err := abi.Pack("completeEndValidation", uint32(0))
+	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(context.Background(), subnet, PrivateKeyToAddress(sendingKey))
-	registrationTx := predicateutils.NewPredicateTx(
-		subnet.EVMChainID,
-		nonce,
-		&stakingManagerContractAddress,
-		2_000_000,
-		gasFeeCap,
-		gasTipCap,
-		big.NewInt(0),
+	callData, err := abi.Pack("completeDelegatorRegistration", uint32(0), delegator)
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
 		callData,
-		types.AccessList{},
-		warp.ContractAddress,
-		registrationSignedMessage.Bytes(),
+		sendingKey,
+		subnet,
+		stakingManagerContractAddress,
+		signedMessage,
 	)
-	signedRegistrationTx := SignTransaction(registrationTx, sendingKey, subnet.EVMChainID)
-	return SendTransactionAndWaitForSuccess(context.Background(), subnet, signedRegistrationTx)
+}
+
+func InitializeEndERC20Delegation(
+	sendingKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
+	validationID ids.ID,
+) *types.Receipt {
+	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := stakingManager.InitializeEndDelegation(
+		opts,
+		validationID,
+	)
+	Expect(err).Should(BeNil())
+	return WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
+}
+
+func CompleteEndERC20Delegation(
+	sendingKey *ecdsa.PrivateKey,
+	delegator common.Address,
+	subnet interfaces.SubnetTestInfo,
+	stakingManagerContractAddress common.Address,
+	signedMessage *avalancheWarp.Message,
+) *types.Receipt {
+	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("completeEndDelegation", uint32(0), delegator)
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
+		sendingKey,
+		subnet,
+		stakingManagerContractAddress,
+		signedMessage,
+	)
+}
+
+func InitializeNativeDelegatorRegistration(senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	validationID ids.ID,
+	delegationAmount *big.Int,
+	stakingManagerAddress common.Address,
+	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
+) *types.Receipt {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	opts.Value = delegationAmount
+
+	tx, err := stakingManager.InitializeDelegatorRegistration(
+		opts,
+		validationID,
+	)
+	Expect(err).Should(BeNil())
+	receipt := WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
+	_, err = GetEventFromLogs(
+		receipt.Logs,
+		stakingManager.ParseDelegatorAdded,
+	)
+	Expect(err).Should(BeNil())
+	return receipt
+}
+
+func CompleteNativeDelegatorRegistration(
+	sendingKey *ecdsa.PrivateKey,
+	delegator common.Address,
+	subnet interfaces.SubnetTestInfo,
+	stakingManagerContractAddress common.Address,
+	signedMessage *avalancheWarp.Message,
+) *types.Receipt {
+	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("completeDelegatorRegistration", uint32(0), delegator)
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
+		sendingKey,
+		subnet,
+		stakingManagerContractAddress,
+		signedMessage,
+	)
+}
+
+func InitializeEndNativeDelegation(
+	sendingKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
+	validationID ids.ID,
+) *types.Receipt {
+	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := stakingManager.InitializeEndDelegation(
+		opts,
+		validationID,
+	)
+	Expect(err).Should(BeNil())
+	return WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
+}
+
+func CompleteEndNativeDelegation(
+	sendingKey *ecdsa.PrivateKey,
+	delegator common.Address,
+	subnet interfaces.SubnetTestInfo,
+	stakingManagerContractAddress common.Address,
+	signedMessage *avalancheWarp.Message,
+) *types.Receipt {
+	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("completeEndDelegation", uint32(0), delegator)
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
+		sendingKey,
+		subnet,
+		stakingManagerContractAddress,
+		signedMessage,
+	)
 }
 
 func InitializeAndCompleteEndNativeValidation(
@@ -705,6 +861,7 @@ func InitializeAndCompleteEndNativeValidation(
 	stakingManagerAddress common.Address,
 	validationID ids.ID,
 	weight uint64,
+	nonce uint64,
 ) {
 	receipt := InitializeEndNativeValidation(
 		fundedKey,
@@ -726,7 +883,7 @@ func InitializeAndCompleteEndNativeValidation(
 	Expect(err).Should(BeNil())
 
 	// Validate the Warp message, (this will be done on the P-Chain in the future)
-	ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, 0)
+	ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, nonce)
 
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
@@ -765,6 +922,7 @@ func InitializeAndCompleteEndERC20Validation(
 	stakingManagerAddress common.Address,
 	validationID ids.ID,
 	weight uint64,
+	nonce uint64,
 ) {
 	receipt := InitializeEndERC20Validation(
 		fundedKey,
@@ -786,7 +944,7 @@ func InitializeAndCompleteEndERC20Validation(
 	Expect(err).Should(BeNil())
 
 	// Validate the Warp message, (this will be done on the P-Chain in the future)
-	ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, 0)
+	ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, nonce)
 
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
@@ -826,6 +984,7 @@ func InitializeAndCompleteEndPoAValidation(
 	validatorManagerAddress common.Address,
 	validationID ids.ID,
 	weight uint64,
+	nonce uint64,
 ) {
 	receipt := InitializeEndPoAValidation(
 		ownerKey,
@@ -847,7 +1006,7 @@ func InitializeAndCompleteEndPoAValidation(
 	Expect(err).Should(BeNil())
 
 	// Validate the Warp message, (this will be done on the P-Chain in the future)
-	ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, 0)
+	ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, nonce)
 
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
@@ -907,6 +1066,36 @@ func ConstructSubnetValidatorRegistrationMessage(
 	)
 	Expect(err).Should(BeNil())
 	return registrationSignedMessage
+}
+
+func ConstructSubnetValidatorWeightUpdateMessage(
+	validationID ids.ID,
+	nonce uint64,
+	weight uint64,
+	subnet interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+) *avalancheWarp.Message {
+	updatePayload, err := warpMessages.NewSubnetValidatorWeightUpdate(validationID, nonce, weight)
+	Expect(err).Should(BeNil())
+	updateAddressedCall, err := warpPayload.NewAddressedCall(common.Address{}.Bytes(), updatePayload.Bytes())
+	Expect(err).Should(BeNil())
+	updateUnsignedMessage, err := avalancheWarp.NewUnsignedMessage(
+		network.GetNetworkID(),
+		pChainInfo.BlockchainID,
+		updateAddressedCall.Bytes(),
+	)
+	Expect(err).Should(BeNil())
+
+	updateSignedMessage, err := signatureAggregator.CreateSignedMessage(
+		updateUnsignedMessage,
+		nil,
+		subnet.SubnetID,
+		67,
+	)
+	Expect(err).Should(BeNil())
+	return updateSignedMessage
 }
 
 //

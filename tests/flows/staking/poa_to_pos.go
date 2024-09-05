@@ -167,10 +167,10 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 
 	// Register a PoS validator
 	posNodeID := ids.GenerateTestID()
-	stakeAmount := uint64(1e18)
+	stakeAmount := big.NewInt(1e18)
 	posWeight, err := posValidatorManager.ValueToWeight(
 		&bind.CallOpts{},
-		big.NewInt(int64(stakeAmount)),
+		stakeAmount,
 	)
 	Expect(err).Should(BeNil())
 
@@ -208,6 +208,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		proxyAddress,
 		poaValidationID,
 		poaWeight,
+		1,
 	)
 
 	// Delist the PoS validator
@@ -221,5 +222,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		proxyAddress,
 		posValidationID,
 		posWeight,
+		1,
 	)
 }
