@@ -387,8 +387,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
             expectedNonce: 1
         });
-        // TODO: Remove this once the nonce update bug is fixed
-        posValidatorManager.foo(validationID);
         _setUpCompleteDelegatorRegistration(
             validationID,
             delegationID,
@@ -408,8 +406,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validationID, delegationID, DEFAULT_WEIGHT, DEFAULT_WEIGHT, 2
         );
     }
-
-    function testCompleteEndblahDelegationWrongNonce() public {
+    function testCompleteEndDelegationWrongNonce() public {
         bytes32 validationID = _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
@@ -483,7 +480,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         posValidatorManager.completeEndDelegation(0, delegationID_2);
     }
 
-    function testCompleteEndDeblahlegationImplicitNonce() public {
+    function testCompleteEndDelegationImplicitNonce() public {
         bytes32 validationID = _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,

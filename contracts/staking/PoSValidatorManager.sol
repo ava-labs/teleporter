@@ -145,11 +145,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     function _lock(uint256 value) internal virtual returns (uint256);
     function _unlock(uint256 value, address to) internal virtual;
 
-    // TODO: Updating the nonce in this function call DOES work as expected
-    function foo(bytes32 validationID) external {
-        _getAndIncrementNonce(validationID);
-    }
-
     function _initializeDelegatorRegistration(
         bytes32 validationID,
         address delegator,
@@ -163,11 +158,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         require(
             validator.status == ValidatorStatus.Active, "PoSValidatorManager: validator not active"
         );
-        // TODO: This function call seems to not update the validator manager's state,
-        // but ONLY when called from here. The same call in other methods does appear to 
-        // update the validator manager's state as expected.
-        uint64 nonce = _getAndIncrementNonce(validationID);
+        // Update the validator weight
+        validator.weight += weight;
+        _setValidator(validationID, validator);
 
+        uint64 nonce = _getAndIncrementNonce(validationID);
         bytes32 delegationID = sha256(abi.encodePacked(validationID, delegator, nonce));
 
         // Ensure the delegator is not already registered
@@ -177,10 +172,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         );
 
         _checkAndUpdateChurnTracker(weight);
-
-        // Update the validator weight
-        validator.weight += weight;
-        _setValidator(validationID, validator);
 
         // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
