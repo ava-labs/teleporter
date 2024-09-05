@@ -26,6 +26,8 @@ struct PoSValidatorManagerSettings {
 
 struct Delegator {
     DelegatorStatus status;
+    address owner;
+    bytes32 validationID;
     uint64 weight;
     uint64 startedAt;
     uint64 endedAt;
@@ -34,11 +36,12 @@ struct Delegator {
 }
 
 interface IPoSValidatorManager is IValidatorManager {
+    // TODO: Decide what to include in the events.
     /**
      * @notice Event emitted when a delegator registration is initiated
      * @param validationID The ID of the validation period
      * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
-     * @param delegator The address of the delegator
+     * @param delegationID The ID of the delegation
      * @param delegatorWeight The weight of the delegator
      * @param validatorWeight The updated validator weight that is sent to the P-Chain
      * @param nonce The message nonce used to update the validator weight
@@ -46,7 +49,7 @@ interface IPoSValidatorManager is IValidatorManager {
     event DelegatorAdded(
         bytes32 indexed validationID,
         bytes32 indexed setWeightMessageID,
-        address indexed delegator,
+        bytes32 indexed delegationID,
         uint64 delegatorWeight,
         uint64 validatorWeight,
         uint64 nonce
@@ -55,13 +58,13 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Event emitted when a delegator registration is completed
      * @param validationID The ID of the validation period
-     * @param delegator The address of the delegator
+     * @param delegationID The ID of the delegation
      * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
      * @param startTime The time at which the registration was completed
      */
     event DelegatorRegistered(
         bytes32 indexed validationID,
-        address indexed delegator,
+        bytes32 indexed delegationID,
         uint64 indexed nonce,
         uint256 startTime
     );
@@ -70,7 +73,7 @@ interface IPoSValidatorManager is IValidatorManager {
      * @notice Event emitted when delegator removal is initiated
      * @param validationID The ID of the validation period
      * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
-     * @param delegator The address of the delegator
+     * @param delegationID The ID of the delegation
      * @param validatorWeight The updated validator weight that is sent to the P-Chain
      * @param nonce The message nonce used to update the validator weight
      * @param endTime The time at which the removal was initiated
@@ -78,7 +81,7 @@ interface IPoSValidatorManager is IValidatorManager {
     event DelegatorRemovalInitialized(
         bytes32 indexed validationID,
         bytes32 indexed setWeightMessageID,
-        address indexed delegator,
+        bytes32 indexed delegationID,
         uint64 validatorWeight,
         uint64 nonce,
         uint256 endTime
@@ -87,11 +90,11 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Event emitted when delegator removal is completed
      * @param validationID The ID of the validation period
-     * @param delegator The address of the delegator
+     * @param delegationID The ID of the delegation
      * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
      */
     event DelegationEnded(
-        bytes32 indexed validationID, address indexed delegator, uint64 indexed nonce
+        bytes32 indexed validationID, bytes32 indexed delegationID, uint64 indexed nonce
     );
 
     /**
@@ -113,10 +116,9 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Resubmits a delegator registration message to be sent to the P-Chain.
      * Only necessary if the original message can't be delivered due to validator churn.
-     * @param validationID The ID of the validation period being registered.
-     * @param delegator The address of the delegator being registered.
+     * @param delegationID The ID of the delegation being registered.
      */
-    function resendDelegatorRegistration(bytes32 validationID, address delegator) external;
+    function resendDelegatorRegistration(bytes32 delegationID) external;
 
     /**
      * @notice Completes the delegator registration process by returning an acknowledgement of the registration of a
@@ -124,21 +126,21 @@ interface IPoSValidatorManager is IValidatorManager {
      * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize registration of the
      * delegator is valid, as long as that nonce has been sent by the contract.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
-     * @param delegator The address of the delegator being registered.
+     * @param delegationID The ID of the delegation being registered.
      */
-    function completeDelegatorRegistration(uint32 messageIndex, address delegator) external;
+    function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external;
 
     /**
      * @notice Begins the process of removing a delegator from a validation period. The delegator must have been previously
      * registered with the given validationID.
-     * @param validationID The ID of the validation period being removed.
+     * @param delegationID The ID of the delegation being removed.
      * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
      * If no uptime proof is provided, the validation uptime for the delegation period will be assumed to be 0.
      * @param messageIndex If {includeUptimeProof} is true, the index of the Warp message to be received providing the
      * uptime proof.
      */
     function initializeEndDelegation(
-        bytes32 validationID,
+        bytes32 delegationID,
         bool includeUptimeProof,
         uint32 messageIndex
     ) external;
@@ -146,10 +148,9 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Resubmits a delegator end message to be sent to the P-Chain.
      * Only necessary if the original message can't be delivered due to validator churn.
-     * @param validationID The ID of the validation period being ended.
-     * @param delegator The address of the delegator being removed.
+     * @param delegationID The ID of the delegation being removed.
      */
-    function resendEndDelegation(bytes32 validationID, address delegator) external;
+    function resendEndDelegation(bytes32 delegationID) external;
 
     /**
      * @notice Completes the process of ending a delegation by receiving an acknowledgement from the P-Chain.
@@ -157,7 +158,7 @@ interface IPoSValidatorManager is IValidatorManager {
      * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize the end of the
      * delegator's delegation is valid, as long as that nonce has been sent by the contract.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
-     * @param delegator The address of the delegator being removed.
+     * @param delegationID The ID of the delegation being removed.
      */
-    function completeEndDelegation(uint32 messageIndex, address delegator) external;
+    function completeEndDelegation(uint32 messageIndex, bytes32 delegationID) external;
 }

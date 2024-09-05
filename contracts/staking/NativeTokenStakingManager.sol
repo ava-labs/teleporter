@@ -66,7 +66,7 @@ contract NativeTokenStakingManager is
      * @notice Begins the delegator registration process. Locks the provided native asset in the contract as the delegated stake.
      * @param validationID The ID of the validation period being delegated to.
      */
-    function initializeDelegatorRegistration(bytes32 validationID) external payable {
+    function initializeDelegatorRegistration(bytes32 validationID) external payable returns (bytes32) {
         return _initializeDelegatorRegistration(validationID, _msgSender(), msg.value);
     }
 

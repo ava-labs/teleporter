@@ -108,7 +108,7 @@ contract ERC20TokenStakingManager is
     function initializeDelegatorRegistration(
         bytes32 validationID,
         uint256 delegationAmount
-    ) external {
+    ) external returns (bytes32) {
         return _initializeDelegatorRegistration(validationID, _msgSender(), delegationAmount);
     }
 
