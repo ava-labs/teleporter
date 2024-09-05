@@ -157,8 +157,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             validator.status == ValidatorStatus.Active, "PoSValidatorManager: validator not active"
         );
         // Update the validator weight
-        validator.weight += weight;
-        _setValidator(validationID, validator);
+        uint64 newValidatorWeight = validator.weight + weight;
+        _setValidatorWeight(validationID, newValidatorWeight);
 
         uint64 nonce = _getAndIncrementNonce(validationID);
         bytes32 delegationID = sha256(abi.encodePacked(validationID, delegator, nonce));
@@ -173,7 +173,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, nonce, validator.weight);
+            .packSetSubnetValidatorWeightMessage(validationID, nonce, newValidatorWeight);
         $._pendingRegisterDelegatorMessages[delegationID] = setValidatorWeightPayload;
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
@@ -194,7 +194,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             setWeightMessageID: messageID,
             delegationID: delegationID,
             delegatorWeight: weight,
-            validatorWeight: validator.weight,
+            validatorWeight: newValidatorWeight,
             nonce: nonce
         });
         return delegationID;
@@ -271,12 +271,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         Validator memory validator = _getValidator(validationID);
         require(validator.weight > delegator.weight, "PoSValidatorManager: Invalid weight");
-        validator.weight -= delegator.weight;
-        _setValidator(validationID, validator);
+        uint64 newValidatorWeight = validator.weight - delegator.weight;
+        _setValidatorWeight(validationID, newValidatorWeight);
 
         // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, nonce, validator.weight);
+            .packSetSubnetValidatorWeightMessage(validationID, nonce, newValidatorWeight);
         $._pendingEndDelegatorMessages[delegationID] = setValidatorWeightPayload;
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
@@ -284,7 +284,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             validationID: validationID,
             setWeightMessageID: messageID,
             delegationID: delegationID,
-            validatorWeight: validator.weight,
+            validatorWeight: newValidatorWeight,
             nonce: nonce,
             endTime: block.timestamp
         });
