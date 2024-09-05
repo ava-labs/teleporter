@@ -165,7 +165,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
      */
     function _checkAndUpdateChurnTracker(uint64 amount) private {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        if ($._maximumChurnPercentage == 0) {
+        if ($._maximumChurnPercentage == 0 || $._totalWeight == 0) {
             return;
         }
 
@@ -178,6 +178,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         if (currentTime - churnTracker.startedAt >= $._churnPeriodSeconds) {
             churnTracker.churnAmount = amount;
             churnTracker.startedAt = currentTime;
+            churnTracker.initialWeight = $._totalWeight;
         } else {
             churnTracker.churnAmount += amount;
         }
@@ -185,7 +186,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint8 churnPercentage = uint8((churnTracker.churnAmount * 100) / churnTracker.initialWeight);
         require(
             churnPercentage <= $._maximumChurnPercentage,
-            "ValidatorManager: Maximum hourly churn rate exceeded"
+            "PoSValidatorManager: maximum hourly churn rate exceeded"
         );
         $._churnTracker = churnTracker;
     }

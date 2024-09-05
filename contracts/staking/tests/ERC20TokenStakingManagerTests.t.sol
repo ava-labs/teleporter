@@ -58,6 +58,17 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         );
     }
 
+    function _initializeValidatorRegistrationWithValue(
+        bytes32 nodeID,
+        uint64 registrationExpiry,
+        bytes memory signature,
+        uint256 value
+    ) internal virtual override returns (bytes32) {
+        return app.initializeValidatorRegistration(
+            value, nodeID, registrationExpiry, signature
+        );
+    }
+
     function _beforeSend(uint64 weight) internal override {
         // ERC20 tokens need to be pre-approved
         token.safeIncreaseAllowance(address(app), app.weightToValue(weight));

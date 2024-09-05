@@ -199,42 +199,6 @@ abstract contract ValidatorManagerTest is Test {
         validatorManager.completeEndValidation(0);
     }
 
-    function _setUpInitializeValidatorChurn(
-        bytes32 nodeID,
-        bytes32 subnetID,
-        uint64 weight,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey
-    ) internal returns (bytes32 validationID) {
-        (validationID,) = ValidatorMessages.packRegisterSubnetValidatorMessage(
-            ValidatorMessages.ValidationPeriod({
-                nodeID: nodeID,
-                subnetID: subnetID,
-                weight: weight,
-                registrationExpiry: registrationExpiry,
-                blsPublicKey: blsPublicKey
-            })
-        );
-        (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
-            .packRegisterSubnetValidatorMessage(
-            ValidatorMessages.ValidationPeriod({
-                subnetID: subnetID,
-                nodeID: nodeID,
-                weight: weight,
-                registrationExpiry: registrationExpiry,
-                blsPublicKey: blsPublicKey
-            })
-        );
-        vm.warp(registrationExpiry - 1);
-        _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
-
-        _beforeSend(weight);
-        vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidationPeriodCreated(validationID, nodeID, bytes32(0), weight, registrationExpiry);
-
-        _initializeValidatorRegistration(nodeID, registrationExpiry, blsPublicKey, weight);
-    }
-
     function _setUpInitializeValidatorRegistration(
         bytes32 nodeID,
         bytes32 subnetID,
@@ -261,7 +225,6 @@ abstract contract ValidatorManagerTest is Test {
                 blsPublicKey: blsPublicKey
             })
         );
-        vm.warp(registrationExpiry - 1);
         _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
 
         _beforeSend(weight);

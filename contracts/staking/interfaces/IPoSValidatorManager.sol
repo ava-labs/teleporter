@@ -21,7 +21,7 @@ struct PoSValidatorManagerSettings {
 
 struct ValidatorChurnPeriod {
     uint256 startedAt;
-    uint64 initialWeight;
+    uint256 initialWeight;
     uint64 churnAmount;
 }
 

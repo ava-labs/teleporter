@@ -18,12 +18,15 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     PoSValidatorManager public posValidatorManager;
 
+    // Used to create unique validator IDs in {registerValidators}
+    uint64 public validatorCounter = 0;
+
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
-    function testRegisterManyValidators() public {
-        for (uint64 i = 1; i <= 10; i++) {
+    function registerValidators(uint64 n) public {
+        for (uint64 i = validatorCounter; validatorCounter <= i + n; validatorCounter++) {
             _setUpCompleteValidatorRegistration({
-                nodeID: sha256(new bytes(i)),
+                nodeID: sha256(new bytes(validatorCounter)),
                 subnetID: DEFAULT_SUBNET_ID,
                 weight: DEFAULT_WEIGHT,
                 registrationExpiry: DEFAULT_EXPIRY,
@@ -31,6 +34,37 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
                 registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
             });
         }
+    }
+
+    function testInvalidChurnRegistration() public {
+        // First registration should work
+        _setUpCompleteValidatorRegistration({
+            nodeID: sha256(new bytes(1)),
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_CHURN_TRACKER_START_TIME + 1 days,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_CHURN_TRACKER_START_TIME - 1
+        });
+
+        vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
+
+        bytes32 nodeID = sha256(new bytes(2));
+        (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
+            .packRegisterSubnetValidatorMessage(
+            ValidatorMessages.ValidationPeriod({
+                nodeID: nodeID,
+                subnetID: DEFAULT_SUBNET_ID,
+                weight: DEFAULT_WEIGHT,
+                registrationExpiry: DEFAULT_CHURN_TRACKER_START_TIME + 1 days,
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+            })
+        );
+        _beforeSend(DEFAULT_WEIGHT);
+
+        uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
+        vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
+        _initializeValidatorRegistrationWithValue(nodeID, DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value);
     }
 
     function testInitializeEndValidationWithUptimeProof() public {
@@ -185,4 +219,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function _formatErrorMessage(bytes memory errorMessage) internal pure returns (bytes memory) {
         return abi.encodePacked("PoSValidatorManager: ", errorMessage);
     }
+
+    function _initializeValidatorRegistrationWithValue(
+        bytes32 nodeID,
+        uint64 registrationExpiry,
+        bytes memory blsPublicKey,
+        uint256 value
+    ) internal virtual returns (bytes32);
 }
