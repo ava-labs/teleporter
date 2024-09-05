@@ -145,7 +145,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     function _initializeDelegatorRegistration(
         bytes32 validationID,
-        address delegator,
+        address delegatorAddress,
         uint256 delegationAmount
     ) internal nonReentrant returns (bytes32) {
         uint64 weight = valueToWeight(_lock(delegationAmount));
@@ -161,12 +161,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         _setValidatorWeight(validationID, newValidatorWeight);
 
         uint64 nonce = _getAndIncrementNonce(validationID);
-        bytes32 delegationID = sha256(abi.encodePacked(validationID, delegator, nonce));
+        bytes32 delegationID = sha256(abi.encodePacked(validationID, delegatorAddress, nonce));
 
-        // Ensure the delegator is not already registered
+        // Ensure the delegationID is not already registered
         require(
             $._delegatorStakes[delegationID].weight == 0,
-            "PoSValidatorManager: delegator already registered"
+            "PoSValidatorManager: delegationID already registered"
         );
 
         _checkAndUpdateChurnTracker(weight);
@@ -177,10 +177,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         $._pendingRegisterDelegatorMessages[delegationID] = setValidatorWeightPayload;
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
-        // Store the delegator information
+        // Store the delegation information
         $._delegatorStakes[delegationID] = Delegator({
             status: DelegatorStatus.PendingAdded,
-            owner: delegator,
+            owner: delegatorAddress,
             validationID: validationID,
             weight: weight,
             startedAt: 0,
@@ -190,12 +190,13 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         });
 
         emit DelegatorAdded({
-            validationID: validationID,
-            setWeightMessageID: messageID,
             delegationID: delegationID,
-            delegatorWeight: weight,
+            validationID: validationID,
+            delegatorAddress: delegatorAddress,
+            nonce: nonce,
             validatorWeight: newValidatorWeight,
-            nonce: nonce
+            delegatorWeight: weight,
+            setWeightMessageID: messageID
         });
         return delegationID;
     }
@@ -221,7 +222,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // The received nonce should be no greater than the highest sent nonce
         require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
-        // It should also be greater than or equal to the delegator's starting nonce
+        // It should also be greater than or equal to the delegationID's starting nonce
         require(
             $._delegatorStakes[delegationID].startingNonce <= nonce,
             "PoSValidatorManager: nonce does not match"
@@ -229,14 +230,14 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         require(
             $._delegatorStakes[delegationID].status == DelegatorStatus.PendingAdded,
-            "PoSValidatorManager: delegator not pending added"
+            "PoSValidatorManager: delegationID not pending added"
         );
-        // Update the delegator status
+        // Update the delegation status
         $._delegatorStakes[delegationID].status = DelegatorStatus.Active;
         $._delegatorStakes[delegationID].startedAt = uint64(block.timestamp);
         emit DelegatorRegistered({
-            validationID: validationID,
             delegationID: delegationID,
+            validationID: validationID,
             nonce: nonce,
             startTime: block.timestamp
         });
@@ -263,7 +264,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             delegator.owner == _msgSender(), "PoSValidatorManager: delegation not owned by sender"
         );
         require(
-            delegator.status == DelegatorStatus.Active, "PoSValidatorManager: delegator not active"
+            delegator.status == DelegatorStatus.Active, "PoSValidatorManager: delegation not active"
         );
         uint64 nonce = _getAndIncrementNonce(validationID);
         delegator.status = DelegatorStatus.PendingRemoved;
@@ -284,12 +285,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
         emit DelegatorRemovalInitialized({
-            validationID: validationID,
-            setWeightMessageID: messageID,
             delegationID: delegationID,
-            validatorWeight: newValidatorWeight,
+            validationID: validationID,
             nonce: nonce,
-            endTime: block.timestamp
+            validatorWeight: newValidatorWeight,
+            endTime: block.timestamp,
+            setWeightMessageID: messageID
         });
     }
 
@@ -320,7 +321,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         require(
             $._delegatorStakes[delegationID].status == DelegatorStatus.PendingRemoved,
-            "PoSValidatorManager: delegator not pending added"
+            "PoSValidatorManager: delegation not pending added"
         );
 
         // Update the delegator status
@@ -328,7 +329,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // TODO: Unlock the delegator's stake and their reward
 
-        emit DelegationEnded(validationID, delegationID, nonce);
+        emit DelegationEnded(delegationID, validationID, nonce);
     }
 
     function _checkPendingEndDelegatorMessage(bytes32 delegationID) private view {
@@ -336,7 +337,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         require(
             $._pendingEndDelegatorMessages[delegationID].length > 0
                 && $._delegatorStakes[delegationID].status == DelegatorStatus.PendingRemoved,
-            "PoSValidatorManager: delegator removal not pending"
+            "PoSValidatorManager: delegation removal not pending"
         );
     }
 
@@ -345,7 +346,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         require(
             $._pendingRegisterDelegatorMessages[delegationID].length > 0
                 && $._delegatorStakes[delegationID].status == DelegatorStatus.PendingAdded,
-            "PoSValidatorManager: delegator registration not pending"
+            "PoSValidatorManager: delegation registration not pending"
         );
     }
 }

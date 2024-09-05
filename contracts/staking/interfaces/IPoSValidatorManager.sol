@@ -36,65 +36,63 @@ struct Delegator {
 }
 
 interface IPoSValidatorManager is IValidatorManager {
-    // TODO: Decide what to include in the events.
     /**
      * @notice Event emitted when a delegator registration is initiated
-     * @param validationID The ID of the validation period
-     * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
      * @param delegationID The ID of the delegation
-     * @param delegatorWeight The weight of the delegator
-     * @param validatorWeight The updated validator weight that is sent to the P-Chain
+     * @param validationID The ID of the validation period
+     * @param delegatorAddress The address of the delegator
      * @param nonce The message nonce used to update the validator weight
+     * @param validatorWeight The updated validator weight that is sent to the P-Chain
+     * @param delegatorWeight The weight of the delegator
+     * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
      */
     event DelegatorAdded(
-        bytes32 indexed validationID,
-        bytes32 indexed setWeightMessageID,
         bytes32 indexed delegationID,
-        uint64 delegatorWeight,
+        bytes32 indexed validationID,
+        address indexed delegatorAddress,
+        uint64 nonce,
         uint64 validatorWeight,
-        uint64 nonce
+        uint64 delegatorWeight,
+        bytes32 setWeightMessageID
     );
 
     /**
      * @notice Event emitted when a delegator registration is completed
-     * @param validationID The ID of the validation period
      * @param delegationID The ID of the delegation
      * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
      * @param startTime The time at which the registration was completed
      */
     event DelegatorRegistered(
-        bytes32 indexed validationID,
         bytes32 indexed delegationID,
+        bytes32 indexed validationID,
         uint64 indexed nonce,
         uint256 startTime
     );
 
     /**
      * @notice Event emitted when delegator removal is initiated
-     * @param validationID The ID of the validation period
-     * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
      * @param delegationID The ID of the delegation
-     * @param validatorWeight The updated validator weight that is sent to the P-Chain
      * @param nonce The message nonce used to update the validator weight
+     * @param validatorWeight The updated validator weight that is sent to the P-Chain
      * @param endTime The time at which the removal was initiated
+     * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
      */
     event DelegatorRemovalInitialized(
-        bytes32 indexed validationID,
-        bytes32 indexed setWeightMessageID,
         bytes32 indexed delegationID,
+        bytes32 indexed validationID,
+        uint64 indexed nonce,
         uint64 validatorWeight,
-        uint64 nonce,
-        uint256 endTime
+        uint256 endTime,
+        bytes32 setWeightMessageID
     );
 
     /**
      * @notice Event emitted when delegator removal is completed
-     * @param validationID The ID of the validation period
      * @param delegationID The ID of the delegation
      * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
      */
     event DelegationEnded(
-        bytes32 indexed validationID, bytes32 indexed delegationID, uint64 indexed nonce
+        bytes32 indexed delegationID, bytes32 indexed validationID, uint64 indexed nonce
     );
 
     /**
