@@ -122,7 +122,10 @@ interface IPoSValidatorManager is IValidatorManager {
      * @notice Completes the delegator registration process by returning an acknowledgement of the registration of a
      * validationID from the P-Chain. After this function is called, the validator's weight is updated in the contract state.
      * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize registration of the
-     * delegator is valid, as long as that nonce has been sent by the contract.
+     * delegator is valid, as long as that nonce has been sent by the contract. For the purposes of computing delegation rewards,
+     * the delegation is considered active after this function is called.
+     * Note however that only the specified delegation will be marked as registered, even if the validator weight update
+     * message implicitly includes multiple weight changes.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegationID The ID of the delegation being registered.
      */
@@ -130,7 +133,9 @@ interface IPoSValidatorManager is IValidatorManager {
 
     /**
      * @notice Begins the process of removing a delegator from a validation period. The delegator must have been previously
-     * registered with the given validationID.
+     * registered with the given validationID. For the purposes of computing delegation rewards, the delegation period is
+     * considered ended when this function is called. In order to be eligible for rewards, an uptime proof must be provided.
+     * Note that this function can only be called by the address that registered the delegation.
      * @param delegationID The ID of the delegation being removed.
      * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
      * If no uptime proof is provided, the validation uptime for the delegation period will be assumed to be 0.
@@ -154,7 +159,10 @@ interface IPoSValidatorManager is IValidatorManager {
      * @notice Completes the process of ending a delegation by receiving an acknowledgement from the P-Chain.
      * After this function is called, the validator's weight is updated in the contract state.
      * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize the end of the
-     * delegator's delegation is valid, as long as that nonce has been sent by the contract.
+     * delegator's delegation is valid, as long as that nonce has been sent by the contract. This is because the validator
+     * weight change pertaining to the delegation ending is included in any subsequent validator weight update messages.
+     * Note however that only the specified delegation will be marked as completed, even if the validator weight update
+     * message implicitly includes multiple weight changes.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegationID The ID of the delegation being removed.
      */

@@ -173,7 +173,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         $._pendingRegisterDelegatorMessages[delegationID] = setValidatorWeightPayload;
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
-        // Store the delegation information
+        // Store the delegation information. Set the delegator status to pending added,
+        // so that it can be properly started in the complete step, even if the delivered
+        // nonce is greater than the nonce used to initialize registration.
         $._delegatorStakes[delegationID] = Delegator({
             status: DelegatorStatus.PendingAdded,
             owner: delegatorAddress,
@@ -216,14 +218,23 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         Validator memory validator = _getValidator(validationID);
 
-        // The received nonce should be no greater than the highest sent nonce
+        // The received nonce should be no greater than the highest sent nonce. This should never
+        // happen since the staking manager is the only entity that can trigger a weight update
+        // on the P-Chain.
         require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
-        // It should also be greater than or equal to the delegationID's starting nonce
+
+        // The nonce should also be greater than or equal to the delegationID's starting nonce. This allows
+        // a weight update using a higher nonce (which implicitly includes the delegation's weight update)
+        // to be used to complete registration for an earlier delegation. This is necessary because the P-Chain
+        // is only willing to sign the latest weight update.
         require(
             $._delegatorStakes[delegationID].startingNonce <= nonce,
             "PoSValidatorManager: nonce does not match"
         );
 
+        // Ensure the delegator is pending added. Since anybody can call this function once
+        // delegator registration has been initialized, we need to make sure that this function is only
+        // callable after that has been done.
         require(
             $._delegatorStakes[delegationID].status == DelegatorStatus.PendingAdded,
             "PoSValidatorManager: delegationID not pending added"
@@ -257,12 +268,17 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // Ensure the delegator is active
         Delegator memory delegator = $._delegatorStakes[delegationID];
         require(
-            delegator.owner == _msgSender(), "PoSValidatorManager: delegation not owned by sender"
-        );
-        require(
             delegator.status == DelegatorStatus.Active, "PoSValidatorManager: delegation not active"
         );
+        // Only the delegation owner can end the delegation.
+        require(
+            delegator.owner == _msgSender(), "PoSValidatorManager: delegation not owned by sender"
+        );
         uint64 nonce = _getAndIncrementNonce(validationID);
+
+        // Set the delegator status to pending removed, so that it can be properly removed in
+        // the complete step, even if the delivered nonce is greater than the nonce used to
+        // initialize the removal.
         delegator.status = DelegatorStatus.PendingRemoved;
         delegator.endedAt = uint64(block.timestamp);
         delegator.endingNonce = nonce;
@@ -307,14 +323,23 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         delete $._pendingEndDelegatorMessages[delegationID];
 
         Validator memory validator = _getValidator(validationID);
-        // The received nonce should be no greater than the highest sent nonce
+        // The received nonce should be no greater than the highest sent nonce. This should never
+        // happen since the staking manager is the only entity that can trigger a weight update
+        // on the P-Chain.
         require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
-        // It should also be greater than or equal to the delegator's ending nonce
+
+        // The nonce should also be greater than or equal to the delegationID's ending nonce. This allows
+        // a weight update using a higher nonce (which implicitly includes the delegation's weight update)
+        // to be used to complete delisting for an earlier delegation. This is necessary because the P-Chain
+        // is only willing to sign the latest weight update.
         require(
             $._delegatorStakes[delegationID].endingNonce <= nonce,
             "PoSValidatorManager: nonce does not match"
         );
 
+        // Ensure the delegator is pending removed. Since anybody can call this function once
+        // end delegation has been initialized, we need to make sure that this function is only
+        // callable after that has been done.
         require(
             $._delegatorStakes[delegationID].status == DelegatorStatus.PendingRemoved,
             "PoSValidatorManager: delegation not pending added"
