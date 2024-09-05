@@ -745,6 +745,8 @@ func InitializeEndERC20Delegation(
 	tx, err := stakingManager.InitializeEndDelegation(
 		opts,
 		validationID,
+		false,
+		0,
 	)
 	Expect(err).Should(BeNil())
 	return WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
@@ -826,6 +828,8 @@ func InitializeEndNativeDelegation(
 	tx, err := stakingManager.InitializeEndDelegation(
 		opts,
 		validationID,
+		false,
+		0,
 	)
 	Expect(err).Should(BeNil())
 	return WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())

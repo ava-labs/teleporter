@@ -24,8 +24,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     PoSValidatorManager public posValidatorManager;
 
-    event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
-
     event DelegatorAdded(
         bytes32 indexed validationID,
         bytes32 indexed setWeightMessageID,
@@ -54,38 +52,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     event DelegationEnded(
         bytes32 indexed validationID, address indexed delegator, uint64 indexed nonce
     );
-
-    function testInitializeEndValidationWithUptimeProof() public {
-        bytes32 validationID = _setUpCompleteValidatorRegistration({
-            nodeID: DEFAULT_NODE_ID,
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
-        });
-
-        _mockGetBlockchainID();
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
-            abi.encode(
-                WarpMessage({
-                    sourceChainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                    originSenderAddress: address(0),
-                    payload: ValidatorMessages.packValidationUptimeMessage(validationID, DEFAULT_UPTIME)
-                }),
-                true
-            )
-        );
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
-        );
-
-        vm.expectEmit(true, true, true, true, address(posValidatorManager));
-        emit ValidationUptimeUpdated(validationID, DEFAULT_UPTIME);
-        posValidatorManager.initializeEndValidation(validationID, true, 0);
-    }
 
     function testInvalidUptimeWarpMessage() public {
         bytes32 validationID = _setUpCompleteValidatorRegistration({
@@ -683,7 +649,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             endTime: endDelegationTimestamp
         });
         vm.prank(delegator);
-        posValidatorManager.initializeEndDelegation(validationID);
+        posValidatorManager.initializeEndDelegation(validationID, false, 0);
         return validationID;
     }
 

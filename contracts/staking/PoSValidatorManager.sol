@@ -36,8 +36,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         /// @notice Maps the validationID to a mapping of delegator address to pending end delegator messages.
         mapping(bytes32 validationID => mapping(address delegator => bytes))
             _pendingEndDelegatorMessages;
-        /// @notice Maps the validationID to the uptime of the validator.
-        mapping(bytes32 validationID => uint64) _validatorUptimes;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -79,11 +77,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint64 minimumStakeDuration,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
-        PoSValidatorManagerStorage storage s = _getPoSValidatorManagerStorage();
-        s._minimumStakeAmount = minimumStakeAmount;
-        s._maximumStakeAmount = maximumStakeAmount;
-        s._minimumStakeDuration = minimumStakeDuration;
-        s._rewardCalculator = rewardCalculator;
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        $._minimumStakeAmount = minimumStakeAmount;
+        $._maximumStakeAmount = maximumStakeAmount;
+        $._minimumStakeDuration = minimumStakeDuration;
+        $._rewardCalculator = rewardCalculator;
     }
 
     function initializeEndValidation(
@@ -92,32 +90,34 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint32 messageIndex
     ) external {
         if (includeUptimeProof) {
-            PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-            (WarpMessage memory warpMessage, bool valid) =
-                WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-            require(valid, "PoSValidatorManager: invalid warp message");
-
-            require(
-                warpMessage.sourceChainID == WARP_MESSENGER.getBlockchainID(),
-                "PoSValidatorManager: invalid source chain ID"
-            );
-            require(
-                warpMessage.originSenderAddress == address(0),
-                "PoSValidatorManager: invalid origin sender address"
-            );
-
-            (bytes32 uptimeValidationID, uint64 uptime) =
-                ValidatorMessages.unpackValidationUptimeMessage(warpMessage.payload);
-            require(
-                validationID == uptimeValidationID,
-                "PoSValidatorManager: invalid uptime validation ID"
-            );
-
-            $._validatorUptimes[validationID] = uptime;
-            emit ValidationUptimeUpdated(validationID, uptime);
+            _getUptime(validationID, messageIndex);
         }
+        // TODO: Calculate the reward for the validator, but do not unlock it
 
         _initializeEndValidation(validationID);
+    }
+
+    function _getUptime(bytes32 validationID, uint32 messageIndex) internal view returns (uint64) {
+        (WarpMessage memory warpMessage, bool valid) =
+            WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
+        require(valid, "PoSValidatorManager: invalid warp message");
+
+        require(
+            warpMessage.sourceChainID == WARP_MESSENGER.getBlockchainID(),
+            "PoSValidatorManager: invalid source chain ID"
+        );
+        require(
+            warpMessage.originSenderAddress == address(0),
+            "PoSValidatorManager: invalid origin sender address"
+        );
+
+        (bytes32 uptimeValidationID, uint64 uptime) =
+            ValidatorMessages.unpackValidationUptimeMessage(warpMessage.payload);
+        require(
+            validationID == uptimeValidationID, "PoSValidatorManager: invalid uptime validation ID"
+        );
+
+        return uptime;
     }
 
     function _processStake(uint256 stakeAmount) internal virtual returns (uint64) {
@@ -241,7 +241,18 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         });
     }
 
-    function initializeEndDelegation(bytes32 validationID) external {
+    function initializeEndDelegation(
+        bytes32 validationID,
+        bool includeUptimeProof,
+        uint32 messageIndex
+    ) external {
+        uint64 uptime;
+        if (includeUptimeProof) {
+            uptime = _getUptime(validationID, messageIndex);
+        }
+
+        // TODO: Calculate the delegator's reward, but do not unlock it
+
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         // Ensure the delegator is active
@@ -309,6 +320,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Update the delegator status
         $._delegatorStakes[validationID][delegator].status = DelegatorStatus.Completed;
+
+        // TODO: Unlock the delegator's stake and their reward
 
         emit DelegationEnded(validationID, delegator, nonce);
     }
