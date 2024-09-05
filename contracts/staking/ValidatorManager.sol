@@ -379,8 +379,8 @@ abstract contract ValidatorManager is
         return $._validationPeriods[validationID];
     }
 
-    function _setValidator(bytes32 validationID, Validator memory validator) internal {
+    function _setValidatorWeight(bytes32 validationID, uint64 weight) internal {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        $._validationPeriods[validationID] = validator;
+        $._validationPeriods[validationID].weight = weight;
     }
 }

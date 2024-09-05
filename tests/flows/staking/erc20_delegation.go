@@ -28,7 +28,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 	// Get the subnets info
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := utils.GetTwoSubnets(network)
-	fundedAddress, fundedKey := network.GetFundedAccountInfo()
+	_, fundedKey := network.GetFundedAccountInfo()
 	pChainInfo := utils.GetPChainInfo(cChainInfo)
 
 	signatureAggregator := utils.NewSignatureAggregator(
@@ -115,6 +115,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 	//
 	// Register a delegator
 	//
+	var delegationID ids.ID
 	{
 		delegatorStake := big.NewInt(1e17)
 		delegatorWeight, err := stakingManager.ValueToWeight(
@@ -135,6 +136,12 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 			stakingManagerAddress,
 			stakingManager,
 		)
+		initRegistrationEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			stakingManager.ParseDelegatorAdded,
+		)
+		Expect(err).Should(BeNil())
+		delegationID = initRegistrationEvent.DelegationID
 
 		// Gather subnet-evm Warp signatures for the SubnetValidatorWeightUpdateMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
@@ -162,7 +169,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		// Deliver the Warp message to the subnet
 		receipt = utils.CompleteERC20DelegatorRegistration(
 			fundedKey,
-			fundedAddress,
+			delegationID,
 			subnetAInfo,
 			stakingManagerAddress,
 			registrationSignedMessage,
@@ -174,7 +181,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		)
 		Expect(err).Should(BeNil())
 		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
-		Expect(registrationEvent.Delegator).Should(Equal(fundedAddress))
+		Expect(registrationEvent.DelegationID[:]).Should(Equal(delegationID[:]))
 	}
 	//
 	// Delist the delegator
@@ -185,7 +192,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 			fundedKey,
 			subnetAInfo,
 			stakingManager,
-			validationID,
+			delegationID,
 		)
 		delegatorRemovalEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
@@ -193,7 +200,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		)
 		Expect(err).Should(BeNil())
 		Expect(delegatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
-		Expect(delegatorRemovalEvent.Delegator).Should(Equal(fundedAddress))
+		Expect(delegatorRemovalEvent.DelegationID[:]).Should(Equal(delegationID[:]))
 
 		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
@@ -217,7 +224,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		// Deliver the Warp message to the subnet
 		receipt = utils.CompleteEndERC20Delegation(
 			fundedKey,
-			fundedAddress,
+			delegationID,
 			subnetAInfo,
 			stakingManagerAddress,
 			signedMessage,
@@ -230,6 +237,6 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		)
 		Expect(err).Should(BeNil())
 		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
-		Expect(registrationEvent.Delegator).Should(Equal(fundedAddress))
+		Expect(registrationEvent.DelegationID[:]).Should(Equal(delegationID[:]))
 	}
 }
