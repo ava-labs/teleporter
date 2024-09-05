@@ -260,6 +260,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // Ensure the delegator is active
         Delegator memory delegator = $._delegatorStakes[delegationID];
         require(
+            delegator.owner == _msgSender(), "PoSValidatorManager: delegation not owned by sender"
+        );
+        require(
             delegator.status == DelegatorStatus.Active, "PoSValidatorManager: delegator not active"
         );
         uint64 nonce = _getAndIncrementNonce(validationID);
