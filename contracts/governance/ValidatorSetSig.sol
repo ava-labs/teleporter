@@ -23,6 +23,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts@5.0.2/utils/ReentrancyGua
  * validatorSetSigAddress: Address of the ValidatorSetSig contract this message is intended for
  * targetContractAddress: Address of the contract that the payload should be forwarded to
  * nonce: Unique nonce for the target contract address to provide replay protection
+ * value: Value to be sent with the call to the target contract
  * payload: Payload to be forwarded to the target contract. Usually ABI encoded function call with parameters.
  */
 struct ValidatorSetSigMessage {
@@ -30,6 +31,7 @@ struct ValidatorSetSigMessage {
     address validatorSetSigAddress;
     address targetContractAddress;
     uint256 nonce;
+    uint256 value;
     bytes payload;
 }
 
@@ -87,7 +89,9 @@ contract ValidatorSetSig is ReentrancyGuard {
         blockchainID = WARP_MESSENGER.getBlockchainID();
     }
 
-    function executeCall(uint32 messageIndex) external nonReentrant {
+    receive() external payable {}
+
+    function executeCall(uint32 messageIndex) external payable nonReentrant {
         // Get the WarpMessage from the WarpMessenger precompile and verify that it is valid
         (WarpMessage memory message, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
@@ -113,7 +117,9 @@ contract ValidatorSetSig is ReentrancyGuard {
         // We don't need to protect against return bomb vectors below here since the caller is expected to have full control over the contract called.
         (bool success,) =
         // solhint-disable-next-line avoid-low-level-calls
-         validatorSetSigMessage.targetContractAddress.call(validatorSetSigMessage.payload);
+        validatorSetSigMessage.targetContractAddress.call{value: validatorSetSigMessage.value}(
+            validatorSetSigMessage.payload
+        );
 
         // Use require to revert the transaction if the call fails. This is to prevent consuming the nonce if the call fails due to out of gas
         // and requiring re-signing of the message with a new nonce.

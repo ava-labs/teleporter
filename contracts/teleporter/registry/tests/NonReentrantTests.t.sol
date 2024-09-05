@@ -19,8 +19,11 @@ import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 uint32 constant warpMessageIndex = 2;
 
 contract NonReentrantUpgradeableApp is TeleporterRegistryAppUpgradeable {
-    function initialize(address teleporterRegistryAddress) public initializer {
-        __TeleporterRegistryApp_init(teleporterRegistryAddress);
+    function initialize(
+        address teleporterRegistryAddress,
+        uint256 minTeleporterVersion
+    ) public initializer {
+        __TeleporterRegistryApp_init(teleporterRegistryAddress, minTeleporterVersion);
     }
 
     function setMinTeleporterVersion(uint256 version) public {
@@ -65,7 +68,7 @@ abstract contract NonReentrantTest is BaseTeleporterRegistryAppTest {
 
     function setUp() public virtual override {
         nonReentrantApp = new NonReentrantUpgradeableApp();
-        nonReentrantApp.initialize(address(teleporterRegistry));
+        nonReentrantApp.initialize(address(teleporterRegistry), teleporterRegistry.latestVersion());
     }
 
     function testNonReentrantSameTeleporter() public {

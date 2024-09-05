@@ -156,13 +156,13 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // Ensure the validation period is active
         Validator memory validator = _getValidator(validationID);
         require(
-            validator.status == ValidatorStatus.Active, "ValidatorManager: validator not active"
+            validator.status == ValidatorStatus.Active, "PoSValidatorManager: validator not active"
         );
 
         // Ensure the delegator is not already registered
         require(
             $._delegatorStakes[validationID][delegator].weight == 0,
-            "ValidatorManager: delegator already registered"
+            "PoSValidatorManager: delegator already registered"
         );
 
         _checkAndUpdateChurnTracker(weight);
@@ -258,7 +258,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // Ensure the delegator is active
         Delegator memory delegator = $._delegatorStakes[validationID][_msgSender()];
         require(
-            delegator.status == DelegatorStatus.Active, "ValidatorManager: delegator not active"
+            delegator.status == DelegatorStatus.Active, "PoSValidatorManager: delegator not active"
         );
         uint64 nonce = _getAndIncrementNonce(validationID);
         delegator.status = DelegatorStatus.PendingRemoved;
@@ -307,7 +307,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         Validator memory validator = _getValidator(validationID);
         // The received nonce should be no greater than the highest sent nonce
         require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
-        // It should also be greater than or equal to the delegator's starting nonce
+        // It should also be greater than or equal to the delegator's ending nonce
         require(
             $._delegatorStakes[validationID][delegator].endingNonce <= nonce,
             "PoSValidatorManager: nonce does not match"
