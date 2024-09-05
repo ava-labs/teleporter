@@ -596,7 +596,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit DelegatorAdded({
-            delegationID: sha256(abi.encodePacked(validationID, delegatorAddress, expectedNonce)),
+            delegationID: keccak256(abi.encodePacked(validationID, delegatorAddress, expectedNonce)),
             validationID: validationID,
             delegatorAddress: delegatorAddress,
             nonce: expectedNonce,

@@ -160,14 +160,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint64 newValidatorWeight = validator.weight + weight;
         _setValidatorWeight(validationID, newValidatorWeight);
 
+        // Construct the delegation ID. This is guaranteed to be unique since it is
+        // constructed using a new nonce.
         uint64 nonce = _getAndIncrementNonce(validationID);
-        bytes32 delegationID = sha256(abi.encodePacked(validationID, delegatorAddress, nonce));
-
-        // Ensure the delegationID is not already registered
-        require(
-            $._delegatorStakes[delegationID].weight == 0,
-            "PoSValidatorManager: delegationID already registered"
-        );
+        bytes32 delegationID = keccak256(abi.encodePacked(validationID, delegatorAddress, nonce));
 
         _checkAndUpdateChurnTracker(weight);
 
