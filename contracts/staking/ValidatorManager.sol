@@ -143,6 +143,7 @@ abstract contract ValidatorManager is
             status: ValidatorStatus.PendingAdded,
             nodeID: nodeID,
             owner: _msgSender(),
+            startingWeight: weight,
             messageNonce: 0,
             weight: weight,
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
