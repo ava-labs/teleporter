@@ -11,7 +11,8 @@ import {OwnableUpgradeable} from
 
 /**
  * @dev Contract that inherits {TeleporterRegistryAppUpgradeable} and allows
- * only owners of the contract to update the minimum Teleporter version.
+ * only owners of the contract to update the minimum Teleporter version or
+ * pause and unpause specific Teleporter versions.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
@@ -22,9 +23,10 @@ abstract contract TeleporterRegistryOwnableAppUpgradeable is
     // solhint-disable-next-line func-name-mixedcase
     function __TeleporterRegistryOwnableApp_init(
         address teleporterRegistryAddress,
-        address initialOwner
+        address initialOwner,
+        uint256 minTeleporterVersion
     ) internal onlyInitializing {
-        __TeleporterRegistryApp_init(teleporterRegistryAddress);
+        __TeleporterRegistryApp_init(teleporterRegistryAddress, minTeleporterVersion);
         __Ownable_init(initialOwner);
     }
 
@@ -34,7 +36,8 @@ abstract contract TeleporterRegistryOwnableAppUpgradeable is
     /**
      * @dev See {TeleporterRegistryAppUpgradeable-_checkTeleporterRegistryAppAccess}
      *
-     * Checks that the caller is the owner of the contract for upgrade access.
+     * Checks that the caller is the owner of the contract for updating {minTeleporterVersion},
+     * and pausing/unpausing specific Teleporter version interactions.
      */
     function _checkTeleporterRegistryAppAccess() internal view virtual override {
         _checkOwner();

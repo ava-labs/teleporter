@@ -59,20 +59,28 @@ abstract contract TeleporterRegistryApp is Context, ITeleporterReceiver, Reentra
     /**
      * @dev Initializes the {TeleporterRegistryApp} contract by getting `teleporterRegistry`
      * instance and setting `_minTeleporterVersion`.
+     * @param teleporterRegistryAddress The address of the Teleporter registry contract.
+     * The Teleporter registry contract should be deployed, and have at least one Teleporter version.
+     * @param minTeleporterVersion The minimum Teleporter version allowed for delivering messages.
+     * The minimum version should be less than or equal to the latest Teleporter version, and greater than 0.
      */
-    constructor(address teleporterRegistryAddress) {
+    constructor(address teleporterRegistryAddress, uint256 minTeleporterVersion) {
         require(
             teleporterRegistryAddress != address(0),
-            "TeleporterRegistryApp: zero teleporter registry address"
+            "TeleporterRegistryApp: zero Teleporter registry address"
         );
 
         teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
-        _minTeleporterVersion = teleporterRegistry.latestVersion();
+        require(
+            teleporterRegistry.latestVersion() > 0,
+            "TeleporterRegistryApp: invalid Teleporter registry"
+        );
+        _setMinTeleporterVersion(minTeleporterVersion);
     }
 
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}
-     * `nonReentrant` is a reentrancy guard that protects again multiple versions of the
+     * `nonReentrant` is a reentrancy guard that protects against multiple versions of the
      * TeleporterMessengerContract delivering a message in the same call. Any internal calls
      * will not be able to call functions also marked with `nonReentrant`.
      *

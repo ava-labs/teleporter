@@ -144,6 +144,7 @@ abstract contract ValidatorManager is
             status: ValidatorStatus.PendingAdded,
             nodeID: nodeID,
             owner: _msgSender(),
+            startingWeight: weight,
             messageNonce: 0,
             weight: weight,
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
@@ -197,6 +198,11 @@ abstract contract ValidatorManager is
         emit ValidationPeriodRegistered(
             validationID, $._validationPeriods[validationID].weight, block.timestamp
         );
+    }
+
+    function activeValidators(bytes32 nodeID) public view returns (bytes32) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        return $._activeValidators[nodeID];
     }
 
     /**
@@ -299,9 +305,7 @@ abstract contract ValidatorManager is
         validator.status = endStatus;
         $._validationPeriods[validationID] = validator;
 
-        // Unlock the stake.
-
-        // Calculate the reward for the validator.
+        // TODO: Unlock the stake.
 
         // Emit event.
         emit ValidationPeriodEnded(validationID, validator.status);
