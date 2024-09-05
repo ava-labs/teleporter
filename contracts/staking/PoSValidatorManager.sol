@@ -28,11 +28,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint64 _minimumStakeDuration;
         /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
-        /// @notice Maps the validationID to a mapping of delegator address to delegator information.
+        /// @notice Maps the delegationID to the delegator information.
         mapping(bytes32 delegationID => Delegator) _delegatorStakes;
-        /// @notice Maps the validationID to a mapping of delegator address to pending register delegator messages.
+        /// @notice Maps the delegationID to pending register delegator messages.
         mapping(bytes32 delegationID => bytes) _pendingRegisterDelegatorMessages;
-        /// @notice Maps the validationID to a mapping of delegator address to pending end delegator messages.
+        /// @notice Maps the delegationID to pending end delegator messages.
         mapping(bytes32 delegationID => bytes) _pendingEndDelegatorMessages;
     }
     // solhint-enable private-vars-leading-underscore
