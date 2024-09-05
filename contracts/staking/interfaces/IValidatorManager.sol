@@ -18,6 +18,7 @@ struct Validator {
     ValidatorStatus status;
     bytes32 nodeID;
     address owner;
+    uint64 startingWeight;
     uint64 messageNonce;
     uint64 weight;
     uint64 startedAt;
