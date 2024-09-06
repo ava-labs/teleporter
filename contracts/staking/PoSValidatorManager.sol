@@ -30,8 +30,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         IRewardCalculator _rewardCalculator;
         /// @notice Maps the delegationID to the delegator information.
         mapping(bytes32 delegationID => Delegator) _delegatorStakes;
-        /// @notice Maps the delegationID to pending register delegator messages.
-        mapping(bytes32 delegationID => bytes) _pendingRegisterDelegatorMessages;
         /// @notice Maps the delegationID to pending end delegator messages.
         mapping(bytes32 delegationID => bytes) _pendingEndDelegatorMessages;
     }
@@ -168,10 +166,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         _checkAndUpdateChurnTracker(weight);
 
         // Submit the message to the Warp precompile.
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, nonce, newValidatorWeight);
-        $._pendingRegisterDelegatorMessages[delegationID] = setValidatorWeightPayload;
-        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
+        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(
+                validationID, nonce, newValidatorWeight
+            )
+        );
 
         // Store the delegation information. Set the delegator status to pending added,
         // so that it can be properly started in the complete step, even if the delivered
@@ -200,10 +199,25 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     }
 
     function resendDelegatorRegistration(bytes32 delegationID) external {
-        _checkPendingRegisterDelegatorMessages(delegationID);
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        Delegator memory delegator = $._delegatorStakes[delegationID];
+        require(
+            $._delegatorStakes[delegationID].status == DelegatorStatus.PendingAdded,
+            "PoSValidatorManager: delegation registration not pending"
+        );
+
+        Validator memory validator = _getValidator(delegator.validationID);
+        require(
+            validator.messageNonce != 0,
+            "PoSValidatorManager: could not find validator for delegation ID"
+        );
+
         // Submit the message to the Warp precompile.
-        WARP_MESSENGER.sendWarpMessage($._pendingRegisterDelegatorMessages[delegationID]);
+        WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(
+                delegator.validationID, validator.messageNonce, validator.weight
+            )
+        );
     }
 
     function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external {
@@ -213,8 +227,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, uint64 nonce,) =
             ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
-        _checkPendingRegisterDelegatorMessages(delegationID);
-        delete $._pendingRegisterDelegatorMessages[delegationID];
 
         Validator memory validator = _getValidator(validationID);
 
@@ -359,15 +371,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             $._pendingEndDelegatorMessages[delegationID].length > 0
                 && $._delegatorStakes[delegationID].status == DelegatorStatus.PendingRemoved,
             "PoSValidatorManager: delegation removal not pending"
-        );
-    }
-
-    function _checkPendingRegisterDelegatorMessages(bytes32 delegationID) private view {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        require(
-            $._pendingRegisterDelegatorMessages[delegationID].length > 0
-                && $._delegatorStakes[delegationID].status == DelegatorStatus.PendingAdded,
-            "PoSValidatorManager: delegation registration not pending"
         );
     }
 }
