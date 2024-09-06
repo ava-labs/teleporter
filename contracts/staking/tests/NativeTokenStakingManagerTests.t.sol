@@ -50,6 +50,9 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
         uint256 balanceBefore = address(this).balance;
 
+        // empty calldata implies the receive function will be called
+        vm.expectCall(address(this), DEFAULT_WEIGHT, "");
+
         _testCompleteEndValidation(validationID);
 
         uint256 balanceChange = address(this).balance - balanceBefore;
