@@ -127,6 +127,7 @@ func NewLocalNetwork(
 	Expect(ok).Should(Equal(true))
 
 	ctx, cancelBootstrap := context.WithCancel(ctx)
+	defer cancelBootstrap()
 	err = tmpnet.BootstrapNewNetwork(
 		ctx,
 		os.Stdout,
@@ -135,7 +136,6 @@ func NewLocalNetwork(
 		avalancheGoBuildPath+"/avalanchego",
 		avalancheGoBuildPath+"/plugins",
 	)
-	defer cancelBootstrap()
 	Expect(err).Should(BeNil())
 
 	globalFundedKey, err := crypto.HexToECDSA(fundedKeyStr)
