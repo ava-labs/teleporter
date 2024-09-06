@@ -67,8 +67,26 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         return app.initializeValidatorRegistration(value, nodeID, registrationExpiry, signature);
     }
 
-    function _beforeSend(uint64 weight) internal override {
+    function _initializeDelegatorRegistration(
+        bytes32 validationID,
+        address delegatorAddress,
+        uint64 weight
+    ) internal virtual override returns (bytes32) {
+        uint256 value = app.weightToValue(weight);
+        vm.startPrank(delegatorAddress);
+        bytes32 delegationID = app.initializeDelegatorRegistration(validationID, value);
+        vm.stopPrank();
+        return delegationID;
+    }
+
+    function _beforeSend(uint64 weight, address spender) internal override {
+        uint256 value = app.weightToValue(weight);
+        token.safeIncreaseAllowance(spender, value);
+        token.safeTransfer(spender, value);
+
         // ERC20 tokens need to be pre-approved
-        token.safeIncreaseAllowance(address(app), app.weightToValue(weight));
+        vm.startPrank(spender);
+        token.safeIncreaseAllowance(address(app), value);
+        vm.stopPrank();
     }
 }

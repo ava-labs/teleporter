@@ -61,7 +61,18 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             app.initializeValidatorRegistration{value: value}(nodeID, registrationExpiry, signature);
     }
 
-    function _beforeSend(uint64 weight) internal override {
+    function _initializeDelegatorRegistration(
+        bytes32 validationID,
+        address delegatorAddress,
+        uint64 weight
+    ) internal virtual override returns (bytes32) {
+        uint256 value = app.weightToValue(weight);
+        vm.prank(delegatorAddress);
+        vm.deal(delegatorAddress, value);
+        return app.initializeDelegatorRegistration{value: value}(validationID);
+    }
+
+    function _beforeSend(uint64 weight, address spender) internal override {
         // Native tokens no need pre approve
     }
 }
