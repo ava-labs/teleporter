@@ -30,8 +30,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         IRewardCalculator _rewardCalculator;
         /// @notice Maps the delegationID to the delegator information.
         mapping(bytes32 delegationID => Delegator) _delegatorStakes;
-        /// @notice Maps the delegationID to pending end delegator messages.
-        mapping(bytes32 delegationID => bytes) _pendingEndDelegatorMessages;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -198,28 +196,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         return delegationID;
     }
 
-    function resendDelegatorRegistration(bytes32 delegationID) external {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        Delegator memory delegator = $._delegatorStakes[delegationID];
-        require(
-            $._delegatorStakes[delegationID].status == DelegatorStatus.PendingAdded,
-            "PoSValidatorManager: delegation registration not pending"
-        );
-
-        Validator memory validator = _getValidator(delegator.validationID);
-        require(
-            validator.messageNonce != 0,
-            "PoSValidatorManager: could not find validator for delegation ID"
-        );
-
-        // Submit the message to the Warp precompile.
-        WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(
-                delegator.validationID, validator.messageNonce, validator.weight
-            )
-        );
-    }
-
     function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
@@ -303,10 +279,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         _setValidatorWeight(validationID, newValidatorWeight);
 
         // Submit the message to the Warp precompile.
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, nonce, newValidatorWeight);
-        $._pendingEndDelegatorMessages[delegationID] = setValidatorWeightPayload;
-        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
+        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(
+                validationID, nonce, newValidatorWeight
+            )
+        );
 
         emit DelegatorRemovalInitialized({
             delegationID: delegationID,
@@ -318,10 +295,26 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         });
     }
 
-    function resendEndDelegation(bytes32 delegationID) external {
-        _checkPendingEndDelegatorMessage(delegationID);
+    function resendUpdateDelegation(bytes32 delegationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        WARP_MESSENGER.sendWarpMessage($._pendingEndDelegatorMessages[delegationID]);
+        Delegator memory delegator = $._delegatorStakes[delegationID];
+        require(
+            $._delegatorStakes[delegationID].status == DelegatorStatus.PendingAdded,
+            "PoSValidatorManager: delegation registration not pending"
+        );
+
+        Validator memory validator = _getValidator(delegator.validationID);
+        require(
+            validator.messageNonce != 0,
+            "PoSValidatorManager: could not find validator for delegation ID"
+        );
+
+        // Submit the message to the Warp precompile.
+        WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(
+                delegator.validationID, validator.messageNonce, validator.weight
+            )
+        );
     }
 
     function completeEndDelegation(uint32 messageIndex, bytes32 delegationID) external {
@@ -331,8 +324,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, uint64 nonce,) =
             ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
-        _checkPendingEndDelegatorMessage(delegationID);
-        delete $._pendingEndDelegatorMessages[delegationID];
 
         Validator memory validator = _getValidator(validationID);
         // The received nonce should be no greater than the highest sent nonce. This should never
@@ -363,14 +354,5 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // TODO: Unlock the delegator's stake and their reward
 
         emit DelegationEnded(delegationID, validationID, nonce);
-    }
-
-    function _checkPendingEndDelegatorMessage(bytes32 delegationID) private view {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        require(
-            $._pendingEndDelegatorMessages[delegationID].length > 0
-                && $._delegatorStakes[delegationID].status == DelegatorStatus.PendingRemoved,
-            "PoSValidatorManager: delegation removal not pending"
-        );
     }
 }
