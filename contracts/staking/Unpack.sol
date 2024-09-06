@@ -27,25 +27,35 @@ library Unpack {
      * @param input Buffer returned by `abi.encodePacked()`
      */
     // slither-disable-next-line naming-convention
-    function unpack_4_32_32_8_8_Dyn_Destructive(bytes memory input)
+    function unpack_2_4_32_32_8_Dyn_8_Destructive(bytes memory input)
         internal
         pure
-        returns (bytes4 v0, bytes32 v1, bytes32 v2, bytes8 v3, bytes8 v4, bytes memory v5)
+        returns (
+            bytes2 v0,
+            bytes4 v1,
+            bytes32 v2,
+            bytes32 v3,
+            bytes8 v4,
+            bytes memory v5,
+            bytes8 v6
+        )
     {
-        if (input.length < 84) {
-            revert InsufficientInputLength(84, input.length);
+        if (input.length < 86) {
+            revert InsufficientInputLength(86, input.length);
         }
 
         assembly ("memory-safe") {
             v0 := mload(add(input, 0x20))
-            v1 := mload(add(input, 0x24))
-            v2 := mload(add(input, 0x44))
-            v3 := mload(add(input, 0x64))
-            v4 := mload(add(input, 0x6c))
+            v1 := mload(add(input, 0x22))
+            v2 := mload(add(input, 0x26))
+            v3 := mload(add(input, 0x46))
+            v4 := mload(add(input, 0x66))
             let length := mload(input)
-            let dynLength := sub(length, 84)
-            v5 := add(input, 84)
+            let dynLength := sub(length, 86)
+            v5 := add(input, 78)
             mstore(v5, dynLength)
+            let end := add(input, add(length, 0x20))
+            v6 := mload(sub(end, 0x08))
         }
     }
 
@@ -56,19 +66,20 @@ library Unpack {
      * @param input Buffer returned by `abi.encodePacked()`
      */
     // slither-disable-next-line naming-convention
-    function unpack_4_32_1(bytes memory input)
+    function unpack_2_4_32_1(bytes memory input)
         internal
         pure
-        returns (bytes4 v0, bytes32 v1, bytes1 v2)
+        returns (bytes2 v0, bytes4 v1, bytes32 v2, bytes1 v3)
     {
-        if (input.length != 37) {
-            revert IncorrectInputLength(input.length, 37);
+        if (input.length != 39) {
+            revert IncorrectInputLength(input.length, 39);
         }
 
         assembly ("memory-safe") {
             v0 := mload(add(input, 0x20))
-            v1 := mload(add(input, 0x24))
-            v2 := mload(add(input, 0x44))
+            v1 := mload(add(input, 0x22))
+            v2 := mload(add(input, 0x26))
+            v3 := mload(add(input, 0x46))
         }
     }
 
@@ -79,20 +90,21 @@ library Unpack {
      * @param input Buffer returned by `abi.encodePacked()`
      */
     // slither-disable-next-line naming-convention
-    function unpack_4_32_8_8(bytes memory input)
+    function unpack_2_4_32_8_8(bytes memory input)
         internal
         pure
-        returns (bytes4 v0, bytes32 v1, bytes8 v2, bytes8 v3)
+        returns (bytes2 v0, bytes4 v1, bytes32 v2, bytes8 v3, bytes8 v4)
     {
-        if (input.length != 52) {
-            revert IncorrectInputLength(input.length, 52);
+        if (input.length != 54) {
+            revert IncorrectInputLength(input.length, 54);
         }
 
         assembly ("memory-safe") {
             v0 := mload(add(input, 0x20))
-            v1 := mload(add(input, 0x24))
-            v2 := mload(add(input, 0x44))
-            v3 := mload(add(input, 0x4c))
+            v1 := mload(add(input, 0x22))
+            v2 := mload(add(input, 0x26))
+            v3 := mload(add(input, 0x46))
+            v4 := mload(add(input, 0x4e))
         }
     }
 
@@ -103,49 +115,20 @@ library Unpack {
      * @param input Buffer returned by `abi.encodePacked()`
      */
     // slither-disable-next-line naming-convention
-    function unpack_4_32_8(bytes memory input)
+    function unpack_2_4_32_8(bytes memory input)
         internal
         pure
-        returns (bytes4 v0, bytes32 v1, bytes8 v2)
+        returns (bytes2 v0, bytes4 v1, bytes32 v2, bytes8 v3)
     {
-        if (input.length != 44) {
-            revert IncorrectInputLength(input.length, 44);
+        if (input.length != 46) {
+            revert IncorrectInputLength(input.length, 46);
         }
 
         assembly ("memory-safe") {
             v0 := mload(add(input, 0x20))
-            v1 := mload(add(input, 0x24))
-            v2 := mload(add(input, 0x44))
-        }
-    }
-
-    /**
-     * @notice Inverts `abi.encodePacked()` for the specific return types.
-     * @dev The originally packed inputs MUST be of the same byte lengths as those returned by this function, in the
-     * precise order, otherwise the output is undefined. `bytes<N>` and `uint<8N>` are interchangeable.
-     * @dev This function takes ownership of and corrupts the `input` parameter to avoid memory expansion for the
-     * returned `bytes memory`. The returned array is owned by the caller.
-     * @param input Buffer returned by `abi.encodePacked()`
-     */
-    // slither-disable-next-line naming-convention
-    function unpack_32_32_8_8_Dyn_Destructive(bytes memory input)
-        internal
-        pure
-        returns (bytes32 v0, bytes32 v1, bytes8 v2, bytes8 v3, bytes memory v4)
-    {
-        if (input.length < 80) {
-            revert InsufficientInputLength(80, input.length);
-        }
-
-        assembly ("memory-safe") {
-            v0 := mload(add(input, 0x20))
-            v1 := mload(add(input, 0x40))
-            v2 := mload(add(input, 0x60))
-            v3 := mload(add(input, 0x68))
-            let length := mload(input)
-            let dynLength := sub(length, 80)
-            v4 := add(input, 80)
-            mstore(v4, dynLength)
+            v1 := mload(add(input, 0x22))
+            v2 := mload(add(input, 0x26))
+            v3 := mload(add(input, 0x46))
         }
     }
 }
