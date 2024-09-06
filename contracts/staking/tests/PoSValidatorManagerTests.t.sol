@@ -24,9 +24,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     PoSValidatorManager public posValidatorManager;
 
-    // Used to create unique validator IDs in {registerValidators}
-    uint64 public validatorCounter = 0;
-
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
     event DelegatorAdded(
@@ -59,24 +56,23 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 indexed delegationID, bytes32 indexed validationID, uint64 indexed nonce
     );
 
-    function newNodeID() public returns (bytes32) {
-        validatorCounter++;
-        return sha256(new bytes(validatorCounter));
-    }
-
-    function registerValidators(uint64 n) public {
+    function registerValidators(uint64 n) public returns (bytes32[] memory) {
+        bytes32[] memory validationIDs = new bytes32[](n);
         for (uint64 i = 0; i < n; i++) {
-            _setUpCompleteValidatorRegistration({
-                nodeID: newNodeID(),
+            bytes32 validationID = _setUpCompleteValidatorRegistration({
+                nodeID: _newNodeID(),
                 subnetID: DEFAULT_SUBNET_ID,
                 weight: DEFAULT_WEIGHT,
                 registrationExpiry: DEFAULT_EXPIRY,
                 blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
                 registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
             });
+            validationIDs[i] = validationID;
         }
+        return validationIDs;
     }
 
+    // Attempts to register a validator with weight equal to the total weight.
     function testInvalidChurnRegistration() public {
         // First registration should work
         registerValidators(1);
@@ -86,34 +82,73 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _beforeSend(DEFAULT_WEIGHT, address(this));
         uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
 
-        bytes32 nodeID = newNodeID();
+        bytes32 nodeID = _newNodeID();
         vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
         _initializeValidatorRegistrationWithValue(
             nodeID, DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
         );
     }
 
-    // function testValidChurnRegistration() public {
-    //     // First registration should work
-    //     _setUpCompleteValidatorRegistration({
-    //         nodeID: sha256(new bytes(1)),
-    //         subnetID: DEFAULT_SUBNET_ID,
-    //         weight: DEFAULT_WEIGHT,
-    //         registrationExpiry: DEFAULT_CHURN_TRACKER_START_TIME + 1 days,
-    //         blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-    //         registrationTimestamp: DEFAULT_CHURN_TRACKER_START_TIME - 1
-    //     });
+    // Attempts to register a validator with weight equal to the total weight.
+    function testInvalidChurnEndValidation() public {
+        // First registration should work
+        bytes32[] memory validationIDs = registerValidators(1);
 
-    //     vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
+        vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
+        vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
 
-    //     _beforeSend(DEFAULT_WEIGHT, address(this));
-    //     uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
+        // Initialize the end of one of the validators.
+        _initializeEndValidation(validationIDs[0]);
+    }
 
-    //     vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
-    //     _initializeValidatorRegistrationWithValue(
-    //         sha256(new bytes(2)), DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
-    //     );
-    // }
+    function testCummulativeChurnRegistration() public {
+        registerValidators(5);
+
+        vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
+
+        _beforeSend(DEFAULT_WEIGHT, address(this));
+        uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
+
+        // First call after churn tracking start should work
+        _initializeValidatorRegistrationWithValue(
+            _newNodeID(), DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
+        );
+
+        bytes32 nodeID = _newNodeID(); // Needs to be called before expectRevert
+        _beforeSend(DEFAULT_WEIGHT, address(this));
+
+        // Second call after churn tracking start should fail
+        vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
+        _initializeValidatorRegistrationWithValue(
+            nodeID, DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
+        );
+    }
+
+    function testCummulativeChurnRegistrationAndEndValidation() public {
+        bytes32[] memory validationIDs = registerValidators(10);
+
+        vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
+
+        _beforeSend(DEFAULT_WEIGHT, address(this));
+        uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
+
+        // First call after churn tracking start should work
+        _initializeValidatorRegistrationWithValue(
+            _newNodeID(), DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
+        );
+
+        // Initialize the end of one of the validators.
+        _initializeEndValidation(validationIDs[0]);
+
+        bytes32 nodeID = _newNodeID(); // Needs to be called before expectRevert
+        _beforeSend(DEFAULT_WEIGHT, address(this));
+
+        // Second call after churn tracking start should fail
+        vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
+        _initializeValidatorRegistrationWithValue(
+            nodeID, DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
+        );
+    }
 
     function testInitializeEndValidationWithUptimeProof() public {
         _setUpCompleteValidatorRegistration({
@@ -642,6 +677,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         return posValidatorManager.initializeEndValidation(validationID, false, 0);
     }
 
+    // Initialize a validator registration, without making a call to weightToValue, which is an external
+    // call that will consume the call to vm.expectRevert and fail the test.
     function _initializeValidatorRegistrationWithValue(
         bytes32 nodeID,
         uint64 registrationExpiry,

@@ -104,10 +104,13 @@ abstract contract ValidatorManager is
     ) internal nonReentrant returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
-        // Ensure the registration expiry is in a valid range.
         require(
-            registrationExpiry > block.timestamp && block.timestamp + 2 days > registrationExpiry,
-            "ValidatorManager: invalid registration expiry"
+            registrationExpiry > block.timestamp,
+            "ValidatorManager: registration expiry not in future"
+        );
+        require(
+            block.timestamp + 2 days > registrationExpiry,
+            "ValidatorManager: registration expiry too far in future"
         );
 
         // Ensure the nodeID is not the zero address, and is not already an active validator.

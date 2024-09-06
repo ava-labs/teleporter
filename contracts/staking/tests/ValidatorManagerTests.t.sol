@@ -43,6 +43,9 @@ abstract contract ValidatorManagerTest is Test {
 
     ValidatorManager public validatorManager;
 
+    // Used to create unique validator IDs in {newNodeID}
+    uint64 public nodeIDCounter = 0;
+
     event ValidationPeriodCreated(
         bytes32 indexed validationID,
         bytes32 indexed nodeID,
@@ -199,6 +202,11 @@ abstract contract ValidatorManagerTest is Test {
         validatorManager.completeEndValidation(0);
     }
 
+    function _newNodeID() internal returns (bytes32) {
+        nodeIDCounter++;
+        return sha256(new bytes(nodeIDCounter));
+    }
+
     function _setUpInitializeValidatorRegistration(
         bytes32 nodeID,
         bytes32 subnetID,
@@ -225,6 +233,7 @@ abstract contract ValidatorManagerTest is Test {
                 blsPublicKey: blsPublicKey
             })
         );
+        vm.warp(registrationExpiry - 1);
         _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
 
         _beforeSend(weight, address(this));
