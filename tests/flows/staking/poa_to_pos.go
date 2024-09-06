@@ -151,10 +151,11 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 				SubnetID:           subnetAInfo.SubnetID,
 				MaximumHourlyChurn: 0,
 			},
-			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration: uint64(24 * time.Hour),
-			RewardCalculator:     common.Address{},
+			MinimumStakeAmount:       big.NewInt(0).SetUint64(1e6),
+			MaximumStakeAmount:       big.NewInt(0).SetUint64(10e6),
+			MinimumStakeDuration:     uint64(24 * time.Hour),
+			MinimumDelegationFeeRate: big.NewInt(0).SetUint64(100),
+			RewardCalculator:         common.Address{},
 		},
 	)
 	Expect(err).Should(BeNil())
