@@ -29,7 +29,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _maximumStakeAmount;
         /// @notice The total weight of all validators.
         uint256 _totalWeight;
-        /// @notice The time at which the churn tracker will start. This is allow networks to bootstrap 
+        /// @notice The time at which the churn tracker will start. This is allow networks to bootstrap
         /// their validator set without worrying about churn tracking for a set period of time.
         uint256 _churnTrackerStartTime;
         /// @notice The number of seconds after which to reset the churn tracker.
