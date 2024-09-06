@@ -37,6 +37,25 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         posValidatorManager = app;
     }
 
+    function testCompleteEndValidation() public override {
+        bytes32 validationID = _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+        });
+
+        uint256 balanceBefore = address(this).balance;
+
+        _testCompleteEndValidation(validationID);
+
+        uint256 balanceChange = address(this).balance - balanceBefore;
+        require(balanceChange == DEFAULT_WEIGHT, "validator should have received their stake back");
+    }
+
     // Helpers
     function _initializeValidatorRegistration(
         bytes32 nodeID,

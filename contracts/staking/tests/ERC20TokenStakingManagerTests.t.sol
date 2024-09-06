@@ -45,6 +45,25 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         posValidatorManager = app;
     }
 
+    function testCompleteEndValidation() public override {
+        bytes32 validationID = _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+        });
+
+        uint256 balanceBefore = token.balanceOf(address(this));
+
+        _testCompleteEndValidation(validationID);
+
+        uint256 balanceChange = token.balanceOf(address(this)) - balanceBefore;
+        require(balanceChange == DEFAULT_WEIGHT, "validator should have received their stake back");
+    }
+
     function _initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 registrationExpiry,
