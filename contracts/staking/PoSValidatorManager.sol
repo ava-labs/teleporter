@@ -108,6 +108,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         _initializeEndValidation(validationID);
     }
 
+    // This should only be called from inside the initializeValidatorRegistration functions
+    // of the child contracts.
     function _setDelegationFeeRate(bytes32 validationID, uint256 feeRate) internal {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         require(
