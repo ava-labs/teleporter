@@ -25,7 +25,7 @@ func main() {
 
 	pflag.StringVar(&cfg.implPath, "out", "./Unpack.sol", "Output path to which the Solidity implementations are written")
 	pflag.StringVar(&cfg.testPath, "test_out", "./Unpack.t.sol", "Output path to which the Solidity tests are written")
-	pflag.StringVar(&cfg.solcVersion, "solc_version", "", "If non-empty, used verbatim as the version of the `pragma solidity` directive")
+	pflag.StringVar(&cfg.solcVersion, "solc_version", "", "If non-empty, used verbatim as the version of the `pragma solidity` directive") //nolint:lll
 
 	bytesMsg := fmt.Sprintf("Semicolon-delimited list of groups of comma-delimited byte sizes. Use literal %q for (at most one) dynamically sized byte array per group.", dynFlagSentinel) //nolint:lll
 	pflag.Var(&cfg.bytes, "byte_sizes", bytesMsg)
