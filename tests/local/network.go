@@ -63,8 +63,6 @@ const (
 					"internal-debug","internal-account","internal-personal",
 					"debug","debug-tracer","debug-file-tracer","debug-handler"]
 	}`
-
-	timeout = 180 * time.Second
 )
 
 type SubnetSpec struct {
@@ -77,12 +75,12 @@ type SubnetSpec struct {
 }
 
 func NewLocalNetwork(
+	ctx context.Context,
 	name string,
 	warpGenesisTemplateFile string,
 	subnetSpecs []SubnetSpec,
 	extraNodeCount int, // for use by tests, eg to add new subnet validators
 ) *LocalNetwork {
-	ctx := context.Background()
 	var err error
 
 	// Create extra nodes to be used to add more validators later
@@ -128,9 +126,9 @@ func NewLocalNetwork(
 	avalancheGoBuildPath, ok := os.LookupEnv("AVALANCHEGO_BUILD_PATH")
 	Expect(ok).Should(Equal(true))
 
-	ctxWithTimeout, cancelBootstrap := context.WithTimeout(ctx, timeout)
+	ctx, cancelBootstrap := context.WithCancel(ctx)
 	err = tmpnet.BootstrapNewNetwork(
-		ctxWithTimeout,
+		ctx,
 		os.Stdout,
 		network,
 		"",
@@ -509,7 +507,7 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 	apiURI, err := n.tmpnet.GetURIForNodeID(subnet.ValidatorIDs[0])
 	Expect(err).Should(BeNil())
 
-	ctx, cancel := context.WithTimeout(ctx, timeout)
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	err = subnet.AddValidators(
 		ctx,
@@ -556,7 +554,7 @@ func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 	}
 
 	for _, node := range nodes {
-		ctx, cancel := context.WithTimeout(ctx, timeout)
+		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 		err := node.SaveAPIPort()
 		Expect(err).Should(BeNil())

@@ -2,6 +2,7 @@ package flows
 
 import (
 	"context"
+	"time"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -76,7 +77,9 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 
 	// Restart nodes with new chain config
 	network.SetChainConfigs(chainConfigs)
-	network.RestartNodes(ctx, network.GetAllNodeIDs())
+	restartCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	network.RestartNodes(restartCtx, network.GetAllNodeIDs())
 
 	// Call addProtocolVersion on subnetB to register the new Teleporter version
 	utils.AddProtocolVersionAndWaitForAcceptance(
