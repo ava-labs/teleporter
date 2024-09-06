@@ -45,7 +45,10 @@ const Dynamic = math.MaxUint
 // encoded with `abi.encodePacked()`. Each slice of `[]uint` results in the
 // generation of one `unpack_...()` function and MAY have at most one [Dynamic]
 // size.
-func Generate(impl, test io.Writer, relPathFromTestToImpl string, bytes ...[]uint) error {
+//
+// solcVersion is only used if non-empty, otherwise the most permissive version
+// range is used.
+func Generate(impl, test io.Writer, solcVersion, relPathFromTestToImpl string, bytes ...[]uint) error {
 	us := make([]*unpacker, len(bytes))
 	for i, bs := range bytes {
 		u, err := newUnpacker(bs...)
@@ -56,8 +59,9 @@ func Generate(impl, test io.Writer, relPathFromTestToImpl string, bytes ...[]uin
 	}
 
 	data := &tmplData{
-		RelPathFromTestToImpl: relPathFromTestToImpl,
-		Unpackers:             us,
+		ExplicitSolidityVersion: solcVersion,
+		RelPathFromTestToImpl:   relPathFromTestToImpl,
+		Unpackers:               us,
 	}
 	return errors.Join(
 		solTmpl.Execute(impl, data),
@@ -66,8 +70,9 @@ func Generate(impl, test io.Writer, relPathFromTestToImpl string, bytes ...[]uin
 }
 
 type tmplData struct {
-	RelPathFromTestToImpl string
-	Unpackers             []*unpacker
+	ExplicitSolidityVersion string // see SolidityVersion() method
+	RelPathFromTestToImpl   string
+	Unpackers               []*unpacker
 }
 
 // An unpacker defines all values required to generate a single `unpack_...()`
@@ -143,6 +148,17 @@ func newUnpacker(bytes ...uint) (*unpacker, error) {
 		v.Offset = offset
 	}
 	return u, nil
+}
+
+// SolidityVersion returns the pragma version string.
+func (d *tmplData) SolidityVersion() string {
+	if v := d.ExplicitSolidityVersion; v != "" {
+		return v
+	}
+	if d.UsesMCopy() {
+		return "^0.8.25"
+	}
+	return "^0.8.0"
 }
 
 // UsesMCopy returns whether at least one unpack function uses the MCOPY op

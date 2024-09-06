@@ -21,37 +21,45 @@ import (
 const dynFlagSentinel = "dyn"
 
 func main() {
-	implPath := pflag.String("out", "./Unpack.sol", "Output path to which the Solidity implementations are written")
-	testPath := pflag.String("test_out", "./Unpack.t.sol", "Output path to which the Solidity tests are written")
-	bytes := new(bytesFlag)
+	var cfg config
+
+	pflag.StringVar(&cfg.implPath, "out", "./Unpack.sol", "Output path to which the Solidity implementations are written")
+	pflag.StringVar(&cfg.testPath, "test_out", "./Unpack.t.sol", "Output path to which the Solidity tests are written")
+	pflag.StringVar(&cfg.solcVersion, "solc_version", "", "If non-empty, used verbatim as the version of the `pragma solidity` directive")
+
 	bytesMsg := fmt.Sprintf("Semicolon-delimited list of groups of comma-delimited byte sizes. Use literal %q for (at most one) dynamically sized byte array per group.", dynFlagSentinel) //nolint:lll
-	pflag.Var(bytes, "byte_sizes", bytesMsg)
+	pflag.Var(&cfg.bytes, "byte_sizes", bytesMsg)
 
 	pflag.Parse()
 
-	if err := run(*implPath, *testPath, bytes.val); err != nil {
+	if err := cfg.run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
+type config struct {
+	implPath, testPath, solcVersion string
+	bytes                           bytesFlag
+}
+
 // run creates files at both paths and then calls `unpack.Generate()`.
-func run(implPath, testPath string, bytes [][]uint) error {
-	impl, err := os.Create(implPath)
+func (cfg *config) run() error {
+	impl, err := os.Create(cfg.implPath)
 	if err != nil {
 		return err
 	}
-	test, err := os.Create(testPath)
+	test, err := os.Create(cfg.testPath)
 	if err != nil {
 		return err
 	}
 
-	rel, err := filepath.Rel(filepath.Dir(testPath), implPath)
+	rel, err := filepath.Rel(filepath.Dir(cfg.testPath), cfg.implPath)
 	if err != nil {
 		return fmt.Errorf("determine path from test to implementation: %v", err)
 	}
 
-	if err := unpack.Generate(impl, test, rel, bytes...); err != nil {
+	if err := unpack.Generate(impl, test, cfg.solcVersion, rel, cfg.bytes.val...); err != nil {
 		return err
 	}
 	return errors.Join(impl.Close(), test.Close())
