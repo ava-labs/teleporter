@@ -37,10 +37,14 @@ abstract contract ValidatorManager is
         bytes32 _pChainBlockchainID;
         /// @notice The subnetID associated with this validator manager.
         bytes32 _subnetID;
+        /// @notice The maximum churn rate allowed per hour.
         uint8 _maximumHourlyChurn;
+        /// @notice The churn tracker used to track the amount of stake added or removed in the past hour.
         ValidatorChurnPeriod _churnTracker;
         /// @notice Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
+        /// @notice Maps the validationID to the end validation message such that the message can be re-sent if needed.
+        mapping(bytes32 => bytes) _pendingEndValidationMessages;
         /// @notice Maps the validationID to the validator information.
         mapping(bytes32 => Validator) _validationPeriods;
         /// @notice Maps the nodeID to the validationID for active validation periods.
@@ -55,7 +59,7 @@ abstract contract ValidatorManager is
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
-        internal
+        private
         pure
         returns (ValidatorManagerStorage storage $)
     {
@@ -95,7 +99,7 @@ abstract contract ValidatorManager is
     /**
      * @notice Begins the validator registration process, and sets the initial weight for the validator.
      * @param nodeID The node ID of the validator being registered.
-     * @param registrationExpiry The time at which the reigistration is no longer valid on the P-Chain.
+     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
      * @param blsPublicKey The BLS public key of the validator.
      */
     function _initializeValidatorRegistration(
@@ -135,16 +139,18 @@ abstract contract ValidatorManager is
 
         // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerSubnetValidatorMessage);
-
         $._validationPeriods[validationID] = Validator({
             status: ValidatorStatus.PendingAdded,
             nodeID: nodeID,
             owner: _msgSender(),
+            startingWeight: weight,
             messageNonce: 0,
             weight: weight,
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
             endedAt: 0
         });
+        // Increment the nonce for the next usage.
+        _getAndIncrementNonce(validationID);
         emit ValidationPeriodCreated(validationID, nodeID, messageID, weight, registrationExpiry);
 
         return validationID;
@@ -173,22 +179,11 @@ abstract contract ValidatorManager is
      */
     function completeValidatorRegistration(uint32 messageIndex) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        (WarpMessage memory warpMessage, bool valid) =
-            WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        require(valid, "ValidatorManager: invalid warp message");
-
-        require(
-            warpMessage.sourceChainID == $._pChainBlockchainID,
-            "ValidatorManager: invalid source chain ID"
-        );
-        require(
-            warpMessage.originSenderAddress == address(0),
-            "ValidatorManager: invalid origin sender address"
-        );
-
+        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, bool validRegistration) =
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
-        require(validRegistration, "ValidatorManager: registration not valid");
+
+        require(validRegistration, "ValidatorManager: Registration not valid");
         require(
             $._pendingRegisterValidationMessages[validationID].length > 0
                 && $._validationPeriods[validationID].status == ValidatorStatus.PendingAdded,
@@ -242,7 +237,9 @@ abstract contract ValidatorManager is
 
         // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, validator.messageNonce, 0);
+            .packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), 0);
+        $._pendingEndValidationMessages[validationID] = setValidatorWeightPayload;
+
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
         // Emit the event to signal the start of the validator removal process.
@@ -256,16 +253,14 @@ abstract contract ValidatorManager is
     // solhint-disable-next-line
     function resendEndValidatorMessage(bytes32 validationID) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        Validator memory validator = $._validationPeriods[validationID];
 
         require(
-            validator.status == ValidatorStatus.PendingRemoved,
-            "ValidatorManager: validator not pending removal"
+            $._pendingEndValidationMessages[validationID].length > 0
+                && $._validationPeriods[validationID].status == ValidatorStatus.PendingRemoved,
+            "ValidatorManager: Validator not pending removal"
         );
 
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, validator.messageNonce, 0);
-        WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
+        WARP_MESSENGER.sendWarpMessage($._pendingEndValidationMessages[validationID]);
     }
 
     /**
@@ -280,17 +275,7 @@ abstract contract ValidatorManager is
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Get the Warp message.
-        (WarpMessage memory warpMessage, bool valid) =
-            WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        require(valid, "ValidatorManager: invalid warp message");
-        require(
-            warpMessage.sourceChainID == $._pChainBlockchainID,
-            "ValidatorManager: invalid source chain ID"
-        );
-        require(
-            warpMessage.originSenderAddress == address(0),
-            "ValidatorManager: invalid origin sender address"
-        );
+        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
 
         (bytes32 validationID, bool validRegistration) =
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
@@ -309,6 +294,7 @@ abstract contract ValidatorManager is
 
         if (validator.status == ValidatorStatus.PendingRemoved) {
             endStatus = ValidatorStatus.Completed;
+            delete $._pendingEndValidationMessages[validationID];
         } else {
             endStatus = ValidatorStatus.Invalidated;
         }
@@ -319,9 +305,7 @@ abstract contract ValidatorManager is
         validator.status = endStatus;
         $._validationPeriods[validationID] = validator;
 
-        // Unlock the stake.
-
-        // Calculate the reward for the validator.
+        // TODO: Unlock the stake.
 
         // Emit event.
         emit ValidationPeriodEnded(validationID, validator.status);
@@ -330,12 +314,20 @@ abstract contract ValidatorManager is
     }
 
     /**
+     * @notice Returns the validator's weight. This weight is not guaranteed to be known by the P-Chain
+     * @return The weight of the validator. If the validation ID does not exist, the weight will be 0.
+     */
+    function getWeight(bytes32 validationID) external view returns (uint64) {
+        return _getValidator(validationID).weight;
+    }
+
+    /**
      * @notice Helper function to check if the stake amount to be added or removed would exceed the maximum stake churn
      * rate for the past hour. If the churn rate is exceeded, the function will revert. If the churn rate is not exceeded,
      * the function will update the churn tracker with the new amount.
      */
     // TODO: right now implementation has reference to stake, evaluate for PoA.
-    function _checkAndUpdateChurnTracker(uint64 amount) private {
+    function _checkAndUpdateChurnTracker(uint64 amount) internal {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         if ($._maximumHourlyChurn == 0) {
             return;
@@ -356,5 +348,42 @@ abstract contract ValidatorManager is
             "ValidatorManager: maximum hourly churn rate exceeded"
         );
         $._churnTracker = churnTracker;
+    }
+
+    function _getAndIncrementNonce(bytes32 validationID) internal returns (uint64) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        uint64 currentNonce = $._validationPeriods[validationID].messageNonce;
+        $._validationPeriods[validationID].messageNonce++;
+        return currentNonce;
+    }
+
+    function _getPChainWarpMessage(uint32 messageIndex)
+        internal
+        view
+        returns (WarpMessage memory)
+    {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        (WarpMessage memory warpMessage, bool valid) =
+            WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
+        require(valid, "ValidatorManager: Invinvalidalid warp message");
+        require(
+            warpMessage.sourceChainID == $._pChainBlockchainID,
+            "ValidatorManager: invalid source chain ID"
+        );
+        require(
+            warpMessage.originSenderAddress == address(0),
+            "ValidatorManager: invalid origin sender address"
+        );
+        return warpMessage;
+    }
+
+    function _getValidator(bytes32 validationID) internal view returns (Validator memory) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        return $._validationPeriods[validationID];
+    }
+
+    function _setValidatorWeight(bytes32 validationID, uint64 weight) internal {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        $._validationPeriods[validationID].weight = weight;
     }
 }

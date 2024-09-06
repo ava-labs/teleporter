@@ -11,7 +11,7 @@ interface IPoAValidatorManager is IValidatorManager {
     /**
      * @notice Begins the validator registration process, and sets the {weight} of the validator.
      * @param nodeID The node ID of the validator being registered.
-     * @param registrationExpiry The time at which the reigistration is no longer valid on the P-Chain.
+     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
      */
     function initializeValidatorRegistration(
         uint64 weight,
