@@ -123,4 +123,9 @@ contract ERC20TokenStakingManager is
     function _unlock(uint256 value, address to) internal virtual override {
         _getERC20StakingManagerStorage()._token.safeTransfer(to, value);
     }
+
+    function _reward(address account, uint256 amount) internal virtual override {
+        ERC20TokenStakingManagerStorage storage $ = _getERC20StakingManagerStorage();
+        $._token.mint(account, amount);
+    }
 }

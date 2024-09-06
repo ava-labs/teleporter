@@ -16,7 +16,7 @@ export ARCH=$(uname -m)
 [ $ARCH = x86_64 ] && ARCH=amd64
 echo "ARCH set to $ARCH"
 
-DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 TestMessenger ValidatorSetSig NativeTokenStakingManager ERC20TokenStakingManager PoAValidatorManager"
+DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 ExampleRewardCalculator TestMessenger ValidatorSetSig NativeTokenStakingManager ERC20TokenStakingManager PoAValidatorManager"
 
 PROXY_LIST="TransparentUpgradeableProxy ProxyAdmin"
 

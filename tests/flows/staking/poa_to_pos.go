@@ -12,7 +12,6 @@ import (
 	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/PoAValidatorManager"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	. "github.com/onsi/gomega"
@@ -143,6 +142,13 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	)
 	Expect(err).Should(BeNil())
 
+	rewardCalculatorAddress, _ := utils.DeployExampleRewardCalculator(
+		ctx,
+		fundedKey,
+		subnetAInfo,
+		uint64(10),
+	)
+
 	tx, err = posValidatorManager.Initialize(
 		opts,
 		nativetokenstakingmanager.PoSValidatorManagerSettings{
@@ -154,7 +160,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
 			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
 			MinimumStakeDuration: uint64(24 * time.Hour),
-			RewardCalculator:     common.Address{},
+			RewardCalculator:     rewardCalculatorAddress,
 		},
 	)
 	Expect(err).Should(BeNil())

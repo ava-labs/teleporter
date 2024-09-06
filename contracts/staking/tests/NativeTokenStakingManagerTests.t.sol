@@ -10,6 +10,7 @@ import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
 import {ValidatorManagerSettings} from "../interfaces/IValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
+import {ExampleRewardCalculator} from "../ExampleRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 
 // TODO: Remove this once all unit tests implemented
@@ -30,11 +31,23 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                rewardCalculator: IRewardCalculator(address(0))
+                rewardCalculator: IRewardCalculator(new ExampleRewardCalculator(DEFAULT_REWARD_RATE))
             })
         );
         validatorManager = app;
         posValidatorManager = app;
+    }
+
+    function testCompleteEndValidation() public override {
+        // TODO: get native token staking rewards working, then remove this
+        // method and let the implementation in PosValidatorManagerTests do the
+        // test, and remove the `virtual` modifier from that implementation.
+    }
+
+    function testCompleteEndDelegation() public override {
+        // TODO: get native token staking rewards working, then remove this
+        // method and let the implementation in PosValidatorManagerTests do the
+        // test, and remove the `virtual` modifier from that implementation.
     }
 
     // Helpers
@@ -68,6 +81,8 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         // empty calldata implies the receive function will be called
         vm.expectCall(account, amount, "");
     }
+
+    function _expectRewardIssuance(address account, uint256 amount) internal override {}
 
     function _getStakeAssetBalance(address account) internal view override returns (uint256) {
         return account.balance;

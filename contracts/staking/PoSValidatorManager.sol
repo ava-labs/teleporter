@@ -98,6 +98,14 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     function completeEndValidation(uint32 messageIndex) external {
         Validator memory validator = _completeEndValidation(messageIndex);
+
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        uint256 rewardAmount = $._rewardCalculator.calculateReward(
+            validator.weight, validator.startedAt, validator.endedAt, 0, 0
+        );
+
+        _reward(validator.owner, rewardAmount);
+
         _unlock(validator.startingWeight, validator.owner);
     }
 
@@ -356,7 +364,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
         _unlock(delegator.weight, delegator.owner);
-        // TODO: issue rewards
+
+        uint256 rewardAmount = $._rewardCalculator.calculateReward(
+            delegator.weight, delegator.startedAt, delegator.endedAt, 0, 0
+        );
+        _reward(delegator.owner, rewardAmount);
 
         emit DelegationEnded(delegationID, validationID, nonce);
     }
@@ -378,4 +390,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             "PoSValidatorManager: delegation registration not pending"
         );
     }
+
+    function _reward(address account, uint256 amount) internal virtual;
 }

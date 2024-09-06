@@ -82,4 +82,9 @@ contract NativeTokenStakingManager is
     function _unlock(uint256 value, address to) internal virtual override {
         payable(to).sendValue(value);
     }
+
+    // solhint-disable-next-line no-empty-blocks
+    function _reward(address account, uint256 amount) internal virtual override {
+        // TODO: call the native minter precompile to mint `amount` for `account`
+    }
 }
