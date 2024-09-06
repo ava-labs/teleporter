@@ -27,8 +27,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _minimumStakeAmount;
         /// @notice The maximum amount of stake allowed to be a validator.
         uint256 _maximumStakeAmount;
-        /// @notice The total weight of all validators.
-        uint256 _totalWeight;
         /// @notice The time at which the churn tracker will start. This is allow networks to bootstrap
         /// their validator set without worrying about churn tracking for a set period of time.
         uint256 _churnTrackerStartTime;
@@ -110,12 +108,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-
         uint64 weight = _getValidator(validationID).weight;
         _checkAndUpdateChurnTracker(weight);
-        // Update weight after checking the churn tracker.
-        $._totalWeight -= weight;
 
         if (includeUptimeProof) {
             _getUptime(validationID, messageIndex);
@@ -162,8 +156,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Check that adding this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTracker(weight);
-        // Update weight after checking the churn tracker.
-        $._totalWeight += weight;
 
         return weight;
     }
@@ -186,7 +178,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
      */
     function _checkAndUpdateChurnTracker(uint64 weight) private {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        if ($._maximumChurnPercentage == 0 || $._totalWeight == 0) {
+        uint256 totalWeight = _getTotalWeight();
+        if ($._maximumChurnPercentage == 0 || totalWeight == 0) {
             return;
         }
 
@@ -199,7 +192,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         if (currentTime - churnTracker.startedAt >= $._churnPeriodSeconds) {
             churnTracker.churnAmount = weight;
             churnTracker.startedAt = currentTime;
-            churnTracker.initialWeight = $._totalWeight;
+            churnTracker.initialWeight = totalWeight;
         } else {
             churnTracker.churnAmount += weight;
         }

@@ -44,6 +44,8 @@ abstract contract ValidatorManager is
         mapping(bytes32 => Validator) _validationPeriods;
         /// @notice Maps the nodeID to the validationID for active validation periods.
         mapping(bytes32 => bytes32) _activeValidators;
+        /// @notice The total weight of all validators.
+        uint256 _totalWeight;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -144,8 +146,13 @@ abstract contract ValidatorManager is
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
             endedAt: 0
         });
+
+        // Update total weight
+        $._totalWeight += weight;
+
         // Increment the nonce for the next usage.
         _getAndIncrementNonce(validationID);
+
         emit ValidationPeriodCreated(validationID, nodeID, messageID, weight, registrationExpiry);
 
         return validationID;
@@ -231,6 +238,9 @@ abstract contract ValidatorManager is
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), 0);
         $._pendingEndValidationMessages[validationID] = setValidatorWeightPayload;
+
+        // Update weight after checking the churn tracker.
+        $._totalWeight -= validator.weight;
 
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
@@ -340,6 +350,10 @@ abstract contract ValidatorManager is
     function _getValidator(bytes32 validationID) internal view returns (Validator memory) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         return $._validationPeriods[validationID];
+    }
+
+    function _getTotalWeight() internal view returns (uint256) {
+        return _getValidatorManagerStorage()._totalWeight;
     }
 
     function _setValidatorWeight(bytes32 validationID, uint64 weight) internal {
