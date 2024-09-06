@@ -158,7 +158,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Construct the delegation ID. This is guaranteed to be unique since it is
         // constructed using a new nonce.
-        uint64 nonce = _getAndIncrementNonce(validationID);
+        uint64 nonce = _incrementAndGetNonce(validationID);
         bytes32 delegationID = keccak256(abi.encodePacked(validationID, delegatorAddress, nonce));
 
         _checkAndUpdateChurnTracker(weight);
@@ -262,7 +262,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         require(
             delegator.owner == _msgSender(), "PoSValidatorManager: delegation not owned by sender"
         );
-        uint64 nonce = _getAndIncrementNonce(validationID);
+        uint64 nonce = _incrementAndGetNonce(validationID);
 
         // Set the delegator status to pending removed, so that it can be properly removed in
         // the complete step, even if the delivered nonce is greater than the nonce used to
@@ -299,8 +299,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         Delegator memory delegator = $._delegatorStakes[delegationID];
         require(
-            $._delegatorStakes[delegationID].status == DelegatorStatus.PendingAdded,
-            "PoSValidatorManager: delegation registration not pending"
+            delegator.status == DelegatorStatus.PendingAdded
+                || delegator.status == DelegatorStatus.PendingRemoved,
+            "PoSValidatorManager: delegation status not pending"
         );
 
         Validator memory validator = _getValidator(delegator.validationID);

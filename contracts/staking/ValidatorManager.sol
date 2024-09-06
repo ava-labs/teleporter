@@ -147,8 +147,7 @@ abstract contract ValidatorManager is
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
             endedAt: 0
         });
-        // Increment the nonce for the next usage.
-        _getAndIncrementNonce(validationID);
+
         emit ValidationPeriodCreated(validationID, nodeID, messageID, weight, registrationExpiry);
 
         return validationID;
@@ -235,7 +234,7 @@ abstract contract ValidatorManager is
 
         // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), 0);
+            .packSetSubnetValidatorWeightMessage(validationID, _incrementAndGetNonce(validationID), 0);
 
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
@@ -250,18 +249,18 @@ abstract contract ValidatorManager is
     // solhint-disable-next-line
     function resendEndValidatorMessage(bytes32 validationID) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        Validator memory validator = $._validationPeriods[validationID];
 
         require(
-            $._validationPeriods[validationID].status == ValidatorStatus.PendingRemoved,
+            validator.status == ValidatorStatus.PendingRemoved,
             "ValidatorManager: Validator not pending removal"
         );
 
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(
-            validationID, $._validationPeriods[validationID].messageNonce, 0
+        WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(
+                validationID, validator.messageNonce, 0
+            )
         );
-
-        WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
     }
 
     /**
@@ -347,11 +346,10 @@ abstract contract ValidatorManager is
         $._churnTracker = churnTracker;
     }
 
-    function _getAndIncrementNonce(bytes32 validationID) internal returns (uint64) {
+    function _incrementAndGetNonce(bytes32 validationID) internal returns (uint64) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        uint64 currentNonce = $._validationPeriods[validationID].messageNonce;
         $._validationPeriods[validationID].messageNonce++;
-        return currentNonce;
+        return $._validationPeriods[validationID].messageNonce;
     }
 
     function _getPChainWarpMessage(uint32 messageIndex)
