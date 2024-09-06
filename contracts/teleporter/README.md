@@ -1,15 +1,5 @@
 # Teleporter Protocol
 
-- [Teleporter Protocol](#teleporter-protocol)
-  - [Overview](#overview)
-  - [Data Flow](#data-flow)
-  - [Properties](#properties)
-  - [Fees](#fees)
-    - [Message Receipts and Fee Redemption](#message-receipts-and-fee-redemption)
-  - [Required Interface](#required-interface)
-  - [Teleporter Contract Deployment](#teleporter-contract-deployment)
-  - [Message Delivery and Execution](#message-delivery-and-execution)
-
 ## Overview
 
 Teleporter is a messaging protocol built on top of [Avalanche Warp Messaging (AWM)](https://docs.avax.network/learn/avalanche/awm) that provides a developer-friendly interface for sending and receiving cross-chain messages from within the EVM.
@@ -28,7 +18,7 @@ The `ITeleporterReceiver` interface provides a single method. All contracts that
 ## Data Flow
 
 <div align="center">
-  <img src="../../../resources/TeleporterDataFlowDiagram.png?raw=true"/>
+  <img src="../../resources/TeleporterDataFlowDiagram.png?raw=true"/>
 </div>
 
 ## Properties
@@ -69,9 +59,15 @@ Teleporter is able to ensure that messages are considered delivered even if thei
 
 Note that due to [EIP-150](https://eips.ethereum.org/EIPS/eip-150), the lesser of 63/64<sup>ths</sup> of the remaining gas and the `requiredGasLimit` will be provided to the code executed using `evm.Call()`. This creates an edge case where sufficient gas is provided by the relayer at time of the `requiredGasLimit` check, but less than the `requiredGasLimit` is provided for the message execution. In such a case, the message execution may fail due to having less than the `requiredGasLimit` available, but the message would still be considered received. Such a case is only possible if the remaining 1/64<sup>th</sup> of the `requiredGasLimit` is sufficient for executing the remaining logic of `receiveCrossChainMessage` so that the top level transaction does not also revert. Based on the current implementation, a message must have a `requiredGasLimit` of over 1,200,000 gas for this to be possible. In order to avoid this case entirely, it is recommended for applications sending Teleporter messages to add a buffer to the `requiredGasLimit` such that 63/64<sup>ths</sup> of the value passed is sufficient for the message execution.
 
+## Resending a Message
+
+If the sending Subnet's validator set changes, then it's possible for the receiving Subnet to reject the underlying Warp message due to insufficient signing stake. For example, suppose Subnet A has 5 validators with equal stake weight who all sign a Teleporter message sent to Subnet B. 100% of Subnet A's stake has signed the message. Also suppose Subnet B requires 67% of the sending Subnet's stake to have signed a given Warp message in order for it to be accepted. Before the message can be delivered, however, 5 _more_ validators are added to Subnet A's validator set (all with the same stake weight as the original validators), meaning that the Teleporter message was signed by _only 50%_ of Subnet A's stake. Subnet B will reject this message.
+
+Once sent on chain, Warp messages cannot be re-signed by a new validator set in such a scenario. Teleporter, however, does support re-signing via the function `retrySendCrossChainMessage`, which can be called for any message that has not been acknowledged as delivered to its destination. Under the hood, this packages the Teleporter message into a brand new Warp message that is re-signed by the current validator set. 
+
 ## Teleporter Messenger Contract Deployment
 
-**Do not deploy the `TeleporterMessenger` contract using `forge create`**. The `TeleporterMessenger` contract must be deployed to the same contract address on every chain. To achieve this, the contract can be deployed using a static transaction that uses Nick's method as documented in [this guide](https://github.com/ava-labs/teleporter/blob/main/utils/contract-deployment/README.md). Alternatively, if creating a new Subnet, the contract can be pre-allocated with the proper address and state in the new chain's [genesis file](https://docs.avax.network/build/subnet/upgrade/customize-a-subnet#setting-the-genesis-allocation).
+**Do not deploy the `TeleporterMessenger` contract using `forge create`**. The `TeleporterMessenger` contract must be deployed to the same contract address on every chain. To achieve this, the contract can be deployed using a static transaction that uses Nick's method as documented in [this guide](../..//utils/contract-deployment/README.md). Alternatively, if creating a new Subnet, the contract can be pre-allocated with the proper address and state in the new chain's [genesis file](https://docs.avax.network/build/subnet/upgrade/customize-a-subnet#setting-the-genesis-allocation).
 
 As an example, to include `TeleporterMessenger` `v1.0.0` in the genesis file, include the following values in the `alloc` settings, as documented at the link above. The `storage` values included below correspond to the two contract values that are initialized as part of the default constructor of `TeleporterMessenger`. These are the `ReentrancyGuard` values set in this [abstract contract](../utilities/ReentrancyGuards.sol). Future versions of `TeleporterMessenger` may require different storage value intializations.
 ```json
