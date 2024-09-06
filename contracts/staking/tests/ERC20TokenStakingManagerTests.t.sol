@@ -13,15 +13,16 @@ import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 import {ExampleERC20} from "@mocks/ExampleERC20.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {IERC20Mintable} from "../interfaces/IERC20Mintable.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 
 // TODO: Remove this once all unit tests implemented
 // solhint-disable no-empty-blocks
 contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Mintable;
 
     ERC20TokenStakingManager public app;
-    IERC20 public token;
+    IERC20Mintable public token;
 
     function setUp() public virtual {
         // Construct the object under test
