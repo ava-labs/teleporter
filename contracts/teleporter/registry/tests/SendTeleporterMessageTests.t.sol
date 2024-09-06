@@ -5,16 +5,12 @@
 
 pragma solidity 0.8.25;
 
-import {
-    BaseTeleporterRegistryAppTest,
-    ExampleRegistryApp
-} from "./BaseTeleporterRegistryAppTests.t.sol";
+import {BaseTeleporterRegistryAppTest} from "./BaseTeleporterRegistryAppTests.t.sol";
 import {
     ITeleporterMessenger,
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
-import {TeleporterRegistry, ProtocolRegistryEntry} from "../TeleporterRegistry.sol";
 import {IERC20} from "@teleporter/TeleporterMessenger.sol";
 
 abstract contract SendTeleporterMessageTest is BaseTeleporterRegistryAppTest {
@@ -25,28 +21,6 @@ abstract contract SendTeleporterMessageTest is BaseTeleporterRegistryAppTest {
 
         // Check that the app reverts when trying to send a message with paused Teleporter
         vm.expectRevert(_formatErrorMessage("Teleporter sending paused"));
-        app.sendTeleporterMessage(
-            TeleporterMessageInput({
-                destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-                destinationAddress: DEFAULT_DESTINATION_ADDRESS,
-                feeInfo: TeleporterFeeInfo(address(0), 0),
-                requiredGasLimit: 0,
-                allowedRelayerAddresses: new address[](0),
-                message: hex"deadbeef"
-            })
-        );
-    }
-
-    function testNoRegisteredTeleporterSend() public {
-        // Create a new Teleporter registry with no registered Teleporters
-        TeleporterRegistry teleporterRegistry =
-            new TeleporterRegistry(new ProtocolRegistryEntry[](0));
-
-        // Create a new app with the new Teleporter registry
-        ExampleRegistryApp app = new ExampleRegistryApp(address(teleporterRegistry));
-
-        // Check that the app reverts when trying to send a message with no registered Teleporter
-        vm.expectRevert(_formatRegistryErrorMessage("zero version"));
         app.sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,

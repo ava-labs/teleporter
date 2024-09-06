@@ -875,11 +875,14 @@ func DeployTestMessenger(
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
+	minTeleporterVersion, err := subnet.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
 	address, tx, exampleMessenger, err := testmessenger.DeployTestMessenger(
 		opts,
 		subnet.RPCClient,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
+		minTeleporterVersion,
 	)
 	Expect(err).Should(BeNil())
 
@@ -1206,4 +1209,41 @@ func InstantiateGenesisTemplate(
 	subnetGenesisFile.WriteString(replaced)
 
 	return subnetGenesisFile.Name()
+}
+
+//
+// Teleporter message utils
+//
+
+// Blocks until the given teleporter message is delivered to the specified TeleporterMessenger
+// before the timeout, or if an error occurred.
+func WaitTeleporterMessageDelivered(
+	ctx context.Context,
+	teleporterMessenger *teleportermessenger.TeleporterMessenger,
+	teleporterMessageID ids.ID,
+) error {
+	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
+	queryTicker := time.NewTicker(200 * time.Millisecond)
+	defer queryTicker.Stop()
+	for {
+		delivered, err := teleporterMessenger.MessageReceived(
+			&bind.CallOpts{}, teleporterMessageID,
+		)
+		if err != nil {
+			return err
+		}
+
+		if delivered {
+			return nil
+		}
+
+		// Wait for the next round.
+		select {
+		case <-cctx.Done():
+			return cctx.Err()
+		case <-queryTicker.C:
+		}
+	}
 }
