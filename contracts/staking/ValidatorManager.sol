@@ -269,7 +269,7 @@ abstract contract ValidatorManager is
      *  Note that this function can be used for successful validation periods that have been explicitly
      * ended by calling {initializeEndValidation} or for validation periods that never began on the P-Chain due to the
      * {registrationExpiry} being reached.
-     * @return the Validator instance representing the completed validation period
+     * @return The Validator instance representing the completed validation period
      */
     function _completeEndValidation(uint32 messageIndex) internal returns (Validator memory) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
