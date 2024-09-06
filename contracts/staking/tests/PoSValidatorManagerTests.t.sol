@@ -83,7 +83,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
 
         bytes32 nodeID = _newNodeID();
-        vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
+        vm.expectRevert(_formatErrorMessage("maximum churn rate exceeded"));
         _initializeValidatorRegistrationWithValue(
             nodeID, DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
         );
@@ -95,7 +95,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32[] memory validationIDs = registerValidators(1);
 
         vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
-        vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
+        vm.expectRevert(_formatErrorMessage("maximum churn rate exceeded"));
 
         // Initialize the end of one of the validators.
         _initializeEndValidation(validationIDs[0]);
@@ -118,7 +118,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _beforeSend(DEFAULT_WEIGHT, address(this));
 
         // Second call after churn tracking start should fail
-        vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
+        vm.expectRevert(_formatErrorMessage("maximum churn rate exceeded"));
         _initializeValidatorRegistrationWithValue(
             nodeID, DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
         );
@@ -144,7 +144,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _beforeSend(DEFAULT_WEIGHT, address(this));
 
         // Second call after churn tracking start should fail
-        vm.expectRevert(_formatErrorMessage("maximum hourly churn rate exceeded"));
+        vm.expectRevert(_formatErrorMessage("maximum churn rate exceeded"));
         _initializeValidatorRegistrationWithValue(
             nodeID, DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
         );

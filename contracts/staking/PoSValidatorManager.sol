@@ -207,7 +207,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint8 churnPercentage = uint8((churnTracker.churnAmount * 100) / churnTracker.initialWeight);
         require(
             churnPercentage <= $._maximumChurnPercentage,
-            "PoSValidatorManager: maximum hourly churn rate exceeded"
+            "PoSValidatorManager: maximum churn rate exceeded"
         );
         $._churnTracker = churnTracker;
     }
