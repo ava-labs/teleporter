@@ -60,13 +60,14 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
 
     function _initializeDelegatorRegistration(
         bytes32 validationID,
-        address delegator,
+        address delegatorAddress,
         uint64 weight
-    ) internal virtual override {
+    ) internal virtual override returns (bytes32) {
         uint256 value = app.weightToValue(weight);
-        vm.startPrank(delegator);
-        app.initializeDelegatorRegistration(validationID, value);
+        vm.startPrank(delegatorAddress);
+        bytes32 delegationID = app.initializeDelegatorRegistration(validationID, value);
         vm.stopPrank();
+        return delegationID;
     }
 
     function _beforeSend(uint64 weight, address spender) internal override {

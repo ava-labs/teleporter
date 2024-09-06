@@ -720,14 +720,14 @@ func InitializeERC20DelegatorRegistration(
 
 func CompleteERC20DelegatorRegistration(
 	sendingKey *ecdsa.PrivateKey,
-	delegator common.Address,
+	delegationID ids.ID,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
 	signedMessage *avalancheWarp.Message,
 ) *types.Receipt {
 	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeDelegatorRegistration", uint32(0), delegator)
+	callData, err := abi.Pack("completeDelegatorRegistration", uint32(0), delegationID)
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		callData,
@@ -742,13 +742,13 @@ func InitializeEndERC20Delegation(
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
-	validationID ids.ID,
+	delegationID ids.ID,
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndDelegation(
 		opts,
-		validationID,
+		delegationID,
 		false,
 		0,
 	)
@@ -758,14 +758,14 @@ func InitializeEndERC20Delegation(
 
 func CompleteEndERC20Delegation(
 	sendingKey *ecdsa.PrivateKey,
-	delegator common.Address,
+	delegationID ids.ID,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
 	signedMessage *avalancheWarp.Message,
 ) *types.Receipt {
 	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeEndDelegation", uint32(0), delegator)
+	callData, err := abi.Pack("completeEndDelegation", uint32(0), delegationID)
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		callData,
@@ -803,14 +803,14 @@ func InitializeNativeDelegatorRegistration(senderKey *ecdsa.PrivateKey,
 
 func CompleteNativeDelegatorRegistration(
 	sendingKey *ecdsa.PrivateKey,
-	delegator common.Address,
+	delegationID ids.ID,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
 	signedMessage *avalancheWarp.Message,
 ) *types.Receipt {
 	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeDelegatorRegistration", uint32(0), delegator)
+	callData, err := abi.Pack("completeDelegatorRegistration", uint32(0), delegationID)
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		callData,
@@ -825,13 +825,13 @@ func InitializeEndNativeDelegation(
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
-	validationID ids.ID,
+	delegationID ids.ID,
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndDelegation(
 		opts,
-		validationID,
+		delegationID,
 		false,
 		0,
 	)
@@ -841,14 +841,14 @@ func InitializeEndNativeDelegation(
 
 func CompleteEndNativeDelegation(
 	sendingKey *ecdsa.PrivateKey,
-	delegator common.Address,
+	delegationID ids.ID,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
 	signedMessage *avalancheWarp.Message,
 ) *types.Receipt {
 	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeEndDelegation", uint32(0), delegator)
+	callData, err := abi.Pack("completeEndDelegation", uint32(0), delegationID)
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		callData,
