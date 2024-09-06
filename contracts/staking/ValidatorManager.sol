@@ -43,8 +43,6 @@ abstract contract ValidatorManager is
         ValidatorChurnPeriod _churnTracker;
         /// @notice Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
-        /// @notice Maps the validationID to the end validation message such that the message can be re-sent if needed.
-        mapping(bytes32 => bytes) _pendingEndValidationMessages;
         /// @notice Maps the validationID to the validator information.
         mapping(bytes32 => Validator) _validationPeriods;
         /// @notice Maps the nodeID to the validationID for active validation periods.
@@ -238,7 +236,6 @@ abstract contract ValidatorManager is
         // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), 0);
-        $._pendingEndValidationMessages[validationID] = setValidatorWeightPayload;
 
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
@@ -255,12 +252,16 @@ abstract contract ValidatorManager is
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         require(
-            $._pendingEndValidationMessages[validationID].length > 0
-                && $._validationPeriods[validationID].status == ValidatorStatus.PendingRemoved,
+            $._validationPeriods[validationID].status == ValidatorStatus.PendingRemoved,
             "ValidatorManager: Validator not pending removal"
         );
 
-        WARP_MESSENGER.sendWarpMessage($._pendingEndValidationMessages[validationID]);
+        bytes memory setValidatorWeightPayload = ValidatorMessages
+            .packSetSubnetValidatorWeightMessage(
+            validationID, $._validationPeriods[validationID].messageNonce, 0
+        );
+
+        WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
     }
 
     /**
@@ -293,7 +294,6 @@ abstract contract ValidatorManager is
 
         if (validator.status == ValidatorStatus.PendingRemoved) {
             endStatus = ValidatorStatus.Completed;
-            delete $._pendingEndValidationMessages[validationID];
         } else {
             endStatus = ValidatorStatus.Invalidated;
         }
