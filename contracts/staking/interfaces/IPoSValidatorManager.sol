@@ -124,7 +124,7 @@ interface IPoSValidatorManager is IValidatorManager {
      * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize registration of the
      * delegator is valid, as long as that nonce has been sent by the contract. For the purposes of computing delegation rewards,
      * the delegation is considered active after this function is called.
-     * Note however that only the specified delegation will be marked as registered, even if the validator weight update
+     * Note: only the specified delegation will be marked as registered, even if the validator weight update
      * message implicitly includes multiple weight changes.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegationID The ID of the delegation being registered.
