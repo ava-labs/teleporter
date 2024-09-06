@@ -56,11 +56,15 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
 
-        uint256 balanceBefore = token.balanceOf(address(this));
+        address validator = address(this);
+
+        uint256 balanceBefore = token.balanceOf(validator);
+
+        vm.expectCall(address(token), abi.encodeCall(IERC20.transfer, (validator, DEFAULT_WEIGHT)));
 
         _testCompleteEndValidation(validationID);
 
-        uint256 balanceChange = token.balanceOf(address(this)) - balanceBefore;
+        uint256 balanceChange = token.balanceOf(validator) - balanceBefore;
         require(balanceChange == DEFAULT_WEIGHT, "validator should have received their stake back");
     }
 
