@@ -161,7 +161,7 @@ interface IPoSValidatorManager is IValidatorManager {
      * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize the end of the
      * delegator's delegation is valid, as long as that nonce has been sent by the contract. This is because the validator
      * weight change pertaining to the delegation ending is included in any subsequent validator weight update messages.
-     * Note however that only the specified delegation will be marked as completed, even if the validator weight update
+     * Note: only the specified delegation will be marked as completed, even if the validator weight update
      * message implicitly includes multiple weight changes.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegationID The ID of the delegation being removed.
