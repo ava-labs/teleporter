@@ -20,8 +20,8 @@ library Unpack {
 
     /**
      * @notice Inverts `abi.encodePacked()` for the specific return types.
-     * @dev The originally packed inputs MUST be of the same types as those returned by this function, in the precise
-     * order, otherwise the output is undefined.
+     * @dev The originally packed inputs MUST be of the same byte lengths as those returned by this function, in the
+     * precise order, otherwise the output is undefined. `bytes<N>` and `uint<8N>` are interchangeable.
      * @dev This function takes ownership of and corrupts the `input` parameter to avoid memory expansion for the
      * returned `bytes memory`. The returned array is owned by the caller.
      * @param input Buffer returned by `abi.encodePacked()`
@@ -51,8 +51,8 @@ library Unpack {
 
     /**
      * @notice Inverts `abi.encodePacked()` for the specific return types.
-     * @dev The originally packed inputs MUST be of the same types as those returned by this function, in the precise
-     * order, otherwise the output is undefined.
+     * @dev The originally packed inputs MUST be of the same byte lengths as those returned by this function, in the
+     * precise order, otherwise the output is undefined. `bytes<N>` and `uint<8N>` are interchangeable.
      * @param input Buffer returned by `abi.encodePacked()`
      */
     // slither-disable-next-line naming-convention
@@ -74,8 +74,8 @@ library Unpack {
 
     /**
      * @notice Inverts `abi.encodePacked()` for the specific return types.
-     * @dev The originally packed inputs MUST be of the same types as those returned by this function, in the precise
-     * order, otherwise the output is undefined.
+     * @dev The originally packed inputs MUST be of the same byte lengths as those returned by this function, in the
+     * precise order, otherwise the output is undefined. `bytes<N>` and `uint<8N>` are interchangeable.
      * @param input Buffer returned by `abi.encodePacked()`
      */
     // slither-disable-next-line naming-convention
@@ -98,8 +98,8 @@ library Unpack {
 
     /**
      * @notice Inverts `abi.encodePacked()` for the specific return types.
-     * @dev The originally packed inputs MUST be of the same types as those returned by this function, in the precise
-     * order, otherwise the output is undefined.
+     * @dev The originally packed inputs MUST be of the same byte lengths as those returned by this function, in the
+     * precise order, otherwise the output is undefined. `bytes<N>` and `uint<8N>` are interchangeable.
      * @param input Buffer returned by `abi.encodePacked()`
      */
     // slither-disable-next-line naming-convention
@@ -121,8 +121,8 @@ library Unpack {
 
     /**
      * @notice Inverts `abi.encodePacked()` for the specific return types.
-     * @dev The originally packed inputs MUST be of the same types as those returned by this function, in the precise
-     * order, otherwise the output is undefined.
+     * @dev The originally packed inputs MUST be of the same byte lengths as those returned by this function, in the
+     * precise order, otherwise the output is undefined. `bytes<N>` and `uint<8N>` are interchangeable.
      * @dev This function takes ownership of and corrupts the `input` parameter to avoid memory expansion for the
      * returned `bytes memory`. The returned array is owned by the caller.
      * @param input Buffer returned by `abi.encodePacked()`
