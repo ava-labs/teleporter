@@ -149,10 +149,13 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 				PChainBlockchainID: pChainInfo.BlockchainID,
 				SubnetID:           subnetAInfo.SubnetID,
 			},
-			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration: uint64(24 * time.Hour),
-			RewardCalculator:     common.Address{},
+			ChurnTrackerStartTime:  big.NewInt(0),
+			ChurnPeriodSeconds:     uint64(0),
+			MaximumChurnPercentage: uint8(0),
+			MinimumStakeAmount:     big.NewInt(1e6),
+			MaximumStakeAmount:     big.NewInt(10e6),
+			MinimumStakeDuration:   uint64(24 * time.Hour.Seconds()),
+			RewardCalculator:       common.Address{},
 		},
 	)
 	Expect(err).Should(BeNil())
