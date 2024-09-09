@@ -41,12 +41,12 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
     // solhint-enable func-name-mixedcase
 
     function initializeValidatorRegistration(
-        uint64 weight,
         bytes32 nodeID,
         uint64 registrationExpiry,
-        bytes memory signature
+        bytes memory blsPublicKey,
+        uint64 weight
     ) external override onlyOwner returns (bytes32 validationID) {
-        return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, signature);
+        return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
     }
 
     // solhint-enable ordering

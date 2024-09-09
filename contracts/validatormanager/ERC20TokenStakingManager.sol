@@ -13,7 +13,11 @@ import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
-import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
+import {
+    PoSValidatorManagerSettings,
+    PoSValidatorRequirements
+} from "./interfaces/IPoSValidatorManager.sol";
+import {ValidatorRegistrationInput} from "./interfaces/IValidatorManager.sol";
 
 contract ERC20TokenStakingManager is
     Initializable,
@@ -84,20 +88,15 @@ contract ERC20TokenStakingManager is
     }
 
     /**
-     * @notice Begins the validator registration process. Locks the configured ERC20 in the contract as the stake.
-     * @param stakeAmount The amount to be staked.
-     * @param nodeID The node ID of the validator being registered.
-     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
-     * @param blsPublicKey The BLS public key of the validator.
+     * @notice See {IERC20TokenStakingManager-initializeValidatorRegistration}
+     * Begins the validator registration process. Locks the configured ERC20 in the contract as the stake.
      */
     function initializeValidatorRegistration(
-        uint256 stakeAmount,
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey
-    ) external returns (bytes32 validationID) {
-        uint64 weight = _processStake(stakeAmount);
-        return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
+        ValidatorRegistrationInput calldata registrationInput,
+        PoSValidatorRequirements calldata requirements,
+        uint256 stakeAmount
+    ) external nonReentrant returns (bytes32 validationID) {
+        return _initializeValidatorRegistration(registrationInput, requirements, stakeAmount);
     }
 
     /**

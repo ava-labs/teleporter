@@ -8,9 +8,16 @@ pragma solidity 0.8.25;
 import {
     IPoSValidatorManager, Delegator, DelegatorStatus
 } from "./interfaces/IPoSValidatorManager.sol";
-import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
+import {
+    PoSValidatorManagerSettings,
+    PoSValidatorRequirements
+} from "./interfaces/IPoSValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
-import {Validator, ValidatorStatus} from "./interfaces/IValidatorManager.sol";
+import {
+    Validator,
+    ValidatorStatus,
+    ValidatorRegistrationInput
+} from "./interfaces/IValidatorManager.sol";
 import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {ValidatorMessages} from "./ValidatorMessages.sol";
@@ -26,6 +33,14 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _maximumStakeAmount;
         /// @notice The minimum amount of time a validator must be staked for.
         uint64 _minimumStakeDuration;
+        /// @notice The minimum delegation fee required to delegate to a validator.
+        uint256 _minimumDelegationFee;
+        /**
+         * @notice A multiplier applied to {_maximumStakeAmount} to determine
+         * the maximum amount of stake a validator can have. This maximum amount includes
+         * the initial stake amount at registration, and additional stake from delegations.
+         */
+        uint64 _maximumStakeMultiplier;
         /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
         /// @notice Maps the delegationID to the delegator information.
@@ -64,6 +79,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             settings.minimumStakeAmount,
             settings.maximumStakeAmount,
             settings.minimumStakeDuration,
+            settings.minimumDelegationFee,
+            settings.maximumStakeMultiplier,
             settings.rewardCalculator
         );
     }
@@ -73,12 +90,26 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 minimumStakeAmount,
         uint256 maximumStakeAmount,
         uint64 minimumStakeDuration,
+        uint256 minimumDelegationFee,
+        uint64 maximumStakeMultiplier,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        require(minimumDelegationFee > 0, "PoSValidatorManager: zero delegation fee");
+        require(
+            minimumStakeAmount <= maximumStakeAmount,
+            "PoSValidatorManager: invalid stake amount range"
+        );
+        require(
+            maximumStakeMultiplier > 0,
+            "PoSValidatorManager: zero max validator stake multiplier"
+        );
+
         $._minimumStakeAmount = minimumStakeAmount;
         $._maximumStakeAmount = maximumStakeAmount;
         $._minimumStakeDuration = minimumStakeDuration;
+        $._minimumDelegationFee = minimumDelegationFee;
+        $._maximumStakeMultiplier = maximumStakeMultiplier;
         $._rewardCalculator = rewardCalculator;
     }
 
@@ -118,18 +149,31 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         return uptime;
     }
 
-    function _processStake(uint256 stakeAmount) internal virtual returns (uint64) {
+    function _initializeValidatorRegistration(
+        ValidatorRegistrationInput calldata registrationInput,
+        PoSValidatorRequirements calldata requirements,
+        uint256 stakeAmount
+    ) internal virtual returns (bytes32) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        // Validate and save the validator requirements
+        require(
+            requirements.minStakeDuration >= $._minimumStakeDuration,
+            "PoSValidatorManager: invalid min stake duration"
+        );
+        require(
+            requirements.delegationFee > $._minimumDelegationFee,
+            "PoSValidatorManager: invalid delegation fee"
+        );
+        require(
+            stakeAmount >= $._minimumStakeAmount && stakeAmount <= $._maximumStakeAmount,
+            "PoSValidatorManager: invalid stake amount"
+        );
+
         // Lock the stake in the contract.
         uint256 lockedValue = _lock(stakeAmount);
         uint64 weight = valueToWeight(lockedValue);
-
-        // Ensure the weight is within the valid range.
-        require(
-            weight >= $._minimumStakeAmount && weight <= $._maximumStakeAmount,
-            "PoSValidatorManager: invalid stake amount"
-        );
-        return weight;
+        bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
+        return validationID;
     }
 
     function valueToWeight(uint256 value) public pure returns (uint64) {
@@ -148,8 +192,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         address delegatorAddress,
         uint256 delegationAmount
     ) internal nonReentrant returns (bytes32) {
-        uint64 weight = valueToWeight(_lock(delegationAmount));
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        uint64 weight = valueToWeight(_lock(delegationAmount));
 
         // Ensure the validation period is active
         Validator memory validator = _getValidator(validationID);
@@ -158,12 +202,15 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         );
         // Update the validator weight
         uint64 newValidatorWeight = validator.weight + weight;
+        require(
+            weightToValue(newValidatorWeight) <= $._maximumStakeAmount * $._maximumStakeMultiplier, "PoSValidatorManager: maximum validator weight reached"
+        );
         _setValidatorWeight(validationID, newValidatorWeight);
 
         // Construct the delegation ID. This is guaranteed to be unique since it is
         // constructed using a new nonce.
         uint64 nonce = _getAndIncrementNonce(validationID);
-        bytes32 delegationID = keccak256(abi.encodePacked(validationID, delegatorAddress, nonce));
+        bytes32 delegationID = keccak256(abi.encodePacked(validationID, nonce));
 
         _checkAndUpdateChurnTracker(weight);
 

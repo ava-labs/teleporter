@@ -21,6 +21,8 @@ struct PoSValidatorManagerSettings {
     uint256 minimumStakeAmount;
     uint256 maximumStakeAmount;
     uint64 minimumStakeDuration;
+    uint256 minimumDelegationFee;
+    uint64 maximumStakeMultiplier;
     IRewardCalculator rewardCalculator;
 }
 
@@ -33,6 +35,11 @@ struct Delegator {
     uint64 endedAt;
     uint64 startingNonce;
     uint64 endingNonce;
+}
+
+struct PoSValidatorRequirements {
+    uint256 delegationFee;
+    uint256 minStakeDuration;
 }
 
 interface IPoSValidatorManager is IValidatorManager {

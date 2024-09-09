@@ -37,6 +37,12 @@ struct ValidatorManagerSettings {
     uint8 maximumHourlyChurn;
 }
 
+struct ValidatorRegistrationInput {
+    bytes32 nodeID;
+    uint64 registrationExpiry;
+    bytes blsPublicKey;
+}
+
 interface IValidatorManager {
     /**
      * @notice Emitted when a new validation period is created by stake being locked in the manager contract.

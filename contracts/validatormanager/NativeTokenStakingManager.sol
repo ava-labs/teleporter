@@ -11,7 +11,11 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
-import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
+import {
+    PoSValidatorManagerSettings,
+    PoSValidatorRequirements
+} from "./interfaces/IPoSValidatorManager.sol";
+import {ValidatorRegistrationInput} from "./interfaces/IValidatorManager.sol";
 
 contract NativeTokenStakingManager is
     Initializable,
@@ -48,18 +52,14 @@ contract NativeTokenStakingManager is
     function __NativeTokenStakingManager_init_unchained() internal onlyInitializing {}
 
     /**
-     * @notice Begins the validator registration process. Locks the provided native asset in the contract as the stake.
-     * @param nodeID The node ID of the validator being registered.
-     * @param registrationExpiry The Unix timestamp after which the registration is no longer valid on the P-Chain.
-     * @param blsPublicKey The BLS public key of the validator.
+     * @notice See {INativeTokenStakingManager-initializeValidatorRegistration}.
+     * Begins the validator registration process. Locks the provided native asset in the contract as the stake.
      */
     function initializeValidatorRegistration(
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey
-    ) external payable returns (bytes32) {
-        uint64 weight = _processStake(msg.value);
-        return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
+        ValidatorRegistrationInput calldata registrationInput,
+        PoSValidatorRequirements calldata requirements
+    ) external payable nonReentrant returns (bytes32) {
+        return _initializeValidatorRegistration(registrationInput, requirements, msg.value);
     }
 
     /**
