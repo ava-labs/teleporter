@@ -55,7 +55,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroDelegationFee() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert("PoSValidatorManager: zero delegation fee");
+        vm.expectRevert(_formatErrorMessage("zero delegation fee"));
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -76,7 +76,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testInvalidStakeAmountRange() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert("PoSValidatorManager: invalid stake amount range");
+        vm.expectRevert(_formatErrorMessage("invalid stake amount range"));
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -97,7 +97,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroMaxStakeMultiplier() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert("PoSValidatorManager: zero maximum stake multiplier");
+        vm.expectRevert(_formatErrorMessage("zero maximum stake multiplier"));
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -113,6 +113,36 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 rewardCalculator: IRewardCalculator(address(0))
             }),
             token
+        );
+    }
+
+    function testInvalidValidatorMinStakeDuration() public {
+        ValidatorRegistrationInput memory input =
+            ValidatorRegistrationInput(DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY);
+        uint256 stakeAmount = app.weightToValue(DEFAULT_WEIGHT);
+        vm.expectRevert(_formatErrorMessage("invalid min stake duration"));
+        app.initializeValidatorRegistration(
+            input,
+            PoSValidatorRequirements({
+                minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION - 1,
+                delegationFee: DEFAULT_MINIMUM_DELEGATION_FEE
+            }),
+            stakeAmount
+        );
+    }
+
+    function testInvalidValidatorDelegationFee() public {
+        ValidatorRegistrationInput memory input =
+            ValidatorRegistrationInput(DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY);
+        uint256 stakeAmount = app.weightToValue(DEFAULT_WEIGHT);
+        vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
+        app.initializeValidatorRegistration(
+            input,
+            PoSValidatorRequirements({
+                minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                delegationFee: DEFAULT_MINIMUM_DELEGATION_FEE - 1
+            }),
+            stakeAmount
         );
     }
 

@@ -62,6 +62,19 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 indexed delegationID, bytes32 indexed validationID, uint64 indexed nonce
     );
 
+    function testInvalidInitializeEndTime() public {
+        bytes32 validationID = _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
+        vm.expectRevert(_formatErrorMessage("minimum stake duration not met"));
+        posValidatorManager.initializeEndValidation(validationID, false, 0);
+    }
+
     function testInvalidUptimeWarpMessage() public {
         bytes32 validationID = _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
@@ -71,8 +84,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
-        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         _mockGetVerifiedWarpMessage(new bytes(0), false);
+        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         vm.expectRevert(_formatErrorMessage("invalid warp message"));
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
@@ -86,10 +99,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
-        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
 
         _mockGetVerifiedWarpMessage(new bytes(0), true);
         _mockGetBlockchainID();
+        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         vm.expectRevert(_formatErrorMessage("invalid source chain ID"));
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
@@ -103,7 +116,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
-        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
 
         _mockGetBlockchainID();
         vm.mockCall(
@@ -122,6 +134,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
         );
 
+        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         vm.expectRevert(_formatErrorMessage("invalid origin sender address"));
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
@@ -135,7 +148,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
-        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
 
         _mockGetBlockchainID();
         vm.mockCall(
@@ -154,6 +166,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
         );
 
+        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         vm.expectRevert(_formatErrorMessage("invalid uptime validation ID"));
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }

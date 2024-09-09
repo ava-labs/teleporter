@@ -47,7 +47,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroDelegationFee() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert("PoSValidatorManager: zero delegation fee");
+        vm.expectRevert(_formatErrorMessage("zero delegation fee"));
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -67,7 +67,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testInvalidStakeAmountRange() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert("PoSValidatorManager: invalid stake amount range");
+        vm.expectRevert(_formatErrorMessage("invalid stake amount range"));
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -87,7 +87,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroMaxStakeMultiplier() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert("PoSValidatorManager: zero maximum stake multiplier");
+        vm.expectRevert(_formatErrorMessage("zero maximum stake multiplier"));
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
