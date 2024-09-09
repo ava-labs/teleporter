@@ -9,6 +9,7 @@ import {
     IPoSValidatorManager, Delegator, DelegatorStatus
 } from "./interfaces/IPoSValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
+import {Validator} from "./interfaces/IValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
 import {Validator, ValidatorStatus} from "./interfaces/IValidatorManager.sol";
 import {WarpMessage} from
@@ -89,6 +90,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // TODO: Calculate the reward for the validator, but do not unlock it
 
         _initializeEndValidation(validationID);
+    }
+
+    function completeEndValidation(uint32 messageIndex) external {
+        Validator memory validator = _completeEndValidation(messageIndex);
+        _unlock(validator.startingWeight, validator.owner);
     }
 
     function _getUptime(bytes32 validationID, uint32 messageIndex) internal view returns (uint64) {
