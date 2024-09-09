@@ -43,6 +43,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint64 _maximumStakeMultiplier;
         /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
+        /// @notice Maps the validation ID to its requirements.
+        mapping(bytes32 validationID => PoSValidatorRequirements) _validatorRequirements;
         /// @notice Maps the delegationID to the delegator information.
         mapping(bytes32 delegationID => Delegator) _delegatorStakes;
         /// @notice Maps the delegationID to pending register delegator messages.
@@ -101,8 +103,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             "PoSValidatorManager: invalid stake amount range"
         );
         require(
-            maximumStakeMultiplier > 0,
-            "PoSValidatorManager: zero max validator stake multiplier"
+            maximumStakeMultiplier > 0, "PoSValidatorManager: zero max validator stake multiplier"
         );
 
         $._minimumStakeAmount = minimumStakeAmount;
@@ -118,6 +119,15 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        // Check that minimum stake duration has passed
+        Validator memory validator = _getValidator(validationID);
+        require(
+            block.timestamp
+                >= validator.startedAt + $._validatorRequirements[validationID].minStakeDuration,
+            "PoSValidatorManager: minimum stake duration not met"
+        );
+
         if (includeUptimeProof) {
             _getUptime(validationID, messageIndex);
         }
@@ -173,6 +183,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 lockedValue = _lock(stakeAmount);
         uint64 weight = valueToWeight(lockedValue);
         bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
+
+        $._validatorRequirements[validationID] = requirements;
         return validationID;
     }
 
@@ -203,7 +215,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // Update the validator weight
         uint64 newValidatorWeight = validator.weight + weight;
         require(
-            weightToValue(newValidatorWeight) <= $._maximumStakeAmount * $._maximumStakeMultiplier, "PoSValidatorManager: maximum validator weight reached"
+            weightToValue(newValidatorWeight) <= $._maximumStakeAmount * $._maximumStakeMultiplier,
+            "PoSValidatorManager: maximum validator weight reached"
         );
         _setValidatorWeight(validationID, newValidatorWeight);
 
