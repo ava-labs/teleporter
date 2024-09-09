@@ -102,9 +102,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             minimumStakeAmount <= maximumStakeAmount,
             "PoSValidatorManager: invalid stake amount range"
         );
-        require(
-            maximumStakeMultiplier > 0, "PoSValidatorManager: zero max validator stake multiplier"
-        );
+        require(maximumStakeMultiplier > 0, "PoSValidatorManager: zero maximum stake multiplier");
 
         $._minimumStakeAmount = minimumStakeAmount;
         $._maximumStakeAmount = maximumStakeAmount;

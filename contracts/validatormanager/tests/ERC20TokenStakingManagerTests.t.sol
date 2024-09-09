@@ -53,6 +53,69 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         posValidatorManager = app;
     }
 
+    function testZeroDelegationFee() public {
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
+        vm.expectRevert("PoSValidatorManager: zero delegation fee");
+        app.initialize(
+            PoSValidatorManagerSettings({
+                baseSettings: ValidatorManagerSettings({
+                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
+                    subnetID: DEFAULT_SUBNET_ID,
+                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                }),
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFee: 0,
+                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+                rewardCalculator: IRewardCalculator(address(0))
+            }),
+            token
+        );
+    }
+
+    function testInvalidStakeAmountRange() public {
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
+        vm.expectRevert("PoSValidatorManager: invalid stake amount range");
+        app.initialize(
+            PoSValidatorManagerSettings({
+                baseSettings: ValidatorManagerSettings({
+                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
+                    subnetID: DEFAULT_SUBNET_ID,
+                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                }),
+                minimumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                maximumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFee: DEFAULT_MINIMUM_DELEGATION_FEE,
+                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+                rewardCalculator: IRewardCalculator(address(0))
+            }),
+            token
+        );
+    }
+
+    function testZeroMaxStakeMultiplier() public {
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
+        vm.expectRevert("PoSValidatorManager: zero maximum stake multiplier");
+        app.initialize(
+            PoSValidatorManagerSettings({
+                baseSettings: ValidatorManagerSettings({
+                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
+                    subnetID: DEFAULT_SUBNET_ID,
+                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                }),
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFee: DEFAULT_MINIMUM_DELEGATION_FEE,
+                maximumStakeMultiplier: 0,
+                rewardCalculator: IRewardCalculator(address(0))
+            }),
+            token
+        );
+    }
+
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory input,
         uint64 weight
