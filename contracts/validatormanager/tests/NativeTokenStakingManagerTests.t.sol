@@ -7,8 +7,14 @@ pragma solidity 0.8.25;
 
 import {PoSValidatorManagerTest} from "./PoSValidatorManagerTests.t.sol";
 import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
-import {ValidatorManagerSettings} from "../interfaces/IValidatorManager.sol";
-import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
+import {
+    ValidatorManagerSettings,
+    ValidatorRegistrationInput
+} from "../interfaces/IValidatorManager.sol";
+import {
+    PoSValidatorManagerSettings,
+    PoSValidatorRequirements
+} from "../interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 
@@ -30,6 +36,8 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFee: DEFAULT_MINIMUM_DELEGATION_FEE,
+                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
@@ -39,13 +47,15 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     // Helpers
     function _initializeValidatorRegistration(
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory signature,
+        ValidatorRegistrationInput memory input,
         uint64 weight
     ) internal virtual override returns (bytes32) {
         return app.initializeValidatorRegistration{value: app.weightToValue(weight)}(
-            nodeID, registrationExpiry, signature
+            input,
+            PoSValidatorRequirements({
+                minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                delegationFee: DEFAULT_MINIMUM_DELEGATION_FEE
+            })
         );
     }
 

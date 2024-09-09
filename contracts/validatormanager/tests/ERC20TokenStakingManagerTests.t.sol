@@ -7,8 +7,14 @@ pragma solidity 0.8.25;
 
 import {PoSValidatorManagerTest} from "./PoSValidatorManagerTests.t.sol";
 import {ERC20TokenStakingManager} from "../ERC20TokenStakingManager.sol";
-import {ValidatorManagerSettings} from "../interfaces/IValidatorManager.sol";
-import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
+import {
+    ValidatorManagerSettings,
+    ValidatorRegistrationInput
+} from "../interfaces/IValidatorManager.sol";
+import {
+    PoSValidatorManagerSettings,
+    PoSValidatorRequirements
+} from "../interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 import {ExampleERC20} from "@mocks/ExampleERC20.sol";
@@ -37,6 +43,8 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFee: DEFAULT_MINIMUM_DELEGATION_FEE,
+                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
                 rewardCalculator: IRewardCalculator(address(0))
             }),
             token
@@ -46,13 +54,16 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     }
 
     function _initializeValidatorRegistration(
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory signature,
+        ValidatorRegistrationInput memory input,
         uint64 weight
     ) internal virtual override returns (bytes32) {
         return app.initializeValidatorRegistration(
-            app.weightToValue(weight), nodeID, registrationExpiry, signature
+            input,
+            PoSValidatorRequirements({
+                minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                delegationFee: DEFAULT_MINIMUM_DELEGATION_FEE
+            }),
+            app.weightToValue(weight)
         );
     }
 

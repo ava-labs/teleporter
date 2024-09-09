@@ -171,7 +171,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             "PoSValidatorManager: invalid min stake duration"
         );
         require(
-            requirements.delegationFee > $._minimumDelegationFee,
+            requirements.delegationFee >= $._minimumDelegationFee,
             "PoSValidatorManager: invalid delegation fee"
         );
         require(

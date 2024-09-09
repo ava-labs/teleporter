@@ -16,11 +16,19 @@ import {ValidatorMessages} from "../ValidatorMessages.sol";
 abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     uint64 public constant DEFAULT_UPTIME = uint64(100);
     uint64 public constant DEFAULT_DELEGATOR_WEIGHT = uint64(1e5);
-    uint64 public constant DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP = uint64(2000);
-    uint64 public constant DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP = uint64(3000);
-    uint64 public constant DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP = uint64(4000);
+    uint64 public constant DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP =
+        DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_EXPIRY;
+    uint64 public constant DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP =
+        DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP + DEFAULT_EXPIRY;
+    uint64 public constant DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP =
+        DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + DEFAULT_EXPIRY;
     address public constant DEFAULT_DELEGATOR_ADDRESS =
         address(0x1234123412341234123412341234123412341234);
+    uint256 public constant DEFAULT_MINIMUM_STAKE = 1e6;
+    uint256 public constant DEFAULT_MAXIMUM_STAKE = 1e20;
+    uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
+    uint256 public constant DEFAULT_MINIMUM_DELEGATION_FEE = 100;
+    uint64 public constant DEFAULT_MAXIMUM_STAKE_MULTIPLIER = 4;
 
     PoSValidatorManager public posValidatorManager;
 
@@ -63,7 +71,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
-
+        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         _mockGetVerifiedWarpMessage(new bytes(0), false);
         vm.expectRevert(_formatErrorMessage("invalid warp message"));
         posValidatorManager.initializeEndValidation(validationID, true, 0);
@@ -78,6 +86,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
+        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
 
         _mockGetVerifiedWarpMessage(new bytes(0), true);
         _mockGetBlockchainID();
@@ -94,6 +103,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
+        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
 
         _mockGetBlockchainID();
         vm.mockCall(
@@ -125,6 +135,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
+        vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
 
         _mockGetBlockchainID();
         vm.mockCall(
@@ -596,7 +607,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit DelegatorAdded({
-            delegationID: keccak256(abi.encodePacked(validationID, delegatorAddress, expectedNonce)),
+            delegationID: keccak256(abi.encodePacked(validationID, expectedNonce)),
             validationID: validationID,
             delegatorAddress: delegatorAddress,
             nonce: expectedNonce,
