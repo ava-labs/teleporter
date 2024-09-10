@@ -37,28 +37,6 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         posValidatorManager = app;
     }
 
-    function testCompleteEndValidation() public override {
-        bytes32 validationID = _setUpInitializeEndValidation({
-            nodeID: DEFAULT_NODE_ID,
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
-        });
-
-        uint256 balanceBefore = address(this).balance;
-
-        // empty calldata implies the receive function will be called
-        vm.expectCall(address(this), DEFAULT_WEIGHT, "");
-
-        _testCompleteEndValidation(validationID);
-
-        uint256 balanceChange = address(this).balance - balanceBefore;
-        require(balanceChange == DEFAULT_WEIGHT, "validator should have received their stake back");
-    }
-
     // Helpers
     function _initializeValidatorRegistration(
         bytes32 nodeID,
@@ -84,6 +62,15 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function _beforeSend(uint64 weight, address spender) internal override {
         // Native tokens no need pre approve
+    }
+
+    function _expectStakeUnlock(address account, uint256 amount) internal override {
+        // empty calldata implies the receive function will be called
+        vm.expectCall(account, amount, "");
+    }
+
+    function _getStakeAssetBalance(address account) internal view override returns (uint256) {
+        return account.balance;
     }
 }
 // TODO: Remove this once all unit tests implemented
