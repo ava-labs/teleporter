@@ -28,6 +28,14 @@ struct Validator {
 struct ValidatorManagerSettings {
     bytes32 pChainBlockchainID;
     bytes32 subnetID;
+    uint64 churnPeriodSeconds;
+    uint8 maximumChurnPercentage;
+}
+
+struct ValidatorChurnPeriod {
+    uint256 startedAt;
+    uint256 initialWeight;
+    uint64 churnAmount;
 }
 
 interface IValidatorManager {

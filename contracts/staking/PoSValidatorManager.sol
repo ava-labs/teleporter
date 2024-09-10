@@ -6,10 +6,7 @@
 pragma solidity 0.8.25;
 
 import {
-    IPoSValidatorManager,
-    Delegator,
-    DelegatorStatus,
-    ValidatorChurnPeriod
+    IPoSValidatorManager, Delegator, DelegatorStatus
 } from "./interfaces/IPoSValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {Validator} from "./interfaces/IValidatorManager.sol";
@@ -28,12 +25,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _minimumStakeAmount;
         /// @notice The maximum amount of stake allowed to be a validator.
         uint256 _maximumStakeAmount;
-        /// @notice The number of seconds after which to reset the churn tracker.
-        uint64 _churnPeriodSeconds;
-        /// @notice The maximum churn rate allowed per churn period.
-        uint8 _maximumChurnPercentage;
-        /// @notice The churn tracker used to track the amount of stake added or removed in the churn period.
-        ValidatorChurnPeriod _churnTracker;
         /// @notice The minimum amount of time a validator must be staked for.
         uint64 _minimumStakeDuration;
         /// @notice The reward calculator for this validator manager.
@@ -73,9 +64,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         __POS_Validator_Manager_init_unchained({
             minimumStakeAmount: settings.minimumStakeAmount,
             maximumStakeAmount: settings.maximumStakeAmount,
-            churnPeriodSeconds: settings.churnPeriodSeconds,
             minimumStakeDuration: settings.minimumStakeDuration,
-            maximumChurnPercentage: settings.maximumChurnPercentage,
             rewardCalculator: settings.rewardCalculator
         });
     }
@@ -84,17 +73,13 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     function __POS_Validator_Manager_init_unchained(
         uint256 minimumStakeAmount,
         uint256 maximumStakeAmount,
-        uint64 churnPeriodSeconds,
         uint64 minimumStakeDuration,
-        uint8 maximumChurnPercentage,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         $._minimumStakeAmount = minimumStakeAmount;
         $._maximumStakeAmount = maximumStakeAmount;
-        $._churnPeriodSeconds = churnPeriodSeconds;
         $._minimumStakeDuration = minimumStakeDuration;
-        $._maximumChurnPercentage = maximumChurnPercentage;
         $._rewardCalculator = rewardCalculator;
     }
 
@@ -103,9 +88,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
-        uint64 weight = _getValidator(validationID).weight;
-        _checkAndUpdateChurnTracker(weight);
-
         if (includeUptimeProof) {
             _getUptime(validationID, messageIndex);
         }
@@ -154,9 +136,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             "PoSValidatorManager: invalid stake amount"
         );
 
-        // Check that adding this validator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTracker(weight);
-
         return weight;
     }
 
@@ -170,37 +149,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     function _lock(uint256 value) internal virtual returns (uint256);
     function _unlock(uint256 value, address to) internal virtual;
-
-    /**
-     * @notice Helper function to check if the stake amount to be added or removed would exceed the maximum stake churn
-     * rate for the past hour. If the churn rate is exceeded, the function will revert. If the churn rate is not exceeded,
-     * the function will update the churn tracker with the new amount.
-     */
-    function _checkAndUpdateChurnTracker(uint64 weight) private {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        uint256 totalWeight = _getTotalWeight();
-        if ($._maximumChurnPercentage == 0 || totalWeight == 0) {
-            return;
-        }
-
-        uint256 currentTime = block.timestamp;
-        ValidatorChurnPeriod memory churnTracker = $._churnTracker;
-
-        if (currentTime - churnTracker.startedAt >= $._churnPeriodSeconds) {
-            churnTracker.churnAmount = weight;
-            churnTracker.startedAt = currentTime;
-            churnTracker.initialWeight = totalWeight;
-        } else {
-            churnTracker.churnAmount += weight;
-        }
-
-        uint8 churnPercentage = uint8((churnTracker.churnAmount * 100) / churnTracker.initialWeight);
-        require(
-            churnPercentage <= $._maximumChurnPercentage,
-            "PoSValidatorManager: maximum churn rate exceeded"
-        );
-        $._churnTracker = churnTracker;
-    }
 
     function _initializeDelegatorRegistration(
         bytes32 validationID,
@@ -224,6 +172,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint64 nonce = _getAndIncrementNonce(validationID);
         bytes32 delegationID = keccak256(abi.encodePacked(validationID, delegatorAddress, nonce));
 
+        // Check that adding this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTracker(weight);
 
         // Submit the message to the Warp precompile.

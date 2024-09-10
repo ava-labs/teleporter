@@ -8,6 +8,7 @@ pragma solidity 0.8.25;
 import {
     IValidatorManager,
     ValidatorManagerSettings,
+    ValidatorChurnPeriod,
     ValidatorStatus,
     Validator
 } from "./interfaces/IValidatorManager.sol";
@@ -36,6 +37,12 @@ abstract contract ValidatorManager is
         bytes32 _pChainBlockchainID;
         /// @notice The subnetID associated with this validator manager.
         bytes32 _subnetID;
+        /// @notice The number of seconds after which to reset the churn tracker.
+        uint64 _churnPeriodSeconds;
+        /// @notice The maximum churn rate allowed per churn period.
+        uint8 _maximumChurnPercentage;
+        /// @notice The churn tracker used to track the amount of stake added or removed in the churn period.
+        ValidatorChurnPeriod _churnTracker;
         /// @notice Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
         /// @notice Maps the validationID to the end validation message such that the message can be re-sent if needed.
@@ -147,6 +154,8 @@ abstract contract ValidatorManager is
             endedAt: 0
         });
 
+        // Check that adding this validator would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTracker(weight);
         // Update total weight
         $._totalWeight += weight;
 
@@ -239,6 +248,7 @@ abstract contract ValidatorManager is
             .packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), 0);
         $._pendingEndValidationMessages[validationID] = setValidatorWeightPayload;
 
+        _checkAndUpdateChurnTracker(validator.weight);
         // Update weight after checking the churn tracker.
         $._totalWeight -= validator.weight;
 
@@ -355,12 +365,39 @@ abstract contract ValidatorManager is
         return $._validationPeriods[validationID];
     }
 
-    function _getTotalWeight() internal view returns (uint256) {
-        return _getValidatorManagerStorage()._totalWeight;
-    }
-
     function _setValidatorWeight(bytes32 validationID, uint64 weight) internal {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._validationPeriods[validationID].weight = weight;
+    }
+
+    /**
+     * @notice Helper function to check if the stake amount to be added or removed would exceed the maximum stake churn
+     * rate for the past hour. If the churn rate is exceeded, the function will revert. If the churn rate is not exceeded,
+     * the function will update the churn tracker with the new amount.
+     */
+    function _checkAndUpdateChurnTracker(uint64 weight) internal {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+
+        if ($._maximumChurnPercentage == 0) {
+            return;
+        }
+
+        uint256 currentTime = block.timestamp;
+        ValidatorChurnPeriod memory churnTracker = $._churnTracker;
+
+        if (currentTime - churnTracker.startedAt >= $._churnPeriodSeconds) {
+            churnTracker.churnAmount = weight;
+            churnTracker.startedAt = currentTime;
+            churnTracker.initialWeight = $._totalWeight;
+        } else {
+            churnTracker.churnAmount += weight;
+        }
+
+        uint8 churnPercentage = uint8((churnTracker.churnAmount * 100) / churnTracker.initialWeight);
+        require(
+            churnPercentage <= $._maximumChurnPercentage,
+            "ValidatorManager: maximum churn rate exceeded"
+        );
+        $._churnTracker = churnTracker;
     }
 }

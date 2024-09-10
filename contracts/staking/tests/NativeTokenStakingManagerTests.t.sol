@@ -24,13 +24,13 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
-                    subnetID: DEFAULT_SUBNET_ID
+                    subnetID: DEFAULT_SUBNET_ID,
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
-                churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
