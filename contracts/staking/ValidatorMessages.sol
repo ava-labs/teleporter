@@ -38,8 +38,38 @@ library ValidatorMessages {
     // the end of their validation period.
     uint32 internal constant VALIDATION_UPTIME_MESSAGE_TYPE_ID = 4;
 
+    uint32 internal constant SUBNET_CONVERSION_MESSAGE_TYPE_ID = 5;
+
     // TODO: The implementation of these packing and unpacking functions is neither tested nor optimized at all.
     // Full test coverage should be provided, and the implementation should be optimized for gas efficiency.
+
+    function unpackSubnetConversionMessage(bytes memory input) internal pure returns (bytes32) {
+        require(input.length == 38, "ValidatorMessages: invalid message length");
+
+        // Unpack the codec ID
+        uint16 codecID;
+        for (uint256 i; i < 2; ++i) {
+            codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
+        }
+        require(codecID == CODEC_ID, "ValidatorMessages: invalid codec ID");
+
+        // Unpack the type ID
+        uint32 typeID;
+        for (uint256 i; i < 4; ++i) {
+            typeID |= uint32(uint8(input[i + 2])) << uint32((8 * (3 - i)));
+        }
+        require(
+            typeID == SUBNET_CONVERSION_MESSAGE_TYPE_ID, "ValidatorMessages: invalid message type"
+        );
+
+        // Unpack the subnetConversionID
+        bytes32 subnetConversionID;
+        for (uint256 i; i < 32; ++i) {
+            subnetConversionID |= bytes32(uint256(uint8(input[i + 6])) << (8 * (31 - i)));
+        }
+
+        return subnetConversionID;
+    }
 
     /**
      * @notice Packs a RegisterSubnetValidatorMessage message into a byte array.

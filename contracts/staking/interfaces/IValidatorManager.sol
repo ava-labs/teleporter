@@ -3,6 +3,8 @@
 
 // SPDX-License-Identifier: Ecosystem
 
+import {EnumerableSet} from "@openzeppelin/contracts@5.0.2/utils/structs/EnumerableSet.sol";
+
 pragma solidity 0.8.25;
 
 enum ValidatorStatus {
@@ -35,6 +37,21 @@ struct ValidatorManagerSettings {
     bytes32 pChainBlockchainID;
     bytes32 subnetID;
     uint8 maximumHourlyChurn;
+    SubnetConversionData initialValidators;
+    uint32 messageIndex;
+}
+
+struct SubnetConversionData {
+    bytes32 convertSubnetTxID;
+    bytes32 blockchainID;
+    bytes validatorManagerAddress;
+    InitialValidators[] initialValidators;
+}
+
+struct InitialValidators {
+    bytes32 nodeID;
+    uint64 weight;
+    bytes blsPublickey;
 }
 
 struct ValidatorRegistrationInput {

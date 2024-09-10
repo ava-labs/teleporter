@@ -11,6 +11,8 @@ import {
     ValidatorStatus,
     Validator,
     ValidatorChurnPeriod,
+    SubnetConversionData,
+    InitialValidators,
     ValidatorRegistrationInput
 } from "./interfaces/IValidatorManager.sol";
 import {
@@ -100,7 +102,78 @@ abstract contract ValidatorManager is
         $._pChainBlockchainID = settings.pChainBlockchainID;
         $._subnetID = settings.subnetID;
         $._maximumHourlyChurn = settings.maximumHourlyChurn;
+        _validateInitialValidators(settings.subnetConversionData, settings.messageIndex);
     }
+
+    function _validateInitialValidators(
+        SubnetConversionData memory subnetConversionData,
+        uint32 messageIndex
+    ) internal {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
+        // Parse the Warp message into SubnetConversionMessage
+        bytes32 subnetConversionID =
+            ValidatorMessages.unpackSubnetConversionMessage(warpMessage.payload);
+
+        // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
+        bytes memory encodedConversion = abi.encodePacked(
+            subnetConversionData.convertSubnetTxID,
+            subnetConversionData.blockchainID,
+            subnetConversionData.validatorManagerAddress
+        );
+        uint256 length = encodedConversion.length;
+        for (uint256 i; i < length; i++) {
+            InitialValidators memory initialValidator = subnetConversionData.initialValidators[i];
+            encodedConversion = abi.encodePacked(
+                encodedConversion,
+                initialValidator.nodeID,
+                initialValidator.weight,
+                initialValidator.blsPublickey
+            );
+        }
+        require(
+            sha256(encodedConversion) == subnetConversionID,
+            "ValidatorManager: invalid subnet conversion ID"
+        );
+        require(
+            subnetConversionData.blockchainID == WARP_MESSENGER.getBlockchainID(),
+            "ValidatorManager: invalid blockchain ID"
+        );
+
+        // TODO: might have more efficient conversion with assembly
+        require(
+            address(bytes20(subnetConversionData.validatorManagerAddress)) == address(this),
+            "ValidatorManager: invalid validator manager address"
+        );
+        require(
+            subnetConversionData.initialValidators.length > 0,
+            "ValidatorManager: no initial validators"
+        );
+
+        // Insert the initial validators into the storage.
+        for (uint256 i; i < length; i++) {
+            InitialValidators memory initialValidator = subnetConversionData.initialValidators[i];
+            bytes32 validationID =
+                sha256(abi.encodePacked(subnetConversionData.convertSubnetTxID, i));
+            $._validationPeriods[validationID] = Validator({
+                status: ValidatorStatus.PendingAdded,
+                nodeID: initialValidator.nodeID,
+                owner: _initialValidatorOwner(),
+                startingWeight: initialValidator.weight,
+                messageNonce: 0,
+                weight: initialValidator.weight,
+                startedAt: 0, // The validation period only starts once the registration is acknowledged.
+                endedAt: 0
+            });
+            // Increment the nonce for the next usage.
+            _getAndIncrementNonce(validationID);
+            emit ValidationPeriodCreated(
+                validationID, initialValidator.nodeID, bytes32(0), initialValidator.weight, 0
+            );
+        }
+    }
+
+    function _initialValidatorOwner() internal virtual returns (address);
 
     /**
      * @notice Begins the validator registration process, and sets the initial weight for the validator.
@@ -319,8 +392,6 @@ abstract contract ValidatorManager is
         // Update the validator status.
         validator.status = endStatus;
         $._validationPeriods[validationID] = validator;
-
-        // TODO: Unlock the stake.
 
         // Emit event.
         emit ValidationPeriodEnded(validationID, validator.status);
