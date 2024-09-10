@@ -510,7 +510,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             expectedValidatorWeight: DEFAULT_WEIGHT,
             expectedNonce: 2
         });
+
+        address delegator = DEFAULT_DELEGATOR_ADDRESS;
+        uint256 balanceBefore = _getStakeAssetBalance(delegator);
+        _expectStakeUnlock(delegator, DEFAULT_DELEGATOR_WEIGHT);
+
         _setUpCompleteEndDelegation(validationID, delegationID, DEFAULT_WEIGHT, DEFAULT_WEIGHT, 2);
+
+        uint256 balanceChange = _getStakeAssetBalance(delegator) - balanceBefore;
+        require(
+            balanceChange >= DEFAULT_DELEGATOR_WEIGHT,
+            "delegator should have received their stake back"
+        );
     }
 
     function testCompleteEndDelegationWrongNonce() public {
@@ -651,6 +662,27 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         // Complete delegation1 by delivering the weight update from nonce 4 (delegator2's nonce)
         _setUpCompleteEndDelegation(validationID, delegationID1, DEFAULT_WEIGHT, DEFAULT_WEIGHT, 4);
+    }
+
+    function testCompleteEndValidation() public override {
+        bytes32 validationID = _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+        });
+
+        uint256 balanceBefore = _getStakeAssetBalance(address(this));
+
+        _expectStakeUnlock(address(this), DEFAULT_WEIGHT);
+
+        _testCompleteEndValidation(validationID);
+
+        uint256 balanceChange = _getStakeAssetBalance(address(this)) - balanceBefore;
+        require(balanceChange == DEFAULT_WEIGHT, "validator should have received their stake back");
     }
 
     function testValueToWeight() public view {
@@ -794,6 +826,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         assertEq(posValidatorManager.getWeight(validationID), expectedValidatorWeight);
         return delegationID;
     }
+
+    function _getStakeAssetBalance(address account) internal virtual returns (uint256);
+    function _expectStakeUnlock(address account, uint256 amount) internal virtual;
 
     function _formatErrorMessage(bytes memory errorMessage) internal pure returns (bytes memory) {
         return abi.encodePacked("PoSValidatorManager: ", errorMessage);
