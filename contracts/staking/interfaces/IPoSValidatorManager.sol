@@ -20,7 +20,6 @@ struct PoSValidatorManagerSettings {
     ValidatorManagerSettings baseSettings;
     uint256 minimumStakeAmount;
     uint256 maximumStakeAmount;
-    uint256 churnTrackerStartTime;
     uint64 churnPeriodSeconds;
     uint64 minimumStakeDuration;
     uint8 maximumChurnPercentage;

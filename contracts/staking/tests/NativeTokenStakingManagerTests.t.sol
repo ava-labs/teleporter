@@ -29,7 +29,6 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
                 churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                churnTrackerStartTime: DEFAULT_CHURN_TRACKER_START_TIME,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
                 rewardCalculator: IRewardCalculator(address(0))

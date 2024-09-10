@@ -28,9 +28,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _minimumStakeAmount;
         /// @notice The maximum amount of stake allowed to be a validator.
         uint256 _maximumStakeAmount;
-        /// @notice The time at which the churn tracker will start. This allows networks to bootstrap
-        /// their validator set without worrying about churn tracking for a set period of time.
-        uint256 _churnTrackerStartTime;
         /// @notice The number of seconds after which to reset the churn tracker.
         uint64 _churnPeriodSeconds;
         /// @notice The maximum churn rate allowed per churn period.
@@ -76,7 +73,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         __POS_Validator_Manager_init_unchained({
             minimumStakeAmount: settings.minimumStakeAmount,
             maximumStakeAmount: settings.maximumStakeAmount,
-            churnTrackerStartTime: settings.churnTrackerStartTime,
             churnPeriodSeconds: settings.churnPeriodSeconds,
             minimumStakeDuration: settings.minimumStakeDuration,
             maximumChurnPercentage: settings.maximumChurnPercentage,
@@ -88,7 +84,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     function __POS_Validator_Manager_init_unchained(
         uint256 minimumStakeAmount,
         uint256 maximumStakeAmount,
-        uint256 churnTrackerStartTime,
         uint64 churnPeriodSeconds,
         uint64 minimumStakeDuration,
         uint8 maximumChurnPercentage,
@@ -97,7 +92,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         $._minimumStakeAmount = minimumStakeAmount;
         $._maximumStakeAmount = maximumStakeAmount;
-        $._churnTrackerStartTime = churnTrackerStartTime;
         $._churnPeriodSeconds = churnPeriodSeconds;
         $._minimumStakeDuration = minimumStakeDuration;
         $._maximumChurnPercentage = maximumChurnPercentage;
@@ -190,11 +184,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         }
 
         uint256 currentTime = block.timestamp;
-        if ($._churnTrackerStartTime >= currentTime) {
-            return;
-        }
-
         ValidatorChurnPeriod memory churnTracker = $._churnTracker;
+
         if (currentTime - churnTracker.startedAt >= $._churnPeriodSeconds) {
             churnTracker.churnAmount = weight;
             churnTracker.startedAt = currentTime;

@@ -34,7 +34,6 @@ abstract contract ValidatorManagerTest is Test {
     uint256 public constant DEFAULT_MINIMUM_STAKE = 20;
     uint256 public constant DEFAULT_MAXIMUM_STAKE = 1e10;
     uint64 public constant DEFAULT_CHURN_PERIOD = 1 hours;
-    uint64 public constant DEFAULT_CHURN_TRACKER_START_TIME = 1 days;
     uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
     uint8 public constant DEFAULT_MAXIMUM_CHURN_PERCENTAGE = 20;
     uint64 public constant DEFAULT_EXPIRY = 1000;

@@ -72,46 +72,15 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         return validationIDs;
     }
 
-    // Attempts to register a validator with weight equal to the total weight.
-    function testInvalidChurnRegistration() public {
-        // First registration should work
-        registerValidators(1);
-
-        vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
-
-        _beforeSend(DEFAULT_WEIGHT, address(this));
-        uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
-
-        bytes32 nodeID = _newNodeID();
-        vm.expectRevert(_formatErrorMessage("maximum churn rate exceeded"));
-        _initializeValidatorRegistrationWithValue(
-            nodeID, DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
-        );
-    }
-
-    // Attempts to register a validator with weight equal to the total weight.
-    function testInvalidChurnEndValidation() public {
-        // First registration should work
-        bytes32[] memory validationIDs = registerValidators(1);
-
-        vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
-        vm.expectRevert(_formatErrorMessage("maximum churn rate exceeded"));
-
-        // Initialize the end of one of the validators.
-        _initializeEndValidation(validationIDs[0]);
-    }
-
     function testCummulativeChurnRegistration() public {
         registerValidators(5);
-
-        vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
 
         _beforeSend(DEFAULT_WEIGHT, address(this));
         uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
 
         // First call after churn tracking start should work
         _initializeValidatorRegistrationWithValue(
-            _newNodeID(), DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
+            _newNodeID(), uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
         );
 
         bytes32 nodeID = _newNodeID(); // Needs to be called before expectRevert
@@ -120,21 +89,19 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         // Second call after churn tracking start should fail
         vm.expectRevert(_formatErrorMessage("maximum churn rate exceeded"));
         _initializeValidatorRegistrationWithValue(
-            nodeID, DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
+            nodeID, uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
         );
     }
 
     function testCummulativeChurnRegistrationAndEndValidation() public {
         bytes32[] memory validationIDs = registerValidators(10);
 
-        vm.warp(DEFAULT_CHURN_TRACKER_START_TIME + 1);
-
         _beforeSend(DEFAULT_WEIGHT, address(this));
         uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
 
         // First call after churn tracking start should work
         _initializeValidatorRegistrationWithValue(
-            _newNodeID(), DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
+            _newNodeID(), uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
         );
 
         // Initialize the end of one of the validators.
@@ -146,7 +113,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         // Second call after churn tracking start should fail
         vm.expectRevert(_formatErrorMessage("maximum churn rate exceeded"));
         _initializeValidatorRegistrationWithValue(
-            nodeID, DEFAULT_CHURN_TRACKER_START_TIME + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
+            nodeID, uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
         );
     }
 
