@@ -53,4 +53,8 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
     function initializeEndValidation(bytes32 validationID) external override {
         _initializeEndValidation(validationID);
     }
+
+    function completeEndValidation(uint32 messageIndex) external {
+        _completeEndValidation(messageIndex);
+    }
 }
