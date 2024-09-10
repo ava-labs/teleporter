@@ -33,6 +33,9 @@ contract ExampleERC20 is ERC20Burnable, IERC20Mintable {
     }
 
     function mint(address account, uint256 amount) external {
+        // Can only mint 10 at a time.
+        require(amount <= _MAX_MINT, "ExampleERC20: max mint exceeded");
+
         _mint(account, amount);
     }
 }
