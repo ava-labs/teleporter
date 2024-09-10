@@ -24,6 +24,7 @@ import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
+import {EnumerableSet} from "@openzeppelin/contracts@5.0.2/utils/structs/EnumerableSet.sol";
 
 abstract contract ValidatorManager is
     Initializable,
@@ -31,8 +32,10 @@ abstract contract ValidatorManager is
     ReentrancyGuardUpgradeable,
     IValidatorManager
 {
+    using EnumerableSet for EnumerableSet.Bytes32Set;
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
+
     struct ValidatorManagerStorage {
         /// @notice The blockchainID of the P-Chain.
         bytes32 _pChainBlockchainID;
@@ -50,6 +53,8 @@ abstract contract ValidatorManager is
         mapping(bytes32 => Validator) _validationPeriods;
         /// @notice Maps the nodeID to the validationID for active validation periods.
         mapping(bytes32 => bytes32) _activeValidators;
+        /// @notice The set of initial validators added as part of chain initialization.
+        EnumerableSet.Bytes32Set _initialValidators;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -220,7 +225,15 @@ abstract contract ValidatorManager is
         require(
             validator.status == ValidatorStatus.Active, "ValidatorManager: validator not active"
         );
-        require(_msgSender() == validator.owner, "ValidatorManager: sender not validator owner");
+
+        if (validator.owner != address(0)) {
+            require(_msgSender() == validator.owner, "ValidatorManager: sender not validator owner");
+        } else {
+            require(
+                $._initialValidators.contains(validationID),
+                "ValidatorManager: invalid initial validator"
+            );
+        }
 
         // Check that removing this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTracker(validator.weight);
