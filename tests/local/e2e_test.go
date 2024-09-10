@@ -4,8 +4,10 @@
 package local
 
 import (
+	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/flows"
 	"github.com/ava-labs/teleporter/tests/local"
@@ -53,8 +55,11 @@ var _ = ginkgo.BeforeSuite(func() {
 	)
 	Expect(err).Should(BeNil())
 
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
 	// Create the local network instance
 	LocalNetworkInstance = local.NewLocalNetwork(
+		ctx,
 		"interchain-token-transfer-test",
 		warpGenesisTemplateFile,
 		[]local.SubnetSpec{
