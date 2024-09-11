@@ -100,7 +100,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         Validator memory validator = _initializeEndValidation(validationID);
 
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        $._pendingValidatorRewards[validator.owner] =
+        $._pendingValidatorRewards[validator.owner] +=
             $._rewardCalculator.calculateReward(validator.weight, uptime, 0, 0);
     }
 
