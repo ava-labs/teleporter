@@ -18,6 +18,8 @@ import {
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ExampleRewardCalculator} from "../ExampleRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
+import {INativeMinter} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 
 // TODO: Remove this once all unit tests implemented
 // solhint-disable no-empty-blocks
@@ -27,6 +29,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     function setUp() public virtual {
         // Construct the object under test
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        rewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_RATE);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -40,23 +43,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                rewardCalculator: IRewardCalculator(new ExampleRewardCalculator(DEFAULT_REWARD_RATE))
+                rewardCalculator: rewardCalculator
             })
         );
         validatorManager = app;
         posValidatorManager = app;
-    }
-
-    function testCompleteEndValidation() public override {
-        // TODO: get native token staking rewards working, then remove this
-        // method and let the implementation in PosValidatorManagerTests do the
-        // test, and remove the `virtual` modifier from that implementation.
-    }
-
-    function testCompleteEndDelegation() public override {
-        // TODO: get native token staking rewards working, then remove this
-        // method and let the implementation in PosValidatorManagerTests do the
-        // test, and remove the `virtual` modifier from that implementation.
     }
 
     function testZeroMinimumDelegationFee() public {
@@ -209,7 +200,21 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         vm.expectCall(account, amount, "");
     }
 
-    function _expectRewardIssuance(address account, uint256 amount) internal override {}
+    function _expectRewardIssuance(address account, uint256 amount) internal override {
+        vm.mockCall(
+            address(app.NATIVE_MINTER()),
+            abi.encodeCall(INativeMinter.mintNativeCoin, (account, amount)),
+            ""
+        );
+        // empty calldata implies the receive function will be called:
+        vm.mockCall({
+            callee: account,
+            msgValue: amount,
+            data: "", // implies receive()
+            returnData: ""
+        });
+        vm.deal(account, account.balance + amount);
+    }
 
     function _getStakeAssetBalance(address account) internal view override returns (uint256) {
         return account.balance;
