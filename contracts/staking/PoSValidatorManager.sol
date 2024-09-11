@@ -133,7 +133,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // Ensure the weight is within the valid range.
         require(
             weight >= $._minimumStakeWeight && weight <= $._maximumStakeWeight,
-            "PoSValidatorManager: invalid stake amount"
+            "PoSValidatorManager: invalid stake weight"
         );
 
         return weight;
