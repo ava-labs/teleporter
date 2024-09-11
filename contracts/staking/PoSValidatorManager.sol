@@ -60,6 +60,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     bytes32 private constant _POS_VALIDATOR_MANAGER_STORAGE_LOCATION =
         0x4317713f7ecbdddd4bc99e95d903adedaa883b2e7c2551610bd13e2c7e473d00;
 
+    uint8 public constant MAXIMUM_STAKE_MULTIPLIER_LIMIT = 10;
+
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
         private
@@ -103,7 +105,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             minimumStakeAmount <= maximumStakeAmount,
             "PoSValidatorManager: invalid stake amount range"
         );
-        require(maximumStakeMultiplier > 0, "PoSValidatorManager: zero maximum stake multiplier");
+        require(
+            maximumStakeMultiplier > 0 && maximumStakeMultiplier <= MAXIMUM_STAKE_MULTIPLIER_LIMIT,
+            "PoSValidatorManager: invalid maximum stake multiplier"
+        );
 
         $._minimumStakeAmount = minimumStakeAmount;
         $._maximumStakeAmount = maximumStakeAmount;

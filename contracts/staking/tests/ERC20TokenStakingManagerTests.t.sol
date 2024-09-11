@@ -97,7 +97,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroMaxStakeMultiplier() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(_formatErrorMessage("zero maximum stake multiplier"));
+        vm.expectRevert(_formatErrorMessage("invalid maximum stake multiplier"));
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -110,6 +110,28 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFee: DEFAULT_MINIMUM_DELEGATION_FEE,
                 maximumStakeMultiplier: 0,
+                rewardCalculator: IRewardCalculator(address(0))
+            }),
+            token
+        );
+    }
+
+    function testMaxStakeMultiplierOverLimit() public {
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
+        uint8 maximumStakeMultiplier = app.MAXIMUM_STAKE_MULTIPLIER_LIMIT() + 1;
+        vm.expectRevert(_formatErrorMessage("invalid maximum stake multiplier"));
+        app.initialize(
+            PoSValidatorManagerSettings({
+                baseSettings: ValidatorManagerSettings({
+                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
+                    subnetID: DEFAULT_SUBNET_ID,
+                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                }),
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFee: DEFAULT_MINIMUM_DELEGATION_FEE,
+                maximumStakeMultiplier: maximumStakeMultiplier,
                 rewardCalculator: IRewardCalculator(address(0))
             }),
             token
