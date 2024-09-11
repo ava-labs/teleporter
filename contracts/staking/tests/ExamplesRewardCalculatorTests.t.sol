@@ -22,7 +22,7 @@ contract ExampleRewardCalculatorTest is Test {
 
     function testRewardCalculation() public view {
         uint256 output = exampleRewardCalculator.calculateReward(
-            DEFAULT_STAKE_AMOUNT, DEFAULT_START_TIME, DEFAULT_END_TIME, 0, 0
+            DEFAULT_STAKE_AMOUNT, DEFAULT_END_TIME - DEFAULT_START_TIME, 0, 0
         );
         assertEq(output, 42e9);
     }

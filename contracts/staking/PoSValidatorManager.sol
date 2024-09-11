@@ -35,6 +35,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         mapping(bytes32 delegationID => bytes) _pendingRegisterDelegatorMessages;
         /// @notice Maps the delegationID to pending end delegator messages.
         mapping(bytes32 delegationID => bytes) _pendingEndDelegatorMessages;
+        /// @notice Maps the delegationID to its pending staking rewards.
+        mapping(bytes32 delegationID => uint256) _pendingDelegatorRewards;
+        /// @notice Maps the validator owner address to its pending staking rewards.
+        mapping(address validatorOwner => uint256) _pendingValidatorRewards;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -88,23 +92,25 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
+        uint64 uptime;
         if (includeUptimeProof) {
-            _getUptime(validationID, messageIndex);
+            uptime = _getUptime(validationID, messageIndex);
         }
-        // TODO: Calculate the reward for the validator, but do not unlock it
 
-        _initializeEndValidation(validationID);
+        Validator memory validator = _initializeEndValidation(validationID);
+
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        $._pendingValidatorRewards[validator.owner] =
+            $._rewardCalculator.calculateReward(validator.weight, uptime, 0, 0);
     }
 
     function completeEndValidation(uint32 messageIndex) external {
         Validator memory validator = _completeEndValidation(messageIndex);
 
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        uint256 rewardAmount = $._rewardCalculator.calculateReward(
-            validator.weight, validator.startedAt, validator.endedAt, 0, 0
-        );
 
-        _reward(validator.owner, rewardAmount);
+        _reward(validator.owner, $._pendingValidatorRewards[validator.owner]);
+        delete $._pendingValidatorRewards[validator.owner];
 
         _unlock(validator.startingWeight, validator.owner);
     }
@@ -272,15 +278,16 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         bytes32 validationID = $._delegatorStakes[delegationID].validationID;
 
+        Delegator memory delegator = $._delegatorStakes[delegationID];
+
         uint64 uptime;
         if (includeUptimeProof) {
             uptime = _getUptime(validationID, messageIndex);
         }
-
-        // TODO: Calculate the delegator's reward, but do not unlock it
+        $._pendingDelegatorRewards[delegationID] =
+            $._rewardCalculator.calculateReward(delegator.weight, uptime, 0, 0);
 
         // Ensure the delegator is active
-        Delegator memory delegator = $._delegatorStakes[delegationID];
         require(
             delegator.status == DelegatorStatus.Active, "PoSValidatorManager: delegation not active"
         );
@@ -365,10 +372,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         Delegator memory delegator = $._delegatorStakes[delegationID];
         _unlock(delegator.weight, delegator.owner);
 
-        uint256 rewardAmount = $._rewardCalculator.calculateReward(
-            delegator.weight, delegator.startedAt, delegator.endedAt, 0, 0
-        );
-        _reward(delegator.owner, rewardAmount);
+        _reward(delegator.owner, $._pendingDelegatorRewards[delegationID]);
+        delete $._pendingDelegatorRewards[delegationID];
 
         emit DelegationEnded(delegationID, validationID, nonce);
     }

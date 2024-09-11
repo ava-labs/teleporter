@@ -210,7 +210,11 @@ abstract contract ValidatorManager is
      * Any rewards for this validation period will stop accruing when this function is called.
      * @param validationID The ID of the validation being ended.
      */
-    function _initializeEndValidation(bytes32 validationID) internal virtual {
+    function _initializeEndValidation(bytes32 validationID)
+        internal
+        virtual
+        returns (Validator memory)
+    {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Ensure the validation period is active.
@@ -244,6 +248,8 @@ abstract contract ValidatorManager is
 
         // Emit the event to signal the start of the validator removal process.
         emit ValidatorRemovalInitialized(validationID, messageID, validator.weight, block.timestamp);
+
+        return validator;
     }
 
     /**
