@@ -28,7 +28,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     uint256 public constant DEFAULT_MAXIMUM_STAKE = 1e20;
     uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
     uint256 public constant DEFAULT_MINIMUM_DELEGATION_FEE = 100;
-    uint64 public constant DEFAULT_MAXIMUM_STAKE_MULTIPLIER = 4;
+    uint8 public constant DEFAULT_MAXIMUM_STAKE_MULTIPLIER = 4;
 
     PoSValidatorManager public posValidatorManager;
 

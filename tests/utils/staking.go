@@ -71,10 +71,12 @@ func DeployAndInitializeNativeTokenStakingManager(
 				SubnetID:           subnet.SubnetID,
 				MaximumHourlyChurn: 0,
 			},
-			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration: uint64(24 * time.Hour),
-			RewardCalculator:     common.Address{},
+			MinimumStakeAmount:     big.NewInt(0).SetUint64(1e6),
+			MaximumStakeAmount:     big.NewInt(0).SetUint64(10e6),
+			MinimumStakeDuration:   uint64(24 * time.Hour),
+			MinimumDelegationFee:   big.NewInt(1),
+			MaximumStakeMultiplier: uint8(1),
+			RewardCalculator:       common.Address{},
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -131,10 +133,12 @@ func DeployAndInitializeERC20TokenStakingManager(
 				SubnetID:           subnet.SubnetID,
 				MaximumHourlyChurn: 0,
 			},
-			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration: uint64(24 * time.Hour),
-			RewardCalculator:     common.Address{},
+			MinimumStakeAmount:     big.NewInt(0).SetUint64(1e6),
+			MaximumStakeAmount:     big.NewInt(0).SetUint64(10e6),
+			MinimumStakeDuration:   uint64(24 * time.Hour),
+			MinimumDelegationFee:   big.NewInt(1),
+			MaximumStakeMultiplier: uint8(1),
+			RewardCalculator:       common.Address{},
 		},
 		erc20Address,
 	)
@@ -211,9 +215,15 @@ func InitializeNativeValidatorRegistration(
 
 	tx, err := stakingManager.InitializeValidatorRegistration(
 		opts,
-		nodeID,
-		uint64(time.Now().Add(24*time.Hour).Unix()),
-		blsPublicKey[:],
+		nativetokenstakingmanager.ValidatorRegistrationInput{
+			NodeID:             nodeID,
+			RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
+			BlsPublicKey:       blsPublicKey[:],
+		},
+		nativetokenstakingmanager.PoSValidatorRequirements{
+			DelegationFee:    big.NewInt(1),
+			MinStakeDuration: big.NewInt(int64(24 * time.Hour.Seconds())),
+		},
 	)
 	Expect(err).Should(BeNil())
 	receipt := WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
@@ -249,10 +259,16 @@ func InitializeERC20ValidatorRegistration(
 
 	tx, err := stakingManager.InitializeValidatorRegistration(
 		opts,
+		erc20tokenstakingmanager.ValidatorRegistrationInput{
+			NodeID:             nodeID,
+			RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
+			BlsPublicKey:       blsPublicKey[:],
+		},
+		erc20tokenstakingmanager.PoSValidatorRequirements{
+			DelegationFee:    big.NewInt(1),
+			MinStakeDuration: big.NewInt(int64(24 * time.Hour.Seconds())),
+		},
 		stakeAmount,
-		nodeID,
-		uint64(time.Now().Add(24*time.Hour).Unix()),
-		blsPublicKey[:],
 	)
 	Expect(err).Should(BeNil())
 	receipt := WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
@@ -277,10 +293,12 @@ func InitializePoAValidatorRegistration(
 
 	tx, err := validatorManager.InitializeValidatorRegistration(
 		opts,
+		poavalidatormanager.ValidatorRegistrationInput{
+			NodeID:             nodeID,
+			RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
+			BlsPublicKey:       blsPublicKey[:],
+		},
 		weight,
-		nodeID,
-		uint64(time.Now().Add(24*time.Hour).Unix()),
-		blsPublicKey[:],
 	)
 	Expect(err).Should(BeNil())
 	receipt := WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())

@@ -98,7 +98,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 maximumStakeAmount,
         uint64 minimumStakeDuration,
         uint256 minimumDelegationFee,
-        uint64 maximumStakeMultiplier,
+        uint8 maximumStakeMultiplier,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
@@ -111,6 +111,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             maximumStakeMultiplier <= MAXIMUM_STAKE_MULTIPLIER_LIMIT,
             "PoSValidatorManager: invalid maximum stake multiplier"
         );
+        require(minimumDelegationFee > 0, "PoSValidatorManager: zero delegation fee");
 
         $._minimumStakeAmount = minimumStakeAmount;
         $._maximumStakeAmount = maximumStakeAmount;
