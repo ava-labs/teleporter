@@ -34,7 +34,7 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
         ValidatorManagerSettings calldata settings,
         address initialOwner
     ) internal onlyInitializing {
-        __ValidatorManager_init(settings);
+        __ValidatorManager_init(settings, initialOwner);
         __Ownable_init(initialOwner);
     }
 
@@ -51,7 +51,7 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
     }
 
     // solhint-enable ordering
-    function initializeEndValidation(bytes32 validationID) external override {
+    function initializeEndValidation(bytes32 validationID) external override onlyOwner {
         _initializeEndValidation(validationID);
     }
 

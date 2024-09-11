@@ -37,7 +37,7 @@ struct ValidatorManagerSettings {
     bytes32 pChainBlockchainID;
     bytes32 subnetID;
     uint8 maximumHourlyChurn;
-    SubnetConversionData initialValidators;
+    SubnetConversionData subnetConversionData;
     uint32 messageIndex;
 }
 
@@ -79,6 +79,10 @@ interface IValidatorManager {
         bytes32 indexed registerValidationMessageID,
         uint256 weight,
         uint64 registrationExpiry
+    );
+
+    event InitialValidatorCreated(
+        bytes32 indexed validationID, bytes32 indexed nodeID, uint256 weight
     );
 
     /**

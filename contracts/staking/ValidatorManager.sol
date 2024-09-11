@@ -84,32 +84,45 @@ abstract contract ValidatorManager is
         IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     // solhint-disable-next-line func-name-mixedcase
-    function __ValidatorManager_init(ValidatorManagerSettings calldata settings)
-        internal
-        onlyInitializing
-    {
+    function __ValidatorManager_init(
+        ValidatorManagerSettings calldata settings,
+        address initialValidatorOwner
+    ) internal onlyInitializing {
         __ReentrancyGuard_init();
         __Context_init();
-        __ValidatorManager_init_unchained(settings);
+        __ValidatorManager_init_unchained(settings, initialValidatorOwner);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __ValidatorManager_init_unchained(ValidatorManagerSettings calldata settings)
-        internal
-        onlyInitializing
-    {
+    function __ValidatorManager_init_unchained(
+        ValidatorManagerSettings calldata settings,
+        address initialValidatorOwner
+    ) internal onlyInitializing {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._pChainBlockchainID = settings.pChainBlockchainID;
         $._subnetID = settings.subnetID;
         $._maximumHourlyChurn = settings.maximumHourlyChurn;
-        _validateInitialValidators(settings.subnetConversionData, settings.messageIndex);
+
+        // If initial validators was already set previously, ensure that the initial validators are not set again.
+        if ($._initialValidators.length() > 0) {
+            require(
+                settings.subnetConversionData.initialValidators.length == 0,
+                "ValidatorManager: initial validators already set"
+            );
+        } else {
+            _validateInitialValidators(
+                settings.subnetConversionData, settings.messageIndex, initialValidatorOwner
+            );
+        }
     }
 
     function _validateInitialValidators(
         SubnetConversionData memory subnetConversionData,
-        uint32 messageIndex
+        uint32 messageIndex,
+        address initialValidatorOwner
     ) internal {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         // Parse the Warp message into SubnetConversionMessage
         bytes32 subnetConversionID =
@@ -140,7 +153,7 @@ abstract contract ValidatorManager is
             "ValidatorManager: invalid blockchain ID"
         );
 
-        // TODO: might have more efficient conversion with assembly
+        // TODO: might have more efficient conversion with assembly, check length of bytes
         require(
             address(bytes20(subnetConversionData.validatorManagerAddress)) == address(this),
             "ValidatorManager: invalid validator manager address"
@@ -155,10 +168,15 @@ abstract contract ValidatorManager is
             InitialValidators memory initialValidator = subnetConversionData.initialValidators[i];
             bytes32 validationID =
                 sha256(abi.encodePacked(subnetConversionData.convertSubnetTxID, i));
+            require(
+                $._initialValidators.add(validationID),
+                "ValidatorManager: duplicate initial validator"
+            );
+
             $._validationPeriods[validationID] = Validator({
                 status: ValidatorStatus.PendingAdded,
                 nodeID: initialValidator.nodeID,
-                owner: _initialValidatorOwner(),
+                owner: address(0),
                 startingWeight: initialValidator.weight,
                 messageNonce: 0,
                 weight: initialValidator.weight,
@@ -167,13 +185,11 @@ abstract contract ValidatorManager is
             });
             // Increment the nonce for the next usage.
             _getAndIncrementNonce(validationID);
-            emit ValidationPeriodCreated(
-                validationID, initialValidator.nodeID, bytes32(0), initialValidator.weight, 0
+            emit InitialValidatorCreated(
+                validationID, initialValidator.nodeID, initialValidator.weight
             );
         }
     }
-
-    function _initialValidatorOwner() internal virtual returns (address);
 
     /**
      * @notice Begins the validator registration process, and sets the initial weight for the validator.
@@ -306,6 +322,10 @@ abstract contract ValidatorManager is
                 $._initialValidators.contains(validationID),
                 "ValidatorManager: invalid initial validator"
             );
+        }
+
+        if (!($._initialValidators.contains(validationID))) {
+            require(_msgSender() == validator.owner, "ValidatorManager: sender not validator owner");
         }
 
         // Check that removing this validator would not exceed the maximum churn rate.
