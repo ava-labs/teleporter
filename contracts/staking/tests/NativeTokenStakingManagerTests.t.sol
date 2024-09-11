@@ -28,9 +28,9 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumStakeWeight: DEFAULT_MINIMUM_STAKE_WEIGHT,
+                maximumStakeWeight: DEFAULT_MAXIMUM_STAKE_WEIGHT,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_WEIGHT_DURATION,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
@@ -45,19 +45,9 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         bytes memory signature,
         uint64 weight
     ) internal virtual override returns (bytes32) {
-        return app.initializeValidatorRegistration{value: app.weightToValue(weight)}(
+        return app.initializeValidatorRegistration{value: _weightToValue(weight)}(
             nodeID, registrationExpiry, signature
         );
-    }
-
-    function _initializeValidatorRegistrationWithValue(
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory signature,
-        uint256 value
-    ) internal virtual override returns (bytes32) {
-        return
-            app.initializeValidatorRegistration{value: value}(nodeID, registrationExpiry, signature);
     }
 
     function _initializeDelegatorRegistration(
@@ -65,7 +55,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         address delegatorAddress,
         uint64 weight
     ) internal virtual override returns (bytes32) {
-        uint256 value = app.weightToValue(weight);
+        uint256 value = _weightToValue(weight);
         vm.prank(delegatorAddress);
         vm.deal(delegatorAddress, value);
         return app.initializeDelegatorRegistration{value: value}(validationID);
@@ -80,8 +70,16 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         vm.expectCall(account, amount, "");
     }
 
+    // TODO this needs to be kept in line with the contract conversions, but we can't make external calls
+    // to the contract and use vm.expectRevert at the same time
+    function _valueToWeight(uint256 value) internal virtual override returns (uint64) {
+        return uint64(value / 1e12);
+    }
+
+    // TODO this needs to be kept in line with the contract conversions, but we can't make external calls
+    // to the contract and use vm.expectRevert at the same time
     function _weightToValue(uint64 weight) internal virtual override returns (uint256) {
-        return app.weightToValue(weight);
+        return uint256(weight) * 1e12;
     }
 
     function _getStakeAssetBalance(address account) internal view override returns (uint256) {

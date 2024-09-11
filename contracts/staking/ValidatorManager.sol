@@ -105,7 +105,7 @@ abstract contract ValidatorManager is
 
         // TODO Remove - this is a hack to get a starting total weight before
         // adding an initial validator set is implemented.
-        $._churnTracker.totalWeight = 10000;
+        $._churnTracker.totalWeight = 1e10;
     }
 
     /**
@@ -138,6 +138,9 @@ abstract contract ValidatorManager is
         );
         require(blsPublicKey.length == 48, "ValidatorManager: invalid blsPublicKey length");
 
+        // Check that adding this validator would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTrackerAddition(weight);
+
         (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
             ValidatorMessages.ValidationPeriod({
@@ -162,9 +165,6 @@ abstract contract ValidatorManager is
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
             endedAt: 0
         });
-
-        // Check that adding this validator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTrackerAddition(weight);
 
         // Increment the nonce for the next usage.
         _getAndIncrementNonce(validationID);
@@ -238,6 +238,9 @@ abstract contract ValidatorManager is
         );
         require(_msgSender() == validator.owner, "ValidatorManager: sender not validator owner");
 
+        // Check that removing this delegator would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTrackerRemoval(validator.weight);
+
         // Update the validator status to pending removal.
         // They are not removed from the active validators mapping until the P-Chain acknowledges the removal.
         validator.status = ValidatorStatus.PendingRemoved;
@@ -254,9 +257,6 @@ abstract contract ValidatorManager is
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), 0);
         $._pendingEndValidationMessages[validationID] = setValidatorWeightPayload;
-
-        // Check that removing this delegator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTrackerRemoval(validator.weight);
 
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
@@ -405,7 +405,10 @@ abstract contract ValidatorManager is
         uint256 currentTime = block.timestamp;
         ValidatorChurnPeriod memory churnTracker = $._churnTracker;
 
-        if (currentTime - churnTracker.startedAt >= $._churnPeriodSeconds) {
+        if (
+            churnTracker.startedAt == 0
+                || currentTime >= churnTracker.startedAt + $._churnPeriodSeconds
+        ) {
             churnTracker.churnAmount = weight;
             churnTracker.startedAt = currentTime;
             churnTracker.initialWeight = churnTracker.totalWeight;
@@ -413,9 +416,9 @@ abstract contract ValidatorManager is
             churnTracker.churnAmount += weight;
         }
 
-        uint8 churnPercentage = uint8((churnTracker.churnAmount * 100) / churnTracker.initialWeight);
         require(
-            churnPercentage <= $._maximumChurnPercentage,
+            // Rearranged equation of maximumChurnPercentage >= currentChurnPercentage to avoid integer division truncation.
+            $._maximumChurnPercentage * churnTracker.initialWeight >= churnTracker.churnAmount * 100,
             "ValidatorManager: maximum churn rate exceeded"
         );
 

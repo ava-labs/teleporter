@@ -35,9 +35,9 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumStakeWeight: DEFAULT_MINIMUM_STAKE_WEIGHT,
+                maximumStakeWeight: DEFAULT_MAXIMUM_STAKE_WEIGHT,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_WEIGHT_DURATION,
                 rewardCalculator: IRewardCalculator(address(0))
             }),
             token
@@ -53,17 +53,8 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         uint64 weight
     ) internal virtual override returns (bytes32) {
         return app.initializeValidatorRegistration(
-            app.weightToValue(weight), nodeID, registrationExpiry, signature
+            _weightToValue(weight), nodeID, registrationExpiry, signature
         );
-    }
-
-    function _initializeValidatorRegistrationWithValue(
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory signature,
-        uint256 value
-    ) internal virtual override returns (bytes32) {
-        return app.initializeValidatorRegistration(value, nodeID, registrationExpiry, signature);
     }
 
     function _initializeDelegatorRegistration(
@@ -71,7 +62,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         address delegatorAddress,
         uint64 weight
     ) internal virtual override returns (bytes32) {
-        uint256 value = app.weightToValue(weight);
+        uint256 value = _weightToValue(weight);
         vm.startPrank(delegatorAddress);
         bytes32 delegationID = app.initializeDelegatorRegistration(validationID, value);
         vm.stopPrank();
@@ -79,7 +70,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     }
 
     function _beforeSend(uint64 weight, address spender) internal override {
-        uint256 value = app.weightToValue(weight);
+        uint256 value = _weightToValue(weight);
         token.safeIncreaseAllowance(spender, value);
         token.safeTransfer(spender, value);
 
@@ -93,8 +84,12 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         vm.expectCall(address(token), abi.encodeCall(IERC20.transfer, (account, amount)));
     }
 
+    function _valueToWeight(uint256 value) internal virtual override returns (uint64) {
+        return uint64(value / 1e12);
+    }
+
     function _weightToValue(uint64 weight) internal virtual override returns (uint256) {
-        return app.weightToValue(weight);
+        return uint256(weight) * 1e12;
     }
 
     function _getStakeAssetBalance(address account) internal view override returns (uint256) {

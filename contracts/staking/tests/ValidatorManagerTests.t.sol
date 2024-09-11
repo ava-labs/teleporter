@@ -31,15 +31,15 @@ abstract contract ValidatorManagerTest is Test {
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     uint64 public constant DEFAULT_WEIGHT = 1e6;
-    uint256 public constant DEFAULT_MINIMUM_STAKE = 20;
-    uint256 public constant DEFAULT_MAXIMUM_STAKE = 1e10;
+    uint64 public constant DEFAULT_MINIMUM_STAKE_WEIGHT = 20;
+    uint64 public constant DEFAULT_MAXIMUM_STAKE_WEIGHT = 1e10;
     uint64 public constant DEFAULT_CHURN_PERIOD = 1 hours;
-    uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
+    uint64 public constant DEFAULT_MINIMUM_STAKE_WEIGHT_DURATION = 24 hours;
     uint8 public constant DEFAULT_MAXIMUM_CHURN_PERCENTAGE = 20;
     uint64 public constant DEFAULT_EXPIRY = 1000;
     uint64 public constant DEFAULT_REGISTRATION_TIMESTAMP = 1000;
     uint64 public constant DEFAULT_COMPLETION_TIMESTAMP = 2000;
-    uint256 public constant DEFAULT_STARTING_TOTAL_WEIGHT = 10000;
+    uint256 public constant DEFAULT_STARTING_TOTAL_WEIGHT = 1e10;
 
     ValidatorManager public validatorManager;
 
@@ -198,37 +198,45 @@ abstract contract ValidatorManagerTest is Test {
 
     function testCummulativeChurnRegistration() public {
         uint64 churnThreshold =
-            uint64(DEFAULT_STARTING_TOTAL_WEIGHT) * 100 / DEFAULT_MAXIMUM_CHURN_PERCENTAGE;
+            uint64(DEFAULT_STARTING_TOTAL_WEIGHT) * DEFAULT_MAXIMUM_CHURN_PERCENTAGE / 100;
         _beforeSend(churnThreshold, address(this));
-        uint256 value = _weightToValue(churnThreshold);
 
-        // First call should succeed
-        _initializeValidatorRegistrationWithValue(
-            _newNodeID(), uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
-        );
+        // First registration should succeed
+        _setUpCompleteValidatorRegistration({
+            nodeID: _newNodeID(),
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: churnThreshold,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
 
-        bytes32 nodeID = _newNodeID(); // Needs to be called before expectRevert
-        uint64 secondWeight = 1;
-        _beforeSend(secondWeight, address(this)); // TODO may need to be updated with minimum stake amount
-        uint256 value2 = _weightToValue(secondWeight);
+        _beforeSend(DEFAULT_MINIMUM_STAKE_WEIGHT, address(this)); // TODO may need to be updated with minimum stake amount
 
         // Second call should fail
         vm.expectRevert("ValidatorManager: maximum churn rate exceeded");
-        _initializeValidatorRegistrationWithValue(
-            nodeID, uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value2
+        _initializeValidatorRegistration(
+            DEFAULT_NODE_ID,
+            DEFAULT_REGISTRATION_TIMESTAMP + 1,
+            DEFAULT_BLS_PUBLIC_KEY,
+            DEFAULT_MINIMUM_STAKE_WEIGHT
         );
     }
 
     function testCummulativeChurnRegistrationAndEndValidation() public {
         uint64 churnThreshold =
-            uint64(DEFAULT_STARTING_TOTAL_WEIGHT) * 100 / DEFAULT_MAXIMUM_CHURN_PERCENTAGE;
+            uint64(DEFAULT_STARTING_TOTAL_WEIGHT) * DEFAULT_MAXIMUM_CHURN_PERCENTAGE / 100;
         _beforeSend(churnThreshold, address(this));
-        uint256 value = _weightToValue(churnThreshold);
 
-        // First call should succeed
-        bytes32 validationID = _initializeValidatorRegistrationWithValue(
-            _newNodeID(), uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
-        );
+        // Registration should succeed
+        bytes32 validationID = _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: churnThreshold,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
 
         // Second call should fail
         vm.expectRevert("ValidatorManager: maximum churn rate exceeded");
@@ -385,20 +393,12 @@ abstract contract ValidatorManagerTest is Test {
         bytes memory blsPublicKey,
         uint64 weight
     ) internal virtual returns (bytes32);
-
-    // Initialize a validator registration, without making a call to weightToValue, which is an external
-    // call that will consume the call to vm.expectRevert and fail the test.
-    function _initializeValidatorRegistrationWithValue(
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey,
-        uint256 value
-    ) internal virtual returns (bytes32);
-
     function _initializeEndValidation(bytes32 validationID) internal virtual;
 
     function _beforeSend(uint64 weight, address spender) internal virtual;
 
     function _weightToValue(uint64 weight) internal virtual returns (uint256);
+
+    function _valueToWeight(uint256 value) internal virtual returns (uint64);
 }
 // solhint-enable no-empty-blocks

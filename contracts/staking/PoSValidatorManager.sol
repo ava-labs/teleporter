@@ -21,10 +21,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.PoSValidatorManager
     struct PoSValidatorManagerStorage {
-        /// @notice The minimum amount of stake required to be a validator.
-        uint256 _minimumStakeAmount;
-        /// @notice The maximum amount of stake allowed to be a validator.
-        uint256 _maximumStakeAmount;
+        /// @notice The minimum weight of stake required to be a validator.
+        uint64 _minimumStakeWeight;
+        /// @notice The maximum weight of stake allowed to be a validator.
+        uint64 _maximumStakeWeight;
         /// @notice The minimum amount of time a validator must be staked for.
         uint64 _minimumStakeDuration;
         /// @notice The reward calculator for this validator manager.
@@ -62,8 +62,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     {
         __ValidatorManager_init(settings.baseSettings);
         __POS_Validator_Manager_init_unchained({
-            minimumStakeAmount: settings.minimumStakeAmount,
-            maximumStakeAmount: settings.maximumStakeAmount,
+            minimumStakeWeight: settings.minimumStakeWeight,
+            maximumStakeWeight: settings.maximumStakeWeight,
             minimumStakeDuration: settings.minimumStakeDuration,
             rewardCalculator: settings.rewardCalculator
         });
@@ -71,14 +71,14 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     // solhint-disable-next-line func-name-mixedcase
     function __POS_Validator_Manager_init_unchained(
-        uint256 minimumStakeAmount,
-        uint256 maximumStakeAmount,
+        uint64 minimumStakeWeight,
+        uint64 maximumStakeWeight,
         uint64 minimumStakeDuration,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        $._minimumStakeAmount = minimumStakeAmount;
-        $._maximumStakeAmount = maximumStakeAmount;
+        $._minimumStakeWeight = minimumStakeWeight;
+        $._maximumStakeWeight = maximumStakeWeight;
         $._minimumStakeDuration = minimumStakeDuration;
         $._rewardCalculator = rewardCalculator;
     }
@@ -132,7 +132,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Ensure the weight is within the valid range.
         require(
-            weight >= $._minimumStakeAmount && weight <= $._maximumStakeAmount,
+            weight >= $._minimumStakeWeight && weight <= $._maximumStakeWeight,
             "PoSValidatorManager: invalid stake amount"
         );
 
@@ -163,6 +163,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         require(
             validator.status == ValidatorStatus.Active, "PoSValidatorManager: validator not active"
         );
+
+        // Check that adding this delegator would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTrackerAddition(weight);
+
         // Update the validator weight
         uint64 newValidatorWeight = validator.weight + weight;
         _setValidatorWeight(validationID, newValidatorWeight);
@@ -171,9 +175,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // constructed using a new nonce.
         uint64 nonce = _getAndIncrementNonce(validationID);
         bytes32 delegationID = keccak256(abi.encodePacked(validationID, delegatorAddress, nonce));
-
-        // Check that adding this delegator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTrackerAddition(weight);
 
         // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
@@ -284,6 +285,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         );
         uint64 nonce = _getAndIncrementNonce(validationID);
 
+        // Check that removing this delegator would not exceed the maximum churn rate.
+        // TODO this check won't be necessary for a delegator whose validator has already initialized ending their validation period.
+        _checkAndUpdateChurnTrackerRemoval(delegator.weight);
+
         // Set the delegator status to pending removed, so that it can be properly removed in
         // the complete step, even if the delivered nonce is greater than the nonce used to
         // initialize the removal.
@@ -292,10 +297,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         delegator.endingNonce = nonce;
 
         $._delegatorStakes[delegationID] = delegator;
-
-        // Check that removing this delegator would not exceed the maximum churn rate.
-        // TODO this check won't be necessary for a delegator whose validator has already initialized ending their validation period.
-        _checkAndUpdateChurnTrackerRemoval(delegator.weight);
 
         Validator memory validator = _getValidator(validationID);
         require(validator.weight > delegator.weight, "PoSValidatorManager: Invalid weight");
