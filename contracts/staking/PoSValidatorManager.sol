@@ -77,14 +77,14 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         onlyInitializing
     {
         __ValidatorManager_init(settings.baseSettings);
-        __POS_Validator_Manager_init_unchained(
-            settings.minimumStakeAmount,
-            settings.maximumStakeAmount,
-            settings.minimumStakeDuration,
-            settings.minimumDelegationFee,
-            settings.maximumStakeMultiplier,
-            settings.rewardCalculator
-        );
+        __POS_Validator_Manager_init_unchained({
+            minimumStakeAmount: settings.minimumStakeAmount,
+            maximumStakeAmount: settings.maximumStakeAmount,
+            minimumStakeDuration: settings.minimumStakeDuration,
+            minimumDelegationFee: settings.minimumDelegationFee,
+            maximumStakeMultiplier: settings.maximumStakeMultiplier,
+            rewardCalculator: settings.rewardCalculator
+        });
     }
 
     // solhint-disable-next-line func-name-mixedcase
