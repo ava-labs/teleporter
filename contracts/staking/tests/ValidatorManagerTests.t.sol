@@ -34,7 +34,7 @@ abstract contract ValidatorManagerTest is Test {
     uint64 public constant DEFAULT_MINIMUM_STAKE_WEIGHT = 20;
     uint64 public constant DEFAULT_MAXIMUM_STAKE_WEIGHT = 1e10;
     uint64 public constant DEFAULT_CHURN_PERIOD = 1 hours;
-    uint64 public constant DEFAULT_MINIMUM_STAKE_WEIGHT_DURATION = 24 hours;
+    uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
     uint8 public constant DEFAULT_MAXIMUM_CHURN_PERCENTAGE = 20;
     uint64 public constant DEFAULT_EXPIRY = 1000;
     uint64 public constant DEFAULT_REGISTRATION_TIMESTAMP = 1000;
@@ -43,7 +43,7 @@ abstract contract ValidatorManagerTest is Test {
 
     ValidatorManager public validatorManager;
 
-    // Used to create unique validator IDs in {newNodeID}
+    // Used to create unique validator IDs in {_newNodeID}
     uint64 public nodeIDCounter = 0;
 
     event ValidationPeriodCreated(
@@ -393,6 +393,7 @@ abstract contract ValidatorManagerTest is Test {
         bytes memory blsPublicKey,
         uint64 weight
     ) internal virtual returns (bytes32);
+
     function _initializeEndValidation(bytes32 validationID) internal virtual;
 
     function _beforeSend(uint64 weight, address spender) internal virtual;

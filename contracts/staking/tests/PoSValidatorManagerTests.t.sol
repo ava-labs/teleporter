@@ -56,22 +56,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 indexed delegationID, bytes32 indexed validationID, uint64 indexed nonce
     );
 
-    function registerValidators(uint64 n) public returns (bytes32[] memory) {
-        bytes32[] memory validationIDs = new bytes32[](n);
-        for (uint64 i = 0; i < n; i++) {
-            bytes32 validationID = _setUpCompleteValidatorRegistration({
-                nodeID: _newNodeID(),
-                subnetID: DEFAULT_SUBNET_ID,
-                weight: DEFAULT_WEIGHT,
-                registrationExpiry: DEFAULT_EXPIRY,
-                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-                registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
-            });
-            validationIDs[i] = validationID;
-        }
-        return validationIDs;
-    }
-
     function testInitializeEndValidationWithUptimeProof() public {
         _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,

@@ -30,7 +30,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 }),
                 minimumStakeWeight: DEFAULT_MINIMUM_STAKE_WEIGHT,
                 maximumStakeWeight: DEFAULT_MAXIMUM_STAKE_WEIGHT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_WEIGHT_DURATION,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
