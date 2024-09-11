@@ -72,51 +72,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         return validationIDs;
     }
 
-    function testCummulativeChurnRegistration() public {
-        registerValidators(5);
-
-        _beforeSend(DEFAULT_WEIGHT, address(this));
-        uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
-
-        // First call after churn tracking start should work
-        _initializeValidatorRegistrationWithValue(
-            _newNodeID(), uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
-        );
-
-        bytes32 nodeID = _newNodeID(); // Needs to be called before expectRevert
-        _beforeSend(DEFAULT_WEIGHT, address(this));
-
-        // Second call after churn tracking start should fail
-        vm.expectRevert(_formatErrorMessage("maximum churn rate exceeded"));
-        _initializeValidatorRegistrationWithValue(
-            nodeID, uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
-        );
-    }
-
-    function testCummulativeChurnRegistrationAndEndValidation() public {
-        bytes32[] memory validationIDs = registerValidators(10);
-
-        _beforeSend(DEFAULT_WEIGHT, address(this));
-        uint256 value = posValidatorManager.weightToValue(DEFAULT_WEIGHT);
-
-        // First call after churn tracking start should work
-        _initializeValidatorRegistrationWithValue(
-            _newNodeID(), uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
-        );
-
-        // Initialize the end of one of the validators.
-        _initializeEndValidation(validationIDs[0]);
-
-        bytes32 nodeID = _newNodeID(); // Needs to be called before expectRevert
-        _beforeSend(DEFAULT_WEIGHT, address(this));
-
-        // Second call after churn tracking start should fail
-        vm.expectRevert(_formatErrorMessage("maximum churn rate exceeded"));
-        _initializeValidatorRegistrationWithValue(
-            nodeID, uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
-        );
-    }
-
     function testInitializeEndValidationWithUptimeProof() public {
         _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
@@ -675,15 +630,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function _initializeEndValidation(bytes32 validationID) internal virtual override {
         return posValidatorManager.initializeEndValidation(validationID, false, 0);
     }
-
-    // Initialize a validator registration, without making a call to weightToValue, which is an external
-    // call that will consume the call to vm.expectRevert and fail the test.
-    function _initializeValidatorRegistrationWithValue(
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey,
-        uint256 value
-    ) internal virtual returns (bytes32);
 
     function _initializeDelegatorRegistration(
         bytes32 validationID,

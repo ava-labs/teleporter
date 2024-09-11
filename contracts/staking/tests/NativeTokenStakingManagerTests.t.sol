@@ -80,6 +80,10 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         vm.expectCall(account, amount, "");
     }
 
+    function _weightToValue(uint64 weight) internal virtual override returns (uint256) {
+        return app.weightToValue(weight);
+    }
+
     function _getStakeAssetBalance(address account) internal view override returns (uint256) {
         return account.balance;
     }

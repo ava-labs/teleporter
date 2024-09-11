@@ -39,6 +39,7 @@ abstract contract ValidatorManagerTest is Test {
     uint64 public constant DEFAULT_EXPIRY = 1000;
     uint64 public constant DEFAULT_REGISTRATION_TIMESTAMP = 1000;
     uint64 public constant DEFAULT_COMPLETION_TIMESTAMP = 2000;
+    uint256 public constant DEFAULT_STARTING_TOTAL_WEIGHT = 10000;
 
     ValidatorManager public validatorManager;
 
@@ -195,6 +196,45 @@ abstract contract ValidatorManagerTest is Test {
         validatorManager.completeEndValidation(0);
     }
 
+    function testCummulativeChurnRegistration() public {
+        uint64 churnThreshold =
+            uint64(DEFAULT_STARTING_TOTAL_WEIGHT) * 100 / DEFAULT_MAXIMUM_CHURN_PERCENTAGE;
+        _beforeSend(churnThreshold, address(this));
+        uint256 value = _weightToValue(churnThreshold);
+
+        // First call should succeed
+        _initializeValidatorRegistrationWithValue(
+            _newNodeID(), uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
+        );
+
+        bytes32 nodeID = _newNodeID(); // Needs to be called before expectRevert
+        uint64 secondWeight = 1;
+        _beforeSend(secondWeight, address(this)); // TODO may need to be updated with minimum stake amount
+        uint256 value2 = _weightToValue(secondWeight);
+
+        // Second call should fail
+        vm.expectRevert("ValidatorManager: maximum churn rate exceeded");
+        _initializeValidatorRegistrationWithValue(
+            nodeID, uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value2
+        );
+    }
+
+    function testCummulativeChurnRegistrationAndEndValidation() public {
+        uint64 churnThreshold =
+            uint64(DEFAULT_STARTING_TOTAL_WEIGHT) * 100 / DEFAULT_MAXIMUM_CHURN_PERCENTAGE;
+        _beforeSend(churnThreshold, address(this));
+        uint256 value = _weightToValue(churnThreshold);
+
+        // First call should succeed
+        bytes32 validationID = _initializeValidatorRegistrationWithValue(
+            _newNodeID(), uint64(block.timestamp) + 1 days, DEFAULT_BLS_PUBLIC_KEY, value
+        );
+
+        // Second call should fail
+        vm.expectRevert("ValidatorManager: maximum churn rate exceeded");
+        _initializeEndValidation(validationID);
+    }
+
     function _newNodeID() internal returns (bytes32) {
         nodeIDCounter++;
         return sha256(new bytes(nodeIDCounter));
@@ -346,8 +386,19 @@ abstract contract ValidatorManagerTest is Test {
         uint64 weight
     ) internal virtual returns (bytes32);
 
+    // Initialize a validator registration, without making a call to weightToValue, which is an external
+    // call that will consume the call to vm.expectRevert and fail the test.
+    function _initializeValidatorRegistrationWithValue(
+        bytes32 nodeID,
+        uint64 registrationExpiry,
+        bytes memory blsPublicKey,
+        uint256 value
+    ) internal virtual returns (bytes32);
+
     function _initializeEndValidation(bytes32 validationID) internal virtual;
 
     function _beforeSend(uint64 weight, address spender) internal virtual;
+
+    function _weightToValue(uint64 weight) internal virtual returns (uint256);
 }
 // solhint-enable no-empty-blocks

@@ -172,8 +172,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint64 nonce = _getAndIncrementNonce(validationID);
         bytes32 delegationID = keccak256(abi.encodePacked(validationID, delegatorAddress, nonce));
 
-        // Check that adding this validator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTracker(weight);
+        // Check that adding this delegator would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTrackerAddition(weight);
 
         // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
@@ -292,6 +292,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         delegator.endingNonce = nonce;
 
         $._delegatorStakes[delegationID] = delegator;
+
+        // Check that removing this delegator would not exceed the maximum churn rate.
+        // TODO this check won't be necessary for a delegator whose validator has already initialized ending their validation period.
+        _checkAndUpdateChurnTrackerRemoval(delegator.weight);
 
         Validator memory validator = _getValidator(validationID);
         require(validator.weight > delegator.weight, "PoSValidatorManager: Invalid weight");

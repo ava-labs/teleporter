@@ -51,8 +51,6 @@ abstract contract ValidatorManager is
         mapping(bytes32 => Validator) _validationPeriods;
         /// @notice Maps the nodeID to the validationID for active validation periods.
         mapping(bytes32 => bytes32) _activeValidators;
-        /// @notice The total weight of all validators.
-        uint256 _totalWeight;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -97,6 +95,17 @@ abstract contract ValidatorManager is
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._pChainBlockchainID = settings.pChainBlockchainID;
         $._subnetID = settings.subnetID;
+
+        require(
+            settings.maximumChurnPercentage <= 20,
+            "ValidatorManager: maximum churn percentage too high"
+        );
+        $._maximumChurnPercentage = settings.maximumChurnPercentage;
+        $._churnPeriodSeconds = settings.churnPeriodSeconds;
+
+        // TODO Remove - this is a hack to get a starting total weight before
+        // adding an initial validator set is implemented.
+        $._churnTracker.totalWeight = 10000;
     }
 
     /**
@@ -155,9 +164,7 @@ abstract contract ValidatorManager is
         });
 
         // Check that adding this validator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTracker(weight);
-        // Update total weight
-        $._totalWeight += weight;
+        _checkAndUpdateChurnTrackerAddition(weight);
 
         // Increment the nonce for the next usage.
         _getAndIncrementNonce(validationID);
@@ -248,9 +255,8 @@ abstract contract ValidatorManager is
             .packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), 0);
         $._pendingEndValidationMessages[validationID] = setValidatorWeightPayload;
 
-        _checkAndUpdateChurnTracker(validator.weight);
-        // Update weight after checking the churn tracker.
-        $._totalWeight -= validator.weight;
+        // Check that removing this delegator would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTrackerRemoval(validator.weight);
 
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
@@ -371,11 +377,25 @@ abstract contract ValidatorManager is
     }
 
     /**
-     * @notice Helper function to check if the stake amount to be added or removed would exceed the maximum stake churn
-     * rate for the past hour. If the churn rate is exceeded, the function will revert. If the churn rate is not exceeded,
-     * the function will update the churn tracker with the new amount.
+     * @dev Helper function to check if the stake amount to be added exceeds churn thresholds.
      */
-    function _checkAndUpdateChurnTracker(uint64 weight) internal {
+    function _checkAndUpdateChurnTrackerAddition(uint64 weight) internal {
+        _checkAndUpdateChurnTracker(weight, true);
+    }
+
+    /**
+     * @dev Helper function to check if the stake amount to be removed exceeds churn thresholds.
+     */
+    function _checkAndUpdateChurnTrackerRemoval(uint64 weight) internal {
+        _checkAndUpdateChurnTracker(weight, false);
+    }
+
+    /**
+     * @dev Helper function to check if the stake weight to be added or removed would exceed the maximum stake churn
+     * rate for the past churn period. If the churn rate is exceeded, the function will revert. If the churn rate is
+     * not exceeded, the function will update the churn tracker with the new weight.
+     */
+    function _checkAndUpdateChurnTracker(uint64 weight, bool addition) private {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         if ($._maximumChurnPercentage == 0) {
@@ -388,7 +408,7 @@ abstract contract ValidatorManager is
         if (currentTime - churnTracker.startedAt >= $._churnPeriodSeconds) {
             churnTracker.churnAmount = weight;
             churnTracker.startedAt = currentTime;
-            churnTracker.initialWeight = $._totalWeight;
+            churnTracker.initialWeight = churnTracker.totalWeight;
         } else {
             churnTracker.churnAmount += weight;
         }
@@ -398,6 +418,13 @@ abstract contract ValidatorManager is
             churnPercentage <= $._maximumChurnPercentage,
             "ValidatorManager: maximum churn rate exceeded"
         );
+
+        if (addition) {
+            churnTracker.totalWeight += weight;
+        } else {
+            churnTracker.totalWeight -= weight;
+        }
+
         $._churnTracker = churnTracker;
     }
 }
