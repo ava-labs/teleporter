@@ -6,6 +6,8 @@
 pragma solidity 0.8.25;
 
 import {INativeTokenStakingManager} from "./interfaces/INativeTokenStakingManager.sol";
+import {INativeMinter} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
@@ -19,6 +21,9 @@ contract NativeTokenStakingManager is
     INativeTokenStakingManager
 {
     using Address for address payable;
+
+    INativeMinter public constant NATIVE_MINTER =
+        INativeMinter(0x0200000000000000000000000000000000000001);
 
     constructor(ICMInitializable init) {
         if (init == ICMInitializable.Disallowed) {
@@ -85,6 +90,6 @@ contract NativeTokenStakingManager is
 
     // solhint-disable-next-line no-empty-blocks
     function _reward(address account, uint256 amount) internal virtual override {
-        // TODO: call the native minter precompile to mint `amount` for `account`
+        NATIVE_MINTER.mintNativeCoin(account, amount);
     }
 }

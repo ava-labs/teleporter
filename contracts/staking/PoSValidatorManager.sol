@@ -106,13 +106,14 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     function completeEndValidation(uint32 messageIndex) external {
         Validator memory validator = _completeEndValidation(messageIndex);
+        if (validator.status == ValidatorStatus.Completed) {
+            PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+            _reward(validator.owner, $._pendingValidatorRewards[validator.owner]);
+            delete $._pendingValidatorRewards[validator.owner];
 
-        _reward(validator.owner, $._pendingValidatorRewards[validator.owner]);
-        delete $._pendingValidatorRewards[validator.owner];
-
-        _unlock(validator.startingWeight, validator.owner);
+            _unlock(validator.startingWeight, validator.owner);
+        }
     }
 
     function _getUptime(bytes32 validationID, uint32 messageIndex) internal view returns (uint64) {
