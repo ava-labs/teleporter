@@ -40,6 +40,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
          * @notice A multiplier applied to {_maximumStakeAmount} to determine
          * the maximum amount of stake a validator can have. This maximum amount includes
          * the initial stake amount at registration, and additional stake from delegations.
+         *
+         * Note: Zero is a valid value, which would disable delegations to validators.
          */
         uint64 _maximumStakeMultiplier;
         /// @notice The reward calculator for this validator manager.
@@ -106,7 +108,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             "PoSValidatorManager: invalid stake amount range"
         );
         require(
-            maximumStakeMultiplier > 0 && maximumStakeMultiplier <= MAXIMUM_STAKE_MULTIPLIER_LIMIT,
+            maximumStakeMultiplier <= MAXIMUM_STAKE_MULTIPLIER_LIMIT,
             "PoSValidatorManager: invalid maximum stake multiplier"
         );
 

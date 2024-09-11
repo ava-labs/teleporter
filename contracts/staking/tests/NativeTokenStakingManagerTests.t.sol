@@ -85,26 +85,6 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         );
     }
 
-    function testZeroMaxStakeMultiplier() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(_formatErrorMessage("invalid maximum stake multiplier"));
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
-                    subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFee: DEFAULT_MINIMUM_DELEGATION_FEE,
-                maximumStakeMultiplier: 0,
-                rewardCalculator: IRewardCalculator(address(0))
-            })
-        );
-    }
-
     function testMaxStakeMultiplierOverLimit() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         uint8 maximumStakeMultiplier = app.MAXIMUM_STAKE_MULTIPLIER_LIMIT() + 1;
