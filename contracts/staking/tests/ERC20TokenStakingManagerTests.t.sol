@@ -182,4 +182,12 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         token.safeIncreaseAllowance(address(app), value);
         vm.stopPrank();
     }
+
+    function _expectStakeUnlock(address account, uint256 amount) internal override {
+        vm.expectCall(address(token), abi.encodeCall(IERC20.transfer, (account, amount)));
+    }
+
+    function _getStakeAssetBalance(address account) internal view override returns (uint256) {
+        return token.balanceOf(account);
+    }
 }

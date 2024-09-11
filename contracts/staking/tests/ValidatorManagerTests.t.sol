@@ -59,6 +59,9 @@ abstract contract ValidatorManagerTest is Test {
 
     event ValidationPeriodEnded(bytes32 indexed validationID, ValidatorStatus indexed status);
 
+    receive() external payable {}
+    fallback() external payable {}
+
     function testInitializeValidatorRegistrationSuccess() public {
         _setUpInitializeValidatorRegistration(
             DEFAULT_NODE_ID,
@@ -153,7 +156,7 @@ abstract contract ValidatorManagerTest is Test {
         validatorManager.resendEndValidatorMessage(validationID);
     }
 
-    function testCompleteEndValidation() public {
+    function testCompleteEndValidation() public virtual {
         bytes32 validationID = _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
@@ -163,16 +166,7 @@ abstract contract ValidatorManagerTest is Test {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
-
-        bytes memory subnetValidatorRegistrationMessage =
-            ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
-
-        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
-
-        vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidationPeriodEnded(validationID, ValidatorStatus.Completed);
-
-        validatorManager.completeEndValidation(0);
+        _testCompleteEndValidation(validationID);
     }
 
     function testCompleteInvalidatedValidation() public {
@@ -286,6 +280,18 @@ abstract contract ValidatorManagerTest is Test {
         emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp);
 
         _initializeEndValidation(validationID);
+    }
+
+    function _testCompleteEndValidation(bytes32 validationID) internal virtual {
+        bytes memory subnetValidatorRegistrationMessage =
+            ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
+
+        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
+
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit ValidationPeriodEnded(validationID, ValidatorStatus.Completed);
+
+        validatorManager.completeEndValidation(0);
     }
 
     function _mockSendWarpMessage(bytes memory payload, bytes32 expectedMessageID) internal {

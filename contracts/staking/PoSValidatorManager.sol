@@ -12,6 +12,7 @@ import {
     PoSValidatorManagerSettings,
     PoSValidatorRequirements
 } from "./interfaces/IPoSValidatorManager.sol";
+import {Validator} from "./interfaces/IValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
 import {
     Validator,
@@ -132,6 +133,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // TODO: Calculate the reward for the validator, but do not unlock it
 
         _initializeEndValidation(validationID);
+    }
+
+    function completeEndValidation(uint32 messageIndex) external {
+        Validator memory validator = _completeEndValidation(messageIndex);
+        _unlock(validator.startingWeight, validator.owner);
     }
 
     function _getUptime(bytes32 validationID, uint32 messageIndex) internal view returns (uint64) {
@@ -406,7 +412,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // Update the delegator status
         $._delegatorStakes[delegationID].status = DelegatorStatus.Completed;
 
-        // TODO: Unlock the delegator's stake and their reward
+        Delegator memory delegator = $._delegatorStakes[delegationID];
+        _unlock(delegator.weight, delegator.owner);
+        // TODO: issue rewards
 
         emit DelegationEnded(delegationID, validationID, nonce);
     }

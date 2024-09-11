@@ -133,6 +133,15 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     function _beforeSend(uint64 weight, address spender) internal override {
         // Native tokens no need pre approve
     }
+
+    function _expectStakeUnlock(address account, uint256 amount) internal override {
+        // empty calldata implies the receive function will be called
+        vm.expectCall(account, amount, "");
+    }
+
+    function _getStakeAssetBalance(address account) internal view override returns (uint256) {
+        return account.balance;
+    }
 }
 // TODO: Remove this once all unit tests implemented
 // solhint-enable no-empty-blocks
