@@ -358,7 +358,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // Update the delegator status
         $._delegatorStakes[delegationID].status = DelegatorStatus.Completed;
 
-        // TODO: Unlock the delegator's stake and their reward
+        Delegator memory delegator = $._delegatorStakes[delegationID];
+        _unlock(delegator.weight, delegator.owner);
+        // TODO: issue rewards
 
         emit DelegationEnded(delegationID, validationID, nonce);
     }
