@@ -301,6 +301,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         });
     }
 
+    /**
+     * @dev Resending the latest validator weight with the latest nonce is safe because all weight changes are
+     * cumulative, so the latest weight change will always include the weight change for any added delegators.
+     */
     function resendUpdateDelegation(bytes32 delegationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         Delegator memory delegator = $._delegatorStakes[delegationID];
