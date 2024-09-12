@@ -47,29 +47,6 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         posValidatorManager = app;
     }
 
-    function testCompleteEndValidation() public override {
-        bytes32 validationID = _setUpInitializeEndValidation({
-            nodeID: DEFAULT_NODE_ID,
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
-        });
-
-        address validator = address(this);
-
-        uint256 balanceBefore = token.balanceOf(validator);
-
-        vm.expectCall(address(token), abi.encodeCall(IERC20.transfer, (validator, DEFAULT_WEIGHT)));
-
-        _testCompleteEndValidation(validationID);
-
-        uint256 balanceChange = token.balanceOf(validator) - balanceBefore;
-        require(balanceChange == DEFAULT_WEIGHT, "validator should have received their stake back");
-    }
-
     function _initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 registrationExpiry,
@@ -102,5 +79,13 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         vm.startPrank(spender);
         token.safeIncreaseAllowance(address(app), value);
         vm.stopPrank();
+    }
+
+    function _expectStakeUnlock(address account, uint256 amount) internal override {
+        vm.expectCall(address(token), abi.encodeCall(IERC20.transfer, (account, amount)));
+    }
+
+    function _getStakeAssetBalance(address account) internal view override returns (uint256) {
+        return token.balanceOf(account);
     }
 }
