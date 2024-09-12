@@ -26,6 +26,11 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+const (
+	defaultMinDelegateFeeBips      = 1
+	defaultMinStakeDurationSeconds = 1
+)
+
 //
 // Deployment utils
 //
@@ -71,12 +76,12 @@ func DeployAndInitializeNativeTokenStakingManager(
 				SubnetID:           subnet.SubnetID,
 				MaximumHourlyChurn: 0,
 			},
-			MinimumStakeAmount:     big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:     big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration:   uint64(24 * time.Hour),
-			MinimumDelegationFee:   big.NewInt(1),
-			MaximumStakeMultiplier: uint8(1),
-			RewardCalculator:       common.Address{},
+			MinimumStakeAmount:       big.NewInt(0).SetUint64(1e6),
+			MaximumStakeAmount:       big.NewInt(0).SetUint64(10e6),
+			MinimumStakeDuration:     defaultMinStakeDurationSeconds,
+			MinimumDelegationFeeBips: defaultMinDelegateFeeBips,
+			MaximumStakeMultiplier:   uint8(1),
+			RewardCalculator:         common.Address{},
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -133,12 +138,12 @@ func DeployAndInitializeERC20TokenStakingManager(
 				SubnetID:           subnet.SubnetID,
 				MaximumHourlyChurn: 0,
 			},
-			MinimumStakeAmount:     big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:     big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration:   0,
-			MinimumDelegationFee:   big.NewInt(1),
-			MaximumStakeMultiplier: uint8(1),
-			RewardCalculator:       common.Address{},
+			MinimumStakeAmount:       big.NewInt(0).SetUint64(1e6),
+			MaximumStakeAmount:       big.NewInt(0).SetUint64(10e6),
+			MinimumStakeDuration:     defaultMinStakeDurationSeconds,
+			MinimumDelegationFeeBips: defaultMinDelegateFeeBips,
+			MaximumStakeMultiplier:   uint8(1),
+			RewardCalculator:         common.Address{},
 		},
 		erc20Address,
 	)
@@ -221,8 +226,8 @@ func InitializeNativeValidatorRegistration(
 			BlsPublicKey:       blsPublicKey[:],
 		},
 		nativetokenstakingmanager.PoSValidatorRequirements{
-			DelegationFee:    big.NewInt(1),
-			MinStakeDuration: big.NewInt(0),
+			DelegationFeeBips: defaultMinDelegateFeeBips,
+			MinStakeDuration:  defaultMinStakeDurationSeconds,
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -265,8 +270,8 @@ func InitializeERC20ValidatorRegistration(
 			BlsPublicKey:       blsPublicKey[:],
 		},
 		erc20tokenstakingmanager.PoSValidatorRequirements{
-			DelegationFee:    big.NewInt(1),
-			MinStakeDuration: big.NewInt(0),
+			DelegationFeeBips: defaultMinDelegateFeeBips,
+			MinStakeDuration:  defaultMinStakeDurationSeconds,
 		},
 		stakeAmount,
 	)

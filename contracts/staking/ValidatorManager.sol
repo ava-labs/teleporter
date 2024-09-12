@@ -40,8 +40,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         ValidatorChurnPeriod _churnTracker;
         /// @notice Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
-        /// @notice Maps the validationID to the end validation message such that the message can be re-sent if needed.
-        mapping(bytes32 => bytes) _pendingEndValidationMessages;
         /// @notice Maps the validationID to the validator information.
         mapping(bytes32 => Validator) _validationPeriods;
         /// @notice Maps the nodeID to the validationID for active validation periods.
@@ -241,8 +239,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
             endedAt: 0
         });
-        // Increment the nonce for the next usage.
-        _getAndIncrementNonce(validationID);
+
         emit ValidationPeriodCreated(
             validationID, input.nodeID, messageID, weight, input.registrationExpiry
         );
@@ -333,8 +330,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), 0);
-        $._pendingEndValidationMessages[validationID] = setValidatorWeightPayload;
+            .packSetSubnetValidatorWeightMessage(validationID, _incrementAndGetNonce(validationID), 0);
 
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
@@ -349,15 +345,19 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     // solhint-disable-next-line
     function resendEndValidatorMessage(bytes32 validationID) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        Validator memory validator = $._validationPeriods[validationID];
 
         // The initial validator set must have been set already to have pending end validation messages.
         require(
-            $._pendingEndValidationMessages[validationID].length > 0
-                && $._validationPeriods[validationID].status == ValidatorStatus.PendingRemoved,
+            validator.status == ValidatorStatus.PendingRemoved,
             "ValidatorManager: Validator not pending removal"
         );
 
-        WARP_MESSENGER.sendWarpMessage($._pendingEndValidationMessages[validationID]);
+        WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(
+                validationID, validator.messageNonce, 0
+            )
+        );
     }
 
     /**
@@ -395,7 +395,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         if (validator.status == ValidatorStatus.PendingRemoved) {
             endStatus = ValidatorStatus.Completed;
-            delete $._pendingEndValidationMessages[validationID];
         } else {
             endStatus = ValidatorStatus.Invalidated;
         }
@@ -449,11 +448,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         $._churnTracker = churnTracker;
     }
 
-    function _getAndIncrementNonce(bytes32 validationID) internal returns (uint64) {
+    function _incrementAndGetNonce(bytes32 validationID) internal returns (uint64) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        uint64 currentNonce = $._validationPeriods[validationID].messageNonce;
         $._validationPeriods[validationID].messageNonce++;
-        return currentNonce;
+        return $._validationPeriods[validationID].messageNonce;
     }
 
     function _getPChainWarpMessage(uint32 messageIndex)
