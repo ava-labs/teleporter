@@ -103,6 +103,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         require(minimumDelegationFeeBips > 0, "PoSValidatorManager: zero delegation fee");
         require(
+            minimumDelegationFeeBips <= MAXIMUM_DELEGATION_FEE_BIPS,
+            "PoSValidatorManager: invalid delegation fee"
+        );
+        require(
             minimumStakeAmount <= maximumStakeAmount,
             "PoSValidatorManager: invalid stake amount range"
         );
