@@ -142,7 +142,7 @@ abstract contract ValidatorManager is
             nodeID: input.nodeID,
             owner: _msgSender(),
             startingWeight: weight,
-            messageNonce: _incrementAndGetNonce(validationID),
+            messageNonce: 0,
             weight: weight,
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
             endedAt: 0

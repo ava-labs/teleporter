@@ -65,6 +65,27 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         );
     }
 
+    function testMaxMinimumDelegationFee() public {
+        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        uint16 minimumDelegationFeeBips = app.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
+        vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
+        app.initialize(
+            PoSValidatorManagerSettings({
+                baseSettings: ValidatorManagerSettings({
+                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
+                    subnetID: DEFAULT_SUBNET_ID,
+                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                }),
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFeeBips: minimumDelegationFeeBips,
+                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+                rewardCalculator: IRewardCalculator(address(0))
+            })
+        );
+    }
+
     function testInvalidStakeAmountRange() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         vm.expectRevert(_formatErrorMessage("invalid stake amount range"));
