@@ -19,8 +19,6 @@ import {
     WarpMessage,
     IWarpMessenger
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {ReentrancyGuardUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
 import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
@@ -28,12 +26,7 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts@5.0.2/utils/structs/EnumerableSet.sol";
 
-abstract contract ValidatorManager is
-    Initializable,
-    ContextUpgradeable,
-    ReentrancyGuardUpgradeable,
-    IValidatorManager
-{
+abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValidatorManager {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
@@ -90,7 +83,6 @@ abstract contract ValidatorManager is
         internal
         onlyInitializing
     {
-        __ReentrancyGuard_init();
         __Context_init();
         __ValidatorManager_init_unchained(settings);
     }
@@ -156,7 +148,10 @@ abstract contract ValidatorManager is
         );
 
         // TODO: might have more efficient conversion with assembly, check length of bytes
-        // TODO: might want to check the length of validator manager address
+        require(
+            subnetConversionData.validatorManagerAddress.length == 20,
+            "ValidatorManager: invalid validator manager address length"
+        );
         require(
             address(bytes20(subnetConversionData.validatorManagerAddress)) == address(this),
             "ValidatorManager: invalid validator manager address"
@@ -191,6 +186,7 @@ abstract contract ValidatorManager is
                 validationID, initialValidator.nodeID, initialValidator.weight
             );
         }
+        $._initializedValidatorSet = true;
     }
 
     /**
@@ -201,7 +197,7 @@ abstract contract ValidatorManager is
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput calldata input,
         uint64 weight
-    ) internal virtual returns (bytes32) {
+    ) internal virtual initializedValidatorSet returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Ensure the registration expiry is in a valid range.
@@ -257,11 +253,9 @@ abstract contract ValidatorManager is
      * @notice Resubmits a validator registration message to be sent to P-Chain to the Warp precompile.
      * Only necessary if the original message can't be delivered due to validator churn.
      */
-    function resendRegisterValidatorMessage(bytes32 validationID)
-        external
-        initializedValidatorSet
-    {
+    function resendRegisterValidatorMessage(bytes32 validationID) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        // The initial validator set must have been set already to have pending register validation messages.
         require(
             $._pendingRegisterValidationMessages[validationID].length > 0
                 && $._validationPeriods[validationID].status == ValidatorStatus.PendingAdded,
@@ -277,13 +271,14 @@ abstract contract ValidatorManager is
      * validationID from the P-Chain.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      */
-    function completeValidatorRegistration(uint32 messageIndex) external initializedValidatorSet {
+    function completeValidatorRegistration(uint32 messageIndex) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, bool validRegistration) =
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
 
         require(validRegistration, "ValidatorManager: Registration not valid");
+        // The initial validator set must have been set already to have pending register validation messages.
         require(
             $._pendingRegisterValidationMessages[validationID].length > 0
                 && $._validationPeriods[validationID].status == ValidatorStatus.PendingAdded,
@@ -314,6 +309,7 @@ abstract contract ValidatorManager is
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Ensure the validation period is active.
+        // The initial validator set must have been set already to have active validators.
         Validator memory validator = $._validationPeriods[validationID];
         require(
             validator.status == ValidatorStatus.Active, "ValidatorManager: validator not active"
@@ -350,9 +346,10 @@ abstract contract ValidatorManager is
      * Only necessary if the original message can't be delivered due to validator churn.
      */
     // solhint-disable-next-line
-    function resendEndValidatorMessage(bytes32 validationID) external initializedValidatorSet {
+    function resendEndValidatorMessage(bytes32 validationID) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
+        // The initial validator set must have been set already to have pending end validation messages.
         require(
             $._pendingEndValidationMessages[validationID].length > 0
                 && $._validationPeriods[validationID].status == ValidatorStatus.PendingRemoved,
@@ -370,7 +367,10 @@ abstract contract ValidatorManager is
      * {registrationExpiry} being reached.
      * @return The Validator instance representing the completed validation period
      */
-    function _completeEndValidation(uint32 messageIndex) internal returns (Validator memory) {
+    function _completeEndValidation(uint32 messageIndex)
+        internal
+        returns (bytes32, Validator memory)
+    {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Get the Warp message.
@@ -385,6 +385,7 @@ abstract contract ValidatorManager is
 
         // The validation status is PendingRemoved if validator removal was initiated with a call to {initiateEndValidation}.
         // The validation status is PendingAdded if the validator was never registered on the P-Chain.
+        // The initial validator set must have been set already to have pending validation messages.
         require(
             validator.status == ValidatorStatus.PendingRemoved
                 || validator.status == ValidatorStatus.PendingAdded,
@@ -407,7 +408,7 @@ abstract contract ValidatorManager is
         // Emit event.
         emit ValidationPeriodEnded(validationID, validator.status);
 
-        return validator;
+        return (validationID, validator);
     }
 
     /**

@@ -38,6 +38,7 @@ struct Delegator {
 }
 
 struct PoSValidatorRequirements {
+    address owner;
     uint256 delegationFee;
     uint256 minStakeDuration;
 }
