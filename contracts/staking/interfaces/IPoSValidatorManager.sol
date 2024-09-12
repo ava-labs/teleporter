@@ -16,12 +16,13 @@ enum DelegatorStatus {
     Completed
 }
 
+// TODO: visit types of these fields, for example uint64 might be too big for stake duration seconds.
 struct PoSValidatorManagerSettings {
     ValidatorManagerSettings baseSettings;
     uint256 minimumStakeAmount;
     uint256 maximumStakeAmount;
     uint64 minimumStakeDuration;
-    uint256 minimumDelegationFeeBips;
+    uint16 minimumDelegationFeeBips;
     uint8 maximumStakeMultiplier;
     IRewardCalculator rewardCalculator;
 }
@@ -38,8 +39,8 @@ struct Delegator {
 }
 
 struct PoSValidatorRequirements {
-    uint256 delegationFeeBips;
-    uint256 minStakeDuration;
+    uint16 delegationFeeBips;
+    uint64 minStakeDuration;
 }
 
 interface IPoSValidatorManager is IValidatorManager {

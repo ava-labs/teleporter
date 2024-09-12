@@ -29,7 +29,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     uint256 public constant DEFAULT_MINIMUM_STAKE = 1e6;
     uint256 public constant DEFAULT_MAXIMUM_STAKE = 1e20;
     uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
-    uint256 public constant DEFAULT_MINIMUM_DELEGATION_FEE_BIPS = 100;
+    uint16 public constant DEFAULT_MINIMUM_DELEGATION_FEE_BIPS = 100;
     uint8 public constant DEFAULT_MAXIMUM_STAKE_MULTIPLIER = 4;
 
     PoSValidatorManager public posValidatorManager;
@@ -95,7 +95,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testInvalidMinStakeDuration() public {
         PoSValidatorRequirements memory requirements = PoSValidatorRequirements({
             minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION - 1,
-            delegationFeeBips: DEFAULT_MINIMUM_STAKE_DURATION
+            delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS
         });
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
