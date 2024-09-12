@@ -201,7 +201,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validationID, 1, DEFAULT_WEIGHT + DEFAULT_DELEGATOR_WEIGHT
         );
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
-        posValidatorManager.resendDelegatorRegistration(delegationID);
+        posValidatorManager.resendUpdateDelegation(delegationID);
     }
 
     function testCompleteDelegatorRegistration() public {
@@ -381,7 +381,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory setValidatorWeightPayload =
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 2, DEFAULT_WEIGHT);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
-        posValidatorManager.resendEndDelegation(delegationID);
+        posValidatorManager.resendUpdateDelegation(delegationID);
     }
 
     function testCompleteEndDelegation() public {
