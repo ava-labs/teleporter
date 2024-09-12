@@ -12,7 +12,7 @@ import {
     Validator,
     ValidatorChurnPeriod,
     SubnetConversionData,
-    InitialValidators,
+    InitialValidator,
     ValidatorRegistrationInput
 } from "./interfaces/IValidatorManager.sol";
 import {
@@ -24,10 +24,8 @@ import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
-import {EnumerableSet} from "@openzeppelin/contracts@5.0.2/utils/structs/EnumerableSet.sol";
 
 abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValidatorManager {
-    using EnumerableSet for EnumerableSet.Bytes32Set;
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
 
@@ -48,8 +46,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         mapping(bytes32 => Validator) _validationPeriods;
         /// @notice Maps the nodeID to the validationID for active validation periods.
         mapping(bytes32 => bytes32) _activeValidators;
-        /// @notice The set of initial validators added as part of chain initialization.
-        EnumerableSet.Bytes32Set _initialValidators;
         /// @notice Boolean that indicates if the initial validator set has been set.
         bool _initializedValidatorSet;
     }
@@ -130,7 +126,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         );
         uint256 length = encodedConversion.length;
         for (uint256 i; i < length; i++) {
-            InitialValidators memory initialValidator = subnetConversionData.initialValidators[i];
+            InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             encodedConversion = abi.encodePacked(
                 encodedConversion,
                 initialValidator.nodeID,
