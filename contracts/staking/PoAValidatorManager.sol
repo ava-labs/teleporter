@@ -34,7 +34,7 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
         ValidatorManagerSettings calldata settings,
         address initialOwner
     ) internal onlyInitializing {
-        __ValidatorManager_init(settings, initialOwner);
+        __ValidatorManager_init(settings);
         __Ownable_init(initialOwner);
     }
 

@@ -19,7 +19,6 @@ enum ValidatorStatus {
 struct Validator {
     ValidatorStatus status;
     bytes32 nodeID;
-    address owner;
     uint64 startingWeight;
     uint64 messageNonce;
     uint64 weight;
@@ -119,6 +118,17 @@ interface IValidatorManager {
      * @param validationID The ID of the validation period being removed.
      */
     event ValidationPeriodEnded(bytes32 indexed validationID, ValidatorStatus indexed status);
+
+    /**
+     * @notice Verifies and sets the initial validator set for the chain through a P-Chain
+     * SubnetConversionMessage.
+     * @param subnetConversionData The subnet conversion message data used to recompute and verify against the subnetConversionID.
+     * @param messsageIndex The storage slot index that contains the SubnetConversionMessage Warp message.
+     */
+    function initializeValidatorSet(
+        SubnetConversionData calldata subnetConversionData,
+        uint32 messsageIndex
+    ) external;
 
     /**
      * @notice Resubmits a validator registration message to be sent to the P-Chain.

@@ -57,6 +57,8 @@ abstract contract ValidatorManager is
         mapping(bytes32 => bytes32) _activeValidators;
         /// @notice The set of initial validators added as part of chain initialization.
         EnumerableSet.Bytes32Set _initialValidators;
+        /// @notice Boolean that indicates if the initial validator set has been set.
+        bool _initializedValidatorSet;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -84,44 +86,44 @@ abstract contract ValidatorManager is
         IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     // solhint-disable-next-line func-name-mixedcase
-    function __ValidatorManager_init(
-        ValidatorManagerSettings calldata settings,
-        address initialValidatorOwner
-    ) internal onlyInitializing {
+    function __ValidatorManager_init(ValidatorManagerSettings calldata settings)
+        internal
+        onlyInitializing
+    {
         __ReentrancyGuard_init();
         __Context_init();
-        __ValidatorManager_init_unchained(settings, initialValidatorOwner);
+        __ValidatorManager_init_unchained(settings);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __ValidatorManager_init_unchained(
-        ValidatorManagerSettings calldata settings,
-        address initialValidatorOwner
-    ) internal onlyInitializing {
+    function __ValidatorManager_init_unchained(ValidatorManagerSettings calldata settings)
+        internal
+        onlyInitializing
+    {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._pChainBlockchainID = settings.pChainBlockchainID;
         $._subnetID = settings.subnetID;
         $._maximumHourlyChurn = settings.maximumHourlyChurn;
-
-        // If initial validators was already set previously, ensure that the initial validators are not set again.
-        if ($._initialValidators.length() > 0) {
-            require(
-                settings.subnetConversionData.initialValidators.length == 0,
-                "ValidatorManager: initial validators already set"
-            );
-        } else {
-            _validateInitialValidators(
-                settings.subnetConversionData, settings.messageIndex, initialValidatorOwner
-            );
-        }
+        $._initializedValidatorSet = false;
     }
 
-    function _validateInitialValidators(
-        SubnetConversionData memory subnetConversionData,
-        uint32 messageIndex,
-        address initialValidatorOwner
-    ) internal {
+    modifier initializedValidatorSet() {
+        require(
+            _getValidatorManagerStorage()._initializedValidatorSet,
+            "ValidatorManager: validator set not initialized"
+        );
+        _;
+    }
+
+    /**
+     * @notice See {IValidatorManager-initializeValidatorSet}.
+     */
+    function initializeValidatorSet(
+        SubnetConversionData calldata subnetConversionData,
+        uint32 messageIndex
+    ) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        require(!$._initializedValidatorSet, "ValidatorManager: already initialized validator set");
 
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         // Parse the Warp message into SubnetConversionMessage
@@ -154,6 +156,7 @@ abstract contract ValidatorManager is
         );
 
         // TODO: might have more efficient conversion with assembly, check length of bytes
+        // TODO: might want to check the length of validator manager address
         require(
             address(bytes20(subnetConversionData.validatorManagerAddress)) == address(this),
             "ValidatorManager: invalid validator manager address"
@@ -176,7 +179,6 @@ abstract contract ValidatorManager is
             $._validationPeriods[validationID] = Validator({
                 status: ValidatorStatus.PendingAdded,
                 nodeID: initialValidator.nodeID,
-                owner: address(0),
                 startingWeight: initialValidator.weight,
                 messageNonce: 0,
                 weight: initialValidator.weight,
@@ -236,7 +238,6 @@ abstract contract ValidatorManager is
         $._validationPeriods[validationID] = Validator({
             status: ValidatorStatus.PendingAdded,
             nodeID: input.nodeID,
-            owner: _msgSender(),
             startingWeight: weight,
             messageNonce: 0,
             weight: weight,
@@ -256,7 +257,10 @@ abstract contract ValidatorManager is
      * @notice Resubmits a validator registration message to be sent to P-Chain to the Warp precompile.
      * Only necessary if the original message can't be delivered due to validator churn.
      */
-    function resendRegisterValidatorMessage(bytes32 validationID) external {
+    function resendRegisterValidatorMessage(bytes32 validationID)
+        external
+        initializedValidatorSet
+    {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         require(
             $._pendingRegisterValidationMessages[validationID].length > 0
@@ -273,7 +277,7 @@ abstract contract ValidatorManager is
      * validationID from the P-Chain.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      */
-    function completeValidatorRegistration(uint32 messageIndex) external {
+    function completeValidatorRegistration(uint32 messageIndex) external initializedValidatorSet {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, bool validRegistration) =
@@ -315,19 +319,6 @@ abstract contract ValidatorManager is
             validator.status == ValidatorStatus.Active, "ValidatorManager: validator not active"
         );
 
-        if (validator.owner != address(0)) {
-            require(_msgSender() == validator.owner, "ValidatorManager: sender not validator owner");
-        } else {
-            require(
-                $._initialValidators.contains(validationID),
-                "ValidatorManager: invalid initial validator"
-            );
-        }
-
-        if (!($._initialValidators.contains(validationID))) {
-            require(_msgSender() == validator.owner, "ValidatorManager: sender not validator owner");
-        }
-
         // Check that removing this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTracker(validator.weight);
 
@@ -359,7 +350,7 @@ abstract contract ValidatorManager is
      * Only necessary if the original message can't be delivered due to validator churn.
      */
     // solhint-disable-next-line
-    function resendEndValidatorMessage(bytes32 validationID) external {
+    function resendEndValidatorMessage(bytes32 validationID) external initializedValidatorSet {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         require(
