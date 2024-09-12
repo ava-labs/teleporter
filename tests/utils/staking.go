@@ -135,7 +135,7 @@ func DeployAndInitializeERC20TokenStakingManager(
 			},
 			MinimumStakeAmount:     big.NewInt(0).SetUint64(1e6),
 			MaximumStakeAmount:     big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration:   uint64(24 * time.Hour),
+			MinimumStakeDuration:   0,
 			MinimumDelegationFee:   big.NewInt(1),
 			MaximumStakeMultiplier: uint8(1),
 			RewardCalculator:       common.Address{},
@@ -222,7 +222,7 @@ func InitializeNativeValidatorRegistration(
 		},
 		nativetokenstakingmanager.PoSValidatorRequirements{
 			DelegationFee:    big.NewInt(1),
-			MinStakeDuration: big.NewInt(int64(24 * time.Hour.Seconds())),
+			MinStakeDuration: big.NewInt(0),
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -266,7 +266,7 @@ func InitializeERC20ValidatorRegistration(
 		},
 		erc20tokenstakingmanager.PoSValidatorRequirements{
 			DelegationFee:    big.NewInt(1),
-			MinStakeDuration: big.NewInt(int64(24 * time.Hour.Seconds())),
+			MinStakeDuration: big.NewInt(0),
 		},
 		stakeAmount,
 	)
