@@ -163,14 +163,19 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         // Insert the initial validators into the storage.
         for (uint256 i; i < length; i++) {
-            InitialValidators memory initialValidator = subnetConversionData.initialValidators[i];
+            InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             bytes32 validationID =
                 sha256(abi.encodePacked(subnetConversionData.convertSubnetTxID, i));
+            require(input.nodeID != bytes32(0), "ValidatorManager: invalid node ID");
             require(
-                $._initialValidators.add(validationID),
-                "ValidatorManager: duplicate initial validator"
+                $._activeValidators[input.nodeID] == bytes32(0),
+                "ValidatorManager: node ID already active"
+            );
+            require(
+                input.blsPublicKey.length == 48, "ValidatorManager: invalid blsPublicKey length"
             );
 
+            $._activeValidators[input.nodeID] = validationID;
             $._validationPeriods[validationID] = Validator({
                 status: ValidatorStatus.PendingAdded,
                 nodeID: initialValidator.nodeID,

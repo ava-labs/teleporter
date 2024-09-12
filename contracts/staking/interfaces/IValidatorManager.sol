@@ -44,10 +44,10 @@ struct SubnetConversionData {
     bytes32 convertSubnetTxID;
     bytes32 blockchainID;
     bytes validatorManagerAddress;
-    InitialValidators[] initialValidators;
+    InitialValidator[] initialValidators;
 }
 
-struct InitialValidators {
+struct InitialValidator {
     bytes32 nodeID;
     uint64 weight;
     bytes blsPublickey;
