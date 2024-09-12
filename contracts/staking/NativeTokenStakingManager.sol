@@ -59,9 +59,9 @@ contract NativeTokenStakingManager is
         uint64 registrationExpiry,
         uint256 delegationFeeRate,
         bytes memory blsPublicKey
-    ) external payable returns (bytes32 validationID) {
+    ) external payable returns (bytes32) {
         uint64 weight = _processStake(msg.value);
-        validationID =
+        bytes32 validationID =
             _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
         _setDelegationFeeRate(validationID, delegationFeeRate);
         return validationID;

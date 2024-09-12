@@ -97,9 +97,9 @@ contract ERC20TokenStakingManager is
         uint64 registrationExpiry,
         uint256 delegationFeeRate,
         bytes memory blsPublicKey
-    ) external returns (bytes32 validationID) {
+    ) external returns (bytes32) {
         uint64 weight = _processStake(stakeAmount);
-        validationID =
+        bytes32 validationID =
             _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
         _setDelegationFeeRate(validationID, delegationFeeRate);
         return validationID;
