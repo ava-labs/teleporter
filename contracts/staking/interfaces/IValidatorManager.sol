@@ -50,7 +50,7 @@ struct SubnetConversionData {
 struct InitialValidator {
     bytes32 nodeID;
     uint64 weight;
-    bytes blsPublickey;
+    bytes blsPublicKey;
 }
 
 struct ValidatorRegistrationInput {

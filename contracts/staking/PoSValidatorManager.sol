@@ -26,7 +26,11 @@ import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 import {ReentrancyGuardUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
 
-abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager, ReentrancyGuardUpgradeable {
+abstract contract PoSValidatorManager is
+    IPoSValidatorManager,
+    ValidatorManager,
+    ReentrancyGuardUpgradeable
+{
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.PoSValidatorManager
     struct PoSValidatorManagerStorage {
@@ -180,11 +184,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager,
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
         uint16 delegationFeeBips,
-        uint256 minStakeDuration,
+        uint64 minStakeDuration,
         uint256 stakeAmount
     ) internal virtual returns (bytes32) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         // Validate and save the validator requirements
+        require(
             delegationFeeBips >= $._minimumDelegationFeeBips
                 && delegationFeeBips <= MAXIMUM_DELEGATION_FEE_BIPS,
             "PoSValidatorManager: invalid delegation fee"
@@ -205,7 +210,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager,
 
         $._validatorRequirements[validationID] = PoSValidatorRequirements({
             owner: _msgSender(),
-            delegationFee: delegationFee,
+            delegationFeeBips: delegationFeeBips,
             minStakeDuration: minStakeDuration
         });
         return validationID;

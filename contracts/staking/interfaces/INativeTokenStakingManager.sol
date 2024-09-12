@@ -12,13 +12,13 @@ interface INativeTokenStakingManager is IPoSValidatorManager {
     /**
      * @notice Begins the validator registration process. Locks the provided native asset in the contract as the stake.
      * @param registrationInput The inputs for a validator registration.
-     * @param delegationFee The fee that delegators must pay to delegate to this validator.
+     * @param delegationFeeBips The fee that delegators must pay to delegate to this validator.
      * @param minStakeDuration The minimum amount of time this validator must be staked for.
      */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
-        uint256 delegationFee,
-        uint256 minStakeDuration
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration
     ) external payable returns (bytes32 validationID);
 
     function initializeDelegatorRegistration(bytes32 validationID)

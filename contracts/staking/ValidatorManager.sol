@@ -129,7 +129,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 encodedConversion,
                 initialValidator.nodeID,
                 initialValidator.weight,
-                initialValidator.blsPublickey
+                initialValidator.blsPublicKey
             );
         }
         require(
@@ -160,16 +160,18 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             bytes32 validationID =
                 sha256(abi.encodePacked(subnetConversionData.convertSubnetTxID, i));
-            require(input.nodeID != bytes32(0), "ValidatorManager: invalid node ID");
+            bytes32 nodeID = initialValidator.nodeID;
+            require(nodeID != bytes32(0), "ValidatorManager: invalid node ID");
             require(
-                $._activeValidators[input.nodeID] == bytes32(0),
+                $._activeValidators[nodeID] == bytes32(0),
                 "ValidatorManager: node ID already active"
             );
             require(
-                input.blsPublicKey.length == 48, "ValidatorManager: invalid blsPublicKey length"
+                initialValidator.blsPublicKey.length == 48,
+                "ValidatorManager: invalid blsPublicKey length"
             );
 
-            $._activeValidators[input.nodeID] = validationID;
+            $._activeValidators[nodeID] = validationID;
             $._validationPeriods[validationID] = Validator({
                 status: ValidatorStatus.PendingAdded,
                 nodeID: initialValidator.nodeID,
@@ -179,8 +181,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 startedAt: 0, // The validation period only starts once the registration is acknowledged.
                 endedAt: 0
             });
-            // Increment the nonce for the next usage.
-            _getAndIncrementNonce(validationID);
+            // Increment the nonce since these validations are completed.
+            _incrementAndGetNonce(validationID);
             emit InitialValidatorCreated(
                 validationID, initialValidator.nodeID, initialValidator.weight
             );

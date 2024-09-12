@@ -12,13 +12,13 @@ interface IERC20TokenStakingManager is IPoSValidatorManager {
     /**
      * @notice Begins the validator registration process. Locks the {stakeAmount} of the managers specified ERC20 token.
      * @param registrationInput The inputs for a validator registration.
-     * @param delegationFee The fee that delegators must pay to delegate to this validator.
+     * @param delegationFeeBips The fee that delegators must pay to delegate to this validator.
      * @param minStakeDuration The minimum amount of time this validator must be staked for.
      */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
-        uint256 delegationFee,
-        uint256 minStakeDuration,
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration,
         uint256 stakeAmount
     ) external returns (bytes32 validationID);
 

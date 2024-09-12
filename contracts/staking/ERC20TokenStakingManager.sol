@@ -93,12 +93,12 @@ contract ERC20TokenStakingManager is
      */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
-        uint256 delegationFee,
-        uint256 minStakeDuration,
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration,
         uint256 stakeAmount
     ) external nonReentrant returns (bytes32 validationID) {
         return _initializeValidatorRegistration(
-            registrationInput, delegationFee, minStakeDuration, stakeAmount
+            registrationInput, delegationFeeBips, minStakeDuration, stakeAmount
         );
     }
 
