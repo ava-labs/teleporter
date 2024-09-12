@@ -36,7 +36,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFee: DEFAULT_MINIMUM_DELEGATION_FEE,
+                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
                 rewardCalculator: IRewardCalculator(address(0))
             })
@@ -45,7 +45,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         posValidatorManager = app;
     }
 
-    function testZeroDelegationFee() public {
+    function testZeroMinimumDelegationFee() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         vm.expectRevert(_formatErrorMessage("zero delegation fee"));
         app.initialize(
@@ -58,7 +58,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFee: 0,
+                minimumDelegationFeeBips: 0,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
                 rewardCalculator: IRewardCalculator(address(0))
             })
@@ -78,7 +78,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeAmount: DEFAULT_MAXIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFee: DEFAULT_MINIMUM_DELEGATION_FEE,
+                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
                 rewardCalculator: IRewardCalculator(address(0))
             })
@@ -99,7 +99,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFee: DEFAULT_MINIMUM_DELEGATION_FEE,
+                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: maximumStakeMultiplier,
                 rewardCalculator: IRewardCalculator(address(0))
             })
@@ -108,6 +108,15 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     // Helpers
     function _initializeValidatorRegistration(
+        ValidatorRegistrationInput memory registrationInput,
+        PoSValidatorRequirements memory requirements,
+        uint256 stakeAmount
+    ) internal virtual override returns (bytes32) {
+        return
+            app.initializeValidatorRegistration{value: stakeAmount}(registrationInput, requirements);
+    }
+
+    function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory input,
         uint64 weight
     ) internal virtual override returns (bytes32) {
@@ -115,7 +124,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             input,
             PoSValidatorRequirements({
                 minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                delegationFee: DEFAULT_MINIMUM_DELEGATION_FEE
+                delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS
             })
         );
     }
