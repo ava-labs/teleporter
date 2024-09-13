@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/crypto/bls"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -54,46 +53,38 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	//
 	// Register a validator
 	//
-	var validationID ids.ID // To be used in the delisting step
 	stakeAmount := new(big.Int).SetUint64(utils.DefaultMinStakeAmount)
 	weight, err := stakingManager.ValueToWeight(
 		&bind.CallOpts{},
 		stakeAmount,
 	)
 	Expect(err).Should(BeNil())
-	{
-		// Iniatiate validator registration
-		nodeID := ids.GenerateTestID()
-		blsPublicKey := [bls.PublicKeyLen]byte{}
-		validationID = utils.InitializeAndCompleteNativeValidatorRegistration(
-			network,
-			signatureAggregator,
-			fundedKey,
-			subnetAInfo,
-			pChainInfo,
-			stakingManager,
-			stakingManagerContractAddress,
-			nodeID,
-			blsPublicKey,
-			stakeAmount,
-		)
-	}
+	// Iniatiate validator registration
+	validationID := utils.InitializeAndCompleteNativeValidatorRegistration(
+		network,
+		signatureAggregator,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		stakingManager,
+		stakingManagerContractAddress,
+		stakeAmount,
+	)
 
 	//
 	// Delist the validator
 	//
-	{
-		utils.InitializeAndCompleteEndNativeValidation(
-			network,
-			signatureAggregator,
-			fundedKey,
-			subnetAInfo,
-			pChainInfo,
-			stakingManager,
-			stakingManagerContractAddress,
-			validationID,
-			weight,
-			1,
-		)
-	}
+	utils.InitializeAndCompleteEndNativeValidation(
+		network,
+		signatureAggregator,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		stakingManager,
+		stakingManagerContractAddress,
+		validationID,
+		weight,
+		1,
+	)
+
 }

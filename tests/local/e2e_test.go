@@ -196,13 +196,13 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 			governance.ValidatorSetSig(LocalNetworkInstance)
 		})
 
-	// Staking tests
-	ginkgo.FIt("Native token staking manager",
+	// Validator Manager tests
+	ginkgo.It("Native token staking manager",
 		ginkgo.Label(validatorManagerLabel),
 		func() {
 			staking.NativeTokenStakingManager(LocalNetworkInstance)
 		})
-	ginkgo.FIt("ERC20 token staking manager",
+	ginkgo.It("ERC20 token staking manager",
 		ginkgo.Label(validatorManagerLabel),
 		func() {
 			staking.ERC20TokenStakingManager(LocalNetworkInstance)

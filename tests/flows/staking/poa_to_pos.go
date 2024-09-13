@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/crypto/bls"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/NativeTokenStakingManager"
 	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/PoAValidatorManager"
@@ -101,8 +100,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 
 	// Register a validator
 	poaWeight := uint64(1)
-	poaNodeID := ids.GenerateTestID()
-	blsPublicKey := [bls.PublicKeyLen]byte{}
 	poaValidationID := utils.InitializeAndCompletePoAValidatorRegistration(
 		network,
 		signatureAggregator,
@@ -113,9 +110,10 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		poaValidatorManager,
 		proxyAddress,
 		poaWeight,
-		poaNodeID,
-		blsPublicKey,
 	)
+	poaValidator, err := poaValidatorManager.GetValidator(&bind.CallOpts{}, poaValidationID)
+	Expect(err).Should(BeNil())
+	poaNodeID := poaValidator.NodeID
 
 	/*
 	 ******************
@@ -167,7 +165,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	Expect(validationID[:]).Should(Equal(poaValidationID[:]))
 
 	// Register a PoS validator
-	posNodeID := ids.GenerateTestID()
 	stakeAmount := big.NewInt(1e18)
 	posWeight, err := posValidatorManager.ValueToWeight(
 		&bind.CallOpts{},
@@ -183,8 +180,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		pChainInfo,
 		posValidatorManager,
 		proxyAddress,
-		posNodeID,
-		blsPublicKey,
 		stakeAmount,
 	)
 

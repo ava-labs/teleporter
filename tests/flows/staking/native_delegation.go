@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/crypto/bls"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -56,8 +55,6 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 		validatorStake,
 	)
 	Expect(err).Should(BeNil())
-	nodeID := ids.GenerateTestID()
-	blsPublicKey := [bls.PublicKeyLen]byte{}
 	stakeAmount := new(big.Int).SetUint64(utils.DefaultMinStakeAmount)
 	validationID = utils.InitializeAndCompleteNativeValidatorRegistration(
 		network,
@@ -67,8 +64,6 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 		pChainInfo,
 		stakingManager,
 		stakingManagerAddress,
-		nodeID,
-		blsPublicKey,
 		stakeAmount,
 	)
 	//

@@ -409,10 +409,11 @@ func InitializeAndCompleteNativeValidatorRegistration(
 	pChainInfo interfaces.SubnetTestInfo,
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
 	stakingManagerContractAddress common.Address,
-	nodeID ids.ID,
-	blsPublicKey [bls.PublicKeyLen]byte,
 	stakeAmount *big.Int,
 ) ids.ID {
+	// Initiate validator registration
+	nodeID := ids.GenerateTestID()
+	blsPublicKey := [bls.PublicKeyLen]byte{}
 	receipt, validationID := InitializeNativeValidatorRegistration(
 		fundedKey,
 		subnetInfo,
@@ -550,9 +551,10 @@ func InitializeAndCompletePoAValidatorRegistration(
 	validatorManager *poavalidatormanager.PoAValidatorManager,
 	validatorManagerAddress common.Address,
 	weight uint64,
-	nodeID ids.ID,
-	blsPublicKey [bls.PublicKeyLen]byte,
 ) ids.ID {
+	// Initiate validator registration
+	nodeID := ids.GenerateTestID()
+	blsPublicKey := [bls.PublicKeyLen]byte{}
 	receipt, validationID := InitializePoAValidatorRegistration(
 		ownerKey,
 		subnetInfo,
