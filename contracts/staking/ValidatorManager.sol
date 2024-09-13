@@ -122,8 +122,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             subnetConversionData.blockchainID,
             subnetConversionData.validatorManagerAddress
         );
-        uint256 length = encodedConversion.length;
-        for (uint256 i; i < length; i++) {
+        uint256 numInitialValidators = subnetConversionData.initialValidators.length;
+        for (uint256 i; i < numInitialValidators; i++) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             encodedConversion = abi.encodePacked(
                 encodedConversion,
@@ -156,7 +156,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         );
 
         // Insert the initial validators into the storage.
-        for (uint256 i; i < length; i++) {
+        for (uint256 i; i < numInitialValidators; i++) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             bytes32 validationID =
                 sha256(abi.encodePacked(subnetConversionData.convertSubnetTxID, i));
@@ -173,7 +173,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
             $._activeValidators[nodeID] = validationID;
             $._validationPeriods[validationID] = Validator({
-                status: ValidatorStatus.PendingAdded,
+                status: ValidatorStatus.Active,
                 nodeID: initialValidator.nodeID,
                 startingWeight: initialValidator.weight,
                 messageNonce: 0,
@@ -181,8 +181,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 startedAt: 0, // The validation period only starts once the registration is acknowledged.
                 endedAt: 0
             });
-            // Increment the nonce since these validations are completed.
-            _incrementAndGetNonce(validationID);
+
             emit InitialValidatorCreated(
                 validationID, initialValidator.nodeID, initialValidator.weight
             );
