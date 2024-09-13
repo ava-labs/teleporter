@@ -299,6 +299,11 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         return $._activeValidators[nodeID];
     }
 
+    function getValidator(bytes32 validationID) public view returns (Validator memory) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        return $._validationPeriods[validationID];
+    }
+
     /**
      * @notice Begins the process of ending an active validation period. The validation period must have been previously
      * started by a successful call to {completeValidatorRegistration} with the given validationID.
@@ -418,7 +423,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
      * @return The weight of the validator. If the validation ID does not exist, the weight will be 0.
      */
     function getWeight(bytes32 validationID) external view returns (uint64) {
-        return _getValidator(validationID).weight;
+        return getValidator(validationID).weight;
     }
 
     /**
@@ -474,11 +479,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             "ValidatorManager: invalid origin sender address"
         );
         return warpMessage;
-    }
-
-    function _getValidator(bytes32 validationID) internal view returns (Validator memory) {
-        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        return $._validationPeriods[validationID];
     }
 
     function _setValidatorWeight(bytes32 validationID, uint64 weight) internal {

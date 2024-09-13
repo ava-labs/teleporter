@@ -27,8 +27,11 @@ import (
 )
 
 const (
-	defaultMinDelegateFeeBips      = 1
-	defaultMinStakeDurationSeconds = 1
+	DefaultMinDelegateFeeBips      uint16 = 1
+	DefaultMinStakeDurationSeconds uint64 = 1
+	DefaultMinStakeAmount          uint64 = 1e18
+	DefaultMaxStakeAmount          uint64 = 10e18
+	DefaultMaxStakeMultiplier      uint8  = 4
 )
 
 //
@@ -76,11 +79,11 @@ func DeployAndInitializeNativeTokenStakingManager(
 				SubnetID:           subnet.SubnetID,
 				MaximumHourlyChurn: 0,
 			},
-			MinimumStakeAmount:       big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:       big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration:     defaultMinStakeDurationSeconds,
-			MinimumDelegationFeeBips: defaultMinDelegateFeeBips,
-			MaximumStakeMultiplier:   uint8(1),
+			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
+			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
+			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
+			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
+			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
 			RewardCalculator:         common.Address{},
 		},
 	)
@@ -138,11 +141,11 @@ func DeployAndInitializeERC20TokenStakingManager(
 				SubnetID:           subnet.SubnetID,
 				MaximumHourlyChurn: 0,
 			},
-			MinimumStakeAmount:       big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:       big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration:     defaultMinStakeDurationSeconds,
-			MinimumDelegationFeeBips: defaultMinDelegateFeeBips,
-			MaximumStakeMultiplier:   uint8(1),
+			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
+			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
+			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
+			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
+			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
 			RewardCalculator:         common.Address{},
 		},
 		erc20Address,
@@ -226,8 +229,8 @@ func InitializeNativeValidatorRegistration(
 			BlsPublicKey:       blsPublicKey[:],
 		},
 		nativetokenstakingmanager.PoSValidatorRequirements{
-			DelegationFeeBips: defaultMinDelegateFeeBips,
-			MinStakeDuration:  defaultMinStakeDurationSeconds,
+			DelegationFeeBips: DefaultMinDelegateFeeBips,
+			MinStakeDuration:  DefaultMinStakeDurationSeconds,
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -270,8 +273,8 @@ func InitializeERC20ValidatorRegistration(
 			BlsPublicKey:       blsPublicKey[:],
 		},
 		erc20tokenstakingmanager.PoSValidatorRequirements{
-			DelegationFeeBips: defaultMinDelegateFeeBips,
-			MinStakeDuration:  defaultMinStakeDurationSeconds,
+			DelegationFeeBips: DefaultMinDelegateFeeBips,
+			MinStakeDuration:  DefaultMinStakeDurationSeconds,
 		},
 		stakeAmount,
 	)
@@ -406,11 +409,11 @@ func InitializeAndCompleteNativeValidatorRegistration(
 	pChainInfo interfaces.SubnetTestInfo,
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
 	stakingManagerContractAddress common.Address,
-	weight uint64,
-	nodeID ids.ID,
-	blsPublicKey [bls.PublicKeyLen]byte,
 	stakeAmount *big.Int,
 ) ids.ID {
+	// Initiate validator registration
+	nodeID := ids.GenerateTestID()
+	blsPublicKey := [bls.PublicKeyLen]byte{}
 	receipt, validationID := InitializeNativeValidatorRegistration(
 		fundedKey,
 		subnetInfo,
@@ -424,6 +427,11 @@ func InitializeAndCompleteNativeValidatorRegistration(
 	// (Sending to the P-Chain will be skipped for now)
 	signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetInfo, pChainInfo)
 
+	weight, err := stakingManager.ValueToWeight(
+		&bind.CallOpts{},
+		stakeAmount,
+	)
+	Expect(err).Should(BeNil())
 	// Validate the Warp message, (this will be done on the P-Chain in the future)
 	ValidateRegisterSubnetValidatorMessage(
 		signedWarpMessage,
@@ -469,7 +477,6 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	pChainInfo interfaces.SubnetTestInfo,
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	stakingManagerAddress common.Address,
-	weight uint64,
 	erc20 *exampleerc20.ExampleERC20,
 	stakeAmount *big.Int,
 ) ids.ID {
@@ -492,6 +499,11 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	// (Sending to the P-Chain will be skipped for now)
 	signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetInfo, pChainInfo)
 
+	weight, err := stakingManager.ValueToWeight(
+		&bind.CallOpts{},
+		stakeAmount,
+	)
+	Expect(err).Should(BeNil())
 	// Validate the Warp message, (this will be done on the P-Chain in the future)
 	ValidateRegisterSubnetValidatorMessage(
 		signedWarpMessage,
@@ -539,9 +551,10 @@ func InitializeAndCompletePoAValidatorRegistration(
 	validatorManager *poavalidatormanager.PoAValidatorManager,
 	validatorManagerAddress common.Address,
 	weight uint64,
-	nodeID ids.ID,
-	blsPublicKey [bls.PublicKeyLen]byte,
 ) ids.ID {
+	// Initiate validator registration
+	nodeID := ids.GenerateTestID()
+	blsPublicKey := [bls.PublicKeyLen]byte{}
 	receipt, validationID := InitializePoAValidatorRegistration(
 		ownerKey,
 		subnetInfo,
@@ -890,6 +903,7 @@ func InitializeAndCompleteEndNativeValidation(
 	weight uint64,
 	nonce uint64,
 ) {
+	WaitMinStakeDuration(subnetInfo, fundedKey)
 	receipt := InitializeEndNativeValidation(
 		fundedKey,
 		subnetInfo,
@@ -951,6 +965,7 @@ func InitializeAndCompleteEndERC20Validation(
 	weight uint64,
 	nonce uint64,
 ) {
+	WaitMinStakeDuration(subnetInfo, fundedKey)
 	receipt := InitializeEndERC20Validation(
 		fundedKey,
 		subnetInfo,
@@ -1173,4 +1188,22 @@ func ValidateSetSubnetValidatorWeightMessage(
 	Expect(registerValidatorPayload.ValidationID).Should(Equal(validationID))
 	Expect(registerValidatorPayload.Weight).Should(Equal(weight))
 	Expect(registerValidatorPayload.Nonce).Should(Equal(nonce))
+}
+
+func WaitMinStakeDuration(
+	subnet interfaces.SubnetTestInfo,
+	fundedKey *ecdsa.PrivateKey,
+) {
+	// Make sure minimum stake duration has passed
+	time.Sleep(time.Duration(DefaultMinStakeDurationSeconds) * time.Second)
+
+	// Send a loopback transaction to self to force a block production
+	// before delisting the validator.
+	SendNativeTransfer(
+		context.Background(),
+		subnet,
+		fundedKey,
+		common.Address{},
+		big.NewInt(10),
+	)
 }

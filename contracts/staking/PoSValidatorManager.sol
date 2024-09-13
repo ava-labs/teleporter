@@ -66,7 +66,6 @@ abstract contract PoSValidatorManager is
 
     uint8 public constant MAXIMUM_STAKE_MULTIPLIER_LIMIT = 10;
 
-    // TODO: revisit maximum, currently set to 100%
     uint16 public constant MAXIMUM_DELEGATION_FEE_BIPS = 10000;
 
     // solhint-disable ordering
@@ -117,8 +116,9 @@ abstract contract PoSValidatorManager is
             minimumStakeAmount <= maximumStakeAmount,
             "PoSValidatorManager: invalid stake amount range"
         );
+        require(maximumStakeMultiplier > 0, "PoSValidatorManager: zero maximum stake multiplier");
         require(
-            maximumStakeMultiplier <= MAXIMUM_STAKE_MULTIPLIER_LIMIT && maximumStakeMultiplier > 0,
+            maximumStakeMultiplier <= MAXIMUM_STAKE_MULTIPLIER_LIMIT,
             "PoSValidatorManager: invalid maximum stake multiplier"
         );
 
@@ -137,7 +137,7 @@ abstract contract PoSValidatorManager is
     ) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         // Check that minimum stake duration has passed
-        Validator memory validator = _getValidator(validationID);
+        Validator memory validator = getValidator(validationID);
         require(
             block.timestamp
                 >= validator.startedAt + $._validatorRequirements[validationID].minStakeDuration,
@@ -236,7 +236,7 @@ abstract contract PoSValidatorManager is
         uint64 weight = valueToWeight(_lock(delegationAmount));
 
         // Ensure the validation period is active
-        Validator memory validator = _getValidator(validationID);
+        Validator memory validator = getValidator(validationID);
         require(
             validator.status == ValidatorStatus.Active, "PoSValidatorManager: validator not active"
         );
@@ -300,7 +300,7 @@ abstract contract PoSValidatorManager is
         (bytes32 validationID, uint64 nonce,) =
             ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
 
-        Validator memory validator = _getValidator(validationID);
+        Validator memory validator = getValidator(validationID);
 
         // The received nonce should be no greater than the highest sent nonce. This should never
         // happen since the staking manager is the only entity that can trigger a weight update
@@ -369,7 +369,7 @@ abstract contract PoSValidatorManager is
 
         $._delegatorStakes[delegationID] = delegator;
 
-        Validator memory validator = _getValidator(validationID);
+        Validator memory validator = getValidator(validationID);
         require(validator.weight > delegator.weight, "PoSValidatorManager: Invalid weight");
         uint64 newValidatorWeight = validator.weight - delegator.weight;
         _setValidatorWeight(validationID, newValidatorWeight);
@@ -404,7 +404,7 @@ abstract contract PoSValidatorManager is
             "PoSValidatorManager: delegation status not pending"
         );
 
-        Validator memory validator = _getValidator(delegator.validationID);
+        Validator memory validator = getValidator(delegator.validationID);
         require(
             validator.messageNonce != 0,
             "PoSValidatorManager: could not find validator for delegation ID"
@@ -429,7 +429,7 @@ abstract contract PoSValidatorManager is
         (bytes32 validationID, uint64 nonce,) =
             ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
 
-        Validator memory validator = _getValidator(validationID);
+        Validator memory validator = getValidator(validationID);
         // The received nonce should be no greater than the highest sent nonce. This should never
         // happen since the staking manager is the only entity that can trigger a weight update
         // on the P-Chain.
