@@ -118,7 +118,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(_formatErrorMessage("invalid stake amount"));
+        vm.expectRevert(_formatErrorMessage("stake amount too low"));
         _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MINIMUM_STAKE - 1);
     }
 
@@ -132,7 +132,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(_formatErrorMessage("invalid stake amount"));
+        vm.expectRevert(_formatErrorMessage("stake amount too high"));
         _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MAXIMUM_STAKE + 1);
     }
 

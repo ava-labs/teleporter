@@ -226,18 +226,28 @@ abstract contract ValidatorManagerTest is Test {
     }
 
     function testCummulativeChurnRegistrationAndEndValidation() public {
+        // Registration should succeed
+        bytes32 validationID = _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: _valueToWeight(DEFAULT_MINIMUM_STAKE_AMOUNT),
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
+
         uint64 churnThreshold =
             uint64(DEFAULT_STARTING_TOTAL_WEIGHT) * DEFAULT_MAXIMUM_CHURN_PERCENTAGE / 100;
         _beforeSend(_weightToValue(churnThreshold), address(this));
 
         // Registration should succeed
-        bytes32 validationID = _setUpCompleteValidatorRegistration({
-            nodeID: DEFAULT_NODE_ID,
+        _setUpCompleteValidatorRegistration({
+            nodeID: _newNodeID(),
             subnetID: DEFAULT_SUBNET_ID,
             weight: churnThreshold,
-            registrationExpiry: DEFAULT_EXPIRY,
+            registrationExpiry: DEFAULT_EXPIRY + 25 hours,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP + 25 hours
         });
 
         // Second call should fail
