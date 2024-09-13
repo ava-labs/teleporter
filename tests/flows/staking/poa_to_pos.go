@@ -154,7 +154,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(utils.DefaultMaxStakeAmount),
 			MinimumStakeDuration:     utils.DefaultMinStakeDurationSeconds,
 			MinimumDelegationFeeBips: utils.DefaultMinDelegateFeeBips,
-			MaximumStakeMultiplier:   uint8(1),
+			MaximumStakeMultiplier:   utils.DefaultMaxStakeMultiplier,
 			RewardCalculator:         common.Address{},
 		},
 	)

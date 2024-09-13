@@ -3,12 +3,10 @@ package staking
 import (
 	"context"
 	"math/big"
-	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/bls"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/PoAValidatorManager"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -80,17 +78,13 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 
 	{
 		// Try to call with invalid owner
-		opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
-		Expect(err).Should(BeNil())
-
-		_, err = validatorManager.InitializeValidatorRegistration(
-			opts,
-			poavalidatormanager.ValidatorRegistrationInput{
-				NodeID:             nodeID,
-				RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
-				BlsPublicKey:       blsPublicKey[:],
-			},
+		utils.InitializePoAValidatorRegistration(
+			fundedKey,
+			subnetAInfo,
 			weight,
+			nodeID,
+			blsPublicKey,
+			validatorManager,
 		)
 		Expect(err).ShouldNot(BeNil())
 

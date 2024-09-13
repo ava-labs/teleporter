@@ -31,6 +31,7 @@ const (
 	DefaultMinStakeDurationSeconds uint64 = 1
 	DefaultMinStakeAmount          uint64 = 1e18
 	DefaultMaxStakeAmount          uint64 = 10e18
+	DefaultMaxStakeMultiplier      uint8  = 4
 )
 
 //
@@ -82,7 +83,7 @@ func DeployAndInitializeNativeTokenStakingManager(
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
 			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
 			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
-			MaximumStakeMultiplier:   uint8(1),
+			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
 			RewardCalculator:         common.Address{},
 		},
 	)
@@ -144,7 +145,7 @@ func DeployAndInitializeERC20TokenStakingManager(
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
 			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
 			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
-			MaximumStakeMultiplier:   uint8(1),
+			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
 			RewardCalculator:         common.Address{},
 		},
 		erc20Address,
@@ -609,7 +610,7 @@ func InitializeEndNativeValidation(
 	validationID ids.ID,
 ) *types.Receipt {
 	// Make sure minimum stake duration has passed
-	time.Sleep(time.Duration(DefaultMinStakeDurationSeconds) * time.Second)
+	time.Sleep(time.Duration(DefaultMinStakeDurationSeconds*2) * time.Second)
 	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndValidation(
@@ -629,7 +630,7 @@ func InitializeEndERC20Validation(
 	validationID ids.ID,
 ) *types.Receipt {
 	// Make sure minimum stake duration has passed
-	time.Sleep(time.Duration(DefaultMinStakeDurationSeconds) * time.Second)
+	time.Sleep(time.Duration(DefaultMinStakeDurationSeconds*15) * time.Second)
 	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndValidation(
