@@ -413,6 +413,7 @@ abstract contract ValidatorManager is
             churnTracker.startedAt = currentTime;
             churnTracker.initialWeight = churnTracker.totalWeight;
         } else {
+            // Churn is always additive whether the weight is being added or removed.
             churnTracker.churnAmount += weight;
         }
 
