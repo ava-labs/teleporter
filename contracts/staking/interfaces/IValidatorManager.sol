@@ -36,8 +36,6 @@ struct ValidatorManagerSettings {
     bytes32 pChainBlockchainID;
     bytes32 subnetID;
     uint8 maximumHourlyChurn;
-    SubnetConversionData subnetConversionData;
-    uint32 messageIndex;
 }
 
 struct SubnetConversionData {

@@ -150,11 +150,13 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     // Helpers
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory registrationInput,
-        PoSValidatorRequirements memory requirements,
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration,
         uint256 stakeAmount
     ) internal virtual override returns (bytes32) {
-        return
-            app.initializeValidatorRegistration{value: stakeAmount}(registrationInput, requirements);
+        return app.initializeValidatorRegistration{value: stakeAmount}(
+            registrationInput, delegationFeeBips, minStakeDuration
+        );
     }
 
     function _initializeValidatorRegistration(
@@ -162,11 +164,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         uint64 weight
     ) internal virtual override returns (bytes32) {
         return app.initializeValidatorRegistration{value: app.weightToValue(weight)}(
-            input,
-            PoSValidatorRequirements({
-                minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS
-            })
+            input, DEFAULT_MINIMUM_DELEGATION_FEE_BIPS, DEFAULT_MINIMUM_STAKE_DURATION
         );
     }
 
