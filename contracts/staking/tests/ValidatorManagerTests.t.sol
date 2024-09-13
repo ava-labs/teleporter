@@ -418,14 +418,14 @@ abstract contract ValidatorManagerTest is Test {
     // TODO this needs to be kept in line with the contract conversions, but we can't make external calls
     // to the contract and use vm.expectRevert at the same time.
     // These are okay to use for PoA as well, because they're just used for conversions inside the tests.
-    function _valueToWeight(uint256 value) internal returns (uint64) {
+    function _valueToWeight(uint256 value) internal pure returns (uint64) {
         return uint64(value / 1e12);
     }
 
     // TODO this needs to be kept in line with the contract conversions, but we can't make external calls
     // to the contract and use vm.expectRevert at the same time.
     // These are okay to use for PoA as well, because they're just used for conversions inside the tests.
-    function _weightToValue(uint64 weight) internal returns (uint256) {
+    function _weightToValue(uint64 weight) internal pure returns (uint256) {
         return uint256(weight) * 1e12;
     }
 }
