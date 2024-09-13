@@ -609,8 +609,6 @@ func InitializeEndNativeValidation(
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
 	validationID ids.ID,
 ) *types.Receipt {
-	// Make sure minimum stake duration has passed
-	time.Sleep(time.Duration(DefaultMinStakeDurationSeconds*2) * time.Second)
 	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndValidation(
@@ -629,8 +627,6 @@ func InitializeEndERC20Validation(
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	validationID ids.ID,
 ) *types.Receipt {
-	// Make sure minimum stake duration has passed
-	time.Sleep(time.Duration(DefaultMinStakeDurationSeconds*15) * time.Second)
 	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndValidation(
