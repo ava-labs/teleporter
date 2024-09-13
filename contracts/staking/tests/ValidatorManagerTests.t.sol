@@ -31,8 +31,8 @@ abstract contract ValidatorManagerTest is Test {
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     uint64 public constant DEFAULT_WEIGHT = 1e6;
-    uint256 public constant DEFAULT_MINIMUM_STAKE_AMOUNT = 20;
-    uint256 public constant DEFAULT_MAXIMUM_STAKE_AMOUNT = 1e10;
+    uint256 public constant DEFAULT_MINIMUM_STAKE_AMOUNT = 20e12;
+    uint256 public constant DEFAULT_MAXIMUM_STAKE_AMOUNT = 1e22;
     uint64 public constant DEFAULT_CHURN_PERIOD = 1 hours;
     uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
     uint8 public constant DEFAULT_MAXIMUM_CHURN_PERCENTAGE = 20;
