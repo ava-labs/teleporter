@@ -10,7 +10,9 @@ import {
     ValidatorManagerSettings,
     ValidatorChurnPeriod,
     ValidatorStatus,
-    Validator
+    Validator,
+    ValidatorChurnPeriod,
+    ValidatorRegistrationInput
 } from "./interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
@@ -112,33 +114,31 @@ abstract contract ValidatorManager is
 
     /**
      * @notice Begins the validator registration process, and sets the initial weight for the validator.
-     * @param nodeID The node ID of the validator being registered.
-     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
-     * @param blsPublicKey The BLS public key of the validator.
+     * @param input The inputs for a validator registration.
+     * @param weight The weight of the validator being registered.
      */
     function _initializeValidatorRegistration(
-        bytes32 nodeID,
-        uint64 weight,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey
-    ) internal nonReentrant returns (bytes32) {
+        ValidatorRegistrationInput calldata input,
+        uint64 weight
+    ) internal virtual returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         require(
-            registrationExpiry > block.timestamp,
+            input.registrationExpiry > block.timestamp,
             "ValidatorManager: registration expiry not in future"
         );
         require(
-            block.timestamp + 2 days > registrationExpiry,
+            block.timestamp + 2 days > input.registrationExpiry,
             "ValidatorManager: registration expiry too far in future"
         );
 
         // Ensure the nodeID is not the zero address, and is not already an active validator.
-        require(nodeID != bytes32(0), "ValidatorManager: invalid node ID");
+        require(input.nodeID != bytes32(0), "ValidatorManager: invalid node ID");
         require(
-            $._activeValidators[nodeID] == bytes32(0), "ValidatorManager: node ID already active"
+            $._activeValidators[input.nodeID] == bytes32(0),
+            "ValidatorManager: node ID already active"
         );
-        require(blsPublicKey.length == 48, "ValidatorManager: invalid blsPublicKey length");
+        require(input.blsPublicKey.length == 48, "ValidatorManager: invalid blsPublicKey length");
 
         // Check that adding this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTrackerAddition(weight);
@@ -147,10 +147,10 @@ abstract contract ValidatorManager is
             .packRegisterSubnetValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 subnetID: $._subnetID,
-                nodeID: nodeID,
+                nodeID: input.nodeID,
                 weight: weight,
-                blsPublicKey: blsPublicKey,
-                registrationExpiry: registrationExpiry
+                blsPublicKey: input.blsPublicKey,
+                registrationExpiry: input.registrationExpiry
             })
         );
         $._pendingRegisterValidationMessages[validationID] = registerSubnetValidatorMessage;
@@ -159,7 +159,7 @@ abstract contract ValidatorManager is
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerSubnetValidatorMessage);
         $._validationPeriods[validationID] = Validator({
             status: ValidatorStatus.PendingAdded,
-            nodeID: nodeID,
+            nodeID: input.nodeID,
             owner: _msgSender(),
             startingWeight: weight,
             messageNonce: 0,
@@ -168,7 +168,9 @@ abstract contract ValidatorManager is
             endedAt: 0
         });
 
-        emit ValidationPeriodCreated(validationID, nodeID, messageID, weight, registrationExpiry);
+        emit ValidationPeriodCreated(
+            validationID, input.nodeID, messageID, weight, input.registrationExpiry
+        );
 
         return validationID;
     }
@@ -219,6 +221,11 @@ abstract contract ValidatorManager is
     function activeValidators(bytes32 nodeID) public view returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         return $._activeValidators[nodeID];
+    }
+
+    function getValidator(bytes32 validationID) public view returns (Validator memory) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        return $._validationPeriods[validationID];
     }
 
     /**
@@ -337,7 +344,7 @@ abstract contract ValidatorManager is
      * @return The weight of the validator. If the validation ID does not exist, the weight will be 0.
      */
     function getWeight(bytes32 validationID) external view returns (uint64) {
-        return _getValidator(validationID).weight;
+        return getValidator(validationID).weight;
     }
 
     function _incrementAndGetNonce(bytes32 validationID) internal returns (uint64) {
@@ -364,11 +371,6 @@ abstract contract ValidatorManager is
             "ValidatorManager: invalid origin sender address"
         );
         return warpMessage;
-    }
-
-    function _getValidator(bytes32 validationID) internal view returns (Validator memory) {
-        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        return $._validationPeriods[validationID];
     }
 
     function _setValidatorWeight(bytes32 validationID, uint64 weight) internal {

@@ -8,7 +8,7 @@ pragma solidity 0.8.25;
 import {Test} from "@forge-std/Test.sol";
 import {ValidatorManager} from "../ValidatorManager.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
-import {ValidatorStatus} from "../interfaces/IValidatorManager.sol";
+import {ValidatorStatus, ValidatorRegistrationInput} from "../interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -34,12 +34,12 @@ abstract contract ValidatorManagerTest is Test {
     uint256 public constant DEFAULT_MINIMUM_STAKE_AMOUNT = 20e12;
     uint256 public constant DEFAULT_MAXIMUM_STAKE_AMOUNT = 1e22;
     uint64 public constant DEFAULT_CHURN_PERIOD = 1 hours;
-    uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
     uint8 public constant DEFAULT_MAXIMUM_CHURN_PERCENTAGE = 20;
     uint64 public constant DEFAULT_EXPIRY = 1000;
+    uint8 public constant DEFAULT_MAXIMUM_HOURLY_CHURN = 0;
     uint64 public constant DEFAULT_REGISTRATION_TIMESTAMP = 1000;
-    uint64 public constant DEFAULT_COMPLETION_TIMESTAMP = 2000;
     uint256 public constant DEFAULT_STARTING_TOTAL_WEIGHT = 1e10;
+    uint64 public constant DEFAULT_COMPLETION_TIMESTAMP = 100_000;
 
     ValidatorManager public validatorManager;
 
@@ -216,9 +216,11 @@ abstract contract ValidatorManagerTest is Test {
         // Second call should fail
         vm.expectRevert("ValidatorManager: maximum churn rate exceeded");
         _initializeValidatorRegistration(
-            DEFAULT_NODE_ID,
-            DEFAULT_REGISTRATION_TIMESTAMP + 1,
-            DEFAULT_BLS_PUBLIC_KEY,
+            ValidatorRegistrationInput({
+                nodeID: DEFAULT_NODE_ID,
+                registrationExpiry: DEFAULT_REGISTRATION_TIMESTAMP + 1,
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+            }),
             _valueToWeight(DEFAULT_MINIMUM_STAKE_AMOUNT)
         );
     }
@@ -281,7 +283,14 @@ abstract contract ValidatorManagerTest is Test {
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidationPeriodCreated(validationID, nodeID, bytes32(0), weight, registrationExpiry);
 
-        _initializeValidatorRegistration(nodeID, registrationExpiry, blsPublicKey, weight);
+        _initializeValidatorRegistration(
+            ValidatorRegistrationInput({
+                nodeID: nodeID,
+                registrationExpiry: registrationExpiry,
+                blsPublicKey: blsPublicKey
+            }),
+            weight
+        );
     }
 
     function _setUpCompleteValidatorRegistration(
@@ -388,9 +397,7 @@ abstract contract ValidatorManagerTest is Test {
     }
 
     function _initializeValidatorRegistration(
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey,
+        ValidatorRegistrationInput memory input,
         uint64 weight
     ) internal virtual returns (bytes32);
 

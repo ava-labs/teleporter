@@ -8,6 +8,7 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/bls"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/PoAValidatorManager"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -73,8 +74,6 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 	)
 
 	var validationID ids.ID // To be used in the delisting step
-	nodeID := ids.GenerateTestID()
-	blsPublicKey := [bls.PublicKeyLen]byte{}
 	weight := uint64(1)
 
 	{
@@ -82,12 +81,16 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 		Expect(err).Should(BeNil())
 
+		nodeID := ids.GenerateTestID()
+		blsPublicKey := [bls.PublicKeyLen]byte{}
 		_, err = validatorManager.InitializeValidatorRegistration(
 			opts,
+			poavalidatormanager.ValidatorRegistrationInput{
+				NodeID:             nodeID,
+				RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
+				BlsPublicKey:       blsPublicKey[:],
+			},
 			weight,
-			nodeID,
-			uint64(time.Now().Add(24*time.Hour).Unix()),
-			blsPublicKey[:],
 		)
 		Expect(err).ShouldNot(BeNil())
 
@@ -102,8 +105,6 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 			validatorManager,
 			validatorManagerAddress,
 			weight,
-			nodeID,
-			blsPublicKey,
 		)
 	}
 
