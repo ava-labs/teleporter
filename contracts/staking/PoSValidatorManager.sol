@@ -60,7 +60,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     uint8 public constant MAXIMUM_STAKE_MULTIPLIER_LIMIT = 10;
 
-    // TODO: revisit maximum, currently set to 100%
     uint16 public constant MAXIMUM_DELEGATION_FEE_BIPS = 10000;
 
     // solhint-disable ordering
@@ -110,8 +109,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             minimumStakeAmount <= maximumStakeAmount,
             "PoSValidatorManager: invalid stake amount range"
         );
+        require(maximumStakeMultiplier > 0, "PoSValidatorManager: zero maximum stake multiplier");
         require(
-            maximumStakeMultiplier <= MAXIMUM_STAKE_MULTIPLIER_LIMIT && maximumStakeMultiplier > 0,
+            maximumStakeMultiplier <= MAXIMUM_STAKE_MULTIPLIER_LIMIT,
             "PoSValidatorManager: invalid maximum stake multiplier"
         );
 
