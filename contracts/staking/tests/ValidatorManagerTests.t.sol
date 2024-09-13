@@ -415,8 +415,18 @@ abstract contract ValidatorManagerTest is Test {
 
     function _beforeSend(uint256 amount, address spender) internal virtual;
 
-    function _weightToValue(uint64 weight) internal virtual returns (uint256);
+    // TODO this needs to be kept in line with the contract conversions, but we can't make external calls
+    // to the contract and use vm.expectRevert at the same time.
+    // These are okay to use for PoA as well, because they're just used for conversions inside the tests.
+    function _valueToWeight(uint256 value) internal returns (uint64) {
+        return uint64(value / 1e12);
+    }
 
-    function _valueToWeight(uint256 value) internal virtual returns (uint64);
+    // TODO this needs to be kept in line with the contract conversions, but we can't make external calls
+    // to the contract and use vm.expectRevert at the same time.
+    // These are okay to use for PoA as well, because they're just used for conversions inside the tests.
+    function _weightToValue(uint64 weight) internal returns (uint256) {
+        return uint256(weight) * 1e12;
+    }
 }
 // solhint-enable no-empty-blocks
