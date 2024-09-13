@@ -27,8 +27,10 @@ import (
 )
 
 const (
-	defaultMinDelegateFeeBips      = 1
-	defaultMinStakeDurationSeconds = 1
+	DefaultMinDelegateFeeBips      uint16 = 1
+	DefaultMinStakeDurationSeconds uint64 = 1
+	DefaultMinStakeAmount          uint64 = 1e18
+	DefaultMaxStakeAmount          uint64 = 10e18
 )
 
 //
@@ -76,10 +78,10 @@ func DeployAndInitializeNativeTokenStakingManager(
 				SubnetID:           subnet.SubnetID,
 				MaximumHourlyChurn: 0,
 			},
-			MinimumStakeAmount:       big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:       big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration:     defaultMinStakeDurationSeconds,
-			MinimumDelegationFeeBips: defaultMinDelegateFeeBips,
+			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
+			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
+			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
+			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
 			MaximumStakeMultiplier:   uint8(1),
 			RewardCalculator:         common.Address{},
 		},
@@ -138,10 +140,10 @@ func DeployAndInitializeERC20TokenStakingManager(
 				SubnetID:           subnet.SubnetID,
 				MaximumHourlyChurn: 0,
 			},
-			MinimumStakeAmount:       big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:       big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration:     defaultMinStakeDurationSeconds,
-			MinimumDelegationFeeBips: defaultMinDelegateFeeBips,
+			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
+			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
+			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
+			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
 			MaximumStakeMultiplier:   uint8(1),
 			RewardCalculator:         common.Address{},
 		},
@@ -226,8 +228,8 @@ func InitializeNativeValidatorRegistration(
 			BlsPublicKey:       blsPublicKey[:],
 		},
 		nativetokenstakingmanager.PoSValidatorRequirements{
-			DelegationFeeBips: defaultMinDelegateFeeBips,
-			MinStakeDuration:  defaultMinStakeDurationSeconds,
+			DelegationFeeBips: DefaultMinDelegateFeeBips,
+			MinStakeDuration:  DefaultMinStakeDurationSeconds,
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -270,8 +272,8 @@ func InitializeERC20ValidatorRegistration(
 			BlsPublicKey:       blsPublicKey[:],
 		},
 		erc20tokenstakingmanager.PoSValidatorRequirements{
-			DelegationFeeBips: defaultMinDelegateFeeBips,
-			MinStakeDuration:  defaultMinStakeDurationSeconds,
+			DelegationFeeBips: DefaultMinDelegateFeeBips,
+			MinStakeDuration:  DefaultMinStakeDurationSeconds,
 		},
 		stakeAmount,
 	)
@@ -406,7 +408,6 @@ func InitializeAndCompleteNativeValidatorRegistration(
 	pChainInfo interfaces.SubnetTestInfo,
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
 	stakingManagerContractAddress common.Address,
-	weight uint64,
 	nodeID ids.ID,
 	blsPublicKey [bls.PublicKeyLen]byte,
 	stakeAmount *big.Int,
@@ -424,6 +425,11 @@ func InitializeAndCompleteNativeValidatorRegistration(
 	// (Sending to the P-Chain will be skipped for now)
 	signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetInfo, pChainInfo)
 
+	weight, err := stakingManager.ValueToWeight(
+		&bind.CallOpts{},
+		stakeAmount,
+	)
+	Expect(err).Should(BeNil())
 	// Validate the Warp message, (this will be done on the P-Chain in the future)
 	ValidateRegisterSubnetValidatorMessage(
 		signedWarpMessage,
@@ -469,7 +475,6 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	pChainInfo interfaces.SubnetTestInfo,
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	stakingManagerAddress common.Address,
-	weight uint64,
 	erc20 *exampleerc20.ExampleERC20,
 	stakeAmount *big.Int,
 ) ids.ID {
@@ -492,6 +497,11 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	// (Sending to the P-Chain will be skipped for now)
 	signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetInfo, pChainInfo)
 
+	weight, err := stakingManager.ValueToWeight(
+		&bind.CallOpts{},
+		stakeAmount,
+	)
+	Expect(err).Should(BeNil())
 	// Validate the Warp message, (this will be done on the P-Chain in the future)
 	ValidateRegisterSubnetValidatorMessage(
 		signedWarpMessage,
@@ -598,6 +608,8 @@ func InitializeEndNativeValidation(
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
 	validationID ids.ID,
 ) *types.Receipt {
+	// Make sure minimum stake duration has passed
+	time.Sleep(time.Duration(DefaultMinStakeDurationSeconds) * time.Second)
 	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndValidation(
@@ -616,6 +628,8 @@ func InitializeEndERC20Validation(
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	validationID ids.ID,
 ) *types.Receipt {
+	// Make sure minimum stake duration has passed
+	time.Sleep(time.Duration(DefaultMinStakeDurationSeconds) * time.Second)
 	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndValidation(

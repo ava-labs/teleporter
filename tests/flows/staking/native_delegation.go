@@ -51,7 +51,7 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 	// Register a validator
 	//
 	var validationID ids.ID // To be used in the delisting step
-	validatorStake := big.NewInt(1e18)
+	validatorStake := new(big.Int).SetUint64(utils.DefaultMinStakeAmount)
 	validatorWeight, err := stakingManager.ValueToWeight(
 		&bind.CallOpts{},
 		validatorStake,

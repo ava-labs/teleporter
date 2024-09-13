@@ -55,7 +55,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	// Register a validator
 	//
 	var validationID ids.ID // To be used in the delisting step
-	stakeAmount := big.NewInt(1e18)
+	stakeAmount := new(big.Int).SetUint64(utils.DefaultMinStakeAmount)
 	weight, err := stakingManager.ValueToWeight(
 		&bind.CallOpts{},
 		stakeAmount,
@@ -73,7 +73,6 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 			pChainInfo,
 			stakingManager,
 			stakingManagerContractAddress,
-			weight,
 			nodeID,
 			blsPublicKey,
 			stakeAmount,

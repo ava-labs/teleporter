@@ -3,7 +3,6 @@ package staking
 import (
 	"context"
 	"math/big"
-	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/bls"
@@ -151,10 +150,12 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 				SubnetID:           subnetAInfo.SubnetID,
 				MaximumHourlyChurn: 0,
 			},
-			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration: uint64(24 * time.Hour),
-			RewardCalculator:     common.Address{},
+			MinimumStakeAmount:       big.NewInt(0).SetUint64(utils.DefaultMinStakeAmount),
+			MaximumStakeAmount:       big.NewInt(0).SetUint64(utils.DefaultMaxStakeAmount),
+			MinimumStakeDuration:     utils.DefaultMinStakeDurationSeconds,
+			MinimumDelegationFeeBips: utils.DefaultMinDelegateFeeBips,
+			MaximumStakeMultiplier:   uint8(1),
+			RewardCalculator:         common.Address{},
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -182,7 +183,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		pChainInfo,
 		posValidatorManager,
 		proxyAddress,
-		posWeight,
 		posNodeID,
 		blsPublicKey,
 		stakeAmount,
