@@ -32,6 +32,8 @@ const (
 	DefaultMinStakeAmount          uint64 = 1e18
 	DefaultMaxStakeAmount          uint64 = 10e18
 	DefaultMaxStakeMultiplier      uint8  = 4
+	DefaultMaxChurnPercentage      uint8  = 20
+	DefaultChurnPeriodSeconds      uint64 = 1
 )
 
 //
@@ -77,13 +79,15 @@ func DeployAndInitializeNativeTokenStakingManager(
 			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
 				PChainBlockchainID:     pChainInfo.BlockchainID,
 				SubnetID:               subnet.SubnetID,
-				ChurnPeriodSeconds:     uint64(0),
-				MaximumChurnPercentage: uint8(20),
+				ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
+				MaximumChurnPercentage: DefaultMaxChurnPercentage,
 			},
-			MinimumStakeAmount:   BigIntMul(big.NewInt(1e6), big.NewInt(1e12)),
-			MaximumStakeAmount:   BigIntMul(big.NewInt(10e6), big.NewInt(1e12)),
-			MinimumStakeDuration: uint64(24 * time.Hour.Seconds()),
-			RewardCalculator:     common.Address{},
+			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
+			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
+			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
+			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
+			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
+			RewardCalculator:         common.Address{},
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -138,8 +142,8 @@ func DeployAndInitializeERC20TokenStakingManager(
 			BaseSettings: erc20tokenstakingmanager.ValidatorManagerSettings{
 				PChainBlockchainID:     pChainInfo.BlockchainID,
 				SubnetID:               subnet.SubnetID,
-				ChurnPeriodSeconds:     uint64(0),
-				MaximumChurnPercentage: uint8(20),
+				ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
+				MaximumChurnPercentage: DefaultMaxChurnPercentage,
 			},
 			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),

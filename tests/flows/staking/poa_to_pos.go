@@ -147,8 +147,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
 				PChainBlockchainID:     pChainInfo.BlockchainID,
 				SubnetID:               subnetAInfo.SubnetID,
-				ChurnPeriodSeconds:     uint64(0),
-				MaximumChurnPercentage: uint8(20),
+				ChurnPeriodSeconds:     utils.DefaultChurnPeriodSeconds,
+				MaximumChurnPercentage: utils.DefaultMaxChurnPercentage,
 			},
 			MinimumStakeAmount:       big.NewInt(0).SetUint64(utils.DefaultMinStakeAmount),
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(utils.DefaultMaxStakeAmount),
