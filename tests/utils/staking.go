@@ -903,6 +903,7 @@ func InitializeAndCompleteEndNativeValidation(
 	weight uint64,
 	nonce uint64,
 ) {
+	WaitMinStakeDuration(subnetInfo, fundedKey)
 	receipt := InitializeEndNativeValidation(
 		fundedKey,
 		subnetInfo,
@@ -964,6 +965,7 @@ func InitializeAndCompleteEndERC20Validation(
 	weight uint64,
 	nonce uint64,
 ) {
+	WaitMinStakeDuration(subnetInfo, fundedKey)
 	receipt := InitializeEndERC20Validation(
 		fundedKey,
 		subnetInfo,
@@ -1186,4 +1188,22 @@ func ValidateSetSubnetValidatorWeightMessage(
 	Expect(registerValidatorPayload.ValidationID).Should(Equal(validationID))
 	Expect(registerValidatorPayload.Weight).Should(Equal(weight))
 	Expect(registerValidatorPayload.Nonce).Should(Equal(nonce))
+}
+
+func WaitMinStakeDuration(
+	subnet interfaces.SubnetTestInfo,
+	fundedKey *ecdsa.PrivateKey,
+) {
+	// Make sure minimum stake duration has passed
+	time.Sleep(time.Duration(DefaultMinStakeDurationSeconds) * time.Second)
+
+	// Send a loopback transaction to self to force a block production
+	// before delisting the validator.
+	SendNativeTransfer(
+		context.Background(),
+		subnet,
+		fundedKey,
+		common.Address{},
+		big.NewInt(10),
+	)
 }

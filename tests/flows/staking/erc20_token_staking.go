@@ -3,7 +3,6 @@ package staking
 import (
 	"context"
 	"math/big"
-	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
@@ -32,7 +31,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	// Get the subnets info
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := utils.GetTwoSubnets(network)
-	fundedAddress, fundedKey := network.GetFundedAccountInfo()
+	_, fundedKey := network.GetFundedAccountInfo()
 	pChainInfo := utils.GetPChainInfo(cChainInfo)
 
 	signatureAggregator := utils.NewSignatureAggregator(
@@ -70,19 +69,6 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		stakingManagerAddress,
 		erc20,
 		stakeAmount,
-	)
-
-	// Make sure minimum stake duration has passed
-	time.Sleep(time.Duration(utils.DefaultMinStakeDurationSeconds) * time.Second)
-
-	// Send a loopback transaction to self to force a block production
-	// before delisting the validator.
-	utils.SendNativeTransfer(
-		context.Background(),
-		subnetAInfo,
-		fundedKey,
-		fundedAddress,
-		big.NewInt(10),
 	)
 
 	//
