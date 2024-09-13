@@ -18,8 +18,8 @@ enum DelegatorStatus {
 
 struct PoSValidatorManagerSettings {
     ValidatorManagerSettings baseSettings;
-    uint64 minimumStakeWeight;
-    uint64 maximumStakeWeight;
+    uint256 minimumStakeAmount;
+    uint256 maximumStakeAmount;
     uint64 minimumStakeDuration;
     IRewardCalculator rewardCalculator;
 }

@@ -637,7 +637,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         vm.warp(registrationTimestamp);
 
-        _beforeSend(weight, delegatorAddress);
+        _beforeSend(_weightToValue(weight), delegatorAddress);
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit DelegatorAdded({

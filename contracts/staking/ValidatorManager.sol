@@ -98,6 +98,10 @@ abstract contract ValidatorManager is
             settings.maximumChurnPercentage <= 20,
             "ValidatorManager: maximum churn percentage too high"
         );
+        require(
+            settings.maximumChurnPercentage > 0,
+            "ValidatorManager: maximum churn percentage cannot be zero"
+        );
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
         $._churnPeriodSeconds = settings.churnPeriodSeconds;
 

@@ -28,8 +28,8 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeWeight: DEFAULT_MINIMUM_STAKE_WEIGHT,
-                maximumStakeWeight: DEFAULT_MAXIMUM_STAKE_WEIGHT,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 rewardCalculator: IRewardCalculator(address(0))
             })
@@ -61,7 +61,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         return app.initializeDelegatorRegistration{value: value}(validationID);
     }
 
-    function _beforeSend(uint64 weight, address spender) internal override {
+    function _beforeSend(uint256 amount, address spender) internal override {
         // Native tokens no need pre approve
     }
 

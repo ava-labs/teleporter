@@ -22,9 +22,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     /// @custom:storage-location erc7201:avalanche-icm.storage.PoSValidatorManager
     struct PoSValidatorManagerStorage {
         /// @notice The minimum weight of stake required to be a validator.
-        uint64 _minimumStakeWeight;
+        uint256 _minimumStakeAmount;
         /// @notice The maximum weight of stake allowed to be a validator.
-        uint64 _maximumStakeWeight;
+        uint256 _maximumStakeAmount;
         /// @notice The minimum amount of time a validator must be staked for.
         uint64 _minimumStakeDuration;
         /// @notice The reward calculator for this validator manager.
@@ -58,8 +58,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     {
         __ValidatorManager_init(settings.baseSettings);
         __POS_Validator_Manager_init_unchained({
-            minimumStakeWeight: settings.minimumStakeWeight,
-            maximumStakeWeight: settings.maximumStakeWeight,
+            minimumStakeAmount: settings.minimumStakeAmount,
+            maximumStakeAmount: settings.maximumStakeAmount,
             minimumStakeDuration: settings.minimumStakeDuration,
             rewardCalculator: settings.rewardCalculator
         });
@@ -67,14 +67,14 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     // solhint-disable-next-line func-name-mixedcase
     function __POS_Validator_Manager_init_unchained(
-        uint64 minimumStakeWeight,
-        uint64 maximumStakeWeight,
+        uint256 minimumStakeAmount,
+        uint256 maximumStakeAmount,
         uint64 minimumStakeDuration,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        $._minimumStakeWeight = minimumStakeWeight;
-        $._maximumStakeWeight = maximumStakeWeight;
+        $._minimumStakeAmount = minimumStakeAmount;
+        $._maximumStakeAmount = maximumStakeAmount;
         $._minimumStakeDuration = minimumStakeDuration;
         $._rewardCalculator = rewardCalculator;
     }
@@ -124,15 +124,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         // Lock the stake in the contract.
         uint256 lockedValue = _lock(stakeAmount);
-        uint64 weight = valueToWeight(lockedValue);
 
         // Ensure the weight is within the valid range.
-        require(
-            weight >= $._minimumStakeWeight && weight <= $._maximumStakeWeight,
-            "PoSValidatorManager: invalid stake weight"
-        );
+        require(stakeAmount >= $._minimumStakeAmount, "PoSValidatorManager: stake amount too low");
+        require(stakeAmount <= $._maximumStakeAmount, "PoSValidatorManager: stake amount too high");
 
-        return weight;
+        return valueToWeight(lockedValue);
     }
 
     function valueToWeight(uint256 value) public pure returns (uint64) {

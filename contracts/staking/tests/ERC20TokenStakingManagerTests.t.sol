@@ -35,8 +35,8 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeWeight: DEFAULT_MINIMUM_STAKE_WEIGHT,
-                maximumStakeWeight: DEFAULT_MAXIMUM_STAKE_WEIGHT,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 rewardCalculator: IRewardCalculator(address(0))
             }),
@@ -69,14 +69,13 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         return delegationID;
     }
 
-    function _beforeSend(uint64 weight, address spender) internal override {
-        uint256 value = _weightToValue(weight);
-        token.safeIncreaseAllowance(spender, value);
-        token.safeTransfer(spender, value);
+    function _beforeSend(uint256 amount, address spender) internal override {
+        token.safeIncreaseAllowance(spender, amount);
+        token.safeTransfer(spender, amount);
 
         // ERC20 tokens need to be pre-approved
         vm.startPrank(spender);
-        token.safeIncreaseAllowance(address(app), value);
+        token.safeIncreaseAllowance(address(app), amount);
         vm.stopPrank();
     }
 

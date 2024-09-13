@@ -31,8 +31,8 @@ abstract contract ValidatorManagerTest is Test {
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     uint64 public constant DEFAULT_WEIGHT = 1e6;
-    uint64 public constant DEFAULT_MINIMUM_STAKE_WEIGHT = 20;
-    uint64 public constant DEFAULT_MAXIMUM_STAKE_WEIGHT = 1e10;
+    uint256 public constant DEFAULT_MINIMUM_STAKE_AMOUNT = 20;
+    uint256 public constant DEFAULT_MAXIMUM_STAKE_AMOUNT = 1e10;
     uint64 public constant DEFAULT_CHURN_PERIOD = 1 hours;
     uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
     uint8 public constant DEFAULT_MAXIMUM_CHURN_PERCENTAGE = 20;
@@ -199,7 +199,7 @@ abstract contract ValidatorManagerTest is Test {
     function testCummulativeChurnRegistration() public {
         uint64 churnThreshold =
             uint64(DEFAULT_STARTING_TOTAL_WEIGHT) * DEFAULT_MAXIMUM_CHURN_PERCENTAGE / 100;
-        _beforeSend(churnThreshold, address(this));
+        _beforeSend(_weightToValue(churnThreshold), address(this));
 
         // First registration should succeed
         _setUpCompleteValidatorRegistration({
@@ -211,7 +211,7 @@ abstract contract ValidatorManagerTest is Test {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
 
-        _beforeSend(DEFAULT_MINIMUM_STAKE_WEIGHT, address(this)); // TODO may need to be updated with minimum stake amount
+        _beforeSend(DEFAULT_MINIMUM_STAKE_AMOUNT, address(this)); // TODO may need to be updated with minimum stake amount
 
         // Second call should fail
         vm.expectRevert("ValidatorManager: maximum churn rate exceeded");
@@ -219,14 +219,14 @@ abstract contract ValidatorManagerTest is Test {
             DEFAULT_NODE_ID,
             DEFAULT_REGISTRATION_TIMESTAMP + 1,
             DEFAULT_BLS_PUBLIC_KEY,
-            DEFAULT_MINIMUM_STAKE_WEIGHT
+            _valueToWeight(DEFAULT_MINIMUM_STAKE_AMOUNT)
         );
     }
 
     function testCummulativeChurnRegistrationAndEndValidation() public {
         uint64 churnThreshold =
             uint64(DEFAULT_STARTING_TOTAL_WEIGHT) * DEFAULT_MAXIMUM_CHURN_PERCENTAGE / 100;
-        _beforeSend(churnThreshold, address(this));
+        _beforeSend(_weightToValue(churnThreshold), address(this));
 
         // Registration should succeed
         bytes32 validationID = _setUpCompleteValidatorRegistration({
@@ -277,7 +277,7 @@ abstract contract ValidatorManagerTest is Test {
         vm.warp(registrationExpiry - 1);
         _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
 
-        _beforeSend(weight, address(this));
+        _beforeSend(_weightToValue(weight), address(this));
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidationPeriodCreated(validationID, nodeID, bytes32(0), weight, registrationExpiry);
 
@@ -396,7 +396,7 @@ abstract contract ValidatorManagerTest is Test {
 
     function _initializeEndValidation(bytes32 validationID) internal virtual;
 
-    function _beforeSend(uint64 weight, address spender) internal virtual;
+    function _beforeSend(uint256 amount, address spender) internal virtual;
 
     function _weightToValue(uint64 weight) internal virtual returns (uint256);
 
