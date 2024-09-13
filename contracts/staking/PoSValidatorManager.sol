@@ -28,9 +28,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.PoSValidatorManager
     struct PoSValidatorManagerStorage {
-        /// @notice The minimum weight of stake required to be a validator.
+        /// @notice The minimum amount of stake required to be a validator.
         uint256 _minimumStakeAmount;
-        /// @notice The maximum weight of stake allowed to be a validator.
+        /// @notice The maximum amount of stake allowed to be a validator.
         uint256 _maximumStakeAmount;
         /// @notice The minimum amount of time a validator must be staked for.
         uint64 _minimumStakeDuration;

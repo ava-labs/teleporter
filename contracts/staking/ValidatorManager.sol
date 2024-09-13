@@ -59,6 +59,9 @@ abstract contract ValidatorManager is
     bytes32 private constant _VALIDATOR_MANAGER_STORAGE_LOCATION =
         0xe92546d698950ddd38910d2e15ed1d923cd0a7b3dde9e2a6a3f380565559cb00;
 
+    uint8 public constant MAXIMUM_CHURN_PERCENTAGE_LIMIT = 20;
+    uint64 public constant MAXIMUM_REGISTRATION_EXPIRY_LENGTH = 2 days;
+
     // solhint-disable ordering
     function _getValidatorManagerStorage()
         private
@@ -97,12 +100,11 @@ abstract contract ValidatorManager is
         $._subnetID = settings.subnetID;
 
         require(
-            settings.maximumChurnPercentage <= 20,
+            settings.maximumChurnPercentage <= MAXIMUM_CHURN_PERCENTAGE_LIMIT,
             "ValidatorManager: maximum churn percentage too high"
         );
         require(
-            settings.maximumChurnPercentage > 0,
-            "ValidatorManager: maximum churn percentage cannot be zero"
+            settings.maximumChurnPercentage > 0, "ValidatorManager: zero maximum churn percentage"
         );
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
         $._churnPeriodSeconds = settings.churnPeriodSeconds;
@@ -128,7 +130,7 @@ abstract contract ValidatorManager is
             "ValidatorManager: registration expiry not in future"
         );
         require(
-            block.timestamp + 2 days > input.registrationExpiry,
+            block.timestamp + MAXIMUM_REGISTRATION_EXPIRY_LENGTH > input.registrationExpiry,
             "ValidatorManager: registration expiry too far in future"
         );
 
@@ -399,10 +401,6 @@ abstract contract ValidatorManager is
      */
     function _checkAndUpdateChurnTracker(uint64 weight, bool addition) private {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-
-        if ($._maximumChurnPercentage == 0) {
-            return;
-        }
 
         uint256 currentTime = block.timestamp;
         ValidatorChurnPeriod memory churnTracker = $._churnTracker;
