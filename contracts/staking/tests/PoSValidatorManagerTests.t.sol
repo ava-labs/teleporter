@@ -26,8 +26,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + DEFAULT_EXPIRY;
     address public constant DEFAULT_DELEGATOR_ADDRESS =
         address(0x1234123412341234123412341234123412341234);
-    uint256 public constant DEFAULT_MINIMUM_STAKE = 1e6;
-    uint256 public constant DEFAULT_MAXIMUM_STAKE = 1e20;
     uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
     uint16 public constant DEFAULT_MINIMUM_DELEGATION_FEE_BIPS = 100;
     uint8 public constant DEFAULT_MAXIMUM_STAKE_MULTIPLIER = 4;
@@ -77,7 +75,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
-        _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MINIMUM_STAKE);
+        _initializeValidatorRegistration(
+            registrationInput, requirements, DEFAULT_MINIMUM_STAKE_AMOUNT
+        );
     }
 
     function testDelegationFeeBipsTooHigh() public {
@@ -91,7 +91,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
-        _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MINIMUM_STAKE);
+        _initializeValidatorRegistration(
+            registrationInput, requirements, DEFAULT_MINIMUM_STAKE_AMOUNT
+        );
     }
 
     function testInvalidMinStakeDuration() public {
@@ -105,7 +107,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         vm.expectRevert(_formatErrorMessage("invalid min stake duration"));
-        _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MINIMUM_STAKE);
+        _initializeValidatorRegistration(
+            registrationInput, requirements, DEFAULT_MINIMUM_STAKE_AMOUNT
+        );
     }
 
     function testStakeAmountTooLow() public {
@@ -119,7 +123,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         vm.expectRevert(_formatErrorMessage("stake amount too low"));
-        _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MINIMUM_STAKE - 1);
+        _initializeValidatorRegistration(
+            registrationInput, requirements, DEFAULT_MINIMUM_STAKE_AMOUNT - 1
+        );
     }
 
     function testStakeAmountTooHigh() public {
@@ -133,7 +139,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         vm.expectRevert(_formatErrorMessage("stake amount too high"));
-        _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MAXIMUM_STAKE + 1);
+        _initializeValidatorRegistration(
+            registrationInput, requirements, DEFAULT_MAXIMUM_STAKE_AMOUNT + 1
+        );
     }
 
     function testInvalidInitializeEndTime() public {
