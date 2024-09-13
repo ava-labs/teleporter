@@ -8,7 +8,7 @@ pragma solidity 0.8.25;
 import {Test} from "@forge-std/Test.sol";
 import {ValidatorManager} from "../ValidatorManager.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
-import {ValidatorStatus} from "../interfaces/IValidatorManager.sol";
+import {ValidatorStatus, ValidatorRegistrationInput} from "../interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -31,13 +31,10 @@ abstract contract ValidatorManagerTest is Test {
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     uint64 public constant DEFAULT_WEIGHT = 1e6;
-    uint256 public constant DEFAULT_MINIMUM_STAKE = 20;
-    uint256 public constant DEFAULT_MAXIMUM_STAKE = 1e10;
-    uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
-    uint8 public constant DEFAULT_MAXIMUM_HOURLY_CHURN = 0;
     uint64 public constant DEFAULT_EXPIRY = 1000;
+    uint8 public constant DEFAULT_MAXIMUM_HOURLY_CHURN = 0;
     uint64 public constant DEFAULT_REGISTRATION_TIMESTAMP = 1000;
-    uint64 public constant DEFAULT_COMPLETION_TIMESTAMP = 2000;
+    uint64 public constant DEFAULT_COMPLETION_TIMESTAMP = 100_000;
 
     ValidatorManager public validatorManager;
 
@@ -224,7 +221,14 @@ abstract contract ValidatorManagerTest is Test {
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidationPeriodCreated(validationID, nodeID, bytes32(0), weight, registrationExpiry);
 
-        _initializeValidatorRegistration(nodeID, registrationExpiry, blsPublicKey, weight);
+        _initializeValidatorRegistration(
+            ValidatorRegistrationInput({
+                nodeID: nodeID,
+                registrationExpiry: registrationExpiry,
+                blsPublicKey: blsPublicKey
+            }),
+            weight
+        );
     }
 
     function _setUpCompleteValidatorRegistration(
@@ -331,9 +335,7 @@ abstract contract ValidatorManagerTest is Test {
     }
 
     function _initializeValidatorRegistration(
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey,
+        ValidatorRegistrationInput memory input,
         uint64 weight
     ) internal virtual returns (bytes32);
 

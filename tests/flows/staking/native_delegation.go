@@ -5,9 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/crypto/bls"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
@@ -51,64 +49,23 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 	// Register a validator
 	//
 	var validationID ids.ID // To be used in the delisting step
-	validatorStake := big.NewInt(1e18)
+	validatorStake := new(big.Int).SetUint64(utils.DefaultMinStakeAmount)
 	validatorWeight, err := stakingManager.ValueToWeight(
 		&bind.CallOpts{},
 		validatorStake,
 	)
 	Expect(err).Should(BeNil())
-	{
-		// Iniatiate validator registration
-		nodeID := ids.GenerateTestID()
-		blsPublicKey := [bls.PublicKeyLen]byte{}
-		var receipt *types.Receipt
-		receipt, validationID = utils.InitializeNativeValidatorRegistration(
-			fundedKey,
-			subnetAInfo,
-			validatorStake,
-			nodeID,
-			blsPublicKey,
-			stakingManager,
-		)
-
-		// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
-		// (Sending to the P-Chain will be skipped for now)
-		signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
-
-		// Validate the Warp message, (this will be done on the P-Chain in the future)
-		utils.ValidateRegisterSubnetValidatorMessage(
-			signedWarpMessage,
-			nodeID,
-			validatorWeight,
-			subnetAInfo.SubnetID,
-			blsPublicKey,
-		)
-
-		// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
-		registrationSignedMessage := utils.ConstructSubnetValidatorRegistrationMessage(
-			validationID,
-			true,
-			subnetAInfo,
-			pChainInfo,
-			network,
-			signatureAggregator,
-		)
-
-		// Deliver the Warp message to the subnet
-		receipt = utils.CompleteNativeValidatorRegistration(
-			fundedKey,
-			subnetAInfo,
-			stakingManagerAddress,
-			registrationSignedMessage,
-		)
-		// Check that the validator is registered in the staking contract
-		registrationEvent, err := utils.GetEventFromLogs(
-			receipt.Logs,
-			stakingManager.ParseValidationPeriodRegistered,
-		)
-		Expect(err).Should(BeNil())
-		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
-	}
+	stakeAmount := new(big.Int).SetUint64(utils.DefaultMinStakeAmount)
+	validationID = utils.InitializeAndCompleteNativeValidatorRegistration(
+		network,
+		signatureAggregator,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		stakingManager,
+		stakingManagerAddress,
+		stakeAmount,
+	)
 	//
 	// Register a delegator
 	//

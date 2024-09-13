@@ -9,7 +9,10 @@ import {IPoAValidatorManager} from "./interfaces/IPoAValidatorManager.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
-import {ValidatorManagerSettings} from "./interfaces/IValidatorManager.sol";
+import {
+    ValidatorManagerSettings,
+    ValidatorRegistrationInput
+} from "./interfaces/IValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
 
 contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableUpgradeable {
@@ -41,12 +44,10 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
     // solhint-enable func-name-mixedcase
 
     function initializeValidatorRegistration(
-        uint64 weight,
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory signature
-    ) external override onlyOwner returns (bytes32 validationID) {
-        return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, signature);
+        ValidatorRegistrationInput calldata registrationInput,
+        uint64 weight
+    ) external onlyOwner returns (bytes32 validationID) {
+        return _initializeValidatorRegistration(registrationInput, weight);
     }
 
     // solhint-enable ordering

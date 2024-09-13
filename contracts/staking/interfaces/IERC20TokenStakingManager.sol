@@ -5,20 +5,20 @@
 
 pragma solidity 0.8.25;
 
-import {IPoSValidatorManager} from "./IPoSValidatorManager.sol";
+import {ValidatorRegistrationInput} from "./IValidatorManager.sol";
+import {IPoSValidatorManager, PoSValidatorRequirements} from "./IPoSValidatorManager.sol";
 
 interface IERC20TokenStakingManager is IPoSValidatorManager {
     /**
      * @notice Begins the validator registration process. Locks the {stakeAmount} of the managers specified ERC20 token.
-     * @param nodeID The node ID of the validator being registered.
-     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
-     * @param blsPublicKey The BLS public key of the validator.
+     * @param registrationInput The inputs for a validator registration.
+     * @param requirements The requirements for the validator being registered.
+     * @param stakeAmount The amount of the ERC20 token to lock in the contract as the stake.
      */
     function initializeValidatorRegistration(
-        uint256 stakeAmount,
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey
+        ValidatorRegistrationInput calldata registrationInput,
+        PoSValidatorRequirements calldata requirements,
+        uint256 stakeAmount
     ) external returns (bytes32 validationID);
 
     function initializeDelegatorRegistration(
