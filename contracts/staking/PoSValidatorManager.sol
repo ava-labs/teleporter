@@ -467,10 +467,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // a weight update using a higher nonce (which implicitly includes the delegation's weight update)
         // to be used to complete delisting for an earlier delegation. This is necessary because the P-Chain
         // is only willing to sign the latest weight update.
-        require(
-            delegator.endingNonce <= nonce,
-            "PoSValidatorManager: nonce does not match"
-        );
+        require(delegator.endingNonce <= nonce, "PoSValidatorManager: nonce does not match");
 
         // Ensure the delegator is pending removed. Since anybody can call this function once
         // end delegation has been initialized, we need to make sure that this function is only
