@@ -41,7 +41,7 @@ struct ValidatorManagerSettings {
 struct SubnetConversionData {
     bytes32 convertSubnetTxID;
     bytes32 blockchainID;
-    bytes validatorManagerAddress;
+    address validatorManagerAddress;
     InitialValidator[] initialValidators;
 }
 

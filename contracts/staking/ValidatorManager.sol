@@ -110,56 +110,33 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     ) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         require(!$._initializedValidatorSet, "ValidatorManager: already initialized validator set");
-
-        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
-        // Parse the Warp message into SubnetConversionMessage
-        bytes32 subnetConversionID =
-            ValidatorMessages.unpackSubnetConversionMessage(warpMessage.payload);
-
-        // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
-        bytes memory encodedConversion = abi.encodePacked(
-            subnetConversionData.convertSubnetTxID,
-            subnetConversionData.blockchainID,
-            subnetConversionData.validatorManagerAddress
-        );
-        uint256 numInitialValidators = subnetConversionData.initialValidators.length;
-        for (uint256 i; i < numInitialValidators; i++) {
-            InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
-            encodedConversion = abi.encodePacked(
-                encodedConversion,
-                initialValidator.nodeID,
-                initialValidator.weight,
-                initialValidator.blsPublicKey
-            );
-        }
-        require(
-            sha256(encodedConversion) == subnetConversionID,
-            "ValidatorManager: invalid subnet conversion ID"
-        );
         require(
             subnetConversionData.blockchainID == WARP_MESSENGER.getBlockchainID(),
             "ValidatorManager: invalid blockchain ID"
         );
-
-        // TODO: might have more efficient conversion with assembly, check length of bytes
         require(
-            subnetConversionData.validatorManagerAddress.length == 20,
-            "ValidatorManager: invalid validator manager address length"
-        );
-        require(
-            address(bytes20(subnetConversionData.validatorManagerAddress)) == address(this),
+            address(subnetConversionData.validatorManagerAddress) == address(this),
             "ValidatorManager: invalid validator manager address"
         );
         require(
             subnetConversionData.initialValidators.length > 0,
             "ValidatorManager: no initial validators"
         );
+        uint256 numInitialValidators = subnetConversionData.initialValidators.length;
+        require(
+            numInitialValidators < type(uint32).max, "ValidatorManager: too many initial validators"
+        );
 
-        // Insert the initial validators into the storage.
+        // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
+        bytes memory encodedConversion = abi.encodePacked(
+            subnetConversionData.convertSubnetTxID,
+            subnetConversionData.blockchainID,
+            uint32(20),
+            subnetConversionData.validatorManagerAddress,
+            uint32(numInitialValidators)
+        );
         for (uint256 i; i < numInitialValidators; i++) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
-            bytes32 validationID =
-                sha256(abi.encodePacked(subnetConversionData.convertSubnetTxID, i));
             bytes32 nodeID = initialValidator.nodeID;
             require(nodeID != bytes32(0), "ValidatorManager: invalid node ID");
             require(
@@ -171,6 +148,20 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 "ValidatorManager: invalid blsPublicKey length"
             );
 
+            // Continue to encode the initial validators.
+            encodedConversion = abi.encodePacked(
+                encodedConversion,
+                initialValidator.nodeID,
+                initialValidator.weight,
+                initialValidator.blsPublicKey
+            );
+
+            // Validation ID of the initial validators is the sha256 hash of the
+            // convert Subnet tx ID and the index of the initial validator.
+            bytes32 validationID =
+                sha256(abi.encodePacked(subnetConversionData.convertSubnetTxID, i));
+
+            // Save the initial validator as an active validator.
             $._activeValidators[nodeID] = validationID;
             $._validationPeriods[validationID] = Validator({
                 status: ValidatorStatus.Active,
@@ -178,7 +169,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 startingWeight: initialValidator.weight,
                 messageNonce: 0,
                 weight: initialValidator.weight,
-                startedAt: 0, // The validation period only starts once the registration is acknowledged.
+                startedAt: uint64(block.timestamp),
                 endedAt: 0
             });
 
@@ -186,6 +177,17 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 validationID, initialValidator.nodeID, initialValidator.weight
             );
         }
+
+        // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
+        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
+        // Parse the Warp message into SubnetConversionMessage
+        bytes32 subnetConversionID =
+            ValidatorMessages.unpackSubnetConversionMessage(warpMessage.payload);
+        require(
+            sha256(encodedConversion) == subnetConversionID,
+            "ValidatorManager: invalid subnet conversion ID"
+        );
+
         $._initializedValidatorSet = true;
     }
 
