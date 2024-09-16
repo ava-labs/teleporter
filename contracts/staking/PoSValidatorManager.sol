@@ -8,10 +8,17 @@ pragma solidity 0.8.25;
 import {
     IPoSValidatorManager, Delegator, DelegatorStatus
 } from "./interfaces/IPoSValidatorManager.sol";
-import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
+import {
+    PoSValidatorManagerSettings,
+    PoSValidatorRequirements
+} from "./interfaces/IPoSValidatorManager.sol";
 import {Validator} from "./interfaces/IValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
-import {Validator, ValidatorStatus} from "./interfaces/IValidatorManager.sol";
+import {
+    Validator,
+    ValidatorStatus,
+    ValidatorRegistrationInput
+} from "./interfaces/IValidatorManager.sol";
 import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {ValidatorMessages} from "./ValidatorMessages.sol";
@@ -27,8 +34,20 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _maximumStakeAmount;
         /// @notice The minimum amount of time a validator must be staked for.
         uint64 _minimumStakeDuration;
+        /// @notice The minimum delegation fee percentage, in basis points, required to delegate to a validator.
+        uint256 _minimumDelegationFeeBips;
+        /**
+         * @notice A multiplier applied to validator's initial stake amount to determine
+         * the maximum amount of stake a validator can have with delegations.
+         *
+         * Note: Setting this value to 1 would disable delegations to validators, since
+         * the maximum stake would be equal to the initial stake.
+         */
+        uint64 _maximumStakeMultiplier;
         /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
+        /// @notice Maps the validation ID to its requirements.
+        mapping(bytes32 validationID => PoSValidatorRequirements) _validatorRequirements;
         /// @notice Maps the delegationID to the delegator information.
         mapping(bytes32 delegationID => Delegator) _delegatorStakes;
         /// @notice Maps the delegationID to pending register delegator messages.
@@ -46,6 +65,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     // TODO: Unit test for storage slot and update slot
     bytes32 private constant _POS_VALIDATOR_MANAGER_STORAGE_LOCATION =
         0x4317713f7ecbdddd4bc99e95d903adedaa883b2e7c2551610bd13e2c7e473d00;
+
+    uint8 public constant MAXIMUM_STAKE_MULTIPLIER_LIMIT = 10;
+
+    uint16 public constant MAXIMUM_DELEGATION_FEE_BIPS = 10000;
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
@@ -65,12 +88,14 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         onlyInitializing
     {
         __ValidatorManager_init(settings.baseSettings);
-        __POS_Validator_Manager_init_unchained(
-            settings.minimumStakeAmount,
-            settings.maximumStakeAmount,
-            settings.minimumStakeDuration,
-            settings.rewardCalculator
-        );
+        __POS_Validator_Manager_init_unchained({
+            minimumStakeAmount: settings.minimumStakeAmount,
+            maximumStakeAmount: settings.maximumStakeAmount,
+            minimumStakeDuration: settings.minimumStakeDuration,
+            minimumDelegationFeeBips: settings.minimumDelegationFeeBips,
+            maximumStakeMultiplier: settings.maximumStakeMultiplier,
+            rewardCalculator: settings.rewardCalculator
+        });
     }
 
     // solhint-disable-next-line func-name-mixedcase
@@ -78,12 +103,31 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 minimumStakeAmount,
         uint256 maximumStakeAmount,
         uint64 minimumStakeDuration,
+        uint256 minimumDelegationFeeBips,
+        uint8 maximumStakeMultiplier,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        require(minimumDelegationFeeBips > 0, "PoSValidatorManager: zero delegation fee");
+        require(
+            minimumDelegationFeeBips <= MAXIMUM_DELEGATION_FEE_BIPS,
+            "PoSValidatorManager: invalid delegation fee"
+        );
+        require(
+            minimumStakeAmount <= maximumStakeAmount,
+            "PoSValidatorManager: invalid stake amount range"
+        );
+        require(maximumStakeMultiplier > 0, "PoSValidatorManager: zero maximum stake multiplier");
+        require(
+            maximumStakeMultiplier <= MAXIMUM_STAKE_MULTIPLIER_LIMIT,
+            "PoSValidatorManager: invalid maximum stake multiplier"
+        );
+
         $._minimumStakeAmount = minimumStakeAmount;
         $._maximumStakeAmount = maximumStakeAmount;
         $._minimumStakeDuration = minimumStakeDuration;
+        $._minimumDelegationFeeBips = minimumDelegationFeeBips;
+        $._maximumStakeMultiplier = maximumStakeMultiplier;
         $._rewardCalculator = rewardCalculator;
     }
 
@@ -92,16 +136,25 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        // Check that minimum stake duration has passed
+        Validator memory validator = getValidator(validationID);
+        require(
+            block.timestamp
+                >= validator.startedAt + $._validatorRequirements[validationID].minStakeDuration,
+            "PoSValidatorManager: minimum stake duration not met"
+        );
+
         uint64 uptime;
         if (includeUptimeProof) {
             uptime = _getUptime(validationID, messageIndex);
         }
 
-        Validator memory validator = _initializeEndValidation(validationID);
-
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        // TODO check if above 80% uptime
         $._pendingValidatorRewards[validator.owner] +=
             $._rewardCalculator.calculateReward(validator.weight, uptime, 0, 0);
+
+        _initializeEndValidation(validationID);
     }
 
     function completeEndValidation(uint32 messageIndex) external {
@@ -138,18 +191,35 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         return uptime;
     }
 
-    function _processStake(uint256 stakeAmount) internal virtual returns (uint64) {
+    function _initializeValidatorRegistration(
+        ValidatorRegistrationInput calldata registrationInput,
+        PoSValidatorRequirements calldata requirements,
+        uint256 stakeAmount
+    ) internal virtual returns (bytes32) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        // Lock the stake in the contract.
-        uint256 lockedValue = _lock(stakeAmount);
-        uint64 weight = valueToWeight(lockedValue);
+        // Validate and save the validator requirements
+        require(
+            requirements.minStakeDuration >= $._minimumStakeDuration,
+            "PoSValidatorManager: invalid min stake duration"
+        );
+        require(
+            requirements.delegationFeeBips >= $._minimumDelegationFeeBips
+                && requirements.delegationFeeBips <= MAXIMUM_DELEGATION_FEE_BIPS,
+            "PoSValidatorManager: invalid delegation fee"
+        );
 
         // Ensure the weight is within the valid range.
-        require(
-            weight >= $._minimumStakeAmount && weight <= $._maximumStakeAmount,
-            "PoSValidatorManager: invalid stake amount"
-        );
-        return weight;
+        require(stakeAmount >= $._minimumStakeAmount, "PoSValidatorManager: stake amount too low");
+        require(stakeAmount <= $._maximumStakeAmount, "PoSValidatorManager: stake amount too high");
+
+        // Lock the stake in the contract.
+        uint256 lockedValue = _lock(stakeAmount);
+
+        uint64 weight = valueToWeight(lockedValue);
+        bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
+
+        $._validatorRequirements[validationID] = requirements;
+        return validationID;
     }
 
     function valueToWeight(uint256 value) public pure returns (uint64) {
@@ -168,30 +238,37 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         address delegatorAddress,
         uint256 delegationAmount
     ) internal nonReentrant returns (bytes32) {
-        uint64 weight = valueToWeight(_lock(delegationAmount));
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        uint64 weight = valueToWeight(_lock(delegationAmount));
 
         // Ensure the validation period is active
-        Validator memory validator = _getValidator(validationID);
+        Validator memory validator = getValidator(validationID);
         require(
             validator.status == ValidatorStatus.Active, "PoSValidatorManager: validator not active"
         );
+
+        // Check that adding this delegator would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTrackerAddition(weight);
+
         // Update the validator weight
         uint64 newValidatorWeight = validator.weight + weight;
+        require(
+            newValidatorWeight <= validator.startingWeight * $._maximumStakeMultiplier,
+            "PoSValidatorManager: maximum validator weight reached"
+        );
         _setValidatorWeight(validationID, newValidatorWeight);
 
         // Construct the delegation ID. This is guaranteed to be unique since it is
         // constructed using a new nonce.
-        uint64 nonce = _getAndIncrementNonce(validationID);
-        bytes32 delegationID = keccak256(abi.encodePacked(validationID, delegatorAddress, nonce));
-
-        _checkAndUpdateChurnTracker(weight);
+        uint64 nonce = _incrementAndGetNonce(validationID);
+        bytes32 delegationID = keccak256(abi.encodePacked(validationID, nonce));
 
         // Submit the message to the Warp precompile.
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, nonce, newValidatorWeight);
-        $._pendingRegisterDelegatorMessages[delegationID] = setValidatorWeightPayload;
-        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
+        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(
+                validationID, nonce, newValidatorWeight
+            )
+        );
 
         // Store the delegation information. Set the delegator status to pending added,
         // so that it can be properly started in the complete step, even if the delivered
@@ -219,13 +296,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         return delegationID;
     }
 
-    function resendDelegatorRegistration(bytes32 delegationID) external {
-        _checkPendingRegisterDelegatorMessages(delegationID);
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        // Submit the message to the Warp precompile.
-        WARP_MESSENGER.sendWarpMessage($._pendingRegisterDelegatorMessages[delegationID]);
-    }
-
     function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
@@ -233,10 +303,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, uint64 nonce,) =
             ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
-        _checkPendingRegisterDelegatorMessages(delegationID);
-        delete $._pendingRegisterDelegatorMessages[delegationID];
 
-        Validator memory validator = _getValidator(validationID);
+        Validator memory validator = getValidator(validationID);
 
         // The received nonce should be no greater than the highest sent nonce. This should never
         // happen since the staking manager is the only entity that can trigger a weight update
@@ -295,7 +363,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         require(
             delegator.owner == _msgSender(), "PoSValidatorManager: delegation not owned by sender"
         );
-        uint64 nonce = _getAndIncrementNonce(validationID);
+        uint64 nonce = _incrementAndGetNonce(validationID);
 
         // Set the delegator status to pending removed, so that it can be properly removed in
         // the complete step, even if the delivered nonce is greater than the nonce used to
@@ -306,16 +374,26 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         $._delegatorStakes[delegationID] = delegator;
 
-        Validator memory validator = _getValidator(validationID);
+        Validator memory validator = getValidator(validationID);
         require(validator.weight > delegator.weight, "PoSValidatorManager: Invalid weight");
+
+        // Check that removing this delegator would not exceed the maximum churn rate.
+        // We only need to check this is the validator is still active. If the validator ends its validation
+        // period, the weight of all its delegators will be added to the churn tracker at that time. Ending
+        // a delegation whose validator has ended validating has no impact on the stake weight of the chain.
+        if (validator.status == ValidatorStatus.Active) {
+            _checkAndUpdateChurnTrackerRemoval(delegator.weight);
+        }
+
         uint64 newValidatorWeight = validator.weight - delegator.weight;
         _setValidatorWeight(validationID, newValidatorWeight);
 
         // Submit the message to the Warp precompile.
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, nonce, newValidatorWeight);
-        $._pendingEndDelegatorMessages[delegationID] = setValidatorWeightPayload;
-        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
+        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(
+                validationID, nonce, newValidatorWeight
+            )
+        );
 
         emit DelegatorRemovalInitialized({
             delegationID: delegationID,
@@ -327,10 +405,31 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         });
     }
 
-    function resendEndDelegation(bytes32 delegationID) external {
-        _checkPendingEndDelegatorMessage(delegationID);
+    /**
+     * @dev Resending the latest validator weight with the latest nonce is safe because all weight changes are
+     * cumulative, so the latest weight change will always include the weight change for any added delegators.
+     */
+    function resendUpdateDelegation(bytes32 delegationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        WARP_MESSENGER.sendWarpMessage($._pendingEndDelegatorMessages[delegationID]);
+        Delegator memory delegator = $._delegatorStakes[delegationID];
+        require(
+            delegator.status == DelegatorStatus.PendingAdded
+                || delegator.status == DelegatorStatus.PendingRemoved,
+            "PoSValidatorManager: delegation status not pending"
+        );
+
+        Validator memory validator = getValidator(delegator.validationID);
+        require(
+            validator.messageNonce != 0,
+            "PoSValidatorManager: could not find validator for delegation ID"
+        );
+
+        // Submit the message to the Warp precompile.
+        WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(
+                delegator.validationID, validator.messageNonce, validator.weight
+            )
+        );
     }
 
     function completeEndDelegation(uint32 messageIndex, bytes32 delegationID) external {
@@ -340,10 +439,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, uint64 nonce,) =
             ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
-        _checkPendingEndDelegatorMessage(delegationID);
-        delete $._pendingEndDelegatorMessages[delegationID];
 
-        Validator memory validator = _getValidator(validationID);
+        Validator memory validator = getValidator(validationID);
         // The received nonce should be no greater than the highest sent nonce. This should never
         // happen since the staking manager is the only entity that can trigger a weight update
         // on the P-Chain.

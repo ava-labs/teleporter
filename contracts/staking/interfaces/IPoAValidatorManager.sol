@@ -5,19 +5,17 @@
 
 pragma solidity 0.8.25;
 
-import {IValidatorManager} from "./IValidatorManager.sol";
+import {IValidatorManager, ValidatorRegistrationInput} from "./IValidatorManager.sol";
 
 interface IPoAValidatorManager is IValidatorManager {
     /**
      * @notice Begins the validator registration process, and sets the {weight} of the validator.
-     * @param nodeID The node ID of the validator being registered.
-     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
+     * @param registrationInput The inputs for a validator registration.
+     * @param weight The weight of the validator being registered.
      */
     function initializeValidatorRegistration(
-        uint64 weight,
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory signature
+        ValidatorRegistrationInput calldata registrationInput,
+        uint64 weight
     ) external returns (bytes32 validationID);
 
     /**

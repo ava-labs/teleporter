@@ -5,19 +5,18 @@
 
 pragma solidity 0.8.25;
 
-import {IPoSValidatorManager} from "./IPoSValidatorManager.sol";
+import {ValidatorRegistrationInput} from "./IValidatorManager.sol";
+import {IPoSValidatorManager, PoSValidatorRequirements} from "./IPoSValidatorManager.sol";
 
 interface INativeTokenStakingManager is IPoSValidatorManager {
     /**
      * @notice Begins the validator registration process. Locks the provided native asset in the contract as the stake.
-     * @param nodeID The node ID of the validator being registered.
-     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
-     * @param blsPublicKey The BLS public key of the validator.
+     * @param registrationInput The inputs for a validator registration.
+     * @param requirements The requirements for the validator being registered.
      */
     function initializeValidatorRegistration(
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey
+        ValidatorRegistrationInput calldata registrationInput,
+        PoSValidatorRequirements calldata requirements
     ) external payable returns (bytes32 validationID);
 
     function initializeDelegatorRegistration(bytes32 validationID)

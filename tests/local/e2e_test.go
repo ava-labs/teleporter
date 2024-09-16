@@ -196,7 +196,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 			governance.ValidatorSetSig(LocalNetworkInstance)
 		})
 
-	// Staking tests
+	// Validator Manager tests
 	ginkgo.It("Native token staking manager",
 		ginkgo.Label(validatorManagerLabel),
 		func() {

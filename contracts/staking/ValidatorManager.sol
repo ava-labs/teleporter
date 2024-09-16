@@ -8,9 +8,11 @@ pragma solidity 0.8.25;
 import {
     IValidatorManager,
     ValidatorManagerSettings,
+    ValidatorChurnPeriod,
     ValidatorStatus,
     Validator,
-    ValidatorChurnPeriod
+    ValidatorChurnPeriod,
+    ValidatorRegistrationInput
 } from "./interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
@@ -37,14 +39,14 @@ abstract contract ValidatorManager is
         bytes32 _pChainBlockchainID;
         /// @notice The subnetID associated with this validator manager.
         bytes32 _subnetID;
-        /// @notice The maximum churn rate allowed per hour.
-        uint8 _maximumHourlyChurn;
-        /// @notice The churn tracker used to track the amount of stake added or removed in the past hour.
+        /// @notice The number of seconds after which to reset the churn tracker.
+        uint64 _churnPeriodSeconds;
+        /// @notice The maximum churn rate allowed per churn period.
+        uint8 _maximumChurnPercentage;
+        /// @notice The churn tracker used to track the amount of stake added or removed in the churn period.
         ValidatorChurnPeriod _churnTracker;
         /// @notice Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
-        /// @notice Maps the validationID to the end validation message such that the message can be re-sent if needed.
-        mapping(bytes32 => bytes) _pendingEndValidationMessages;
         /// @notice Maps the validationID to the validator information.
         mapping(bytes32 => Validator) _validationPeriods;
         /// @notice Maps the nodeID to the validationID for active validation periods.
@@ -56,6 +58,9 @@ abstract contract ValidatorManager is
     // TODO: Unit test for storage slot and update slot
     bytes32 private constant _VALIDATOR_MANAGER_STORAGE_LOCATION =
         0xe92546d698950ddd38910d2e15ed1d923cd0a7b3dde9e2a6a3f380565559cb00;
+
+    uint8 public constant MAXIMUM_CHURN_PERCENTAGE_LIMIT = 20;
+    uint64 public constant MAXIMUM_REGISTRATION_EXPIRY_LENGTH = 2 days;
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
@@ -93,46 +98,61 @@ abstract contract ValidatorManager is
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._pChainBlockchainID = settings.pChainBlockchainID;
         $._subnetID = settings.subnetID;
-        $._maximumHourlyChurn = settings.maximumHourlyChurn;
+
+        require(
+            settings.maximumChurnPercentage <= MAXIMUM_CHURN_PERCENTAGE_LIMIT,
+            "ValidatorManager: maximum churn percentage too high"
+        );
+        require(
+            settings.maximumChurnPercentage > 0, "ValidatorManager: zero maximum churn percentage"
+        );
+        $._maximumChurnPercentage = settings.maximumChurnPercentage;
+        $._churnPeriodSeconds = settings.churnPeriodSeconds;
+
+        // TODO Remove - this is a hack to get a starting total weight before
+        // adding an initial validator set is implemented.
+        $._churnTracker.totalWeight = 1e10;
     }
 
     /**
      * @notice Begins the validator registration process, and sets the initial weight for the validator.
-     * @param nodeID The node ID of the validator being registered.
-     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
-     * @param blsPublicKey The BLS public key of the validator.
+     * @param input The inputs for a validator registration.
+     * @param weight The weight of the validator being registered.
      */
     function _initializeValidatorRegistration(
-        bytes32 nodeID,
-        uint64 weight,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey
-    ) internal nonReentrant returns (bytes32) {
+        ValidatorRegistrationInput calldata input,
+        uint64 weight
+    ) internal virtual returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
-        // Ensure the registration expiry is in a valid range.
         require(
-            registrationExpiry > block.timestamp && block.timestamp + 2 days > registrationExpiry,
-            "ValidatorManager: invalid registration expiry"
+            input.registrationExpiry > block.timestamp,
+            "ValidatorManager: registration expiry not in future"
+        );
+        require(
+            block.timestamp + MAXIMUM_REGISTRATION_EXPIRY_LENGTH > input.registrationExpiry,
+            "ValidatorManager: registration expiry too far in future"
         );
 
         // Ensure the nodeID is not the zero address, and is not already an active validator.
-        require(nodeID != bytes32(0), "ValidatorManager: invalid node ID");
+        require(input.nodeID != bytes32(0), "ValidatorManager: invalid node ID");
         require(
-            $._activeValidators[nodeID] == bytes32(0), "ValidatorManager: node ID already active"
+            $._activeValidators[input.nodeID] == bytes32(0),
+            "ValidatorManager: node ID already active"
         );
-        require(blsPublicKey.length == 48, "ValidatorManager: invalid blsPublicKey length");
+        require(input.blsPublicKey.length == 48, "ValidatorManager: invalid blsPublicKey length");
 
-        _checkAndUpdateChurnTracker(weight);
+        // Check that adding this validator would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTrackerAddition(weight);
 
         (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 subnetID: $._subnetID,
-                nodeID: nodeID,
+                nodeID: input.nodeID,
                 weight: weight,
-                blsPublicKey: blsPublicKey,
-                registrationExpiry: registrationExpiry
+                blsPublicKey: input.blsPublicKey,
+                registrationExpiry: input.registrationExpiry
             })
         );
         $._pendingRegisterValidationMessages[validationID] = registerSubnetValidatorMessage;
@@ -141,7 +161,7 @@ abstract contract ValidatorManager is
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerSubnetValidatorMessage);
         $._validationPeriods[validationID] = Validator({
             status: ValidatorStatus.PendingAdded,
-            nodeID: nodeID,
+            nodeID: input.nodeID,
             owner: _msgSender(),
             startingWeight: weight,
             messageNonce: 0,
@@ -149,9 +169,10 @@ abstract contract ValidatorManager is
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
             endedAt: 0
         });
-        // Increment the nonce for the next usage.
-        _getAndIncrementNonce(validationID);
-        emit ValidationPeriodCreated(validationID, nodeID, messageID, weight, registrationExpiry);
+
+        emit ValidationPeriodCreated(
+            validationID, input.nodeID, messageID, weight, input.registrationExpiry
+        );
 
         return validationID;
     }
@@ -204,6 +225,11 @@ abstract contract ValidatorManager is
         return $._activeValidators[nodeID];
     }
 
+    function getValidator(bytes32 validationID) public view returns (Validator memory) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        return $._validationPeriods[validationID];
+    }
+
     /**
      * @notice Begins the process of ending an active validation period. The validation period must have been previously
      * started by a successful call to {completeValidatorRegistration} with the given validationID.
@@ -224,8 +250,8 @@ abstract contract ValidatorManager is
         );
         require(_msgSender() == validator.owner, "ValidatorManager: sender not validator owner");
 
-        // Check that removing this validator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTracker(validator.weight);
+        // Check that removing this delegator would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTrackerRemoval(validator.weight);
 
         // Update the validator status to pending removal.
         // They are not removed from the active validators mapping until the P-Chain acknowledges the removal.
@@ -241,8 +267,7 @@ abstract contract ValidatorManager is
 
         // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), 0);
-        $._pendingEndValidationMessages[validationID] = setValidatorWeightPayload;
+            .packSetSubnetValidatorWeightMessage(validationID, _incrementAndGetNonce(validationID), 0);
 
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
@@ -259,14 +284,18 @@ abstract contract ValidatorManager is
     // solhint-disable-next-line
     function resendEndValidatorMessage(bytes32 validationID) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        Validator memory validator = $._validationPeriods[validationID];
 
         require(
-            $._pendingEndValidationMessages[validationID].length > 0
-                && $._validationPeriods[validationID].status == ValidatorStatus.PendingRemoved,
+            validator.status == ValidatorStatus.PendingRemoved,
             "ValidatorManager: Validator not pending removal"
         );
 
-        WARP_MESSENGER.sendWarpMessage($._pendingEndValidationMessages[validationID]);
+        WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(
+                validationID, validator.messageNonce, 0
+            )
+        );
     }
 
     /**
@@ -300,7 +329,6 @@ abstract contract ValidatorManager is
 
         if (validator.status == ValidatorStatus.PendingRemoved) {
             endStatus = ValidatorStatus.Completed;
-            delete $._pendingEndValidationMessages[validationID];
         } else {
             endStatus = ValidatorStatus.Invalidated;
         }
@@ -324,43 +352,13 @@ abstract contract ValidatorManager is
      * @return The weight of the validator. If the validation ID does not exist, the weight will be 0.
      */
     function getWeight(bytes32 validationID) external view returns (uint64) {
-        return _getValidator(validationID).weight;
+        return getValidator(validationID).weight;
     }
 
-    /**
-     * @notice Helper function to check if the stake amount to be added or removed would exceed the maximum stake churn
-     * rate for the past hour. If the churn rate is exceeded, the function will revert. If the churn rate is not exceeded,
-     * the function will update the churn tracker with the new amount.
-     */
-    // TODO: right now implementation has reference to stake, evaluate for PoA.
-    function _checkAndUpdateChurnTracker(uint64 amount) internal {
+    function _incrementAndGetNonce(bytes32 validationID) internal returns (uint64) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        if ($._maximumHourlyChurn == 0) {
-            return;
-        }
-
-        ValidatorChurnPeriod memory churnTracker = $._churnTracker;
-        uint256 currentTime = block.timestamp;
-        if (currentTime - churnTracker.startedAt >= 1 hours) {
-            churnTracker.churnAmount = amount;
-            churnTracker.startedAt = currentTime;
-        } else {
-            churnTracker.churnAmount += amount;
-        }
-
-        uint8 churnPercentage = uint8((churnTracker.churnAmount * 100) / churnTracker.initialStake);
-        require(
-            churnPercentage <= $._maximumHourlyChurn,
-            "ValidatorManager: maximum hourly churn rate exceeded"
-        );
-        $._churnTracker = churnTracker;
-    }
-
-    function _getAndIncrementNonce(bytes32 validationID) internal returns (uint64) {
-        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        uint64 currentNonce = $._validationPeriods[validationID].messageNonce;
         $._validationPeriods[validationID].messageNonce++;
-        return currentNonce;
+        return $._validationPeriods[validationID].messageNonce;
     }
 
     function _getPChainWarpMessage(uint32 messageIndex)
@@ -383,13 +381,60 @@ abstract contract ValidatorManager is
         return warpMessage;
     }
 
-    function _getValidator(bytes32 validationID) internal view returns (Validator memory) {
-        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        return $._validationPeriods[validationID];
-    }
-
     function _setValidatorWeight(bytes32 validationID, uint64 weight) internal {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._validationPeriods[validationID].weight = weight;
+    }
+
+    /**
+     * @dev Helper function to check if the stake amount to be added exceeds churn thresholds.
+     */
+    function _checkAndUpdateChurnTrackerAddition(uint64 weight) internal {
+        _checkAndUpdateChurnTracker(weight, true);
+    }
+
+    /**
+     * @dev Helper function to check if the stake amount to be removed exceeds churn thresholds.
+     */
+    function _checkAndUpdateChurnTrackerRemoval(uint64 weight) internal {
+        _checkAndUpdateChurnTracker(weight, false);
+    }
+
+    /**
+     * @dev Helper function to check if the stake weight to be added or removed would exceed the maximum stake churn
+     * rate for the past churn period. If the churn rate is exceeded, the function will revert. If the churn rate is
+     * not exceeded, the function will update the churn tracker with the new weight.
+     */
+    function _checkAndUpdateChurnTracker(uint64 weight, bool addition) private {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+
+        uint256 currentTime = block.timestamp;
+        ValidatorChurnPeriod memory churnTracker = $._churnTracker;
+
+        if (
+            churnTracker.startedAt == 0
+                || currentTime >= churnTracker.startedAt + $._churnPeriodSeconds
+        ) {
+            churnTracker.churnAmount = weight;
+            churnTracker.startedAt = currentTime;
+            churnTracker.initialWeight = churnTracker.totalWeight;
+        } else {
+            // Churn is always additive whether the weight is being added or removed.
+            churnTracker.churnAmount += weight;
+        }
+
+        require(
+            // Rearranged equation of maximumChurnPercentage >= currentChurnPercentage to avoid integer division truncation.
+            $._maximumChurnPercentage * churnTracker.initialWeight >= churnTracker.churnAmount * 100,
+            "ValidatorManager: maximum churn rate exceeded"
+        );
+
+        if (addition) {
+            churnTracker.totalWeight += weight;
+        } else {
+            churnTracker.totalWeight -= weight;
+        }
+
+        $._churnTracker = churnTracker;
     }
 }

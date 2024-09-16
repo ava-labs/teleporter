@@ -16,11 +16,14 @@ enum DelegatorStatus {
     Completed
 }
 
+// TODO: visit types of these fields, for example uint64 might be too big for stake duration seconds.
 struct PoSValidatorManagerSettings {
     ValidatorManagerSettings baseSettings;
     uint256 minimumStakeAmount;
     uint256 maximumStakeAmount;
     uint64 minimumStakeDuration;
+    uint16 minimumDelegationFeeBips;
+    uint8 maximumStakeMultiplier;
     IRewardCalculator rewardCalculator;
 }
 
@@ -33,6 +36,11 @@ struct Delegator {
     uint64 endedAt;
     uint64 startingNonce;
     uint64 endingNonce;
+}
+
+struct PoSValidatorRequirements {
+    uint16 delegationFeeBips;
+    uint64 minStakeDuration;
 }
 
 interface IPoSValidatorManager is IValidatorManager {
@@ -112,13 +120,6 @@ interface IPoSValidatorManager is IValidatorManager {
     ) external;
 
     /**
-     * @notice Resubmits a delegator registration message to be sent to the P-Chain.
-     * Only necessary if the original message can't be delivered due to validator churn.
-     * @param delegationID The ID of the delegation being registered.
-     */
-    function resendDelegatorRegistration(bytes32 delegationID) external;
-
-    /**
      * @notice Completes the delegator registration process by returning an acknowledgement of the registration of a
      * validationID from the P-Chain. After this function is called, the validator's weight is updated in the contract state.
      * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize registration of the
@@ -149,11 +150,11 @@ interface IPoSValidatorManager is IValidatorManager {
     ) external;
 
     /**
-     * @notice Resubmits a delegator end message to be sent to the P-Chain.
+     * @notice Resubmits a delegator registration or delegator end message to be sent to the P-Chain.
      * Only necessary if the original message can't be delivered due to validator churn.
-     * @param delegationID The ID of the delegation being removed.
+     * @param delegationID The ID of the delegation.
      */
-    function resendEndDelegation(bytes32 delegationID) external;
+    function resendUpdateDelegation(bytes32 delegationID) external;
 
     /**
      * @notice Completes the process of ending a delegation by receiving an acknowledgement from the P-Chain.

@@ -8,7 +8,10 @@ pragma solidity 0.8.25;
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 import {PoAValidatorManager} from "../PoAValidatorManager.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
-import {ValidatorManagerSettings} from "../interfaces/IValidatorManager.sol";
+import {
+    ValidatorManagerSettings,
+    ValidatorRegistrationInput
+} from "../interfaces/IValidatorManager.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 
@@ -23,7 +26,8 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
             ValidatorManagerSettings({
                 pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                 subnetID: DEFAULT_SUBNET_ID,
-                maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
             }),
             address(this)
         );
@@ -38,17 +42,16 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
             )
         );
         _initializeValidatorRegistration(
-            DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY, DEFAULT_WEIGHT
+            ValidatorRegistrationInput(DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY),
+            DEFAULT_WEIGHT
         );
     }
 
     function _initializeValidatorRegistration(
-        bytes32 nodeID,
-        uint64 registrationExpiry,
-        bytes memory signature,
+        ValidatorRegistrationInput memory input,
         uint64 weight
     ) internal virtual override returns (bytes32) {
-        return app.initializeValidatorRegistration(weight, nodeID, registrationExpiry, signature);
+        return app.initializeValidatorRegistration(input, weight);
     }
 
     function _initializeEndValidation(bytes32 validationID) internal virtual override {
@@ -56,5 +59,5 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
     }
 
     // solhint-disable-next-line no-empty-blocks
-    function _beforeSend(uint64 weight, address spender) internal virtual override {}
+    function _beforeSend(uint256 amount, address spender) internal virtual override {}
 }
