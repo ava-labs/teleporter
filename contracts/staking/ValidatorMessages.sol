@@ -20,7 +20,7 @@ library ValidatorMessages {
     uint16 internal constant CODEC_ID = 0;
 
     // The P-Chain signs a SubnetConversion message that is used to verify for the Subnet's initial validators.
-    uint32 internal constant SUBNET_CONVERSION_MESSAGE_TYPE_ID = 5;
+    uint32 internal constant SUBNET_CONVERSION_MESSAGE_TYPE_ID = 0;
 
     // Subnets send a RegisterSubnetValidator message to the P-Chain to register a validator.
     uint32 internal constant REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID = 1;
