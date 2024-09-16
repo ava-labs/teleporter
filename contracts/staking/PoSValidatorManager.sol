@@ -55,9 +55,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         /// @notice Maps the delegationID to pending end delegator messages.
         mapping(bytes32 delegationID => bytes) _pendingEndDelegatorMessages;
         /// @notice Maps the delegationID to its pending staking rewards.
-        mapping(bytes32 delegationID => uint256) _pendingDelegatorRewards;
+        mapping(bytes32 delegationID => uint256) _redeemableDelegatorRewards;
         /// @notice Maps the validator owner address to its pending staking rewards.
-        mapping(address validatorOwner => uint256) _pendingValidatorRewards;
+        mapping(address validatorOwner => uint256) _redeemableValidatorRewards;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -157,19 +157,19 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
                 "PoSValidatorManager: minimum uptime threshold not met"
             );
 
-            $._pendingValidatorRewards[validator.owner] += $._rewardCalculator.calculateReward(
+            $._redeemableValidatorRewards[validator.owner] += $._rewardCalculator.calculateReward(
                 validator.weight, validator.startedAt, validator.endedAt, 0, 0
             );
         }
     }
 
     function completeEndValidation(uint32 messageIndex) external {
-        Validator memory validator = _completeEndValidation(messageIndex);
-
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
-        _reward(validator.owner, $._pendingValidatorRewards[validator.owner]);
-        delete $._pendingValidatorRewards[validator.owner];
+        Validator memory validator = _completeEndValidation(messageIndex);
+
+        _reward(validator.owner, $._redeemableValidatorRewards[validator.owner]);
+        delete $._redeemableValidatorRewards[validator.owner];
 
         _unlock(validator.startingWeight, validator.owner);
     }
@@ -383,7 +383,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
                 "PoSValidatorManager: minimum uptime threshold not met"
             );
 
-            $._pendingDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward(
+            $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward(
                 delegator.weight, delegator.startedAt, delegator.endedAt, 0, 0
             );
         }
@@ -452,6 +452,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
 
         Validator memory validator = getValidator(validationID);
+        Delegator memory delegator = $._delegatorStakes[delegationID];
+
         // The received nonce should be no greater than the highest sent nonce. This should never
         // happen since the staking manager is the only entity that can trigger a weight update
         // on the P-Chain.
@@ -470,38 +472,19 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // end delegation has been initialized, we need to make sure that this function is only
         // callable after that has been done.
         require(
-            $._delegatorStakes[delegationID].status == DelegatorStatus.PendingRemoved,
+            delegator.status == DelegatorStatus.PendingRemoved,
             "PoSValidatorManager: delegation not pending added"
         );
 
         // Update the delegator status
         $._delegatorStakes[delegationID].status = DelegatorStatus.Completed;
 
-        Delegator memory delegator = $._delegatorStakes[delegationID];
+        _reward(delegator.owner, $._redeemableDelegatorRewards[delegationID]);
+        delete $._redeemableDelegatorRewards[delegationID];
         _unlock(delegator.weight, delegator.owner);
-
-        _reward(delegator.owner, $._pendingDelegatorRewards[delegationID]);
-        delete $._pendingDelegatorRewards[delegationID];
+        // TODO can we remove the delegation from _delegatorStakes here?
 
         emit DelegationEnded(delegationID, validationID, nonce);
-    }
-
-    function _checkPendingEndDelegatorMessage(bytes32 delegationID) private view {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        require(
-            $._pendingEndDelegatorMessages[delegationID].length > 0
-                && $._delegatorStakes[delegationID].status == DelegatorStatus.PendingRemoved,
-            "PoSValidatorManager: delegation removal not pending"
-        );
-    }
-
-    function _checkPendingRegisterDelegatorMessages(bytes32 delegationID) private view {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        require(
-            $._pendingRegisterDelegatorMessages[delegationID].length > 0
-                && $._delegatorStakes[delegationID].status == DelegatorStatus.PendingAdded,
-            "PoSValidatorManager: delegation registration not pending"
-        );
     }
 
     function _reward(address account, uint256 amount) internal virtual;
