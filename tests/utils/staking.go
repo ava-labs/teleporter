@@ -368,6 +368,26 @@ func CompletePoAValidatorRegistration(
 	)
 }
 
+func InitializePoAValidatorSet(
+	sendingKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	validatorManagerAddress common.Address,
+	subnetConversionSignedMessage *avalancheWarp.Message,
+	subnetConversionData poavalidatormanager.SubnetConversionData,
+) *types.Receipt {
+	abi, err := poavalidatormanager.PoAValidatorManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("initializeValidatorSet", subnetConversionData, uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
+		sendingKey,
+		subnet,
+		validatorManagerAddress,
+		subnetConversionSignedMessage,
+	)
+}
+
 // Calls a method that retreived a signed Warp message from the transaction's access list
 func CallWarpReceiver(
 	callData []byte,
@@ -1119,6 +1139,34 @@ func ConstructSubnetValidatorWeightUpdateMessage(
 	)
 	Expect(err).Should(BeNil())
 	return updateSignedMessage
+}
+
+func ConstructSubnetConversionMessage(
+	subnetConversionID ids.ID,
+	subnet interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+) *avalancheWarp.Message {
+	subnetConversionPayload, err := warpMessages.NewSubnetConversion(subnetConversionID)
+	Expect(err).Should(BeNil())
+	subnetConversionAddressedCall, err := warpPayload.NewAddressedCall(common.Address{}.Bytes(), subnetConversionPayload.Bytes())
+	Expect(err).Should(BeNil())
+	subnetConversionUnsignedMessage, err := avalancheWarp.NewUnsignedMessage(
+		network.GetNetworkID(),
+		pChainInfo.BlockchainID,
+		subnetConversionAddressedCall.Bytes(),
+	)
+	Expect(err).Should(BeNil())
+
+	subnetConversionSignedMessage, err := signatureAggregator.CreateSignedMessage(
+		subnetConversionUnsignedMessage,
+		nil,
+		subnet.SubnetID,
+		67,
+	)
+	Expect(err).Should(BeNil())
+	return subnetConversionSignedMessage
 }
 
 //

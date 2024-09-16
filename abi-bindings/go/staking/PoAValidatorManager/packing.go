@@ -3,51 +3,37 @@
 
 package poavalidatormanager
 
-import (
-	"fmt"
-
-	"github.com/ava-labs/subnet-evm/accounts/abi"
-)
-
-var subnetConversionDataType abi.Type
-
-func init() {
-	var err error
-	subnetConversionDataType, err = abi.NewType("tuple", "struct Overloader.F", []abi.ArgumentMarshaling{
-		{Name: "convertSubnetTxID", Type: "bytes32"},
-		{Name: "blockchainID", Type: "bytes32"},
-		{Name: "validatorManagerAddress", Type: "bytes"},
-		{Name: "initialValidators", Type: "tuple[]", Components: []abi.ArgumentMarshaling{
-			{Name: "nodeID", Type: "bytes32"},
-			{Name: "weight", Type: "uint64"},
-			{Name: "blsPublicKey", Type: "bytes"},
-		}},
-	})
-	if err != nil {
-		panic(fmt.Sprintf("failed to create subnetConversionData ABI type: %v", err))
-	}
-}
-
 func (s *SubnetConversionData) Pack() ([]byte, error) {
-	args := abi.Arguments{
-		{
-			Name: "subnetConversionData",
-			Type: subnetConversionDataType,
-		},
+	packedLen := 72 + len(s.ValidatorManagerAddress) + 88*len(s.InitialValidators)
+
+	b := make([]byte, packedLen)
+	copy(b[0:32], s.ConvertSubnetTxID[:])
+	copy(b[32:64], s.BlockchainID[:])
+	lenAddress := len(s.ValidatorManagerAddress)
+	for i := 0; i < 4; i++ {
+		b[i+64] = byte(lenAddress >> uint(8*(1-i)))
 	}
-	return args.Pack(s)
+	copy(b[68:68+lenAddress], s.ValidatorManagerAddress)
+	lenValidators := len(s.InitialValidators)
+	for i := 0; i < 4; i++ {
+		b[i+68+lenAddress] = byte(lenValidators >> uint8(8*(3-i)))
+	}
+	for i, iv := range s.InitialValidators {
+		packedIv, err := iv.Pack()
+		if err != nil {
+			return nil, err
+		}
+		copy(b[72+lenAddress+i*88:72+lenAddress+(i+1)*88], packedIv)
+	}
+	return b, nil
 }
 
-func (s *SubnetConversionData) Unpack(b []byte) error {
-	args := abi.Arguments{
-		{
-			Name: "subnetConversionData",
-			Type: subnetConversionDataType,
-		},
+func (iv *InitialValidator) Pack() ([]byte, error) {
+	b := make([]byte, 88)
+	copy(b[0:32], iv.NodeID[:])
+	for i := 0; i < 8; i++ {
+		b[i+32] = byte(iv.Weight >> uint8(8*(7-i)))
 	}
-	unpacked, err := args.Unpack(b)
-	if err != nil {
-		return fmt.Errorf("failed to unpack to subnetConversionData with err: %v", err)
-	}
-	return args.Copy(&s, unpacked)
+	copy(b[40:88], iv.BlsPublicKey)
+	return b, nil
 }

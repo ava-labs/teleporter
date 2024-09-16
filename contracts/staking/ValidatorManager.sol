@@ -122,7 +122,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             subnetConversionData.blockchainID,
             subnetConversionData.validatorManagerAddress
         );
-        uint256 length = encodedConversion.length;
+        uint256 length = subnetConversionData.initialValidators.length;
         for (uint256 i; i < length; i++) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             encodedConversion = abi.encodePacked(
