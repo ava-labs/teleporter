@@ -158,19 +158,12 @@ func DeployAndInitializeERC20TokenStakingManager(
 				ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
 				MaximumChurnPercentage: DefaultMaxChurnPercentage,
 			},
-<<<<<<< HEAD
-			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration: uint64(24 * time.Hour),
-			RewardCalculator:     rewardCalculatorAddress,
-=======
 			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
 			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
 			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
 			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
-			RewardCalculator:         common.Address{},
->>>>>>> staking-contract
+			RewardCalculator:         rewardCalculatorAddress,
 		},
 		erc20Address,
 	)

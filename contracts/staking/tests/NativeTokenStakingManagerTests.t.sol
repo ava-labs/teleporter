@@ -58,7 +58,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         // method and let the implementation in PosValidatorManagerTests do the
         // test, and remove the `virtual` modifier from that implementation.
     }
-    
+
     function testZeroMinimumDelegationFee() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         vm.expectRevert(_formatErrorMessage("zero delegation fee"));
