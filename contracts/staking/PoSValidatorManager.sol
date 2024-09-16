@@ -158,7 +158,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
                 $._redeemableValidatorRewards[validator.owner] += $
                     ._rewardCalculator
                     .calculateReward(
-                    weightToValue(validator.weight), validator.startedAt, validator.endedAt, 0, 0
+                    weightToValue(validator.startingWeight),
+                    validator.startedAt,
+                    validator.endedAt,
+                    0,
+                    0
                 );
             }
         }
