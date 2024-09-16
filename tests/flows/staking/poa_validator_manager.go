@@ -2,11 +2,14 @@ package staking
 
 import (
 	"context"
+	"crypto/sha256"
 	"math/big"
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/bls"
+	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	"github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/PoAValidatorManager"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -73,6 +76,35 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		ownerAddress,
 	)
 
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
+	Expect(err).Should(BeNil())
+
+	convertSubnetTxId := ids.GenerateTestID()
+	subnetConversionData := poavalidatormanager.SubnetConversionData{
+		ConvertSubnetTxID:       convertSubnetTxId,
+		BlockchainID:            subnetAInfo.BlockchainID,
+		ValidatorManagerAddress: validatorManagerAddress.Bytes(),
+		InitialValidators: []poavalidatormanager.InitialValidator{
+			{
+				NodeID:       ids.GenerateTestID(),
+				Weight:       1,
+				BlsPublicKey: []byte{},
+			},
+		},
+	}
+	unsignedMsg := createOffChainSubnetConversionMessage(subnetConversionData, pChainInfo, network.GetNetworkID())
+
+	unsignedMsgs := []avalancheWarp.UnsignedMessage{*unsignedMsg}
+	warpConfigWithMsg := utils.GetChainConfigWithOffChainMessages(unsignedMsgs)
+	chainConfigs := make(utils.ChainConfigMap)
+	chainConfigs.Add(subnetAInfo, warpConfigWithMsg)
+
+	network.SetChainConfigs(chainConfigs)
+	// network.RestartNodes(context.Background(), network.GetAllNodeIDs())
+
+	_, err = validatorManager.InitializeValidatorSet(opts, subnetConversionData, 0)
+	Expect(err).Should(BeNil())
+
 	var validationID ids.ID // To be used in the delisting step
 	nodeID := ids.GenerateTestID()
 	blsPublicKey := [bls.PublicKeyLen]byte{}
@@ -137,4 +169,29 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 			1,
 		)
 	}
+}
+
+func createOffChainSubnetConversionMessage(
+	subnetConversionData poavalidatormanager.SubnetConversionData,
+	pChainInfo interfaces.SubnetTestInfo,
+	networkID uint32,
+) *avalancheWarp.UnsignedMessage {
+	subnetConversionBytes, err := subnetConversionData.Pack()
+	Expect(err).Should(BeNil())
+	subnetConversionID := sha256.Sum256(subnetConversionBytes)
+	sourceAddress := []byte{}
+
+	payloadBytes := make([]byte, 38)
+	copy(payloadBytes[:6], subnetConversionID[:])
+	addressedPayload, err := payload.NewAddressedCall(sourceAddress, payloadBytes)
+	Expect(err).Should(BeNil())
+
+	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(
+		networkID,
+		pChainInfo.BlockchainID,
+		addressedPayload.Bytes(),
+	)
+	Expect(err).Should(BeNil())
+
+	return unsignedMessage
 }

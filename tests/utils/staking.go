@@ -225,10 +225,8 @@ func InitializeNativeValidatorRegistration(
 			RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
 			BlsPublicKey:       blsPublicKey[:],
 		},
-		nativetokenstakingmanager.PoSValidatorRequirements{
-			DelegationFeeBips: defaultMinDelegateFeeBips,
-			MinStakeDuration:  defaultMinStakeDurationSeconds,
-		},
+		defaultMinDelegateFeeBips,
+		defaultMinStakeDurationSeconds,
 	)
 	Expect(err).Should(BeNil())
 	receipt := WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
@@ -269,10 +267,8 @@ func InitializeERC20ValidatorRegistration(
 			RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
 			BlsPublicKey:       blsPublicKey[:],
 		},
-		erc20tokenstakingmanager.PoSValidatorRequirements{
-			DelegationFeeBips: defaultMinDelegateFeeBips,
-			MinStakeDuration:  defaultMinStakeDurationSeconds,
-		},
+		defaultMinDelegateFeeBips,
+		defaultMinStakeDurationSeconds,
 		stakeAmount,
 	)
 	Expect(err).Should(BeNil())

@@ -464,7 +464,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        require(valid, "ValidatorManager: Invinvalidalid warp message");
+        require(valid, "ValidatorManager: Invalid warp message");
         require(
             warpMessage.sourceChainID == $._pChainBlockchainID,
             "ValidatorManager: invalid source chain ID"

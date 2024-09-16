@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
+	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/PoAValidatorManager"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/registry/TeleporterRegistry"
 
@@ -38,6 +39,7 @@ var packerTypes = map[string]ABIPacker{
 	"ValidatorSetSigMessage": &validatorsetsig.ValidatorSetSigMessage{},
 	"TeleporterMessage":      &teleportermessenger.TeleporterMessage{},
 	"ProtocolRegistryEntry":  &teleporterregistry.ProtocolRegistryEntry{},
+	"SubnetConversionData":   &poavalidatormanager.SubnetConversionData{},
 }
 
 // findAllImplementers returns names of all structs that implement the ABIPacker interface
