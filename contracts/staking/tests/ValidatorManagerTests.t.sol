@@ -334,6 +334,10 @@ abstract contract ValidatorManagerTest is Test {
         );
     }
 
+    function _mockInitializeValidatorSet() internal {
+        // _mockGetVerifiedWarpMessage()
+    }
+
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory input,
         uint64 weight
