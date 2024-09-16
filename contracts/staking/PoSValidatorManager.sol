@@ -68,6 +68,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     uint8 public constant MAXIMUM_STAKE_MULTIPLIER_LIMIT = 10;
 
+    uint8 public constant UPTIME_REWARDS_THRESHOLD_PERCENTAGE = 80;
+
     uint16 public constant MAXIMUM_DELEGATION_FEE_BIPS = 10000;
 
     // solhint-disable ordering
@@ -137,24 +139,28 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint32 messageIndex
     ) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        Validator memory validator = _initializeEndValidation(validationID);
+
         // Check that minimum stake duration has passed
-        Validator memory validator = getValidator(validationID);
         require(
-            block.timestamp
+            validator.endedAt
                 >= validator.startedAt + $._validatorRequirements[validationID].minStakeDuration,
             "PoSValidatorManager: minimum stake duration not met"
         );
 
-        uint64 uptime;
         if (includeUptimeProof) {
-            uptime = _getUptime(validationID, messageIndex);
+            uint64 uptime = _getUptime(validationID, messageIndex);
+            require(
+                uptime * 100
+                    >= (validator.endedAt - validator.startedAt) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE,
+                "PoSValidatorManager: minimum uptime threshold not met"
+            );
+
+            $._pendingValidatorRewards[validator.owner] += $._rewardCalculator.calculateReward(
+                validator.weight, validator.startedAt, validator.endedAt, 0, 0
+            );
         }
-
-        // TODO check if above 80% uptime
-        $._pendingValidatorRewards[validator.owner] +=
-            $._rewardCalculator.calculateReward(validator.weight, uptime, 0, 0);
-
-        _initializeEndValidation(validationID);
     }
 
     function completeEndValidation(uint32 messageIndex) external {
@@ -347,13 +353,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bytes32 validationID = $._delegatorStakes[delegationID].validationID;
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
-
-        uint64 uptime;
-        if (includeUptimeProof) {
-            uptime = _getUptime(validationID, messageIndex);
-        }
-        $._pendingDelegatorRewards[delegationID] =
-            $._rewardCalculator.calculateReward(delegator.weight, uptime, 0, 0);
+        Validator memory validator = getValidator(validationID);
+        uint64 currentTime = uint64(block.timestamp);
 
         // Ensure the delegator is active
         require(
@@ -369,13 +370,23 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // the complete step, even if the delivered nonce is greater than the nonce used to
         // initialize the removal.
         delegator.status = DelegatorStatus.PendingRemoved;
-        delegator.endedAt = uint64(block.timestamp);
+        delegator.endedAt = currentTime;
         delegator.endingNonce = nonce;
 
         $._delegatorStakes[delegationID] = delegator;
 
-        Validator memory validator = getValidator(validationID);
-        require(validator.weight > delegator.weight, "PoSValidatorManager: Invalid weight");
+        if (includeUptimeProof) {
+            uint256 uptime = _getUptime(validationID, messageIndex);
+            require(
+                uptime * 100
+                    >= (currentTime - validator.startedAt) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE,
+                "PoSValidatorManager: minimum uptime threshold not met"
+            );
+
+            $._pendingDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward(
+                delegator.weight, delegator.startedAt, delegator.endedAt, 0, 0
+            );
+        }
 
         // Check that removing this delegator would not exceed the maximum churn rate.
         // We only need to check this is the validator is still active. If the validator ends its validation
@@ -400,7 +411,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             validationID: validationID,
             nonce: nonce,
             validatorWeight: newValidatorWeight,
-            endTime: block.timestamp,
+            endTime: currentTime,
             setWeightMessageID: messageID
         });
     }

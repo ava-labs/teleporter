@@ -752,7 +752,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint256 stakeAmount
     ) internal virtual returns (bytes32);
 
-    function _initializeEndValidation(bytes32 validationID, bool includeUptime) internal virtual override {
+    function _initializeEndValidation(
+        bytes32 validationID,
+        bool includeUptime
+    ) internal virtual override {
         return posValidatorManager.initializeEndValidation(validationID, includeUptime, 0);
     }
 

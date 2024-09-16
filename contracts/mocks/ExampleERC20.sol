@@ -19,7 +19,7 @@ contract ExampleERC20 is ERC20Burnable, IERC20Mintable {
     string private constant _TOKEN_NAME = "Mock Token";
     string private constant _TOKEN_SYMBOL = "EXMP";
 
-    uint256 private constant _MAX_MINT = 1e16;
+    uint256 private constant _MAX_MINT = 1e19;
 
     constructor() ERC20(_TOKEN_NAME, _TOKEN_SYMBOL) {
         _mint(msg.sender, 1e28);

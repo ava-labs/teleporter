@@ -8,7 +8,8 @@ pragma solidity 0.8.25;
 interface IRewardCalculator {
     function calculateReward(
         uint256 stakeAmount,
-        uint64 uptime,
+        uint64 startTime,
+        uint64 endTime,
         uint256 initialSupply,
         uint256 endSupply
     ) external view returns (uint256);
