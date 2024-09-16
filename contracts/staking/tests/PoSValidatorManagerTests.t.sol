@@ -23,17 +23,20 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     uint64 public constant DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP =
         DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP + DEFAULT_EXPIRY;
     uint64 public constant DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP =
-        DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + DEFAULT_EXPIRY;
+        DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION;
     address public constant DEFAULT_DELEGATOR_ADDRESS =
         address(0x1234123412341234123412341234123412341234);
     uint64 public constant DEFAULT_REWARD_RATE = uint64(10);
     uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
     uint16 public constant DEFAULT_MINIMUM_DELEGATION_FEE_BIPS = 100;
     uint8 public constant DEFAULT_MAXIMUM_STAKE_MULTIPLIER = 4;
+    uint256 public constant SECONDS_IN_YEAR = 31536000;
 
     PoSValidatorManager public posValidatorManager;
 
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
+
+    event GeoffEvent(uint256 num);
 
     event DelegatorAdded(
         bytes32 indexed delegationID,
@@ -488,8 +491,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
-            includeUptime: true
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
         bytes memory setValidatorWeightPayload =
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
@@ -498,9 +500,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     }
 
     function testCompleteEndDelegation() public virtual {
-        uint256 registrationDuration = 1000 * 60 * 60 * 24; // 1 day
+        uint256 registrationDuration = DEFAULT_MINIMUM_STAKE_DURATION;
 
-        uint256 registrationExpiry = vm.getBlockTimestamp() + registrationDuration;
+        uint256 registrationExpiry =
+            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + registrationDuration;
 
         bytes32 validationID = _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
@@ -537,15 +540,16 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         address delegator = DEFAULT_DELEGATOR_ADDRESS;
         uint256 balanceBefore = _getStakeAssetBalance(delegator);
-        uint256 expectedReward = DEFAULT_DELEGATOR_WEIGHT * DEFAULT_REWARD_RATE / 365;
-        _expectStakeUnlock(delegator, DEFAULT_DELEGATOR_WEIGHT);
+        uint256 expectedReward = _weightToValue(DEFAULT_DELEGATOR_WEIGHT) * DEFAULT_REWARD_RATE
+            * registrationDuration / 10000 / SECONDS_IN_YEAR;
+        _expectStakeUnlock(delegator, _weightToValue(DEFAULT_DELEGATOR_WEIGHT));
         _expectRewardIssuance(delegator, expectedReward);
 
         _setUpCompleteEndDelegation(validationID, delegationID, DEFAULT_WEIGHT, DEFAULT_WEIGHT, 2);
 
         uint256 balanceChange = _getStakeAssetBalance(delegator) - balanceBefore;
         require(
-            balanceChange == DEFAULT_DELEGATOR_WEIGHT + expectedReward,
+            balanceChange == _weightToValue(DEFAULT_DELEGATOR_WEIGHT) + expectedReward,
             "delegator should have received their stake back and been rewarded"
         );
     }
@@ -695,9 +699,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     }
 
     function testCompleteEndValidation() public virtual override {
-        uint256 registrationDuration = 1000 * 60 * 60 * 24; // 1 day
+        uint256 registrationDuration = DEFAULT_MINIMUM_STAKE_DURATION;
 
-        uint256 registrationExpiry = vm.getBlockTimestamp() + registrationDuration;
+        uint256 registrationExpiry = DEFAULT_REGISTRATION_TIMESTAMP + registrationDuration;
 
         bytes32 validationID = _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
@@ -712,16 +716,17 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 balanceBefore = _getStakeAssetBalance(address(this));
 
-        uint256 expectedReward = DEFAULT_WEIGHT * DEFAULT_REWARD_RATE / 365 - 1;
+        uint256 expectedReward = _weightToValue(DEFAULT_WEIGHT) * DEFAULT_REWARD_RATE
+            * registrationDuration / 10000 / SECONDS_IN_YEAR;
 
-        _expectStakeUnlock(address(this), DEFAULT_WEIGHT);
+        _expectStakeUnlock(address(this), _weightToValue(DEFAULT_WEIGHT));
         _expectRewardIssuance(address(this), expectedReward);
 
         _testCompleteEndValidation(validationID);
 
         uint256 balanceChange = _getStakeAssetBalance(address(this)) - balanceBefore;
         require(
-            balanceChange == DEFAULT_WEIGHT + expectedReward,
+            balanceChange == _weightToValue(DEFAULT_WEIGHT) + expectedReward,
             "validator should have received their stake back and been rewarded"
         );
     }

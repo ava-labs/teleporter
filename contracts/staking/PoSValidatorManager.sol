@@ -151,15 +151,16 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         if (includeUptimeProof) {
             uint64 uptime = _getUptime(validationID, messageIndex);
-            require(
+            if (
                 uptime * 100
-                    >= (validator.endedAt - validator.startedAt) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE,
-                "PoSValidatorManager: minimum uptime threshold not met"
-            );
-
-            $._redeemableValidatorRewards[validator.owner] += $._rewardCalculator.calculateReward(
-                validator.weight, validator.startedAt, validator.endedAt, 0, 0
-            );
+                    >= (validator.endedAt - validator.startedAt) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE
+            ) {
+                $._redeemableValidatorRewards[validator.owner] += $
+                    ._rewardCalculator
+                    .calculateReward(
+                    weightToValue(validator.weight), validator.startedAt, validator.endedAt, 0, 0
+                );
+            }
         }
     }
 
@@ -171,7 +172,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         _reward(validator.owner, $._redeemableValidatorRewards[validator.owner]);
         delete $._redeemableValidatorRewards[validator.owner];
 
-        _unlock(validator.startingWeight, validator.owner);
+        _unlock(validator.owner, weightToValue(validator.startingWeight));
     }
 
     function _getUptime(bytes32 validationID, uint32 messageIndex) internal view returns (uint64) {
@@ -237,7 +238,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     }
 
     function _lock(uint256 value) internal virtual returns (uint256);
-    function _unlock(uint256 value, address to) internal virtual;
+    function _unlock(address to, uint256 value) internal virtual;
 
     function _initializeDelegatorRegistration(
         bytes32 validationID,
@@ -377,15 +378,14 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         if (includeUptimeProof) {
             uint256 uptime = _getUptime(validationID, messageIndex);
-            require(
+            if (
                 uptime * 100
-                    >= (currentTime - validator.startedAt) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE,
-                "PoSValidatorManager: minimum uptime threshold not met"
-            );
-
-            $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward(
-                delegator.weight, delegator.startedAt, delegator.endedAt, 0, 0
-            );
+                    >= (currentTime - validator.startedAt) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE
+            ) {
+                $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward(
+                    weightToValue(delegator.weight), delegator.startedAt, delegator.endedAt, 0, 0
+                );
+            }
         }
 
         // Check that removing this delegator would not exceed the maximum churn rate.
@@ -481,7 +481,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         _reward(delegator.owner, $._redeemableDelegatorRewards[delegationID]);
         delete $._redeemableDelegatorRewards[delegationID];
-        _unlock(delegator.weight, delegator.owner);
+        _unlock(delegator.owner, weightToValue(delegator.weight));
         // TODO can we remove the delegation from _delegatorStakes here?
 
         emit DelegationEnded(delegationID, validationID, nonce);

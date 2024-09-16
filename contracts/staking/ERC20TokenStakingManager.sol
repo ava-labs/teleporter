@@ -119,7 +119,7 @@ contract ERC20TokenStakingManager is
         return _getERC20StakingManagerStorage()._token.safeTransferFrom(value);
     }
 
-    function _unlock(uint256 value, address to) internal virtual override {
+    function _unlock(address to, uint256 value) internal virtual override {
         _getERC20StakingManagerStorage()._token.safeTransfer(to, value);
     }
 
