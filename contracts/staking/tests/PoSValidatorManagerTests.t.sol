@@ -158,19 +158,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         posValidatorManager.initializeEndValidation(validationID, false, 0);
     }
 
-    function testInitializeEndValidation() public override {
-        _setUpInitializeEndValidation({
-            nodeID: DEFAULT_NODE_ID,
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
-            includeUptime: false
-        });
-    }
-
     function testInvalidUptimeWarpMessage() public {
         bytes32 validationID = _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
@@ -765,8 +752,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint256 stakeAmount
     ) internal virtual returns (bytes32);
 
-    function _initializeEndValidation(bytes32 validationID) internal virtual override {
-        return posValidatorManager.initializeEndValidation(validationID, true, 0);
+    function _initializeEndValidation(bytes32 validationID, bool includeUptime) internal virtual override {
+        return posValidatorManager.initializeEndValidation(validationID, includeUptime, 0);
     }
 
     function _initializeDelegatorRegistration(

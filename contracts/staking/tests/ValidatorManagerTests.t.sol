@@ -144,10 +144,6 @@ abstract contract ValidatorManagerTest is Test {
         });
     }
 
-    function testInitializeEndValidationExcessiveChurn() public {
-        // TODO: implement
-    }
-
     function testResendEndValidation() public virtual {
         bytes32 validationID = _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
@@ -252,7 +248,7 @@ abstract contract ValidatorManagerTest is Test {
 
         // Second call should fail
         vm.expectRevert("ValidatorManager: maximum churn rate exceeded");
-        _initializeEndValidation(validationID);
+        _initializeEndValidation(validationID, false);
     }
 
     function _newNodeID() internal returns (bytes32) {
@@ -380,7 +376,7 @@ abstract contract ValidatorManagerTest is Test {
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp);
 
-        _initializeEndValidation(validationID);
+        _initializeEndValidation(validationID, includeUptime);
     }
 
     function _testCompleteEndValidation(bytes32 validationID) internal virtual {
@@ -444,7 +440,7 @@ abstract contract ValidatorManagerTest is Test {
         uint64 weight
     ) internal virtual returns (bytes32);
 
-    function _initializeEndValidation(bytes32 validationID) internal virtual;
+    function _initializeEndValidation(bytes32 validationID, bool includeUptime) internal virtual;
 
     function _beforeSend(uint256 amount, address spender) internal virtual;
 
