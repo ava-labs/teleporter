@@ -3,6 +3,7 @@ package staking
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/binary"
 	"math/big"
 	"time"
 
@@ -88,6 +89,12 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 			},
 		},
 	}
+	// expected ValidationID for a node is SHA256 of concatenation of convertSubnetTxID and
+	// it's index in the initial validators list
+	expectedValidationIDPreHash := make([]byte, 40)
+	copy(expectedValidationIDPreHash[0:32], convertSubnetTxId[:])
+	binary.BigEndian.PutUint64(expectedValidationIDPreHash[32:40], 0)
+	expectedValidationID := sha256.Sum256(expectedValidationIDPreHash)
 
 	subnetConversionDataBytes, err := subnetConversionData.Pack()
 	Expect(err).Should(BeNil())
@@ -117,6 +124,7 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 	)
 	Expect(err).Should(BeNil())
 	Expect(initialValidatorCreatedEvent.NodeID).Should(Equal(subnetConversionData.InitialValidators[0].NodeID))
+	Expect(initialValidatorCreatedEvent.ValidationID).Should(Equal(expectedValidationID))
 
 	var validationID ids.ID // To be used in the delisting step
 	weight := uint64(1)

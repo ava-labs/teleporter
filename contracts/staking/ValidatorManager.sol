@@ -124,7 +124,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         );
         uint256 numInitialValidators = subnetConversionData.initialValidators.length;
         require(
-            numInitialValidators < type(uint32).max, "ValidatorManager: too many initial validators"
+            numInitialValidators < type(uint64).max, "ValidatorManager: too many initial validators"
         );
 
         // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
@@ -135,7 +135,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             subnetConversionData.validatorManagerAddress,
             uint32(numInitialValidators)
         );
-        for (uint256 i; i < numInitialValidators; i++) {
+        for (uint64 i; i < numInitialValidators; i++) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             bytes32 nodeID = initialValidator.nodeID;
             require(nodeID != bytes32(0), "ValidatorManager: invalid node ID");
@@ -183,9 +183,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Parse the Warp message into SubnetConversionMessage
         bytes32 subnetConversionID =
             ValidatorMessages.unpackSubnetConversionMessage(warpMessage.payload);
-        require(
-            encodedConversion.length == 180, "ValidatorManager: invalid encoded conversion length"
-        );
         require(
             sha256(encodedConversion) == subnetConversionID,
             "ValidatorManager: invalid subnet conversion ID"
