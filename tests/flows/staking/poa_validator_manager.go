@@ -75,15 +75,16 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 	)
 
 	convertSubnetTxId := ids.GenerateTestID()
+	blsPublicKey := [bls.PublicKeyLen]byte{}
 	subnetConversionData := poavalidatormanager.SubnetConversionData{
 		ConvertSubnetTxID:       convertSubnetTxId,
 		BlockchainID:            subnetAInfo.BlockchainID,
-		ValidatorManagerAddress: validatorManagerAddress.Bytes(),
+		ValidatorManagerAddress: validatorManagerAddress,
 		InitialValidators: []poavalidatormanager.InitialValidator{
 			{
 				NodeID:       ids.GenerateTestID(),
 				Weight:       1,
-				BlsPublicKey: []byte{},
+				BlsPublicKey: blsPublicKey[:],
 			},
 		},
 	}

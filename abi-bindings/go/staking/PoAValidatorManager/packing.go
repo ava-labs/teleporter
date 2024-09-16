@@ -11,9 +11,9 @@ func (s *SubnetConversionData) Pack() ([]byte, error) {
 	copy(b[32:64], s.BlockchainID[:])
 	lenAddress := len(s.ValidatorManagerAddress)
 	for i := 0; i < 4; i++ {
-		b[i+64] = byte(lenAddress >> uint(8*(1-i)))
+		b[i+64] = byte(lenAddress >> uint8(8*(3-i)))
 	}
-	copy(b[68:68+lenAddress], s.ValidatorManagerAddress)
+	copy(b[68:68+lenAddress], s.ValidatorManagerAddress.Bytes())
 	lenValidators := len(s.InitialValidators)
 	for i := 0; i < 4; i++ {
 		b[i+68+lenAddress] = byte(lenValidators >> uint8(8*(3-i)))

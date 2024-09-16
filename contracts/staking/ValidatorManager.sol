@@ -184,6 +184,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         bytes32 subnetConversionID =
             ValidatorMessages.unpackSubnetConversionMessage(warpMessage.payload);
         require(
+            encodedConversion.length == 180, "ValidatorManager: invalid encoded conversion length"
+        );
+        require(
             sha256(encodedConversion) == subnetConversionID,
             "ValidatorManager: invalid subnet conversion ID"
         );
