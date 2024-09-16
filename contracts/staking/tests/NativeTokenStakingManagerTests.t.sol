@@ -106,6 +106,26 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         );
     }
 
+    function testZeroMaxStakeMultiplier() public {
+        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        vm.expectRevert(_formatErrorMessage("zero maximum stake multiplier"));
+        app.initialize(
+            PoSValidatorManagerSettings({
+                baseSettings: ValidatorManagerSettings({
+                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
+                    subnetID: DEFAULT_SUBNET_ID,
+                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                }),
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+                maximumStakeMultiplier: 0,
+                rewardCalculator: IRewardCalculator(address(0))
+            })
+        );
+    }
+
     function testMaxStakeMultiplierOverLimit() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         uint8 maximumStakeMultiplier = app.MAXIMUM_STAKE_MULTIPLIER_LIMIT() + 1;
@@ -130,11 +150,13 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     // Helpers
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory registrationInput,
-        PoSValidatorRequirements memory requirements,
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration,
         uint256 stakeAmount
     ) internal virtual override returns (bytes32) {
-        return
-            app.initializeValidatorRegistration{value: stakeAmount}(registrationInput, requirements);
+        return app.initializeValidatorRegistration{value: stakeAmount}(
+            registrationInput, delegationFeeBips, minStakeDuration
+        );
     }
 
     function _initializeValidatorRegistration(
@@ -142,11 +164,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         uint64 weight
     ) internal virtual override returns (bytes32) {
         return app.initializeValidatorRegistration{value: app.weightToValue(weight)}(
-            input,
-            PoSValidatorRequirements({
-                minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS
-            })
+            input, DEFAULT_MINIMUM_DELEGATION_FEE_BIPS, DEFAULT_MINIMUM_STAKE_DURATION
         );
     }
 

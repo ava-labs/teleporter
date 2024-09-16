@@ -65,73 +65,78 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     );
 
     function testDelegationFeeBipsTooLow() public {
-        PoSValidatorRequirements memory requirements = PoSValidatorRequirements({
-            minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-            delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS - 1
-        });
+        //         ValidatorRegistrationInput calldata registrationInput,
+        // uint16 delegationFeeBips,
+        // uint64 minStakeDuration,
+        // uint256 stakeAmount
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
-        _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MINIMUM_STAKE);
+        _initializeValidatorRegistration(
+            registrationInput,
+            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS - 1,
+            DEFAULT_MINIMUM_STAKE_DURATION,
+            DEFAULT_MINIMUM_STAKE
+        );
     }
 
     function testDelegationFeeBipsTooHigh() public {
-        PoSValidatorRequirements memory requirements = PoSValidatorRequirements({
-            minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-            delegationFeeBips: posValidatorManager.MAXIMUM_DELEGATION_FEE_BIPS() + 1
-        });
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
+        uint16 delegationFeeBips = posValidatorManager.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
         vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
-        _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MINIMUM_STAKE);
+        _initializeValidatorRegistration(
+            registrationInput,
+            delegationFeeBips,
+            DEFAULT_MINIMUM_STAKE_DURATION,
+            DEFAULT_MINIMUM_STAKE
+        );
     }
 
     function testInvalidMinStakeDuration() public {
-        PoSValidatorRequirements memory requirements = PoSValidatorRequirements({
-            minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION - 1,
-            delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS
-        });
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         vm.expectRevert(_formatErrorMessage("invalid min stake duration"));
-        _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MINIMUM_STAKE);
+        _initializeValidatorRegistration(
+            registrationInput,
+            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+            DEFAULT_MINIMUM_STAKE_DURATION - 1,
+            DEFAULT_MINIMUM_STAKE
+        );
     }
 
     function testStakeAmountTooLow() public {
-        PoSValidatorRequirements memory requirements = PoSValidatorRequirements({
-            minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-            delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS
-        });
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         vm.expectRevert(_formatErrorMessage("invalid stake amount"));
-        _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MINIMUM_STAKE - 1);
+        _initializeValidatorRegistration(
+            registrationInput,
+            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+            DEFAULT_MINIMUM_STAKE_DURATION,
+            DEFAULT_MINIMUM_STAKE - 1
+        );
     }
 
     function testStakeAmountTooHigh() public {
-        PoSValidatorRequirements memory requirements = PoSValidatorRequirements({
-            minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-            delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS
-        });
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         vm.expectRevert(_formatErrorMessage("invalid stake amount"));
-        _initializeValidatorRegistration(registrationInput, requirements, DEFAULT_MAXIMUM_STAKE + 1);
+        _initializeValidatorRegistration(registrationInput, DEFAULT_MINIMUM_DELEGATION_FEE_BIPS, DEFAULT_MINIMUM_STAKE_DURATION, DEFAULT_MAXIMUM_STAKE + 1);
     }
 
     function testInvalidInitializeEndTime() public {
@@ -696,7 +701,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory registrationInput,
-        PoSValidatorRequirements memory requirements,
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration,
         uint256 stakeAmount
     ) internal virtual returns (bytes32);
 

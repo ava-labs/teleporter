@@ -36,14 +36,12 @@ struct ValidatorManagerSettings {
     bytes32 pChainBlockchainID;
     bytes32 subnetID;
     uint8 maximumHourlyChurn;
-    SubnetConversionData subnetConversionData;
-    uint32 messageIndex;
 }
 
 struct SubnetConversionData {
     bytes32 convertSubnetTxID;
     bytes32 blockchainID;
-    bytes validatorManagerAddress;
+    address validatorManagerAddress;
     InitialValidator[] initialValidators;
 }
 

@@ -118,8 +118,6 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 	Expect(initialValidatorCreatedEvent.NodeID).Should(Equal(subnetConversionData.InitialValidators[0].NodeID))
 
 	var validationID ids.ID // To be used in the delisting step
-	nodeID := ids.GenerateTestID()
-	blsPublicKey := [bls.PublicKeyLen]byte{}
 	weight := uint64(1)
 
 	{
@@ -127,6 +125,8 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 		Expect(err).Should(BeNil())
 
+		nodeID := ids.GenerateTestID()
+		blsPublicKey := [bls.PublicKeyLen]byte{}
 		_, err = validatorManager.InitializeValidatorRegistration(
 			opts,
 			poavalidatormanager.ValidatorRegistrationInput{
@@ -149,8 +149,6 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 			validatorManager,
 			validatorManagerAddress,
 			weight,
-			nodeID,
-			blsPublicKey,
 		)
 	}
 

@@ -117,6 +117,27 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         );
     }
 
+    function testZeroMaxStakeMultiplier() public {
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
+        vm.expectRevert(_formatErrorMessage("zero maximum stake multiplier"));
+        app.initialize(
+            PoSValidatorManagerSettings({
+                baseSettings: ValidatorManagerSettings({
+                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
+                    subnetID: DEFAULT_SUBNET_ID,
+                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                }),
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+                maximumStakeMultiplier: 0,
+                rewardCalculator: IRewardCalculator(address(0))
+            }),
+            token
+        );
+    }
+
     function testMaxStakeMultiplierOverLimit() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         uint8 maximumStakeMultiplier = app.MAXIMUM_STAKE_MULTIPLIER_LIMIT() + 1;
@@ -146,10 +167,8 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         vm.expectRevert(_formatErrorMessage("invalid min stake duration"));
         app.initializeValidatorRegistration(
             input,
-            PoSValidatorRequirements({
-                minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION - 1,
-                delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS
-            }),
+            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+            DEFAULT_MINIMUM_STAKE_DURATION - 1,
             stakeAmount
         );
     }
@@ -161,20 +180,21 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
         app.initializeValidatorRegistration(
             input,
-            PoSValidatorRequirements({
-                minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS - 1
-            }),
+            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS - 1,
+            DEFAULT_MINIMUM_STAKE_DURATION,
             stakeAmount
         );
     }
 
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory registrationInput,
-        PoSValidatorRequirements memory requirements,
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration,
         uint256 stakeAmount
     ) internal virtual override returns (bytes32) {
-        return app.initializeValidatorRegistration(registrationInput, requirements, stakeAmount);
+        return app.initializeValidatorRegistration(
+            registrationInput, delegationFeeBips, minStakeDuration, stakeAmount
+        );
     }
 
     function _initializeValidatorRegistration(
@@ -183,10 +203,8 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     ) internal virtual override returns (bytes32) {
         return app.initializeValidatorRegistration(
             input,
-            PoSValidatorRequirements({
-                minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS
-            }),
+            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+            DEFAULT_MINIMUM_STAKE_DURATION,
             app.weightToValue(weight)
         );
     }

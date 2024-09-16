@@ -53,7 +53,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	//
 	// Register a validator
 	//
-	stakeAmount := big.NewInt(1e18)
+	stakeAmount := new(big.Int).SetUint64(utils.DefaultMinStakeAmount)
 	weight, err := stakingManager.ValueToWeight(
 		&bind.CallOpts{},
 		stakeAmount,
@@ -67,7 +67,6 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		pChainInfo,
 		stakingManager,
 		stakingManagerAddress,
-		weight,
 		erc20,
 		stakeAmount,
 	)
