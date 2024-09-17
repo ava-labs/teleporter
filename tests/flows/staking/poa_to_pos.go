@@ -98,6 +98,17 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 	utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
 
+	_ = utils.InitializePoAValidatorSet(
+		ctx,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		poaValidatorManager,
+		proxyAddress,
+		network,
+		signatureAggregator,
+	)
+
 	// Register a validator
 	poaWeight := uint64(1)
 	poaValidationID := utils.InitializeAndCompletePoAValidatorRegistration(

@@ -2,8 +2,6 @@ package staking
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/binary"
 	"math/big"
 	"time"
 
@@ -74,58 +72,16 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		pChainInfo,
 		ownerAddress,
 	)
-
-	convertSubnetTxId := ids.GenerateTestID()
-	blsPublicKey := [bls.PublicKeyLen]byte{}
-	subnetConversionData := poavalidatormanager.SubnetConversionData{
-		ConvertSubnetTxID:       convertSubnetTxId,
-		BlockchainID:            subnetAInfo.BlockchainID,
-		ValidatorManagerAddress: validatorManagerAddress,
-		InitialValidators: []poavalidatormanager.InitialValidator{
-			{
-				NodeID:       ids.GenerateTestID(),
-				Weight:       1,
-				BlsPublicKey: blsPublicKey[:],
-			},
-		},
-	}
-	// expected ValidationID for a node is SHA256 of concatenation of convertSubnetTxID and
-	// it's index in the initial validators list
-	expectedValidationIDPreHash := make([]byte, 36)
-	copy(expectedValidationIDPreHash[0:32], convertSubnetTxId[:])
-	binary.BigEndian.PutUint32(expectedValidationIDPreHash[32:36], 0)
-	expectedValidationID := sha256.Sum256(expectedValidationIDPreHash)
-
-	subnetConversionDataBytes, err := utils.PackSubnetConversionData(subnetConversionData)
-	// subnetConversionDataBytes, err := subnetConversionData.Pack()
-	Expect(err).Should(BeNil())
-	Expect(len(subnetConversionDataBytes)).Should(BeNumerically("==", 180))
-	subnetConversionID := sha256.Sum256(subnetConversionDataBytes)
-
-	subnetConversionSignedMessage := utils.ConstructSubnetConversionMessage(
-		subnetConversionID,
+	_ = utils.InitializePoAValidatorSet(
+		ctx,
+		fundedKey,
 		subnetAInfo,
 		pChainInfo,
+		validatorManager,
+		validatorManagerAddress,
 		network,
 		signatureAggregator,
 	)
-
-	// Deliver the Warp message to the subnet
-	receipt := utils.InitializePoAValidatorSet(
-		fundedKey,
-		subnetAInfo,
-		validatorManagerAddress,
-		subnetConversionSignedMessage,
-		subnetConversionData,
-	)
-
-	initialValidatorCreatedEvent, err := utils.GetEventFromLogs(
-		receipt.Logs,
-		validatorManager.ParseInitialValidatorCreated,
-	)
-	Expect(err).Should(BeNil())
-	Expect(initialValidatorCreatedEvent.NodeID).Should(Equal(subnetConversionData.InitialValidators[0].NodeID))
-	Expect(initialValidatorCreatedEvent.ValidationID).Should(Equal(expectedValidationID))
 
 	var validationID ids.ID // To be used in the delisting step
 	weight := uint64(1)

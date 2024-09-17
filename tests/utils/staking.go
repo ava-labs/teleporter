@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"crypto/ecdsa"
+	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
 	"math/big"
@@ -211,6 +212,148 @@ func DeployAndInitializePoAValidatorManager(
 }
 
 //
+// Validator Set Initialization utils
+//
+
+func InitializeNativeTokenValidatorSet(
+	ctx context.Context,
+	sendingKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	validatorManagerAddress common.Address,
+) {
+
+}
+
+func InitializeERC20TokenValidatorSet(
+	ctx context.Context,
+	sendingKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	validatorManagerAddress common.Address,
+) {
+
+}
+
+func InitializePoAValidatorSet(
+	ctx context.Context,
+	sendingKey *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	validatorManager *poavalidatormanager.PoAValidatorManager,
+	validatorManagerAddress common.Address,
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+) ids.ID {
+
+	convertSubnetTxId := ids.GenerateTestID()
+	blsPublicKey := [bls.PublicKeyLen]byte{}
+	subnetConversionData := poavalidatormanager.SubnetConversionData{
+		ConvertSubnetTxID:       convertSubnetTxId,
+		BlockchainID:            subnetInfo.BlockchainID,
+		ValidatorManagerAddress: validatorManagerAddress,
+		InitialValidators: []poavalidatormanager.InitialValidator{
+			{
+				NodeID:       ids.GenerateTestID(),
+				Weight:       1,
+				BlsPublicKey: blsPublicKey[:],
+			},
+		},
+	}
+
+	subnetConversionDataBytes, err := PackSubnetConversionData(subnetConversionData)
+	Expect(err).Should(BeNil())
+	subnetConversionID := sha256.Sum256(subnetConversionDataBytes)
+	subnetConversionSignedMessage := ConstructSubnetConversionMessage(
+		subnetConversionID,
+		subnetInfo,
+		pChainInfo,
+		network,
+		signatureAggregator,
+	)
+	// Deliver the Warp message to the subnet
+	receipt := DeliverPoASubnetConversion(
+		sendingKey,
+		subnetInfo,
+		validatorManagerAddress,
+		subnetConversionSignedMessage,
+		subnetConversionData,
+	)
+	initialValidatorCreatedEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		validatorManager.ParseInitialValidatorCreated,
+	)
+	Expect(err).Should(BeNil())
+	Expect(initialValidatorCreatedEvent.NodeID).Should(Equal(subnetConversionData.InitialValidators[0].NodeID))
+
+	expectedValidationID := CalculateSubnetConversionValidationId(convertSubnetTxId, 0)
+	emittedValidationID := ids.ID(initialValidatorCreatedEvent.ValidationID)
+	Expect(emittedValidationID).Should(Equal(expectedValidationID))
+
+	return emittedValidationID
+}
+
+func DeliverNativeTokenSubnetConversion(
+	sendingKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	validatorManagerAddress common.Address,
+	subnetConversionSignedMessage *avalancheWarp.Message,
+	subnetConversionData nativetokenstakingmanager.SubnetConversionData,
+) *types.Receipt {
+	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("initializeValidatorSet", subnetConversionData, uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
+		sendingKey,
+		subnet,
+		validatorManagerAddress,
+		subnetConversionSignedMessage,
+	)
+}
+
+func DeliverERC20TokenSubnetConversion(
+	sendingKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	validatorManagerAddress common.Address,
+	subnetConversionSignedMessage *avalancheWarp.Message,
+	subnetConversionData erc20tokenstakingmanager.SubnetConversionData,
+) *types.Receipt {
+	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("initializeValidatorSet", subnetConversionData, uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
+		sendingKey,
+		subnet,
+		validatorManagerAddress,
+		subnetConversionSignedMessage,
+	)
+}
+
+func DeliverPoASubnetConversion(
+	sendingKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	validatorManagerAddress common.Address,
+	subnetConversionSignedMessage *avalancheWarp.Message,
+	subnetConversionData poavalidatormanager.SubnetConversionData,
+) *types.Receipt {
+	abi, err := poavalidatormanager.PoAValidatorManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("initializeValidatorSet", subnetConversionData, uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		callData,
+		sendingKey,
+		subnet,
+		validatorManagerAddress,
+		subnetConversionSignedMessage,
+	)
+}
+
+//
 // Function call utils
 //
 
@@ -373,26 +516,6 @@ func CompletePoAValidatorRegistration(
 		subnet,
 		validatorManagerAddress,
 		registrationSignedMessage,
-	)
-}
-
-func InitializePoAValidatorSet(
-	sendingKey *ecdsa.PrivateKey,
-	subnet interfaces.SubnetTestInfo,
-	validatorManagerAddress common.Address,
-	subnetConversionSignedMessage *avalancheWarp.Message,
-	subnetConversionData poavalidatormanager.SubnetConversionData,
-) *types.Receipt {
-	abi, err := poavalidatormanager.PoAValidatorManagerMetaData.GetAbi()
-	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("initializeValidatorSet", subnetConversionData, uint32(0))
-	Expect(err).Should(BeNil())
-	return CallWarpReceiver(
-		callData,
-		sendingKey,
-		subnet,
-		validatorManagerAddress,
-		subnetConversionSignedMessage,
 	)
 }
 
@@ -1255,6 +1378,13 @@ func WaitMinStakeDuration(
 		common.Address{},
 		big.NewInt(10),
 	)
+}
+
+func CalculateSubnetConversionValidationId(convertSubnetTxID ids.ID, validatorIdx uint32) ids.ID {
+	preImage := make([]byte, 36)
+	copy(preImage[0:32], convertSubnetTxID[:])
+	binary.BigEndian.PutUint32(preImage[32:36], validatorIdx)
+	return sha256.Sum256(preImage)
 }
 
 // PackSubnetConversionData defines a packing function that works
