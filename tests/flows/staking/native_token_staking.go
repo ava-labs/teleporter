@@ -60,6 +60,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		stakingManagerContractAddress,
 		network,
 		signatureAggregator,
+		utils.DefaultMinStakeAmount*10,
 	)
 
 	//

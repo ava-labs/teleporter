@@ -229,6 +229,7 @@ func InitializeNativeTokenValidatorSet(
 	validatorManagerAddress common.Address,
 	network interfaces.LocalNetwork,
 	signatureAggregator *aggregator.SignatureAggregator,
+	initialValidatorWeight uint64,
 ) ids.ID {
 	convertSubnetTxId := ids.GenerateTestID()
 	blsPublicKey := [bls.PublicKeyLen]byte{}
@@ -239,7 +240,7 @@ func InitializeNativeTokenValidatorSet(
 		InitialValidators: []nativetokenstakingmanager.InitialValidator{
 			{
 				NodeID:       ids.GenerateTestID(),
-				Weight:       1,
+				Weight:       initialValidatorWeight,
 				BlsPublicKey: blsPublicKey[:],
 			},
 		},
@@ -268,6 +269,7 @@ func InitializeNativeTokenValidatorSet(
 	)
 	Expect(err).Should(BeNil())
 	Expect(initialValidatorCreatedEvent.NodeID).Should(Equal(subnetConversionData.InitialValidators[0].NodeID))
+	Expect(initialValidatorCreatedEvent.Weight).Should(Equal(new(big.Int).SetUint64(initialValidatorWeight)))
 
 	expectedValidationID := CalculateSubnetConversionValidationId(convertSubnetTxId, 0)
 	emittedValidationID := ids.ID(initialValidatorCreatedEvent.ValidationID)
@@ -285,6 +287,7 @@ func InitializeERC20TokenValidatorSet(
 	validatorManagerAddress common.Address,
 	network interfaces.LocalNetwork,
 	signatureAggregator *aggregator.SignatureAggregator,
+	initialValidatorWeight uint64,
 ) ids.ID {
 	convertSubnetTxId := ids.GenerateTestID()
 	blsPublicKey := [bls.PublicKeyLen]byte{}
@@ -295,7 +298,7 @@ func InitializeERC20TokenValidatorSet(
 		InitialValidators: []erc20tokenstakingmanager.InitialValidator{
 			{
 				NodeID:       ids.GenerateTestID(),
-				Weight:       1,
+				Weight:       initialValidatorWeight,
 				BlsPublicKey: blsPublicKey[:],
 			},
 		},
@@ -324,6 +327,7 @@ func InitializeERC20TokenValidatorSet(
 	)
 	Expect(err).Should(BeNil())
 	Expect(initialValidatorCreatedEvent.NodeID).Should(Equal(subnetConversionData.InitialValidators[0].NodeID))
+	Expect(initialValidatorCreatedEvent.Weight).Should(Equal(new(big.Int).SetUint64(initialValidatorWeight)))
 
 	expectedValidationID := CalculateSubnetConversionValidationId(convertSubnetTxId, 0)
 	emittedValidationID := ids.ID(initialValidatorCreatedEvent.ValidationID)
@@ -382,7 +386,7 @@ func InitializePoAValidatorSet(
 	)
 	Expect(err).Should(BeNil())
 	Expect(initialValidatorCreatedEvent.NodeID).Should(Equal(subnetConversionData.InitialValidators[0].NodeID))
-	Expect(initialValidatorCreatedEvent.Weight).Should(Equal(initialValidatorWeight))
+	Expect(initialValidatorCreatedEvent.Weight).Should(Equal(new(big.Int).SetUint64(initialValidatorWeight)))
 
 	expectedValidationID := CalculateSubnetConversionValidationId(convertSubnetTxId, 0)
 	emittedValidationID := ids.ID(initialValidatorCreatedEvent.ValidationID)

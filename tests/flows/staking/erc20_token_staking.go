@@ -60,6 +60,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		stakingManagerAddress,
 		network,
 		signatureAggregator,
+		utils.DefaultMinStakeAmount*10,
 	)
 
 	//

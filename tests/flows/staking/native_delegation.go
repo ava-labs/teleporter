@@ -55,6 +55,7 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 		stakingManagerAddress,
 		network,
 		signatureAggregator,
+		utils.DefaultMinStakeAmount*10,
 	)
 
 	//

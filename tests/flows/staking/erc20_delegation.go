@@ -55,6 +55,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		stakingManagerAddress,
 		network,
 		signatureAggregator,
+		utils.DefaultMinStakeAmount*10,
 	)
 
 	//
