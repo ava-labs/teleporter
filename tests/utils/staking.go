@@ -341,6 +341,7 @@ func InitializePoAValidatorSet(
 	validatorManagerAddress common.Address,
 	network interfaces.LocalNetwork,
 	signatureAggregator *aggregator.SignatureAggregator,
+	initialValidatorWeight uint64,
 ) ids.ID {
 	convertSubnetTxId := ids.GenerateTestID()
 	blsPublicKey := [bls.PublicKeyLen]byte{}
@@ -351,7 +352,7 @@ func InitializePoAValidatorSet(
 		InitialValidators: []poavalidatormanager.InitialValidator{
 			{
 				NodeID:       ids.GenerateTestID(),
-				Weight:       1,
+				Weight:       initialValidatorWeight,
 				BlsPublicKey: blsPublicKey[:],
 			},
 		},
@@ -381,6 +382,7 @@ func InitializePoAValidatorSet(
 	)
 	Expect(err).Should(BeNil())
 	Expect(initialValidatorCreatedEvent.NodeID).Should(Equal(subnetConversionData.InitialValidators[0].NodeID))
+	Expect(initialValidatorCreatedEvent.Weight).Should(Equal(initialValidatorWeight))
 
 	expectedValidationID := CalculateSubnetConversionValidationId(convertSubnetTxId, 0)
 	emittedValidationID := ids.ID(initialValidatorCreatedEvent.ValidationID)

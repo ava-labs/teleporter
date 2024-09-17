@@ -81,6 +81,7 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		validatorManagerAddress,
 		network,
 		signatureAggregator,
+		5,
 	)
 
 	var validationID ids.ID // To be used in the delisting step

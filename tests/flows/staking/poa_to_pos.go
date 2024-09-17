@@ -108,6 +108,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		proxyAddress,
 		network,
 		signatureAggregator,
+		20,
 	)
 
 	// Register a validator
