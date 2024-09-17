@@ -36,13 +36,25 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 			ids.Empty, // Primary network subnet ID
 		},
 	)
+	ctx := context.Background()
 
 	// Deploy the staking manager contract
 	stakingManagerAddress, stakingManager, _, erc20 := utils.DeployAndInitializeERC20TokenStakingManager(
-		context.Background(),
+		ctx,
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
+	)
+
+	_ = utils.InitializeERC20TokenValidatorSet(
+		ctx,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		stakingManager,
+		stakingManagerAddress,
+		network,
+		signatureAggregator,
 	)
 
 	//

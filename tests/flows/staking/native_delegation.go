@@ -36,13 +36,25 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 			ids.Empty, // Primary network subnet ID
 		},
 	)
+	ctx := context.Background()
 
 	// Deploy the staking manager contract
 	stakingManagerAddress, stakingManager := utils.DeployAndInitializeNativeTokenStakingManager(
-		context.Background(),
+		ctx,
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
+	)
+
+	_ = utils.InitializeNativeTokenValidatorSet(
+		ctx,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		stakingManager,
+		stakingManagerAddress,
+		network,
+		signatureAggregator,
 	)
 
 	//

@@ -41,13 +41,25 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 			ids.Empty, // Primary network subnet ID
 		},
 	)
+	ctx := context.Background()
 
 	// Deploy the staking manager contract
 	stakingManagerContractAddress, stakingManager := utils.DeployAndInitializeNativeTokenStakingManager(
-		context.Background(),
+		ctx,
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
+	)
+
+	_ = utils.InitializeNativeTokenValidatorSet(
+		ctx,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		stakingManager,
+		stakingManagerContractAddress,
+		network,
+		signatureAggregator,
 	)
 
 	//

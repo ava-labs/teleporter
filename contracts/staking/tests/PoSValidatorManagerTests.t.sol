@@ -136,7 +136,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         vm.expectRevert(_formatErrorMessage("invalid stake amount"));
-        _initializeValidatorRegistration(registrationInput, DEFAULT_MINIMUM_DELEGATION_FEE_BIPS, DEFAULT_MINIMUM_STAKE_DURATION, DEFAULT_MAXIMUM_STAKE + 1);
+        _initializeValidatorRegistration(
+            registrationInput,
+            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+            DEFAULT_MINIMUM_STAKE_DURATION,
+            DEFAULT_MAXIMUM_STAKE + 1
+        );
     }
 
     function testInvalidInitializeEndTime() public {

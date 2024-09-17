@@ -218,20 +218,114 @@ func DeployAndInitializePoAValidatorManager(
 func InitializeNativeTokenValidatorSet(
 	ctx context.Context,
 	sendingKey *ecdsa.PrivateKey,
-	subnet interfaces.SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 	pChainInfo interfaces.SubnetTestInfo,
+	validatorManager *nativetokenstakingmanager.NativeTokenStakingManager,
 	validatorManagerAddress common.Address,
-) {
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+) ids.ID {
+	convertSubnetTxId := ids.GenerateTestID()
+	blsPublicKey := [bls.PublicKeyLen]byte{}
+	subnetConversionData := nativetokenstakingmanager.SubnetConversionData{
+		ConvertSubnetTxID:       convertSubnetTxId,
+		BlockchainID:            subnetInfo.BlockchainID,
+		ValidatorManagerAddress: validatorManagerAddress,
+		InitialValidators: []nativetokenstakingmanager.InitialValidator{
+			{
+				NodeID:       ids.GenerateTestID(),
+				Weight:       1,
+				BlsPublicKey: blsPublicKey[:],
+			},
+		},
+	}
+	subnetConversionDataBytes, err := PackSubnetConversionData(subnetConversionData)
+	Expect(err).Should(BeNil())
+	subnetConversionID := sha256.Sum256(subnetConversionDataBytes)
+	subnetConversionSignedMessage := ConstructSubnetConversionMessage(
+		subnetConversionID,
+		subnetInfo,
+		pChainInfo,
+		network,
+		signatureAggregator,
+	)
+	// Deliver the Warp message to the subnet
+	receipt := DeliverNativeTokenSubnetConversion(
+		sendingKey,
+		subnetInfo,
+		validatorManagerAddress,
+		subnetConversionSignedMessage,
+		subnetConversionData,
+	)
+	initialValidatorCreatedEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		validatorManager.ParseInitialValidatorCreated,
+	)
+	Expect(err).Should(BeNil())
+	Expect(initialValidatorCreatedEvent.NodeID).Should(Equal(subnetConversionData.InitialValidators[0].NodeID))
+
+	expectedValidationID := CalculateSubnetConversionValidationId(convertSubnetTxId, 0)
+	emittedValidationID := ids.ID(initialValidatorCreatedEvent.ValidationID)
+	Expect(emittedValidationID).Should(Equal(expectedValidationID))
+
+	return emittedValidationID
 
 }
 
 func InitializeERC20TokenValidatorSet(
 	ctx context.Context,
 	sendingKey *ecdsa.PrivateKey,
-	subnet interfaces.SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 	pChainInfo interfaces.SubnetTestInfo,
+	validatorManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	validatorManagerAddress common.Address,
-) {
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+) ids.ID {
+	convertSubnetTxId := ids.GenerateTestID()
+	blsPublicKey := [bls.PublicKeyLen]byte{}
+	subnetConversionData := erc20tokenstakingmanager.SubnetConversionData{
+		ConvertSubnetTxID:       convertSubnetTxId,
+		BlockchainID:            subnetInfo.BlockchainID,
+		ValidatorManagerAddress: validatorManagerAddress,
+		InitialValidators: []erc20tokenstakingmanager.InitialValidator{
+			{
+				NodeID:       ids.GenerateTestID(),
+				Weight:       1,
+				BlsPublicKey: blsPublicKey[:],
+			},
+		},
+	}
+	subnetConversionDataBytes, err := PackSubnetConversionData(subnetConversionData)
+	Expect(err).Should(BeNil())
+	subnetConversionID := sha256.Sum256(subnetConversionDataBytes)
+	subnetConversionSignedMessage := ConstructSubnetConversionMessage(
+		subnetConversionID,
+		subnetInfo,
+		pChainInfo,
+		network,
+		signatureAggregator,
+	)
+	// Deliver the Warp message to the subnet
+	receipt := DeliverERC20TokenSubnetConversion(
+		sendingKey,
+		subnetInfo,
+		validatorManagerAddress,
+		subnetConversionSignedMessage,
+		subnetConversionData,
+	)
+	initialValidatorCreatedEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		validatorManager.ParseInitialValidatorCreated,
+	)
+	Expect(err).Should(BeNil())
+	Expect(initialValidatorCreatedEvent.NodeID).Should(Equal(subnetConversionData.InitialValidators[0].NodeID))
+
+	expectedValidationID := CalculateSubnetConversionValidationId(convertSubnetTxId, 0)
+	emittedValidationID := ids.ID(initialValidatorCreatedEvent.ValidationID)
+	Expect(emittedValidationID).Should(Equal(expectedValidationID))
+
+	return emittedValidationID
 
 }
 
