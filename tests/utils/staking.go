@@ -32,6 +32,8 @@ const (
 	DefaultMinStakeAmount          uint64 = 1e18
 	DefaultMaxStakeAmount          uint64 = 10e18
 	DefaultMaxStakeMultiplier      uint8  = 4
+	DefaultMaxChurnPercentage      uint8  = 20
+	DefaultChurnPeriodSeconds      uint64 = 1
 )
 
 //
@@ -75,9 +77,10 @@ func DeployAndInitializeNativeTokenStakingManager(
 		opts,
 		nativetokenstakingmanager.PoSValidatorManagerSettings{
 			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
-				PChainBlockchainID: pChainInfo.BlockchainID,
-				SubnetID:           subnet.SubnetID,
-				MaximumHourlyChurn: 0,
+				PChainBlockchainID:     pChainInfo.BlockchainID,
+				SubnetID:               subnet.SubnetID,
+				ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
+				MaximumChurnPercentage: DefaultMaxChurnPercentage,
 			},
 			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
@@ -137,9 +140,10 @@ func DeployAndInitializeERC20TokenStakingManager(
 		opts,
 		erc20tokenstakingmanager.PoSValidatorManagerSettings{
 			BaseSettings: erc20tokenstakingmanager.ValidatorManagerSettings{
-				PChainBlockchainID: pChainInfo.BlockchainID,
-				SubnetID:           subnet.SubnetID,
-				MaximumHourlyChurn: 0,
+				PChainBlockchainID:     pChainInfo.BlockchainID,
+				SubnetID:               subnet.SubnetID,
+				ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
+				MaximumChurnPercentage: DefaultMaxChurnPercentage,
 			},
 			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
@@ -193,9 +197,10 @@ func DeployAndInitializePoAValidatorManager(
 	tx, err := validatorManager.Initialize(
 		opts,
 		poavalidatormanager.ValidatorManagerSettings{
-			PChainBlockchainID: pChainInfo.BlockchainID,
-			SubnetID:           subnet.SubnetID,
-			MaximumHourlyChurn: 0,
+			PChainBlockchainID:     pChainInfo.BlockchainID,
+			SubnetID:               subnet.SubnetID,
+			ChurnPeriodSeconds:     uint64(0),
+			MaximumChurnPercentage: uint8(20),
 		},
 		ownerAddress,
 	)
