@@ -6,7 +6,7 @@
 pragma solidity 0.8.25;
 
 import {Test} from "@forge-std/Test.sol";
-import {ValidatorManager} from "../ValidatorManager.sol";
+import {ValidatorManager, SubnetConversionData, InitialValidator} from "../ValidatorManager.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
 import {ValidatorStatus, ValidatorRegistrationInput} from "../interfaces/IValidatorManager.sol";
 import {
@@ -23,6 +23,8 @@ abstract contract ValidatorManagerTest is Test {
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant DEFAULT_NODE_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
+    bytes32 public constant DEFAULT_INTIIAL_VALIDATOR_NODE_ID =
+        bytes32(hex"2345678123456781234567812345678123456781234567812345678123456781");
     bytes public constant DEFAULT_BLS_PUBLIC_KEY = bytes(
         hex"123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
     );
@@ -335,7 +337,26 @@ abstract contract ValidatorManagerTest is Test {
     }
 
     function _mockInitializeValidatorSet() internal {
-        // _mockGetVerifiedWarpMessage()
+        bytes32 subnetConversionID =
+            bytes32(hex"a5835c1f2884fdac0e619a4976b0f50632c75fec523f438a646b371f46464eb9");
+        _mockGetVerifiedWarpMessage(
+            ValidatorMessages.packSubnetConversionMessage(subnetConversionID), true
+        );
+    }
+
+    function _defaultSubnetConversionData() internal view returns (SubnetConversionData memory) {
+        InitialValidator[] memory initialValidators = new InitialValidator[](1);
+        initialValidators[0] = InitialValidator({
+            nodeID: DEFAULT_INTIIAL_VALIDATOR_NODE_ID,
+            weight: DEFAULT_WEIGHT,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+        });
+        return SubnetConversionData({
+            convertSubnetTxID: bytes32(0),
+            blockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            validatorManagerAddress: address(validatorManager),
+            initialValidators: initialValidators
+        });
     }
 
     function _initializeValidatorRegistration(

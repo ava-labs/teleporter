@@ -31,7 +31,12 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
             address(this)
         );
         validatorManager = app;
+        _mockGetBlockchainID();
+        _mockInitializeValidatorSet();
+        app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
     }
+
+    function testInitializeValidatorSet() public {}
 
     function testInvalidOwnerRegistration() public {
         vm.prank(vm.addr(1));
