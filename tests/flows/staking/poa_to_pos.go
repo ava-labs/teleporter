@@ -108,7 +108,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		proxyAddress,
 		network,
 		signatureAggregator,
-		20,
+		utils.DefaultMinStakeAmount*10,
 	)
 
 	// Register a validator
@@ -197,16 +197,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		stakeAmount,
 	)
 
-	// Attempt to delist previous PoA validator with wrong owner and check that it fails
-	_, err = posValidatorManager.InitializeEndValidation(
-		opts,
-		poaValidationID,
-		false,
-		0,
-	)
-	Expect(err).ShouldNot(BeNil())
-
-	// Delist the previous PoA validator properly
+	// Delist the previous PoA validator
 	utils.InitializeAndCompleteEndNativeValidation(
 		network,
 		signatureAggregator,

@@ -1596,7 +1596,6 @@ func PackInitialValidator(iv interface{}) ([]byte, error) {
 	weight := v.FieldByName("Weight").Interface().(uint64)
 	blsPublicKey := v.FieldByName("BlsPublicKey").Interface().([]byte)
 
-	// Placeholder: Replace this with the actual packing logic
 	b := make([]byte, initialValidatorPackedLen)
 	copy(b[0:32], nodeID[:])
 	binary.BigEndian.PutUint64(b[32:40], weight)
