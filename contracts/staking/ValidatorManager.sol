@@ -150,7 +150,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             uint32(numInitialValidators)
         );
         uint256 totalWeight;
-        for (uint32 i; i < numInitialValidators; i++) {
+        for (uint32 i; i < numInitialValidators; ++i) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             bytes32 nodeID = initialValidator.nodeID;
             require(nodeID != bytes32(0), "ValidatorManager: invalid node ID");
