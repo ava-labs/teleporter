@@ -274,7 +274,6 @@ func InitializeNativeTokenValidatorSet(
 	Expect(emittedValidationID).Should(Equal(expectedValidationID))
 
 	return emittedValidationID
-
 }
 
 func InitializeERC20TokenValidatorSet(
@@ -331,7 +330,6 @@ func InitializeERC20TokenValidatorSet(
 	Expect(emittedValidationID).Should(Equal(expectedValidationID))
 
 	return emittedValidationID
-
 }
 
 func InitializePoAValidatorSet(
@@ -344,7 +342,6 @@ func InitializePoAValidatorSet(
 	network interfaces.LocalNetwork,
 	signatureAggregator *aggregator.SignatureAggregator,
 ) ids.ID {
-
 	convertSubnetTxId := ids.GenerateTestID()
 	blsPublicKey := [bls.PublicKeyLen]byte{}
 	subnetConversionData := poavalidatormanager.SubnetConversionData{
@@ -1392,7 +1389,10 @@ func ConstructSubnetConversionMessage(
 ) *avalancheWarp.Message {
 	subnetConversionPayload, err := warpMessages.NewSubnetConversion(subnetConversionID)
 	Expect(err).Should(BeNil())
-	subnetConversionAddressedCall, err := warpPayload.NewAddressedCall(common.Address{}.Bytes(), subnetConversionPayload.Bytes())
+	subnetConversionAddressedCall, err := warpPayload.NewAddressedCall(
+		common.Address{}.Bytes(),
+		subnetConversionPayload.Bytes(),
+	)
 	Expect(err).Should(BeNil())
 	subnetConversionUnsignedMessage, err := avalancheWarp.NewUnsignedMessage(
 		network.GetNetworkID(),
@@ -1542,12 +1542,15 @@ func PackSubnetConversionData(data interface{}) ([]byte, error) {
 			return nil, fmt.Errorf("failed to pack InitialValidator: %w", err)
 		}
 		if len(ivPacked) != initialValidatorPackedLen {
-			return nil, fmt.Errorf("expected packed InitialValidator to be %d bytes, got %d", initialValidatorPackedLen, len(ivPacked))
+			return nil, fmt.Errorf(
+				"expected packed InitialValidator to be %d bytes, got %d",
+				initialValidatorPackedLen,
+				len(ivPacked),
+			)
 		}
 		copy(b[92+i*initialValidatorPackedLen:92+(i+1)*initialValidatorPackedLen], ivPacked)
 	}
 	return b, nil
-
 }
 
 // PackInitialValidator defines a packing function that works
@@ -1590,7 +1593,7 @@ func PackInitialValidator(iv interface{}) ([]byte, error) {
 	// Placeholder: Replace this with the actual packing logic
 	b := make([]byte, initialValidatorPackedLen)
 	copy(b[0:32], nodeID[:])
-	binary.BigEndian.PutUint64(b[32:40], uint64(weight))
+	binary.BigEndian.PutUint64(b[32:40], weight)
 	copy(b[40:88], blsPublicKey)
 	return b, nil
 }
