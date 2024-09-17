@@ -105,7 +105,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         );
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
         $._churnPeriodSeconds = settings.churnPeriodSeconds;
-        $._initializedValidatorSet = false;
     }
 
     modifier initializedValidatorSet() {
