@@ -30,7 +30,6 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
 
     ERC20TokenStakingManager public app;
     IERC20Mintable public token;
-    ExampleRewardCalculator public rewardCalculator;
 
     function setUp() public virtual {
         // Construct the object under test

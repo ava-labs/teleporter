@@ -173,9 +173,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         Validator memory validator = _completeEndValidation(messageIndex);
 
-        _reward(validator.owner, $._redeemableValidatorRewards[validator.owner]);
-        delete $._redeemableValidatorRewards[validator.owner];
+        if (validator.status == ValidatorStatus.Completed) {
+            _reward(validator.owner, $._redeemableValidatorRewards[validator.owner]);
+            delete $._redeemableValidatorRewards[validator.owner];
+        }
 
+        // We unlock the state whether the validation period is completed or invalidated.
         _unlock(validator.owner, weightToValue(validator.startingWeight));
     }
 
