@@ -30,9 +30,12 @@ abstract contract ValidatorManagerTest is Test {
     );
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
+    bytes32 public constant DEFAULT_SUBNET_CONVERSION_TX_ID =
+        bytes32(hex"1fa884c03c55ff866c210963db9100dd14964615da464c6b9871854374bb6026");
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     uint64 public constant DEFAULT_WEIGHT = 1e6;
+    uint64 public constant DEFAULT_INITIAL_VALIDATOR_WEIGHT = DEFAULT_WEIGHT * 1e4;
     uint256 public constant DEFAULT_MINIMUM_STAKE_AMOUNT = 20e12;
     uint256 public constant DEFAULT_MAXIMUM_STAKE_AMOUNT = 1e22;
     uint64 public constant DEFAULT_CHURN_PERIOD = 1 hours;
@@ -409,10 +412,8 @@ abstract contract ValidatorManagerTest is Test {
     }
 
     function _mockInitializeValidatorSet() internal {
-        bytes32 subnetConversionID =
-            bytes32(hex"a5835c1f2884fdac0e619a4976b0f50632c75fec523f438a646b371f46464eb9");
         _mockGetVerifiedWarpMessage(
-            ValidatorMessages.packSubnetConversionMessage(subnetConversionID), true
+            ValidatorMessages.packSubnetConversionMessage(DEFAULT_SUBNET_CONVERSION_TX_ID), true
         );
     }
 
@@ -429,7 +430,7 @@ abstract contract ValidatorManagerTest is Test {
         InitialValidator[] memory initialValidators = new InitialValidator[](1);
         initialValidators[0] = InitialValidator({
             nodeID: DEFAULT_INTIIAL_VALIDATOR_NODE_ID,
-            weight: DEFAULT_WEIGHT,
+            weight: DEFAULT_INITIAL_VALIDATOR_WEIGHT,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         return SubnetConversionData({

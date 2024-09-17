@@ -150,6 +150,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             subnetConversionData.validatorManagerAddress,
             uint32(numInitialValidators)
         );
+        uint256 totalWeight;
         for (uint32 i; i < numInitialValidators; i++) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             bytes32 nodeID = initialValidator.nodeID;
@@ -177,6 +178,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 sha256(abi.encodePacked(subnetConversionData.convertSubnetTxID, i));
 
             // Save the initial validator as an active validator.
+
             $._activeValidators[nodeID] = validationID;
             $._validationPeriods[validationID] = Validator({
                 status: ValidatorStatus.Active,
@@ -187,11 +189,13 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 startedAt: uint64(block.timestamp),
                 endedAt: 0
             });
+            totalWeight += initialValidator.weight;
 
             emit InitialValidatorCreated(
                 validationID, initialValidator.nodeID, initialValidator.weight
             );
         }
+        $._churnTracker.totalWeight = totalWeight;
 
         // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
@@ -392,7 +396,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
      *  Note that this function can be used for successful validation periods that have been explicitly
      * ended by calling {initializeEndValidation} or for validation periods that never began on the P-Chain due to the
      * {registrationExpiry} being reached.
-     * @return The Validator instance representing the completed validation period
+     * @return The Validator instance representing the completed validation period and the corresponding validation ID.
      */
     function _completeEndValidation(uint32 messageIndex)
         internal
