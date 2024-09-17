@@ -105,10 +105,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         );
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
         $._churnPeriodSeconds = settings.churnPeriodSeconds;
-
-        // TODO Remove - this is a hack to get a starting total weight before
-        // adding an initial validator set is implemented.
-        $._churnTracker.totalWeight = 1e10;
         $._initializedValidatorSet = false;
     }
 

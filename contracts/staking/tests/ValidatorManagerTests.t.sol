@@ -416,6 +416,15 @@ abstract contract ValidatorManagerTest is Test {
         );
     }
 
+    function _initializeValidatorRegistration(
+        ValidatorRegistrationInput memory input,
+        uint64 weight
+    ) internal virtual returns (bytes32);
+
+    function _initializeEndValidation(bytes32 validationID) internal virtual;
+
+    function _beforeSend(uint256 amount, address spender) internal virtual;
+
     function _defaultSubnetConversionData() internal view returns (SubnetConversionData memory) {
         InitialValidator[] memory initialValidators = new InitialValidator[](1);
         initialValidators[0] = InitialValidator({
@@ -430,15 +439,6 @@ abstract contract ValidatorManagerTest is Test {
             initialValidators: initialValidators
         });
     }
-
-    function _initializeValidatorRegistration(
-        ValidatorRegistrationInput memory input,
-        uint64 weight
-    ) internal virtual returns (bytes32);
-
-    function _initializeEndValidation(bytes32 validationID) internal virtual;
-
-    function _beforeSend(uint256 amount, address spender) internal virtual;
 
     // TODO this needs to be kept in line with the contract conversions, but we can't make external calls
     // to the contract and use vm.expectRevert at the same time.

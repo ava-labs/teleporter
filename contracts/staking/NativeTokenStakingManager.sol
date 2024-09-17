@@ -11,10 +11,7 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
-import {
-    PoSValidatorManagerSettings,
-    PoSValidatorRequirements
-} from "./interfaces/IPoSValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {ValidatorRegistrationInput} from "./interfaces/IValidatorManager.sol";
 
 contract NativeTokenStakingManager is

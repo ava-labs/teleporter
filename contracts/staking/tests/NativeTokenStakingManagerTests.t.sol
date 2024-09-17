@@ -11,10 +11,7 @@ import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput
 } from "../interfaces/IValidatorManager.sol";
-import {
-    PoSValidatorManagerSettings,
-    PoSValidatorRequirements
-} from "../interfaces/IPoSValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 

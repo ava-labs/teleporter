@@ -37,8 +37,6 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
         app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
     }
 
-    function testInitializeValidatorSet() public {}
-
     function testInvalidOwnerRegistration() public {
         vm.prank(vm.addr(1));
         vm.expectRevert(

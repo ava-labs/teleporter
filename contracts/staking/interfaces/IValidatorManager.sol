@@ -3,8 +3,6 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-import {EnumerableSet} from "@openzeppelin/contracts@5.0.2/utils/structs/EnumerableSet.sol";
-
 pragma solidity 0.8.25;
 
 enum ValidatorStatus {

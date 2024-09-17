@@ -7,7 +7,6 @@ pragma solidity 0.8.25;
 
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 import {PoSValidatorManager} from "../PoSValidatorManager.sol";
-import {PoSValidatorRequirements} from "../interfaces/IPoSValidatorManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
