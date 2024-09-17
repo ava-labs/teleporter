@@ -105,7 +105,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         );
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
         $._churnPeriodSeconds = settings.churnPeriodSeconds;
-        $._initializedValidatorSet = false;
     }
 
     modifier initializedValidatorSet() {
@@ -150,9 +149,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             subnetConversionData.validatorManagerAddress,
             uint32(numInitialValidators)
         );
-
         uint256 totalWeight;
-        for (uint256 i; i < numInitialValidators; ++i) {
+        for (uint32 i; i < numInitialValidators; ++i) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             bytes32 nodeID = initialValidator.nodeID;
             require(nodeID != bytes32(0), "ValidatorManager: invalid node ID");
@@ -464,7 +462,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        require(valid, "ValidatorManager: Invinvalidalid warp message");
+        require(valid, "ValidatorManager: invalid warp message");
         require(
             warpMessage.sourceChainID == $._pChainBlockchainID,
             "ValidatorManager: invalid source chain ID"
