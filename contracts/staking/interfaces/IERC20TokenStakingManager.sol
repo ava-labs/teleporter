@@ -6,7 +6,7 @@
 pragma solidity 0.8.25;
 
 import {ValidatorRegistrationInput} from "./IValidatorManager.sol";
-import {IPoSValidatorManager, PoSValidatorRequirements} from "./IPoSValidatorManager.sol";
+import {IPoSValidatorManager} from "./IPoSValidatorManager.sol";
 
 interface IERC20TokenStakingManager is IPoSValidatorManager {
     /**

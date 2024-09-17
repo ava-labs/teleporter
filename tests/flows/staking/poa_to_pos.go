@@ -89,9 +89,10 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	tx, err := poaValidatorManager.Initialize(
 		opts,
 		poavalidatormanager.ValidatorManagerSettings{
-			PChainBlockchainID: pChainInfo.BlockchainID,
-			SubnetID:           subnetAInfo.SubnetID,
-			MaximumHourlyChurn: 0,
+			PChainBlockchainID:     pChainInfo.BlockchainID,
+			SubnetID:               subnetAInfo.SubnetID,
+			ChurnPeriodSeconds:     uint64(0),
+			MaximumChurnPercentage: uint8(20),
 		},
 		ownerAddress,
 	)
@@ -155,9 +156,10 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		opts,
 		nativetokenstakingmanager.PoSValidatorManagerSettings{
 			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
-				PChainBlockchainID: pChainInfo.BlockchainID,
-				SubnetID:           subnetAInfo.SubnetID,
-				MaximumHourlyChurn: 0,
+				PChainBlockchainID:     pChainInfo.BlockchainID,
+				SubnetID:               subnetAInfo.SubnetID,
+				ChurnPeriodSeconds:     utils.DefaultChurnPeriodSeconds,
+				MaximumChurnPercentage: utils.DefaultMaxChurnPercentage,
 			},
 			MinimumStakeAmount:       big.NewInt(0).SetUint64(utils.DefaultMinStakeAmount),
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(utils.DefaultMaxStakeAmount),

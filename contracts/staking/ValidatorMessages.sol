@@ -44,6 +44,28 @@ library ValidatorMessages {
     // TODO: The implementation of these packing and unpacking functions is neither tested nor optimized at all.
     // Full test coverage should be provided, and the implementation should be optimized for gas efficiency.
 
+    function packSubnetConversionMessage(bytes32 subnetConversionID)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        bytes memory res = new bytes(38);
+        // Pack the codec ID
+        for (uint256 i; i < 2; ++i) {
+            res[i] = bytes1(uint8(CODEC_ID >> uint8((8 * (1 - i)))));
+        }
+        // Pack the type ID
+        for (uint256 i; i < 4; ++i) {
+            res[i + 2] = bytes1(uint8(SUBNET_CONVERSION_MESSAGE_TYPE_ID >> uint8((8 * (3 - i)))));
+        }
+        // Pack the subnetConversionID
+        for (uint256 i; i < 32; ++i) {
+            res[i + 6] = bytes1(uint8(uint256(subnetConversionID >> (8 * (31 - i)))));
+        }
+
+        return res;
+    }
+
     function unpackSubnetConversionMessage(bytes memory input) internal pure returns (bytes32) {
         require(input.length == 38, "ValidatorMessages: invalid message length");
 

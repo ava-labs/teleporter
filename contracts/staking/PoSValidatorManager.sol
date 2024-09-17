@@ -198,13 +198,14 @@ abstract contract PoSValidatorManager is
             minStakeDuration >= $._minimumStakeDuration,
             "PoSValidatorManager: invalid min stake duration"
         );
-        require(
-            stakeAmount >= $._minimumStakeAmount && stakeAmount <= $._maximumStakeAmount,
-            "PoSValidatorManager: invalid stake amount"
-        );
+
+        // Ensure the weight is within the valid range.
+        require(stakeAmount >= $._minimumStakeAmount, "PoSValidatorManager: stake amount too low");
+        require(stakeAmount <= $._maximumStakeAmount, "PoSValidatorManager: stake amount too high");
 
         // Lock the stake in the contract.
         uint256 lockedValue = _lock(stakeAmount);
+
         uint64 weight = valueToWeight(lockedValue);
         bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
 
@@ -243,6 +244,8 @@ abstract contract PoSValidatorManager is
 
         // Check that the validation ID is a PoS validator
         require(_isPoSValidator(validationID), "PoSValidatorManager: not a PoS validator");
+        // Check that adding this delegator would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTrackerAddition(weight);
 
         // Update the validator weight
         uint64 newValidatorWeight = validator.weight + weight;
@@ -256,8 +259,6 @@ abstract contract PoSValidatorManager is
         // constructed using a new nonce.
         uint64 nonce = _incrementAndGetNonce(validationID);
         bytes32 delegationID = keccak256(abi.encodePacked(validationID, nonce));
-
-        _checkAndUpdateChurnTracker(weight);
 
         // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
@@ -371,6 +372,15 @@ abstract contract PoSValidatorManager is
 
         Validator memory validator = getValidator(validationID);
         require(validator.weight > delegator.weight, "PoSValidatorManager: Invalid weight");
+
+        // Check that removing this delegator would not exceed the maximum churn rate.
+        // We only need to check this is the validator is still active. If the validator ends its validation
+        // period, the weight of all its delegators will be added to the churn tracker at that time. Ending
+        // a delegation whose validator has ended validating has no impact on the stake weight of the chain.
+        if (validator.status == ValidatorStatus.Active) {
+            _checkAndUpdateChurnTrackerRemoval(delegator.weight);
+        }
+
         uint64 newValidatorWeight = validator.weight - delegator.weight;
         _setValidatorWeight(validationID, newValidatorWeight);
 

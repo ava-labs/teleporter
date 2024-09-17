@@ -7,7 +7,6 @@ pragma solidity 0.8.25;
 
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 import {PoSValidatorManager} from "../PoSValidatorManager.sol";
-import {PoSValidatorRequirements} from "../interfaces/IPoSValidatorManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -26,13 +25,13 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + DEFAULT_EXPIRY;
     address public constant DEFAULT_DELEGATOR_ADDRESS =
         address(0x1234123412341234123412341234123412341234);
-    uint256 public constant DEFAULT_MINIMUM_STAKE = 1e6;
-    uint256 public constant DEFAULT_MAXIMUM_STAKE = 1e20;
     uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
     uint16 public constant DEFAULT_MINIMUM_DELEGATION_FEE_BIPS = 100;
     uint8 public constant DEFAULT_MAXIMUM_STAKE_MULTIPLIER = 4;
 
     PoSValidatorManager public posValidatorManager;
+
+    event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
     event DelegatorAdded(
         bytes32 indexed delegationID,
@@ -79,7 +78,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationInput,
             DEFAULT_MINIMUM_DELEGATION_FEE_BIPS - 1,
             DEFAULT_MINIMUM_STAKE_DURATION,
-            DEFAULT_MINIMUM_STAKE
+            DEFAULT_MINIMUM_STAKE_AMOUNT
         );
     }
 
@@ -95,7 +94,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationInput,
             delegationFeeBips,
             DEFAULT_MINIMUM_STAKE_DURATION,
-            DEFAULT_MINIMUM_STAKE
+            DEFAULT_MINIMUM_STAKE_AMOUNT
         );
     }
 
@@ -110,7 +109,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationInput,
             DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
             DEFAULT_MINIMUM_STAKE_DURATION - 1,
-            DEFAULT_MINIMUM_STAKE
+            DEFAULT_MINIMUM_STAKE_AMOUNT
         );
     }
 
@@ -120,12 +119,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(_formatErrorMessage("invalid stake amount"));
+        vm.expectRevert(_formatErrorMessage("stake amount too low"));
         _initializeValidatorRegistration(
             registrationInput,
             DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
             DEFAULT_MINIMUM_STAKE_DURATION,
-            DEFAULT_MINIMUM_STAKE - 1
+            DEFAULT_MINIMUM_STAKE_AMOUNT - 1
         );
     }
 
@@ -135,12 +134,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(_formatErrorMessage("invalid stake amount"));
+        vm.expectRevert(_formatErrorMessage("stake amount too high"));
         _initializeValidatorRegistration(
             registrationInput,
             DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
             DEFAULT_MINIMUM_STAKE_DURATION,
-            DEFAULT_MAXIMUM_STAKE + 1
+            DEFAULT_MAXIMUM_STAKE_AMOUNT + 1
         );
     }
 
@@ -737,7 +736,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         vm.warp(registrationTimestamp);
 
-        _beforeSend(weight, delegatorAddress);
+        _beforeSend(_weightToValue(weight), delegatorAddress);
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit DelegatorAdded({

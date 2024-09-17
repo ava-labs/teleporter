@@ -11,10 +11,7 @@ import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput
 } from "../interfaces/IValidatorManager.sol";
-import {
-    PoSValidatorManagerSettings,
-    PoSValidatorRequirements
-} from "../interfaces/IPoSValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 
@@ -31,10 +28,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
@@ -43,6 +41,9 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         );
         validatorManager = app;
         posValidatorManager = app;
+        _mockGetBlockchainID();
+        _mockInitializeValidatorSet();
+        app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
     }
 
     function testZeroMinimumDelegationFee() public {
@@ -53,10 +54,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: 0,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
@@ -74,10 +76,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: minimumDelegationFeeBips,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
@@ -94,10 +97,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MAXIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
@@ -114,10 +118,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: 0,
@@ -135,10 +140,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: maximumStakeMultiplier,
@@ -163,7 +169,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         ValidatorRegistrationInput memory input,
         uint64 weight
     ) internal virtual override returns (bytes32) {
-        return app.initializeValidatorRegistration{value: app.weightToValue(weight)}(
+        return app.initializeValidatorRegistration{value: _weightToValue(weight)}(
             input, DEFAULT_MINIMUM_DELEGATION_FEE_BIPS, DEFAULT_MINIMUM_STAKE_DURATION
         );
     }
@@ -173,13 +179,13 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         address delegatorAddress,
         uint64 weight
     ) internal virtual override returns (bytes32) {
-        uint256 value = app.weightToValue(weight);
+        uint256 value = _weightToValue(weight);
         vm.prank(delegatorAddress);
         vm.deal(delegatorAddress, value);
         return app.initializeDelegatorRegistration{value: value}(validationID);
     }
 
-    function _beforeSend(uint64 weight, address spender) internal override {
+    function _beforeSend(uint256 amount, address spender) internal override {
         // Native tokens no need pre approve
     }
 

@@ -11,10 +11,7 @@ import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput
 } from "../interfaces/IValidatorManager.sol";
-import {
-    PoSValidatorManagerSettings,
-    PoSValidatorRequirements
-} from "../interfaces/IPoSValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 import {ExampleERC20} from "@mocks/ExampleERC20.sol";
@@ -38,10 +35,11 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
@@ -51,6 +49,9 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         );
         validatorManager = app;
         posValidatorManager = app;
+        _mockGetBlockchainID();
+        _mockInitializeValidatorSet();
+        app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
     }
 
     function testZeroMinimumDelegationFee() public {
@@ -61,10 +62,11 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: 0,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
@@ -83,10 +85,11 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: minimumDelegationFeeBips,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
@@ -104,10 +107,11 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MAXIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
@@ -125,10 +129,11 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: 0,
@@ -147,10 +152,11 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: maximumStakeMultiplier,
@@ -163,7 +169,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     function testInvalidValidatorMinStakeDuration() public {
         ValidatorRegistrationInput memory input =
             ValidatorRegistrationInput(DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY);
-        uint256 stakeAmount = app.weightToValue(DEFAULT_WEIGHT);
+        uint256 stakeAmount = _weightToValue(DEFAULT_WEIGHT);
         vm.expectRevert(_formatErrorMessage("invalid min stake duration"));
         app.initializeValidatorRegistration(
             input,
@@ -176,7 +182,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     function testInvalidValidatorDelegationFee() public {
         ValidatorRegistrationInput memory input =
             ValidatorRegistrationInput(DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY);
-        uint256 stakeAmount = app.weightToValue(DEFAULT_WEIGHT);
+        uint256 stakeAmount = _weightToValue(DEFAULT_WEIGHT);
         vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
         app.initializeValidatorRegistration(
             input,
@@ -205,7 +211,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
             input,
             DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
             DEFAULT_MINIMUM_STAKE_DURATION,
-            app.weightToValue(weight)
+            _weightToValue(weight)
         );
     }
 
@@ -214,21 +220,20 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         address delegatorAddress,
         uint64 weight
     ) internal virtual override returns (bytes32) {
-        uint256 value = app.weightToValue(weight);
+        uint256 value = _weightToValue(weight);
         vm.startPrank(delegatorAddress);
         bytes32 delegationID = app.initializeDelegatorRegistration(validationID, value);
         vm.stopPrank();
         return delegationID;
     }
 
-    function _beforeSend(uint64 weight, address spender) internal override {
-        uint256 value = app.weightToValue(weight);
-        token.safeIncreaseAllowance(spender, value);
-        token.safeTransfer(spender, value);
+    function _beforeSend(uint256 amount, address spender) internal override {
+        token.safeIncreaseAllowance(spender, amount);
+        token.safeTransfer(spender, amount);
 
         // ERC20 tokens need to be pre-approved
         vm.startPrank(spender);
-        token.safeIncreaseAllowance(address(app), value);
+        token.safeIncreaseAllowance(address(app), amount);
         vm.stopPrank();
     }
 

@@ -26,11 +26,15 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
             ValidatorManagerSettings({
                 pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                 subnetID: DEFAULT_SUBNET_ID,
-                maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
             }),
             address(this)
         );
         validatorManager = app;
+        _mockGetBlockchainID();
+        _mockInitializeValidatorSet();
+        app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
     }
 
     function testInvalidOwnerRegistration() public {
@@ -58,5 +62,5 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
     }
 
     // solhint-disable-next-line no-empty-blocks
-    function _beforeSend(uint64 weight, address spender) internal virtual override {}
+    function _beforeSend(uint256 amount, address spender) internal virtual override {}
 }
