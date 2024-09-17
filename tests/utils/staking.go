@@ -3,7 +3,10 @@ package utils
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/binary"
+	"fmt"
 	"math/big"
+	"reflect"
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
@@ -32,6 +35,8 @@ const (
 	DefaultMinStakeAmount          uint64 = 1e18
 	DefaultMaxStakeAmount          uint64 = 10e18
 	DefaultMaxStakeMultiplier      uint8  = 4
+
+	initialValidatorPackedLen = 88
 )
 
 //
@@ -1250,4 +1255,113 @@ func WaitMinStakeDuration(
 		common.Address{},
 		big.NewInt(10),
 	)
+}
+
+// PackSubnetConversionData defines a packing function that works
+// over any struct instance of SubnetConversionData since the abi-bindings
+// process generates one for each of the different contracts.
+func PackSubnetConversionData(data interface{}) ([]byte, error) {
+	v := reflect.ValueOf(data)
+	if v.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("expected struct, got %s", v.Kind())
+	}
+	// Define required fields and their expected types
+	requiredFields := map[string]reflect.Type{
+		"ConvertSubnetTxID":       reflect.TypeOf([32]byte{}),
+		"BlockchainID":            reflect.TypeOf([32]byte{}),
+		"ValidatorManagerAddress": reflect.TypeOf(common.Address{}),
+		// InitialValidators is a slice of structs and handled separately
+		"InitialValidators": reflect.TypeOf([]struct{}{}),
+	}
+	// Check for required fields and types
+	for fieldName, expectedType := range requiredFields {
+		field := v.FieldByName(fieldName)
+
+		if !field.IsValid() {
+			return nil, fmt.Errorf("field %s is missing", fieldName)
+		}
+		// Allow flexible types for InitialValidators by checking it contains structs
+		if fieldName == "InitialValidators" {
+			if field.Kind() != reflect.Slice || field.Type().Elem().Kind() != reflect.Struct {
+				return nil, fmt.Errorf("field %s has incorrect type: expected a slice of structs", fieldName)
+			}
+		} else {
+			if field.Type() != expectedType {
+				return nil, fmt.Errorf("field %s has incorrect type: expected %s, got %s", fieldName, expectedType, field.Type())
+			}
+		}
+	}
+
+	convertSubnetTxID := v.FieldByName("ConvertSubnetTxID").Interface().([32]byte)
+	blockchainID := v.FieldByName("BlockchainID").Interface().([32]byte)
+	validatorManagerAddress := v.FieldByName("ValidatorManagerAddress").Interface().(common.Address)
+	initialValidators := v.FieldByName("InitialValidators")
+
+	packedLen := 92 + initialValidatorPackedLen*initialValidators.Len()
+	b := make([]byte, packedLen)
+	copy(b[0:32], convertSubnetTxID[:])
+	copy(b[32:64], blockchainID[:])
+	// These are evm addresses and have lengths of 20 so hardcoding here
+	binary.BigEndian.PutUint32(b[64:68], uint32(20))
+	copy(b[68:88], validatorManagerAddress.Bytes())
+	binary.BigEndian.PutUint32(b[88:92], uint32(initialValidators.Len()))
+	// Pack each InitialValidator struct
+	for i := 0; i < initialValidators.Len(); i++ {
+		iv := initialValidators.Index(i).Interface()
+		ivPacked, err := PackInitialValidator(iv)
+		if err != nil {
+			return nil, fmt.Errorf("failed to pack InitialValidator: %w", err)
+		}
+		if len(ivPacked) != initialValidatorPackedLen {
+			return nil, fmt.Errorf("expected packed InitialValidator to be %d bytes, got %d", initialValidatorPackedLen, len(ivPacked))
+		}
+		copy(b[92+i*initialValidatorPackedLen:92+(i+1)*initialValidatorPackedLen], ivPacked)
+	}
+	return b, nil
+
+}
+
+// PackInitialValidator defines a packing function that works
+// over any struct instance of InitialValidator since the abi-bindings
+// process generates one for each of the different contracts.
+func PackInitialValidator(iv interface{}) ([]byte, error) {
+	v := reflect.ValueOf(iv)
+
+	// Ensure the passed interface is a struct
+	if v.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("expected a struct, got %s", v.Kind())
+	}
+
+	// Define required fields and their expected types
+	requiredFields := map[string]reflect.Type{
+		"NodeID":       reflect.TypeOf([32]byte{}),
+		"Weight":       reflect.TypeOf(uint64(0)),
+		"BlsPublicKey": reflect.TypeOf([]byte{}),
+	}
+
+	// Check for required fields and types
+	for fieldName, expectedType := range requiredFields {
+		field := v.FieldByName(fieldName)
+
+		if !field.IsValid() {
+			return nil, fmt.Errorf("field %s is missing", fieldName)
+		}
+
+		if field.Type() != expectedType {
+			return nil, fmt.Errorf("field %s has incorrect type: expected %s, got %s", fieldName, expectedType, field.Type())
+		}
+	}
+
+	// At this point, we know the struct has all required fields with correct types
+	// Use reflection to retrieve field values and perform canonical packing
+	nodeID := v.FieldByName("NodeID").Interface().([32]byte)
+	weight := v.FieldByName("Weight").Interface().(uint64)
+	blsPublicKey := v.FieldByName("BlsPublicKey").Interface().([]byte)
+
+	// Placeholder: Replace this with the actual packing logic
+	b := make([]byte, initialValidatorPackedLen)
+	copy(b[0:32], nodeID[:])
+	binary.BigEndian.PutUint64(b[32:40], uint64(weight))
+	copy(b[40:88], blsPublicKey)
+	return b, nil
 }

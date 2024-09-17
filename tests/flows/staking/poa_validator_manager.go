@@ -91,12 +91,13 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 	}
 	// expected ValidationID for a node is SHA256 of concatenation of convertSubnetTxID and
 	// it's index in the initial validators list
-	expectedValidationIDPreHash := make([]byte, 40)
+	expectedValidationIDPreHash := make([]byte, 36)
 	copy(expectedValidationIDPreHash[0:32], convertSubnetTxId[:])
-	binary.BigEndian.PutUint64(expectedValidationIDPreHash[32:40], 0)
+	binary.BigEndian.PutUint32(expectedValidationIDPreHash[32:36], 0)
 	expectedValidationID := sha256.Sum256(expectedValidationIDPreHash)
 
-	subnetConversionDataBytes, err := subnetConversionData.Pack()
+	subnetConversionDataBytes, err := utils.PackSubnetConversionData(subnetConversionData)
+	// subnetConversionDataBytes, err := subnetConversionData.Pack()
 	Expect(err).Should(BeNil())
 	Expect(len(subnetConversionDataBytes)).Should(BeNumerically("==", 180))
 	subnetConversionID := sha256.Sum256(subnetConversionDataBytes)
