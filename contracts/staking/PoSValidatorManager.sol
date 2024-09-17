@@ -337,6 +337,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Ensure the delegator is active
         Delegator memory delegator = $._delegatorStakes[delegationID];
+        Validator memory validator = getValidator(validationID);
         require(
             delegator.status == DelegatorStatus.Active, "PoSValidatorManager: delegation not active"
         );
@@ -344,45 +345,49 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         require(
             delegator.owner == _msgSender(), "PoSValidatorManager: delegation not owned by sender"
         );
-        uint64 nonce = _incrementAndGetNonce(validationID);
 
         // Set the delegator status to pending removed, so that it can be properly removed in
         // the complete step, even if the delivered nonce is greater than the nonce used to
         // initialize the removal.
         delegator.status = DelegatorStatus.PendingRemoved;
-        delegator.endedAt = uint64(block.timestamp);
-        delegator.endingNonce = nonce;
 
-        $._delegatorStakes[delegationID] = delegator;
-
-        Validator memory validator = getValidator(validationID);
-        require(validator.weight > delegator.weight, "PoSValidatorManager: Invalid weight");
-
-        // Check that removing this delegator would not exceed the maximum churn rate.
-        // We only need to check this is the validator is still active. If the validator ends its validation
-        // period, the weight of all its delegators will be added to the churn tracker at that time. Ending
-        // a delegation whose validator has ended validating has no impact on the stake weight of the chain.
         if (validator.status == ValidatorStatus.Active) {
+            // Check that removing this delegator would not exceed the maximum churn rate.
+            // We only need to check this is the validator is still active. If the validator ends its validation
+            // period, the weight of all its delegators will be added to the churn tracker at that time. Ending
+            // a delegation whose validator has ended validating has no impact on the stake weight of the chain.
             _checkAndUpdateChurnTrackerRemoval(delegator.weight);
+
+            delegator.endingNonce = _incrementAndGetNonce(validationID);
+            delegator.endedAt = uint64(block.timestamp);
+
+            uint64 newValidatorWeight = validator.weight - delegator.weight;
+            _setValidatorWeight(validationID, newValidatorWeight);
+
+            // Submit the message to the Warp precompile.
+            bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
+                ValidatorMessages.packSetSubnetValidatorWeightMessage(
+                    validationID, delegator.endingNonce, newValidatorWeight
+                )
+            );
+
+            emit ValidatorWeightUpdate({
+                validationID: validationID,
+                nonce: delegator.endingNonce,
+                validatorWeight: newValidatorWeight,
+                setWeightMessageID: messageID
+            });
+        } else {
+            delegator.endingNonce = validator.messageNonce;
+            delegator.endedAt = validator.endedAt;
         }
 
-        uint64 newValidatorWeight = validator.weight - delegator.weight;
-        _setValidatorWeight(validationID, newValidatorWeight);
-
-        // Submit the message to the Warp precompile.
-        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(
-                validationID, nonce, newValidatorWeight
-            )
-        );
+        $._delegatorStakes[delegationID] = delegator;
 
         emit DelegatorRemovalInitialized({
             delegationID: delegationID,
             validationID: validationID,
-            nonce: nonce,
-            validatorWeight: newValidatorWeight,
-            endTime: block.timestamp,
-            setWeightMessageID: messageID
+            endTime: delegator.endedAt
         });
     }
 

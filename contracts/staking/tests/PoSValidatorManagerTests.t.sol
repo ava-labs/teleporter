@@ -52,11 +52,13 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     );
 
     event DelegatorRemovalInitialized(
-        bytes32 indexed delegationID,
+        bytes32 indexed delegationID, bytes32 indexed validationID, uint256 endTime
+    );
+
+    event ValidatorWeightUpdate(
         bytes32 indexed validationID,
         uint64 indexed nonce,
         uint64 validatorWeight,
-        uint256 endTime,
         bytes32 setWeightMessageID
     );
 
@@ -791,14 +793,19 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
-        emit DelegatorRemovalInitialized({
-            delegationID: delegationID,
+        emit ValidatorWeightUpdate({
             validationID: validationID,
             nonce: expectedNonce,
             validatorWeight: expectedValidatorWeight,
-            endTime: endDelegationTimestamp,
             setWeightMessageID: bytes32(0)
         });
+        vm.expectEmit(true, true, true, true, address(posValidatorManager));
+        emit DelegatorRemovalInitialized({
+            delegationID: delegationID,
+            validationID: validationID,
+            endTime: endDelegationTimestamp
+        });
+
         vm.prank(delegatorAddress);
         posValidatorManager.initializeEndDelegation(delegationID, false, 0);
         return delegationID;
