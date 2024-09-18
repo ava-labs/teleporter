@@ -13,10 +13,7 @@ import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
-import {
-    PoSValidatorManagerSettings,
-    PoSValidatorRequirements
-} from "./interfaces/IPoSValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {ValidatorRegistrationInput} from "./interfaces/IValidatorManager.sol";
 
 contract ERC20TokenStakingManager is
@@ -96,10 +93,13 @@ contract ERC20TokenStakingManager is
      */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
-        PoSValidatorRequirements calldata requirements,
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration,
         uint256 stakeAmount
     ) external nonReentrant returns (bytes32 validationID) {
-        return _initializeValidatorRegistration(registrationInput, requirements, stakeAmount);
+        return _initializeValidatorRegistration(
+            registrationInput, delegationFeeBips, minStakeDuration, stakeAmount
+        );
     }
 
     /**
@@ -110,7 +110,7 @@ contract ERC20TokenStakingManager is
     function initializeDelegatorRegistration(
         bytes32 validationID,
         uint256 delegationAmount
-    ) external returns (bytes32) {
+    ) external nonReentrant returns (bytes32) {
         return _initializeDelegatorRegistration(validationID, _msgSender(), delegationAmount);
     }
 

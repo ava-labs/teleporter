@@ -23,8 +23,14 @@ import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
+import {ReentrancyGuardUpgradeable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
 
-abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager {
+abstract contract PoSValidatorManager is
+    IPoSValidatorManager,
+    ValidatorManager,
+    ReentrancyGuardUpgradeable
+{
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.PoSValidatorManager
     struct PoSValidatorManagerStorage {
@@ -86,6 +92,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         onlyInitializing
     {
         __ValidatorManager_init(settings.baseSettings);
+        __ReentrancyGuard_init();
         __POS_Validator_Manager_init_unchained({
             minimumStakeAmount: settings.minimumStakeAmount,
             maximumStakeAmount: settings.maximumStakeAmount,
@@ -166,21 +173,22 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     function completeEndValidation(uint32 messageIndex) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
-        (Validator memory validator, bytes32 validationID) = _completeEndValidation(messageIndex);
+        (bytes32 validationID, Validator memory validator) = _completeEndValidation(messageIndex);
 
         // Return now if this was originally a PoA validator that was later migrated to this PoS manager
-        if (validator.owner == address(0)) {
+        if (!_isPoSValidator(validationID)) {
             return;
         }
 
+        address owner = $._validatorRequirements[validationID].owner;
         if (validator.status == ValidatorStatus.Completed) {
             uint256 rewards = $._redeemableValidatorRewards[validationID];
             delete $._redeemableValidatorRewards[validationID];
-            _reward(validator.owner, rewards);
+            _reward(owner, rewards);
         }
 
         // We unlock the stake whether the validation period is completed or invalidated.
-        _unlock(validator.owner, weightToValue(validator.startingWeight));
+        _unlock(owner, weightToValue(validator.startingWeight));
     }
 
     function _getUptime(bytes32 validationID, uint32 messageIndex) internal view returns (uint64) {
@@ -208,19 +216,20 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
-        PoSValidatorRequirements calldata requirements,
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration,
         uint256 stakeAmount
     ) internal virtual returns (bytes32) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         // Validate and save the validator requirements
         require(
-            requirements.minStakeDuration >= $._minimumStakeDuration,
-            "PoSValidatorManager: invalid min stake duration"
+            delegationFeeBips >= $._minimumDelegationFeeBips
+                && delegationFeeBips <= MAXIMUM_DELEGATION_FEE_BIPS,
+            "PoSValidatorManager: invalid delegation fee"
         );
         require(
-            requirements.delegationFeeBips >= $._minimumDelegationFeeBips
-                && requirements.delegationFeeBips <= MAXIMUM_DELEGATION_FEE_BIPS,
-            "PoSValidatorManager: invalid delegation fee"
+            minStakeDuration >= $._minimumStakeDuration,
+            "PoSValidatorManager: invalid min stake duration"
         );
 
         // Ensure the weight is within the valid range.
@@ -233,7 +242,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint64 weight = valueToWeight(lockedValue);
         bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
 
-        $._validatorRequirements[validationID] = requirements;
+        $._validatorRequirements[validationID] = PoSValidatorRequirements({
+            owner: _msgSender(),
+            delegationFeeBips: delegationFeeBips,
+            minStakeDuration: minStakeDuration
+        });
         return validationID;
     }
 
@@ -252,12 +265,14 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bytes32 validationID,
         address delegatorAddress,
         uint256 delegationAmount
-    ) internal nonReentrant returns (bytes32) {
+    ) internal returns (bytes32) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         uint64 weight = valueToWeight(_lock(delegationAmount));
 
         // Ensure the validation period is active
         Validator memory validator = getValidator(validationID);
+        // Check that the validation ID is a PoS validator
+        require(_isPoSValidator(validationID), "PoSValidatorManager: not a PoS validator");
         require(
             validator.status == ValidatorStatus.Active, "PoSValidatorManager: validator not active"
         );
@@ -432,7 +447,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         );
     }
 
-    function completeEndDelegation(uint32 messageIndex, bytes32 delegationID) external {
+    function completeEndDelegation(
+        uint32 messageIndex,
+        bytes32 delegationID
+    ) external nonReentrant {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         // Unpack the Warp message
@@ -474,4 +492,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     }
 
     function _reward(address account, uint256 amount) internal virtual;
+
+    function _isPoSValidator(bytes32 validationID) internal view returns (bool) {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        return $._validatorRequirements[validationID].owner != address(0);
+    }
 }

@@ -51,7 +51,7 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
     }
 
     // solhint-enable ordering
-    function initializeEndValidation(bytes32 validationID) external override {
+    function initializeEndValidation(bytes32 validationID) external override onlyOwner {
         _initializeEndValidation(validationID);
     }
 

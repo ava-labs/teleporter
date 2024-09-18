@@ -52,7 +52,7 @@ go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 # compilations that did not generate new ABI files.
 echo "Building Contracts"
 cd $TELEPORTER_PATH
-forge build --force --extra-output-files abi bin
+forge build --skip test --force --extra-output-files abi bin
 
 function convertToLower() {
     if [ "$ARCH" = 'arm64' ]; then
