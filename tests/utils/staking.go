@@ -1502,9 +1502,9 @@ func PackSubnetConversionData(data interface{}) ([]byte, error) {
 	}
 	// Define required fields and their expected types
 	requiredFields := map[string]reflect.Type{
-		"ConvertSubnetTxID":       reflect.TypeOf([32]byte{}),
-		"BlockchainID":            reflect.TypeOf([32]byte{}),
-		"ValidatorManagerAddress": reflect.TypeOf(common.Address{}),
+		"ConvertSubnetTxID":            reflect.TypeOf([32]byte{}),
+		"ValidatorManagerBlockchainID": reflect.TypeOf([32]byte{}),
+		"ValidatorManagerAddress":      reflect.TypeOf(common.Address{}),
 		// InitialValidators is a slice of structs and handled separately
 		"InitialValidators": reflect.TypeOf([]struct{}{}),
 	}
@@ -1528,14 +1528,14 @@ func PackSubnetConversionData(data interface{}) ([]byte, error) {
 	}
 
 	convertSubnetTxID := v.FieldByName("ConvertSubnetTxID").Interface().([32]byte)
-	blockchainID := v.FieldByName("BlockchainID").Interface().([32]byte)
+	validatorManagerBlockchainID := v.FieldByName("ValidatorManagerBlockchainID").Interface().([32]byte)
 	validatorManagerAddress := v.FieldByName("ValidatorManagerAddress").Interface().(common.Address)
 	initialValidators := v.FieldByName("InitialValidators")
 
 	packedLen := 92 + initialValidatorPackedLen*initialValidators.Len()
 	b := make([]byte, packedLen)
 	copy(b[0:32], convertSubnetTxID[:])
-	copy(b[32:64], blockchainID[:])
+	copy(b[32:64], validatorManagerBlockchainID[:])
 	// These are evm addresses and have lengths of 20 so hardcoding here
 	binary.BigEndian.PutUint32(b[64:68], uint32(20))
 	copy(b[68:88], validatorManagerAddress.Bytes())
