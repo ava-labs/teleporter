@@ -567,11 +567,14 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 }
 
 // Funded key must have admin access to set new admin.
-func AddNativeMinterAdmin(subnet interfaces.SubnetTestInfo, fundedKey *ecdsa.PrivateKey, address common.Address) {
+func AddNativeMinterAdmin(ctx context.Context, subnet interfaces.SubnetTestInfo, fundedKey *ecdsa.PrivateKey, address common.Address) {
 	nativeMinterPrecompile, err := nativeMinter.NewINativeMinter(nativeminter.ContractAddress, subnet.RPCClient)
 	Expect(err).Should(BeNil())
 
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnet.EVMChainID)
-	nativeMinterPrecompile.SetAdmin(opts, address)
 	Expect(err).Should(BeNil())
+	tx, err := nativeMinterPrecompile.SetAdmin(opts, address)
+	Expect(err).Should(BeNil())
+	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
 }
