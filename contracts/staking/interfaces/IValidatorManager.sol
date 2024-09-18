@@ -32,6 +32,20 @@ struct ValidatorChurnPeriod {
     uint64 churnAmount;
 }
 
+/**
+ * @notice Event emitted when delegator removal is initiated
+ * @param validationID The ID of the validation period
+ * @param nonce The message nonce used to update the validator weight
+ * @param validatorWeight The updated validator weight that is sent to the P-Chain
+ * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
+ */
+event ValidatorWeightUpdate(
+    bytes32 indexed validationID,
+    uint64 indexed nonce,
+    uint64 validatorWeight,
+    bytes32 setWeightMessageID
+);
+
 struct ValidatorManagerSettings {
     bytes32 pChainBlockchainID;
     bytes32 subnetID;

@@ -12,6 +12,7 @@ import {
     ValidatorStatus,
     Validator,
     ValidatorChurnPeriod,
+    ValidatorWeightUpdate,
     ValidatorRegistrationInput
 } from "./interfaces/IValidatorManager.sol";
 import {
@@ -143,7 +144,7 @@ abstract contract ValidatorManager is
         require(input.blsPublicKey.length == 48, "ValidatorManager: invalid blsPublicKey length");
 
         // Check that adding this validator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTrackerAddition(weight);
+        _checkAndUpdateChurnTracker(weight, 0);
 
         (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
@@ -250,9 +251,6 @@ abstract contract ValidatorManager is
         );
         require(_msgSender() == validator.owner, "ValidatorManager: sender not validator owner");
 
-        // Check that removing this delegator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTrackerRemoval(validator.weight);
-
         // Update the validator status to pending removal.
         // They are not removed from the active validators mapping until the P-Chain acknowledges the removal.
         validator.status = ValidatorStatus.PendingRemoved;
@@ -265,11 +263,7 @@ abstract contract ValidatorManager is
         // TODO: Optimize storage writes here (probably don't need to write the whole value).
         $._validationPeriods[validationID] = validator;
 
-        // Submit the message to the Warp precompile.
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, _incrementAndGetNonce(validationID), 0);
-
-        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
+        (, bytes32 messageID) = _setValidatorWeight(validationID, 0);
 
         // Emit the event to signal the start of the validator removal process.
         emit ValidatorRemovalInitialized(validationID, messageID, validator.weight, block.timestamp);
@@ -382,23 +376,33 @@ abstract contract ValidatorManager is
         return warpMessage;
     }
 
-    function _setValidatorWeight(bytes32 validationID, uint64 weight) internal {
+    function _setValidatorWeight(
+        bytes32 validationID,
+        uint64 newWeight
+    ) internal returns (uint64, bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        $._validationPeriods[validationID].weight = weight;
-    }
+        uint64 validatorWeight = $._validationPeriods[validationID].weight;
 
-    /**
-     * @dev Helper function to check if the stake amount to be added exceeds churn thresholds.
-     */
-    function _checkAndUpdateChurnTrackerAddition(uint64 weight) internal {
-        _checkAndUpdateChurnTracker(weight, true);
-    }
+        // Check that changing the validator weight would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTracker(newWeight, validatorWeight);
 
-    /**
-     * @dev Helper function to check if the stake amount to be removed exceeds churn thresholds.
-     */
-    function _checkAndUpdateChurnTrackerRemoval(uint64 weight) internal {
-        _checkAndUpdateChurnTracker(weight, false);
+        uint64 nonce = _incrementAndGetNonce(validationID);
+
+        $._validationPeriods[validationID].weight = newWeight;
+
+        // Submit the message to the Warp precompile.
+        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, nonce, newWeight)
+        );
+
+        emit ValidatorWeightUpdate({
+            validationID: validationID,
+            nonce: nonce,
+            validatorWeight: newWeight,
+            setWeightMessageID: messageID
+        });
+
+        return (nonce, messageID);
     }
 
     /**
@@ -406,8 +410,18 @@ abstract contract ValidatorManager is
      * rate for the past churn period. If the churn rate is exceeded, the function will revert. If the churn rate is
      * not exceeded, the function will update the churn tracker with the new weight.
      */
-    function _checkAndUpdateChurnTracker(uint64 weight, bool addition) private {
+    function _checkAndUpdateChurnTracker(
+        uint64 newValidatorWeight,
+        uint64 oldValidatorWeight
+    ) private {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+
+        uint64 weightChange;
+        if (newValidatorWeight > oldValidatorWeight) {
+            weightChange = newValidatorWeight - oldValidatorWeight;
+        } else {
+            weightChange = oldValidatorWeight - newValidatorWeight;
+        }
 
         uint256 currentTime = block.timestamp;
         ValidatorChurnPeriod memory churnTracker = $._churnTracker;
@@ -416,12 +430,12 @@ abstract contract ValidatorManager is
             churnTracker.startedAt == 0
                 || currentTime >= churnTracker.startedAt + $._churnPeriodSeconds
         ) {
-            churnTracker.churnAmount = weight;
+            churnTracker.churnAmount = weightChange;
             churnTracker.startedAt = currentTime;
             churnTracker.initialWeight = churnTracker.totalWeight;
         } else {
             // Churn is always additive whether the weight is being added or removed.
-            churnTracker.churnAmount += weight;
+            churnTracker.churnAmount += weightChange;
         }
 
         require(
@@ -430,11 +444,9 @@ abstract contract ValidatorManager is
             "ValidatorManager: maximum churn rate exceeded"
         );
 
-        if (addition) {
-            churnTracker.totalWeight += weight;
-        } else {
-            churnTracker.totalWeight -= weight;
-        }
+        // Two separate calculations because we're using uints and (newValidatorWeight - oldValidatorWeight) could underflow.
+        churnTracker.totalWeight += newValidatorWeight;
+        churnTracker.totalWeight -= oldValidatorWeight;
 
         $._churnTracker = churnTracker;
     }
