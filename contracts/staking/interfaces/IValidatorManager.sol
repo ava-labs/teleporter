@@ -33,7 +33,7 @@ struct ValidatorChurnPeriod {
 }
 
 /**
- * @notice Event emitted when delegator removal is initiated
+ * @notice Event emitted when validator weight is updated.
  * @param validationID The ID of the validation period
  * @param nonce The message nonce used to update the validator weight
  * @param validatorWeight The updated validator weight that is sent to the P-Chain
