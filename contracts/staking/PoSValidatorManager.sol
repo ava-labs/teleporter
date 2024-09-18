@@ -179,7 +179,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             _reward(validator.owner, rewards);
         }
 
-        // We unlock the state whether the validation period is completed or invalidated.
+        // We unlock the stake whether the validation period is completed or invalidated.
         _unlock(validator.owner, weightToValue(validator.startingWeight));
     }
 
