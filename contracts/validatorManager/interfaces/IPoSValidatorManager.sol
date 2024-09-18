@@ -99,20 +99,29 @@ interface IPoSValidatorManager is IValidatorManager {
     );
 
     /**
-     * @notice Begins the process of ending an active validation period. The validation period must have been previously
-     * started by a successful call to {completeValidatorRegistration} with the given validationID.
-     * Any rewards for this validation period will stop accruing when this function is called.
-     * @param validationID The ID of the validation being ended.
-     * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
-     * If no uptime proof is provided, the validation uptime will be assumed to be 0.
-     * @param messageIndex If {includeUptimeProof} is true, the index of the Warp message to be received providing the
-     * uptime proof.
+     * @notice Begins the process of ending an active validation period, and reverts if the validation period is not eligible
+     * for uptime-based rewards. This function is used to exit the validator set when rewards are expected.
+     * The validation period must have been previously started by a successful call to {completeValidatorRegistration} with the given validationID.
+     * Any rewards for this validation period will stop accruing when this function is called. 
+     * @param validationID The ID of the validation period being ended.
+     * @param messageIndex The index of the Warp message to be received providing the uptime proof. Reverts if the uptime
+     * is not eligible for rewards.
      */
     function initializeEndValidation(
         bytes32 validationID,
-        bool includeUptimeProof,
         uint32 messageIndex
     ) external;
+
+    /**
+     * @notice Begins the process of ending an active validation period, but does not revert if the provided uptime proof
+     * is not sufficient to collect uptime-based rewards. This function is used to exit the validator set when rewards are 
+     * not expected.
+     * The validation period must have been previously started by a successful call to {completeValidatorRegistration} with the given validationID.
+     * Any rewards for this validation period will stop accruing when this function is called. 
+     * @param validationID The ID of the validation period being ended.
+     * @param messageIndex The index of the Warp message to be received providing the uptime proof.
+     */
+    function forceInitializeEndValidation(bytes32 validationID, uint32 messageIndex) external;
 
     /**
      * @notice Completes the delegator registration process by returning an acknowledgement of the registration of a

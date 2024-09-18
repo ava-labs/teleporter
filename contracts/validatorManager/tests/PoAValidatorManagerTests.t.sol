@@ -57,7 +57,7 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
         return app.initializeValidatorRegistration(input, weight);
     }
 
-    function _initializeEndValidation(bytes32 validationID, bool) internal virtual override {
+    function _initializeEndValidation(bytes32 validationID) internal virtual override {
         return app.initializeEndValidation(validationID);
     }
 

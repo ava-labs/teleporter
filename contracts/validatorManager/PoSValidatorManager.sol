@@ -138,7 +138,6 @@ abstract contract PoSValidatorManager is
 
     function initializeEndValidation(
         bytes32 validationID,
-        bool includeUptimeProof,
         uint32 messageIndex
     ) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
@@ -152,22 +151,53 @@ abstract contract PoSValidatorManager is
             "PoSValidatorManager: minimum stake duration not met"
         );
 
-        if (includeUptimeProof) {
-            // Uptime proofs include the absolute number of seconds the validator has been active.
-            uint64 uptimeSeconds = _getUptime(validationID, messageIndex);
-            // Save this value for use by this validator's delegators.
-            $._completedValidationUptimeSeconds[validationID] = uptimeSeconds;
+        // Uptime proofs include the absolute number of seconds the validator has been active.
+        uint64 uptimeSeconds = _getUptime(validationID, messageIndex);
+        // Save this value for use by this validator's delegators.
+        $._completedValidationUptimeSeconds[validationID] = uptimeSeconds;
 
-            $._redeemableValidatorRewards[validationID] += $._rewardCalculator.calculateReward({
-                stakeAmount: weightToValue(validator.startingWeight),
-                validatorStartTime: validator.startedAt,
-                stakingStartTime: validator.startedAt,
-                stakingEndTime: validator.endedAt,
-                uptimeSeconds: uptimeSeconds,
-                initialSupply: 0,
-                endSupply: 0
-            });
-        }
+        uint256 reward = $._rewardCalculator.calculateReward({
+            stakeAmount: weightToValue(validator.startingWeight),
+            validatorStartTime: validator.startedAt,
+            stakingStartTime: validator.startedAt,
+            stakingEndTime: validator.endedAt,
+            uptimeSeconds: uptimeSeconds,
+            initialSupply: 0,
+            endSupply: 0
+        });
+        require(reward > 0, "PoSValidatorManager: validation ineligble for rewards");
+        $._redeemableValidatorRewards[validationID] += reward;
+    }
+
+    function forceInitializeEndValidation(
+        bytes32 validationID,
+        uint32 messageIndex
+    ) external {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        Validator memory validator = _initializeEndValidation(validationID);
+
+        // Check that minimum stake duration has passed
+        require(
+            validator.endedAt
+                >= validator.startedAt + $._validatorRequirements[validationID].minStakeDuration,
+            "PoSValidatorManager: minimum stake duration not met"
+        );
+
+        // Uptime proofs include the absolute number of seconds the validator has been active.
+        uint64 uptimeSeconds = _getUptime(validationID, messageIndex);
+        // Save this value for use by this validator's delegators.
+        $._completedValidationUptimeSeconds[validationID] = uptimeSeconds;
+
+        $._redeemableValidatorRewards[validationID] += $._rewardCalculator.calculateReward({
+            stakeAmount: weightToValue(validator.startingWeight),
+            validatorStartTime: validator.startedAt,
+            stakingStartTime: validator.startedAt,
+            stakingEndTime: validator.endedAt,
+            uptimeSeconds: uptimeSeconds,
+            initialSupply: 0,
+            endSupply: 0
+        });
     }
 
     function completeEndValidation(uint32 messageIndex) external {
