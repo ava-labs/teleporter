@@ -11,10 +11,7 @@ import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput
 } from "../interfaces/IValidatorManager.sol";
-import {
-    PoSValidatorManagerSettings,
-    PoSValidatorRequirements
-} from "../interfaces/IPoSValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 
@@ -44,6 +41,9 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         );
         validatorManager = app;
         posValidatorManager = app;
+        _mockGetBlockchainID();
+        _mockInitializeValidatorSet();
+        app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
     }
 
     function testZeroMinimumDelegationFee() public {
@@ -156,11 +156,13 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     // Helpers
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory registrationInput,
-        PoSValidatorRequirements memory requirements,
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration,
         uint256 stakeAmount
     ) internal virtual override returns (bytes32) {
-        return
-            app.initializeValidatorRegistration{value: stakeAmount}(registrationInput, requirements);
+        return app.initializeValidatorRegistration{value: stakeAmount}(
+            registrationInput, delegationFeeBips, minStakeDuration
+        );
     }
 
     function _initializeValidatorRegistration(
@@ -168,11 +170,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         uint64 weight
     ) internal virtual override returns (bytes32) {
         return app.initializeValidatorRegistration{value: _weightToValue(weight)}(
-            input,
-            PoSValidatorRequirements({
-                minStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                delegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS
-            })
+            input, DEFAULT_MINIMUM_DELEGATION_FEE_BIPS, DEFAULT_MINIMUM_STAKE_DURATION
         );
     }
 

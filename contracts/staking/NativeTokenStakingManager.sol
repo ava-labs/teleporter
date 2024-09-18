@@ -11,10 +11,7 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
-import {
-    PoSValidatorManagerSettings,
-    PoSValidatorRequirements
-} from "./interfaces/IPoSValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {ValidatorRegistrationInput} from "./interfaces/IValidatorManager.sol";
 
 contract NativeTokenStakingManager is
@@ -57,9 +54,12 @@ contract NativeTokenStakingManager is
      */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
-        PoSValidatorRequirements calldata requirements
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration
     ) external payable nonReentrant returns (bytes32) {
-        return _initializeValidatorRegistration(registrationInput, requirements, msg.value);
+        return _initializeValidatorRegistration(
+            registrationInput, delegationFeeBips, minStakeDuration, msg.value
+        );
     }
 
     /**
@@ -69,6 +69,7 @@ contract NativeTokenStakingManager is
     function initializeDelegatorRegistration(bytes32 validationID)
         external
         payable
+        nonReentrant
         returns (bytes32)
     {
         return _initializeDelegatorRegistration(validationID, _msgSender(), msg.value);

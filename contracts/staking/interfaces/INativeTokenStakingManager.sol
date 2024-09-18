@@ -6,17 +6,19 @@
 pragma solidity 0.8.25;
 
 import {ValidatorRegistrationInput} from "./IValidatorManager.sol";
-import {IPoSValidatorManager, PoSValidatorRequirements} from "./IPoSValidatorManager.sol";
+import {IPoSValidatorManager} from "./IPoSValidatorManager.sol";
 
 interface INativeTokenStakingManager is IPoSValidatorManager {
     /**
      * @notice Begins the validator registration process. Locks the provided native asset in the contract as the stake.
      * @param registrationInput The inputs for a validator registration.
-     * @param requirements The requirements for the validator being registered.
+     * @param delegationFeeBips The fee that delegators must pay to delegate to this validator.
+     * @param minStakeDuration The minimum amount of time this validator must be staked for.
      */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
-        PoSValidatorRequirements calldata requirements
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration
     ) external payable returns (bytes32 validationID);
 
     function initializeDelegatorRegistration(bytes32 validationID)

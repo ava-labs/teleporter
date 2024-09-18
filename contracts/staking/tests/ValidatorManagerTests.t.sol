@@ -6,7 +6,7 @@
 pragma solidity 0.8.25;
 
 import {Test} from "@forge-std/Test.sol";
-import {ValidatorManager} from "../ValidatorManager.sol";
+import {ValidatorManager, SubnetConversionData, InitialValidator} from "../ValidatorManager.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
 import {ValidatorStatus, ValidatorRegistrationInput} from "../interfaces/IValidatorManager.sol";
 import {
@@ -23,14 +23,19 @@ abstract contract ValidatorManagerTest is Test {
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant DEFAULT_NODE_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
+    bytes32 public constant DEFAULT_INTIIAL_VALIDATOR_NODE_ID =
+        bytes32(hex"2345678123456781234567812345678123456781234567812345678123456781");
     bytes public constant DEFAULT_BLS_PUBLIC_KEY = bytes(
         hex"123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
     );
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
+    bytes32 public constant DEFAULT_SUBNET_CONVERSION_TX_ID =
+        bytes32(hex"1fa884c03c55ff866c210963db9100dd14964615da464c6b9871854374bb6026");
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     uint64 public constant DEFAULT_WEIGHT = 1e6;
+    uint64 public constant DEFAULT_INITIAL_VALIDATOR_WEIGHT = DEFAULT_WEIGHT * 1e4;
     uint256 public constant DEFAULT_MINIMUM_STAKE_AMOUNT = 20e12;
     uint256 public constant DEFAULT_MAXIMUM_STAKE_AMOUNT = 1e22;
     uint64 public constant DEFAULT_CHURN_PERIOD = 1 hours;
@@ -406,6 +411,12 @@ abstract contract ValidatorManagerTest is Test {
         );
     }
 
+    function _mockInitializeValidatorSet() internal {
+        _mockGetVerifiedWarpMessage(
+            ValidatorMessages.packSubnetConversionMessage(DEFAULT_SUBNET_CONVERSION_TX_ID), true
+        );
+    }
+
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory input,
         uint64 weight
@@ -414,6 +425,21 @@ abstract contract ValidatorManagerTest is Test {
     function _initializeEndValidation(bytes32 validationID) internal virtual;
 
     function _beforeSend(uint256 amount, address spender) internal virtual;
+
+    function _defaultSubnetConversionData() internal view returns (SubnetConversionData memory) {
+        InitialValidator[] memory initialValidators = new InitialValidator[](1);
+        initialValidators[0] = InitialValidator({
+            nodeID: DEFAULT_INTIIAL_VALIDATOR_NODE_ID,
+            weight: DEFAULT_INITIAL_VALIDATOR_WEIGHT,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+        });
+        return SubnetConversionData({
+            convertSubnetTxID: bytes32(0),
+            validatorManagerBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            validatorManagerAddress: address(validatorManager),
+            initialValidators: initialValidators
+        });
+    }
 
     // TODO this needs to be kept in line with the contract conversions, but we can't make external calls
     // to the contract and use vm.expectRevert at the same time.
