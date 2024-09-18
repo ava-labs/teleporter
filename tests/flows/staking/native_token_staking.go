@@ -51,6 +51,8 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		pChainInfo,
 	)
 
+	utils.AddNativeMinterAdmin(subnetAInfo, fundedKey, stakingManagerContractAddress)
+
 	_ = utils.InitializeNativeTokenValidatorSet(
 		ctx,
 		fundedKey,

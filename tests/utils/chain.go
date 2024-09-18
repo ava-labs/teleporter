@@ -24,10 +24,13 @@ import (
 	"github.com/ava-labs/awm-relayer/peers"
 	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	sigAggConfig "github.com/ava-labs/awm-relayer/signature-aggregator/config"
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/eth/tracers"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetEvmInterfaces "github.com/ava-labs/subnet-evm/interfaces"
+	"github.com/ava-labs/subnet-evm/precompile/contracts/nativeminter"
+	nativeMinter "github.com/ava-labs/teleporter/abi-bindings/go/INativeMinter"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -561,4 +564,14 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 		logger,
 		messageCreator,
 	)
+}
+
+// Funded key must have admin access to set new admin.
+func AddNativeMinterAdmin(subnet interfaces.SubnetTestInfo, fundedKey *ecdsa.PrivateKey, address common.Address) {
+	nativeMinterPrecompile, err := nativeMinter.NewINativeMinter(nativeminter.ContractAddress, subnet.RPCClient)
+	Expect(err).Should(BeNil())
+
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnet.EVMChainID)
+	nativeMinterPrecompile.SetAdmin(opts, address)
+	Expect(err).Should(BeNil())
 }

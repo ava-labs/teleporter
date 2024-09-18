@@ -152,6 +152,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	)
 	Expect(err).Should(BeNil())
 
+	utils.AddNativeMinterAdmin(subnetAInfo, fundedKey, proxyAddress)
+
 	rewardCalculatorAddress, _ := utils.DeployExampleRewardCalculator(
 		ctx,
 		fundedKey,
