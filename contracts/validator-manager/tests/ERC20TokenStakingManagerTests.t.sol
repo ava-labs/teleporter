@@ -175,23 +175,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         uint256 stakeAmount = _weightToValue(DEFAULT_WEIGHT);
         vm.expectRevert(_formatErrorMessage("invalid min stake duration"));
         app.initializeValidatorRegistration(
-            input,
-            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-            DEFAULT_MINIMUM_STAKE_DURATION - 1,
-            stakeAmount
-        );
-    }
-
-    function testInvalidValidatorDelegationFee() public {
-        ValidatorRegistrationInput memory input =
-            ValidatorRegistrationInput(DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY);
-        uint256 stakeAmount = _weightToValue(DEFAULT_WEIGHT);
-        vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
-        app.initializeValidatorRegistration(
-            input,
-            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS - 1,
-            DEFAULT_MINIMUM_STAKE_DURATION,
-            stakeAmount
+            input, DEFAULT_DELEGATION_FEE_BIPS, DEFAULT_MINIMUM_STAKE_DURATION - 1, stakeAmount
         );
     }
 
@@ -212,7 +196,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     ) internal virtual override returns (bytes32) {
         return app.initializeValidatorRegistration(
             input,
-            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+            DEFAULT_DELEGATION_FEE_BIPS,
             DEFAULT_MINIMUM_STAKE_DURATION,
             _weightToValue(weight)
         );
