@@ -185,6 +185,7 @@ abstract contract PoSValidatorManager is
         }
 
         address owner = $._validatorRequirements[validationID].owner;
+        // The validator can either be Completed or Invalidated here. We only grant rewards for Completed.
         if (validator.status == ValidatorStatus.Completed) {
             uint256 rewards = $._redeemableValidatorRewards[validationID];
             delete $._redeemableValidatorRewards[validationID];
