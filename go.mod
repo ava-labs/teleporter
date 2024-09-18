@@ -3,7 +3,7 @@ module github.com/ava-labs/teleporter
 go 1.22.6
 
 require (
-	github.com/ava-labs/avalanchego v1.11.11-0.20240814200552-b3b720666238
+	github.com/ava-labs/avalanchego v1.11.11-0.20240916181957-b328a0503042
 	github.com/supranational/blst v0.3.11 // indirect
 )
 

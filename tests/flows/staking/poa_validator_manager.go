@@ -72,6 +72,17 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		pChainInfo,
 		ownerAddress,
 	)
+	_ = utils.InitializePoAValidatorSet(
+		ctx,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		validatorManager,
+		validatorManagerAddress,
+		network,
+		signatureAggregator,
+		5,
+	)
 
 	var validationID ids.ID // To be used in the delisting step
 	weight := uint64(1)
