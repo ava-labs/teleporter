@@ -168,7 +168,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         (Validator memory validator, bytes32 validationID) = _completeEndValidation(messageIndex);
 
-        // PoA or initial validator case
+        // Return now if this was originally a PoA validator that was later migrated to this PoS manager
         if (validator.owner == address(0)) {
             return;
         }
