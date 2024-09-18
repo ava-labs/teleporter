@@ -144,7 +144,7 @@ abstract contract ValidatorManager is
         require(input.blsPublicKey.length == 48, "ValidatorManager: invalid blsPublicKey length");
 
         // Check that adding this validator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTrackerAddition(weight);
+        _checkAndUpdateChurnTracker(weight, 0);
 
         (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
@@ -376,12 +376,8 @@ abstract contract ValidatorManager is
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         uint64 validatorWeight = $._validationPeriods[validationID].weight;
 
-        // Check that removing this delegator would not exceed the maximum churn rate.
-        if (newWeight >= validatorWeight) {
-            _checkAndUpdateChurnTrackerAddition(newWeight - validatorWeight);
-        } else {
-            _checkAndUpdateChurnTrackerRemoval(validatorWeight - newWeight);
-        }
+        // Check that changing the validator weight would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTracker(newWeight, validatorWeight);
 
         uint64 nonce = _incrementAndGetNonce(validationID);
 
@@ -403,26 +399,19 @@ abstract contract ValidatorManager is
     }
 
     /**
-     * @dev Helper function to check if the stake amount to be added exceeds churn thresholds.
-     */
-    function _checkAndUpdateChurnTrackerAddition(uint64 weight) internal {
-        _checkAndUpdateChurnTracker(weight, true);
-    }
-
-    /**
-     * @dev Helper function to check if the stake amount to be removed exceeds churn thresholds.
-     */
-    function _checkAndUpdateChurnTrackerRemoval(uint64 weight) internal {
-        _checkAndUpdateChurnTracker(weight, false);
-    }
-
-    /**
      * @dev Helper function to check if the stake weight to be added or removed would exceed the maximum stake churn
      * rate for the past churn period. If the churn rate is exceeded, the function will revert. If the churn rate is
      * not exceeded, the function will update the churn tracker with the new weight.
      */
-    function _checkAndUpdateChurnTracker(uint64 weight, bool addition) private {
+    function _checkAndUpdateChurnTracker(uint64 newWeight, uint64 oldWeight) private {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+
+        uint64 weightChange;
+        if (newWeight > oldWeight) {
+            weightChange = newWeight - oldWeight;
+        } else {
+            weightChange = oldWeight - newWeight;
+        }
 
         uint256 currentTime = block.timestamp;
         ValidatorChurnPeriod memory churnTracker = $._churnTracker;
@@ -431,12 +420,12 @@ abstract contract ValidatorManager is
             churnTracker.startedAt == 0
                 || currentTime >= churnTracker.startedAt + $._churnPeriodSeconds
         ) {
-            churnTracker.churnAmount = weight;
+            churnTracker.churnAmount = weightChange;
             churnTracker.startedAt = currentTime;
             churnTracker.initialWeight = churnTracker.totalWeight;
         } else {
             // Churn is always additive whether the weight is being added or removed.
-            churnTracker.churnAmount += weight;
+            churnTracker.churnAmount += weightChange;
         }
 
         require(
@@ -445,11 +434,7 @@ abstract contract ValidatorManager is
             "ValidatorManager: maximum churn rate exceeded"
         );
 
-        if (addition) {
-            churnTracker.totalWeight += weight;
-        } else {
-            churnTracker.totalWeight -= weight;
-        }
+        churnTracker.totalWeight += newWeight - oldWeight;
 
         $._churnTracker = churnTracker;
     }
