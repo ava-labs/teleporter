@@ -88,7 +88,6 @@ contract NativeTokenStakingManager is
         payable(to).sendValue(value);
     }
 
-    // solhint-disable-next-line no-empty-blocks
     function _reward(address account, uint256 amount) internal virtual override {
         NATIVE_MINTER.mintNativeCoin(account, amount);
     }
