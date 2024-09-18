@@ -136,6 +136,25 @@ abstract contract PoSValidatorManager is
         $._rewardCalculator = rewardCalculator;
     }
 
+    function claimDelegationFees(bytes32 validationID) external {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        Validator memory validator = getValidator(validationID);
+
+        require(
+            validator.status == ValidatorStatus.Completed,
+            "PoSValidatorManager: validation period not completed"
+        );
+        require(
+            $._validatorRequirements[validationID].owner == _msgSender(),
+            "PoSValidatorManager: validator not owned by sender"
+        );
+
+        uint256 rewards = $._redeemableValidatorRewards[validationID];
+        delete $._redeemableValidatorRewards[validationID];
+        _reward($._validatorRequirements[validationID].owner, rewards);
+    }
+
     function initializeEndValidation(
         bytes32 validationID,
         bool includeUptimeProof,
