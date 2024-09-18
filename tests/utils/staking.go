@@ -234,9 +234,9 @@ func InitializeNativeTokenValidatorSet(
 	convertSubnetTxId := ids.GenerateTestID()
 	blsPublicKey := [bls.PublicKeyLen]byte{}
 	subnetConversionData := nativetokenstakingmanager.SubnetConversionData{
-		ConvertSubnetTxID:       convertSubnetTxId,
-		BlockchainID:            subnetInfo.BlockchainID,
-		ValidatorManagerAddress: validatorManagerAddress,
+		ConvertSubnetTxID:            convertSubnetTxId,
+		ValidatorManagerBlockchainID: subnetInfo.BlockchainID,
+		ValidatorManagerAddress:      validatorManagerAddress,
 		InitialValidators: []nativetokenstakingmanager.InitialValidator{
 			{
 				NodeID:       ids.GenerateTestID(),
@@ -292,9 +292,9 @@ func InitializeERC20TokenValidatorSet(
 	convertSubnetTxId := ids.GenerateTestID()
 	blsPublicKey := [bls.PublicKeyLen]byte{}
 	subnetConversionData := erc20tokenstakingmanager.SubnetConversionData{
-		ConvertSubnetTxID:       convertSubnetTxId,
-		BlockchainID:            subnetInfo.BlockchainID,
-		ValidatorManagerAddress: validatorManagerAddress,
+		ConvertSubnetTxID:            convertSubnetTxId,
+		ValidatorManagerBlockchainID: subnetInfo.BlockchainID,
+		ValidatorManagerAddress:      validatorManagerAddress,
 		InitialValidators: []erc20tokenstakingmanager.InitialValidator{
 			{
 				NodeID:       ids.GenerateTestID(),
@@ -350,9 +350,9 @@ func InitializePoAValidatorSet(
 	convertSubnetTxId := ids.GenerateTestID()
 	blsPublicKey := [bls.PublicKeyLen]byte{}
 	subnetConversionData := poavalidatormanager.SubnetConversionData{
-		ConvertSubnetTxID:       convertSubnetTxId,
-		BlockchainID:            subnetInfo.BlockchainID,
-		ValidatorManagerAddress: validatorManagerAddress,
+		ConvertSubnetTxID:            convertSubnetTxId,
+		ValidatorManagerBlockchainID: subnetInfo.BlockchainID,
+		ValidatorManagerAddress:      validatorManagerAddress,
 		InitialValidators: []poavalidatormanager.InitialValidator{
 			{
 				NodeID:       ids.GenerateTestID(),
