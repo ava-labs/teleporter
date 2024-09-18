@@ -213,7 +213,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             data: "", // implies receive()
             returnData: ""
         });
-        // Because we don
+        // Units tests don't have access to the native minter precompile, so use vm.deal instead.
         vm.deal(account, account.balance + amount);
     }
 
