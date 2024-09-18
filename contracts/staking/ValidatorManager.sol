@@ -247,9 +247,6 @@ abstract contract ValidatorManager is
         );
         require(_msgSender() == validator.owner, "ValidatorManager: sender not validator owner");
 
-        // Check that removing this delegator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTrackerRemoval(validator.weight);
-
         // Update the validator status to pending removal.
         // They are not removed from the active validators mapping until the P-Chain acknowledges the removal.
         validator.status = ValidatorStatus.PendingRemoved;
@@ -262,11 +259,7 @@ abstract contract ValidatorManager is
         // TODO: Optimize storage writes here (probably don't need to write the whole value).
         $._validationPeriods[validationID] = validator;
 
-        // Submit the message to the Warp precompile.
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, _incrementAndGetNonce(validationID), 0);
-
-        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
+        (, bytes32 messageID) = _setValidatorWeight(validationID, 0);
 
         // Emit the event to signal the start of the validator removal process.
         emit ValidatorRemovalInitialized(validationID, messageID, validator.weight, block.timestamp);
@@ -378,22 +371,31 @@ abstract contract ValidatorManager is
 
     function _setValidatorWeight(
         bytes32 validationID,
-        uint64 weight
+        uint64 newWeight
     ) internal returns (uint64, bytes32) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        uint64 validatorWeight = $._validationPeriods[validationID].weight;
+
+        // Check that removing this delegator would not exceed the maximum churn rate.
+        if (newWeight >= validatorWeight) {
+            _checkAndUpdateChurnTrackerAddition(newWeight - validatorWeight);
+        } else {
+            _checkAndUpdateChurnTrackerRemoval(validatorWeight - newWeight);
+        }
+
         uint64 nonce = _incrementAndGetNonce(validationID);
 
-        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        $._validationPeriods[validationID].weight = weight;
+        $._validationPeriods[validationID].weight = newWeight;
 
         // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, nonce, weight)
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, nonce, newWeight)
         );
 
         emit ValidatorWeightUpdate({
             validationID: validationID,
             nonce: nonce,
-            validatorWeight: weight,
+            validatorWeight: newWeight,
             setWeightMessageID: messageID
         });
 

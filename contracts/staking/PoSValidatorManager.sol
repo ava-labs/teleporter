@@ -229,9 +229,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             validator.status == ValidatorStatus.Active, "PoSValidatorManager: validator not active"
         );
 
-        // Check that adding this delegator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTrackerAddition(weight);
-
         // Update the validator weight
         uint64 newValidatorWeight = validator.weight + weight;
         require(
@@ -343,12 +340,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         delegator.status = DelegatorStatus.PendingRemoved;
 
         if (validator.status == ValidatorStatus.Active) {
-            // Check that removing this delegator would not exceed the maximum churn rate.
-            // We only need to check this is the validator is still active. If the validator ends its validation
-            // period, the weight of all its delegators will be added to the churn tracker at that time. Ending
-            // a delegation whose validator has ended validating has no impact on the stake weight of the chain.
-            _checkAndUpdateChurnTrackerRemoval(delegator.weight);
-
             uint64 newValidatorWeight = validator.weight - delegator.weight;
             (delegator.endingNonce,) = _setValidatorWeight(validationID, newValidatorWeight);
 
