@@ -146,7 +146,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         );
 
         if (includeUptimeProof) {
+            // Uptime proofs include the absolute number of seconds the validator has been active.
             uint64 uptimeSeconds = _getUptime(validationID, messageIndex);
+            // Save this value for use by this validator's delegators.
             $._completedValidationUptimeSeconds[validationID] = uptimeSeconds;
 
             $._redeemableValidatorRewards[validationID] += $._rewardCalculator.calculateReward({
@@ -387,8 +389,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             validator.status == ValidatorStatus.PendingRemoved
                 || validator.status == ValidatorStatus.Completed
         ) {
+            // If the validation period has already ended, we have saved the uptime.
             validatorUptimeSeconds = $._completedValidationUptimeSeconds[validationID];
         } else if (includeUptimeProof) {
+            // Uptime proofs include the absolute number of seconds the validator has been active.
             validatorUptimeSeconds = _getUptime(validationID, messageIndex);
         }
 
