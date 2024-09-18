@@ -403,14 +403,17 @@ abstract contract ValidatorManager is
      * rate for the past churn period. If the churn rate is exceeded, the function will revert. If the churn rate is
      * not exceeded, the function will update the churn tracker with the new weight.
      */
-    function _checkAndUpdateChurnTracker(uint64 newWeight, uint64 oldWeight) private {
+    function _checkAndUpdateChurnTracker(
+        uint64 newValidatorWeight,
+        uint64 oldValidatorWeight
+    ) private {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         uint64 weightChange;
-        if (newWeight > oldWeight) {
-            weightChange = newWeight - oldWeight;
+        if (newValidatorWeight > oldValidatorWeight) {
+            weightChange = newValidatorWeight - oldValidatorWeight;
         } else {
-            weightChange = oldWeight - newWeight;
+            weightChange = oldValidatorWeight - newValidatorWeight;
         }
 
         uint256 currentTime = block.timestamp;
@@ -434,9 +437,9 @@ abstract contract ValidatorManager is
             "ValidatorManager: maximum churn rate exceeded"
         );
 
-        // Two separate calculations because we're using uints and (newWeight - oldWeight) could underflow.
-        churnTracker.totalWeight += newWeight;
-        churnTracker.totalWeight -= oldWeight;
+        // Two separate calculations because we're using uints and (newValidatorWeight - oldValidatorWeight) could underflow.
+        churnTracker.totalWeight += newValidatorWeight;
+        churnTracker.totalWeight -= oldValidatorWeight;
 
         $._churnTracker = churnTracker;
     }
