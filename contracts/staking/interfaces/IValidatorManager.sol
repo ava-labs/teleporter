@@ -121,7 +121,7 @@ interface IValidatorManager {
      * @notice Verifies and sets the initial validator set for the chain through a P-Chain
      * SubnetConversionMessage.
      * @param subnetConversionData The subnet conversion message data used to recompute and verify against the subnetConversionID.
-     * @param messsageIndex The index that contains the SubnetConversionMessage Warp message in the transaction.
+     * @param messsageIndex The index that contains the SubnetConversionMessage Warp message containing the subnetConversionID to be verified against the provided {subnetConversionData}
      */
     function initializeValidatorSet(
         SubnetConversionData calldata subnetConversionData,
