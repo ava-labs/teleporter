@@ -323,9 +323,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // TODO: Calculate the delegator's reward, but do not unlock it
 
-        // Ensure the delegator is active
         Delegator memory delegator = $._delegatorStakes[delegationID];
         Validator memory validator = getValidator(validationID);
+        
+        // Ensure the delegator is active
         require(
             delegator.status == DelegatorStatus.Active, "PoSValidatorManager: delegation not active"
         );
@@ -345,6 +346,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
             delegator.endedAt = uint64(block.timestamp);
         } else {
+            // If the validation period has already ended, there won't be any uptime message able to be
+            // provided in the call to initializeEndDelegation, and the uptime submitted when the validator
+            // was ended should be used to calculate the delegators rewards.
             delegator.endingNonce = validator.messageNonce;
             delegator.endedAt = validator.endedAt;
         }
