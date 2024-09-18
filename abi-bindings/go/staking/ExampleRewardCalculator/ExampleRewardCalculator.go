@@ -31,8 +31,8 @@ var (
 
 // ExampleRewardCalculatorMetaData contains all meta data concerning the ExampleRewardCalculator contract.
 var ExampleRewardCalculatorMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"rewardBasisPoints_\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"SECONDS_IN_YEAR\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"calculateReward\",\"inputs\":[{\"name\":\"stakeAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"startTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"endTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"rewardBasisPoints\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"}]",
-	Bin: "0x60a0604052348015600e575f80fd5b5060405161029d38038061029d833981016040819052602b91603b565b6001600160401b03166080526066565b5f60208284031215604a575f80fd5b81516001600160401b0381168114605f575f80fd5b9392505050565b60805161021a6100835f395f81816079015260d3015261021a5ff3fe608060405234801561000f575f80fd5b506004361061003f575f3560e01c80635dcc9391146100435780639d4ba9db14610061578063bb65b24214610074575b5f80fd5b61004e6301e1338081565b6040519081526020015b60405180910390f35b61004e61006f36600461014b565b6100b4565b61009b7f000000000000000000000000000000000000000000000000000000000000000081565b60405167ffffffffffffffff9091168152602001610058565b5f6127106301e133806100c787876101a9565b67ffffffffffffffff167f000000000000000000000000000000000000000000000000000000000000000067ffffffffffffffff168961010791906101d1565b61011191906101d1565b61011b91906101ee565b61012591906101ee565b9695505050505050565b803567ffffffffffffffff81168114610146575f80fd5b919050565b5f805f805f60a0868803121561015f575f80fd5b8535945061016f6020870161012f565b935061017d6040870161012f565b94979396509394606081013594506080013592915050565b634e487b7160e01b5f52601160045260245ffd5b67ffffffffffffffff8281168282160390808211156101ca576101ca610195565b5092915050565b80820281158282048414176101e8576101e8610195565b92915050565b5f8261020857634e487b7160e01b5f52601260045260245ffd5b50049056fea164736f6c6343000819000a",
+	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"rewardBasisPoints_\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"SECONDS_IN_YEAR\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"UPTIME_REWARDS_THRESHOLD_PERCENTAGE\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"uint8\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"calculateReward\",\"inputs\":[{\"name\":\"stakeAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"validatorStartTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"stakingStartTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"stakingEndTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"uptimeSeconds\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"rewardBasisPoints\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"}]",
+	Bin: "0x60a0604052348015600e575f80fd5b50604051610357380380610357833981016040819052602b91603b565b6001600160401b03166080526066565b5f60208284031215604a575f80fd5b81516001600160401b0381168114605f575f80fd5b9392505050565b6080516102d36100845f395f8181609e015261013a01526102d35ff3fe608060405234801561000f575f80fd5b506004361061004a575f3560e01c80635dcc93911461004e578063778c06b51461006c578063afba878a1461007f578063bb65b24214610099575b5f80fd5b6100596301e1338081565b6040519081526020015b60405180910390f35b61005961007a3660046101b6565b6100d9565b610087605081565b60405160ff9091168152602001610063565b6100c07f000000000000000000000000000000000000000000000000000000000000000081565b60405167ffffffffffffffff9091168152602001610063565b5f60506100e68887610236565b6100f0919061025e565b67ffffffffffffffff1661010585606461025e565b67ffffffffffffffff16101561011c57505f61018f565b6127106301e1338061012e8888610236565b67ffffffffffffffff167f000000000000000000000000000000000000000000000000000000000000000067ffffffffffffffff168b61016e919061028a565b610178919061028a565b61018291906102a7565b61018c91906102a7565b90505b979650505050505050565b803567ffffffffffffffff811681146101b1575f80fd5b919050565b5f805f805f805f60e0888a0312156101cc575f80fd5b873596506101dc6020890161019a565b95506101ea6040890161019a565b94506101f86060890161019a565b93506102066080890161019a565b925060a0880135915060c0880135905092959891949750929550565b634e487b7160e01b5f52601160045260245ffd5b67ffffffffffffffff82811682821603908082111561025757610257610222565b5092915050565b67ffffffffffffffff81811683821602808216919082811461028257610282610222565b505092915050565b80820281158282048414176102a1576102a1610222565b92915050565b5f826102c157634e487b7160e01b5f52601260045260245ffd5b50049056fea164736f6c6343000819000a",
 }
 
 // ExampleRewardCalculatorABI is the input ABI used to generate the binding from.
@@ -233,12 +233,43 @@ func (_ExampleRewardCalculator *ExampleRewardCalculatorCallerSession) SECONDSINY
 	return _ExampleRewardCalculator.Contract.SECONDSINYEAR(&_ExampleRewardCalculator.CallOpts)
 }
 
-// CalculateReward is a free data retrieval call binding the contract method 0x9d4ba9db.
+// UPTIMEREWARDSTHRESHOLDPERCENTAGE is a free data retrieval call binding the contract method 0xafba878a.
 //
-// Solidity: function calculateReward(uint256 stakeAmount, uint64 startTime, uint64 endTime, uint256 , uint256 ) view returns(uint256)
-func (_ExampleRewardCalculator *ExampleRewardCalculatorCaller) CalculateReward(opts *bind.CallOpts, stakeAmount *big.Int, startTime uint64, endTime uint64, arg3 *big.Int, arg4 *big.Int) (*big.Int, error) {
+// Solidity: function UPTIME_REWARDS_THRESHOLD_PERCENTAGE() view returns(uint8)
+func (_ExampleRewardCalculator *ExampleRewardCalculatorCaller) UPTIMEREWARDSTHRESHOLDPERCENTAGE(opts *bind.CallOpts) (uint8, error) {
 	var out []interface{}
-	err := _ExampleRewardCalculator.contract.Call(opts, &out, "calculateReward", stakeAmount, startTime, endTime, arg3, arg4)
+	err := _ExampleRewardCalculator.contract.Call(opts, &out, "UPTIME_REWARDS_THRESHOLD_PERCENTAGE")
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
+}
+
+// UPTIMEREWARDSTHRESHOLDPERCENTAGE is a free data retrieval call binding the contract method 0xafba878a.
+//
+// Solidity: function UPTIME_REWARDS_THRESHOLD_PERCENTAGE() view returns(uint8)
+func (_ExampleRewardCalculator *ExampleRewardCalculatorSession) UPTIMEREWARDSTHRESHOLDPERCENTAGE() (uint8, error) {
+	return _ExampleRewardCalculator.Contract.UPTIMEREWARDSTHRESHOLDPERCENTAGE(&_ExampleRewardCalculator.CallOpts)
+}
+
+// UPTIMEREWARDSTHRESHOLDPERCENTAGE is a free data retrieval call binding the contract method 0xafba878a.
+//
+// Solidity: function UPTIME_REWARDS_THRESHOLD_PERCENTAGE() view returns(uint8)
+func (_ExampleRewardCalculator *ExampleRewardCalculatorCallerSession) UPTIMEREWARDSTHRESHOLDPERCENTAGE() (uint8, error) {
+	return _ExampleRewardCalculator.Contract.UPTIMEREWARDSTHRESHOLDPERCENTAGE(&_ExampleRewardCalculator.CallOpts)
+}
+
+// CalculateReward is a free data retrieval call binding the contract method 0x778c06b5.
+//
+// Solidity: function calculateReward(uint256 stakeAmount, uint64 validatorStartTime, uint64 stakingStartTime, uint64 stakingEndTime, uint64 uptimeSeconds, uint256 , uint256 ) view returns(uint256)
+func (_ExampleRewardCalculator *ExampleRewardCalculatorCaller) CalculateReward(opts *bind.CallOpts, stakeAmount *big.Int, validatorStartTime uint64, stakingStartTime uint64, stakingEndTime uint64, uptimeSeconds uint64, arg5 *big.Int, arg6 *big.Int) (*big.Int, error) {
+	var out []interface{}
+	err := _ExampleRewardCalculator.contract.Call(opts, &out, "calculateReward", stakeAmount, validatorStartTime, stakingStartTime, stakingEndTime, uptimeSeconds, arg5, arg6)
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -250,18 +281,18 @@ func (_ExampleRewardCalculator *ExampleRewardCalculatorCaller) CalculateReward(o
 
 }
 
-// CalculateReward is a free data retrieval call binding the contract method 0x9d4ba9db.
+// CalculateReward is a free data retrieval call binding the contract method 0x778c06b5.
 //
-// Solidity: function calculateReward(uint256 stakeAmount, uint64 startTime, uint64 endTime, uint256 , uint256 ) view returns(uint256)
-func (_ExampleRewardCalculator *ExampleRewardCalculatorSession) CalculateReward(stakeAmount *big.Int, startTime uint64, endTime uint64, arg3 *big.Int, arg4 *big.Int) (*big.Int, error) {
-	return _ExampleRewardCalculator.Contract.CalculateReward(&_ExampleRewardCalculator.CallOpts, stakeAmount, startTime, endTime, arg3, arg4)
+// Solidity: function calculateReward(uint256 stakeAmount, uint64 validatorStartTime, uint64 stakingStartTime, uint64 stakingEndTime, uint64 uptimeSeconds, uint256 , uint256 ) view returns(uint256)
+func (_ExampleRewardCalculator *ExampleRewardCalculatorSession) CalculateReward(stakeAmount *big.Int, validatorStartTime uint64, stakingStartTime uint64, stakingEndTime uint64, uptimeSeconds uint64, arg5 *big.Int, arg6 *big.Int) (*big.Int, error) {
+	return _ExampleRewardCalculator.Contract.CalculateReward(&_ExampleRewardCalculator.CallOpts, stakeAmount, validatorStartTime, stakingStartTime, stakingEndTime, uptimeSeconds, arg5, arg6)
 }
 
-// CalculateReward is a free data retrieval call binding the contract method 0x9d4ba9db.
+// CalculateReward is a free data retrieval call binding the contract method 0x778c06b5.
 //
-// Solidity: function calculateReward(uint256 stakeAmount, uint64 startTime, uint64 endTime, uint256 , uint256 ) view returns(uint256)
-func (_ExampleRewardCalculator *ExampleRewardCalculatorCallerSession) CalculateReward(stakeAmount *big.Int, startTime uint64, endTime uint64, arg3 *big.Int, arg4 *big.Int) (*big.Int, error) {
-	return _ExampleRewardCalculator.Contract.CalculateReward(&_ExampleRewardCalculator.CallOpts, stakeAmount, startTime, endTime, arg3, arg4)
+// Solidity: function calculateReward(uint256 stakeAmount, uint64 validatorStartTime, uint64 stakingStartTime, uint64 stakingEndTime, uint64 uptimeSeconds, uint256 , uint256 ) view returns(uint256)
+func (_ExampleRewardCalculator *ExampleRewardCalculatorCallerSession) CalculateReward(stakeAmount *big.Int, validatorStartTime uint64, stakingStartTime uint64, stakingEndTime uint64, uptimeSeconds uint64, arg5 *big.Int, arg6 *big.Int) (*big.Int, error) {
+	return _ExampleRewardCalculator.Contract.CalculateReward(&_ExampleRewardCalculator.CallOpts, stakeAmount, validatorStartTime, stakingStartTime, stakingEndTime, uptimeSeconds, arg5, arg6)
 }
 
 // RewardBasisPoints is a free data retrieval call binding the contract method 0xbb65b242.

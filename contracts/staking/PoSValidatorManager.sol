@@ -50,14 +50,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         mapping(bytes32 validationID => PoSValidatorRequirements) _validatorRequirements;
         /// @notice Maps the delegationID to the delegator information.
         mapping(bytes32 delegationID => Delegator) _delegatorStakes;
-        /// @notice Maps the delegationID to pending register delegator messages.
-        mapping(bytes32 delegationID => bytes) _pendingRegisterDelegatorMessages;
-        /// @notice Maps the delegationID to pending end delegator messages.
-        mapping(bytes32 delegationID => bytes) _pendingEndDelegatorMessages;
         /// @notice Maps the delegationID to its pending staking rewards.
         mapping(bytes32 delegationID => uint256) _redeemableDelegatorRewards;
         /// @notice Maps the validator owner address to its pending staking rewards.
-        mapping(address validatorOwner => uint256) _redeemableValidatorRewards;
+        mapping(bytes32 validationID => uint256) _redeemableValidatorRewards;
+        /// @notice Saves the uptime of a pending completed or completed validation period so that delegators can collect rewards.
+        mapping(bytes32 validationID => uint64) _completedValidationUptimeSeconds;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -67,8 +65,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         0x4317713f7ecbdddd4bc99e95d903adedaa883b2e7c2551610bd13e2c7e473d00;
 
     uint8 public constant MAXIMUM_STAKE_MULTIPLIER_LIMIT = 10;
-
-    uint8 public constant UPTIME_REWARDS_THRESHOLD_PERCENTAGE = 80;
 
     uint16 public constant MAXIMUM_DELEGATION_FEE_BIPS = 10000;
 
@@ -150,32 +146,35 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         );
 
         if (includeUptimeProof) {
-            uint64 uptime = _getUptime(validationID, messageIndex);
-            if (
-                uptime * 100
-                    >= (validator.endedAt - validator.startedAt) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE
-            ) {
-                $._redeemableValidatorRewards[validator.owner] += $
-                    ._rewardCalculator
-                    .calculateReward(
-                    weightToValue(validator.startingWeight),
-                    validator.startedAt,
-                    validator.endedAt,
-                    0,
-                    0
-                );
-            }
+            uint64 uptimeSeconds = _getUptime(validationID, messageIndex);
+            $._completedValidationUptimeSeconds[validationID] = uptimeSeconds;
+
+            $._redeemableValidatorRewards[validationID] += $._rewardCalculator.calculateReward({
+                stakeAmount: weightToValue(validator.startingWeight),
+                validatorStartTime: validator.startedAt,
+                stakingStartTime: validator.startedAt,
+                stakingEndTime: validator.endedAt,
+                uptimeSeconds: uptimeSeconds,
+                initialSupply: 0,
+                endSupply: 0
+            });
         }
     }
 
     function completeEndValidation(uint32 messageIndex) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
-        Validator memory validator = _completeEndValidation(messageIndex);
+        (Validator memory validator, bytes32 validationID) = _completeEndValidation(messageIndex);
+
+        // PoA or initial validator case
+        if (validator.owner == address(0)) {
+            return;
+        }
 
         if (validator.status == ValidatorStatus.Completed) {
-            _reward(validator.owner, $._redeemableValidatorRewards[validator.owner]);
-            delete $._redeemableValidatorRewards[validator.owner];
+            uint256 rewards = $._redeemableValidatorRewards[validationID];
+            delete $._redeemableValidatorRewards[validationID];
+            _reward(validator.owner, rewards);
         }
 
         // We unlock the state whether the validation period is completed or invalidated.
@@ -383,17 +382,25 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         $._delegatorStakes[delegationID] = delegator;
 
-        if (includeUptimeProof) {
-            uint256 uptime = _getUptime(validationID, messageIndex);
-            if (
-                uptime * 100
-                    >= (currentTime - validator.startedAt) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE
-            ) {
-                $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward(
-                    weightToValue(delegator.weight), delegator.startedAt, delegator.endedAt, 0, 0
-                );
-            }
+        uint64 validatorUptimeSeconds;
+        if (
+            validator.status == ValidatorStatus.PendingRemoved
+                || validator.status == ValidatorStatus.Completed
+        ) {
+            validatorUptimeSeconds = $._completedValidationUptimeSeconds[validationID];
+        } else if (includeUptimeProof) {
+            validatorUptimeSeconds = _getUptime(validationID, messageIndex);
         }
+
+        $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward({
+            stakeAmount: weightToValue(delegator.weight),
+            validatorStartTime: validator.startedAt,
+            stakingStartTime: delegator.startedAt,
+            stakingEndTime: delegator.endedAt,
+            uptimeSeconds: validatorUptimeSeconds,
+            initialSupply: 0,
+            endSupply: 0
+        });
 
         // Check that removing this delegator would not exceed the maximum churn rate.
         // We only need to check this is the validator is still active. If the validator ends its validation

@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {ExampleRewardCalculator} from "../ExampleRewardCalculator.sol";
+import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 import {PoSValidatorManager} from "../PoSValidatorManager.sol";
 import {PoSValidatorRequirements} from "../interfaces/IPoSValidatorManager.sol";
@@ -14,7 +14,7 @@ import {
     IWarpMessenger
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
-import {ValidatorRegistrationInput} from "../interfaces/IValidatorManager.sol";
+import {ValidatorRegistrationInput, ValidatorStatus} from "../interfaces/IValidatorManager.sol";
 
 abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     uint64 public constant DEFAULT_UPTIME = uint64(100);
@@ -27,6 +27,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION;
     address public constant DEFAULT_DELEGATOR_ADDRESS =
         address(0x1234123412341234123412341234123412341234);
+    address public constant DEFAULT_VALIDATOR_OWNER_ADDRESS =
+        address(0x2345234523452345234523452345234523452345);
     uint64 public constant DEFAULT_REWARD_RATE = uint64(10);
     uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
     uint16 public constant DEFAULT_MINIMUM_DELEGATION_FEE_BIPS = 100;
@@ -34,7 +36,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     uint256 public constant SECONDS_IN_YEAR = 31536000;
 
     PoSValidatorManager public posValidatorManager;
-    ExampleRewardCalculator public rewardCalculator;
+    IRewardCalculator public rewardCalculator;
 
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
@@ -493,7 +495,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            includeUptime: true
         });
         bytes memory setValidatorWeightPayload =
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
@@ -502,18 +505,13 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     }
 
     function testCompleteEndDelegation() public {
-        uint256 registrationDuration = DEFAULT_MINIMUM_STAKE_DURATION;
-
-        uint256 registrationExpiry =
-            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + registrationDuration;
-
         bytes32 validationID = _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
             weight: DEFAULT_WEIGHT,
-            registrationExpiry: uint64(registrationExpiry),
+            registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-            registrationTimestamp: uint64(registrationExpiry)
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
         bytes32 delegationID = _setUpInitializeDelegatorRegistration({
             validationID: validationID,
@@ -530,47 +528,38 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
             expectedNonce: 1
         });
+        uint64 delgationEndTime =
+            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION;
         _setUpInitializeEndDelegation({
             validationID: validationID,
             delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
             delegationID: delegationID,
             startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
-            endDelegationTimestamp: uint64(registrationExpiry),
+            endDelegationTimestamp: delgationEndTime,
             expectedValidatorWeight: DEFAULT_WEIGHT,
             expectedNonce: 2
         });
 
-        address delegator = DEFAULT_DELEGATOR_ADDRESS;
-        uint256 balanceBefore = _getStakeAssetBalance(delegator);
-        uint256 expectedReward = rewardCalculator.calculateReward(
-            _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
-            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
-            uint64(registrationExpiry),
-            0,
-            0
-        );
-        _expectStakeUnlock(delegator, _weightToValue(DEFAULT_DELEGATOR_WEIGHT));
-        _expectRewardIssuance(delegator, expectedReward);
+        uint256 expectedReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            stakingEndTime: delgationEndTime,
+            uptimeSeconds: delgationEndTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
 
         _setUpCompleteEndDelegation({
             validationID: validationID,
             delegationID: delegationID,
-            delegator: delegator,
+            delegator: DEFAULT_DELEGATOR_ADDRESS,
             delegatorWeight: DEFAULT_DELEGATOR_WEIGHT,
             expectedReward: expectedReward,
             validatorWeight: DEFAULT_WEIGHT,
             expectedValidatorWeight: DEFAULT_WEIGHT,
             expectedNonce: 2
         });
-
-        uint256 balanceAfter = _getStakeAssetBalance(delegator);
-        vm.assertEq(balanceAfter, balanceAfter);
-        vm.assertEq(expectedReward, expectedReward);
-        uint256 balanceChange = balanceAfter - balanceBefore;
-        require(
-            balanceChange == _weightToValue(DEFAULT_DELEGATOR_WEIGHT) + expectedReward,
-            "delegator should have received their stake back and been rewarded"
-        );
     }
 
     function testCompleteEndDelegationWrongNonce() public {
@@ -698,7 +687,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validationID: validationID,
             delegatorAddress: delegator1,
             delegationID: delegationID1,
-            startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
+            startDelegationTimestamp: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
             expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
             expectedNonce: 3
@@ -707,7 +696,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validationID: validationID,
             delegatorAddress: delegator2,
             delegationID: delegationID2,
-            startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
+            startDelegationTimestamp: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP + 1,
             expectedValidatorWeight: DEFAULT_WEIGHT,
             expectedNonce: 4
@@ -719,13 +708,15 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             delegationID: delegationID1,
             delegator: DEFAULT_DELEGATOR_ADDRESS,
             delegatorWeight: DEFAULT_DELEGATOR_WEIGHT,
-            expectedReward: rewardCalculator.calculateReward(
-                DEFAULT_DELEGATOR_WEIGHT,
-                DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
-                DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
-                0,
-                0
-            ),
+            expectedReward: rewardCalculator.calculateReward({
+                stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
+                validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+                stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+                stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+                uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+                initialSupply: 0,
+                endSupply: 0
+            }),
             validatorWeight: DEFAULT_WEIGHT,
             expectedValidatorWeight: DEFAULT_WEIGHT,
             expectedNonce: 4
@@ -733,36 +724,46 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     }
 
     function testCompleteEndValidation() public virtual override {
-        uint256 registrationDuration = DEFAULT_MINIMUM_STAKE_DURATION;
-
-        uint256 registrationExpiry = DEFAULT_REGISTRATION_TIMESTAMP + registrationDuration;
-
         bytes32 validationID = _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
             weight: DEFAULT_WEIGHT,
-            registrationExpiry: uint64(registrationExpiry),
+            registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: uint64(registrationExpiry),
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
             includeUptime: true
         });
 
-        uint256 balanceBefore = _getStakeAssetBalance(address(this));
+        uint256 expectedReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingEndTime: DEFAULT_COMPLETION_TIMESTAMP,
+            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
 
-        uint256 expectedReward = _weightToValue(DEFAULT_WEIGHT) * DEFAULT_REWARD_RATE
-            * registrationDuration / 10000 / SECONDS_IN_YEAR;
+        _setUpCompleteEndValidation({
+            validationID: validationID,
+            validatorOwner: address(this),
+            expectedReward: expectedReward,
+            validatorWeight: DEFAULT_WEIGHT
+        });
+    }
 
-        _expectStakeUnlock(address(this), _weightToValue(DEFAULT_WEIGHT));
-        _expectRewardIssuance(address(this), expectedReward);
-
-        _testCompleteEndValidation(validationID);
-
-        uint256 balanceChange = _getStakeAssetBalance(address(this)) - balanceBefore;
-        require(
-            balanceChange == _weightToValue(DEFAULT_WEIGHT) + expectedReward,
-            "validator should have received their stake back and been rewarded"
-        );
+    function testInitializeEndValidation() public virtual override {
+        _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            includeUptime: true
+        });
     }
 
     function testValueToWeight() public view {
@@ -894,11 +895,37 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         return delegationID;
     }
 
+    function _setUpCompleteEndValidation(
+        bytes32 validationID,
+        address validatorOwner,
+        uint256 expectedReward,
+        uint64 validatorWeight
+    ) internal {
+        bytes memory subnetValidatorRegistrationMessage =
+            ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
+
+        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
+
+        vm.expectEmit(true, true, true, true, address(posValidatorManager));
+        emit ValidationPeriodEnded(validationID, ValidatorStatus.Completed);
+        uint256 balanceBefore = _getStakeAssetBalance(validatorOwner);
+
+        _expectStakeUnlock(validatorOwner, _weightToValue(validatorWeight));
+        _expectRewardIssuance(validatorOwner, expectedReward);
+
+        posValidatorManager.completeEndValidation(0);
+
+        assertEq(
+            _getStakeAssetBalance(validatorOwner),
+            balanceBefore + _weightToValue(validatorWeight) + expectedReward
+        );
+    }
+
     function _setUpCompleteEndDelegation(
         bytes32 validationID,
         bytes32 delegationID,
         address delegator,
-        uint256 delegatorWeight,
+        uint64 delegatorWeight,
         uint256 expectedReward,
         uint64 validatorWeight,
         uint64 expectedValidatorWeight,
@@ -911,10 +938,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit DelegationEnded(delegationID, validationID, expectedNonce);
-        _expectStakeUnlock(delegator, delegatorWeight);
+        uint256 balanceBefore = _getStakeAssetBalance(delegator);
+
+        _expectStakeUnlock(delegator, _weightToValue(delegatorWeight));
         _expectRewardIssuance(delegator, expectedReward);
+
         posValidatorManager.completeEndDelegation(0, delegationID);
+
         assertEq(posValidatorManager.getWeight(validationID), expectedValidatorWeight);
+        assertEq(
+            _getStakeAssetBalance(delegator),
+            balanceBefore + _weightToValue(delegatorWeight) + expectedReward
+        );
         return delegationID;
     }
 

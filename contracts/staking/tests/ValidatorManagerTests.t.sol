@@ -170,7 +170,15 @@ abstract contract ValidatorManagerTest is Test {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
-        _testCompleteEndValidation(validationID);
+        bytes memory subnetValidatorRegistrationMessage =
+            ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
+
+        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
+
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit ValidationPeriodEnded(validationID, ValidatorStatus.Completed);
+
+        validatorManager.completeEndValidation(0);
     }
 
     function testCompleteInvalidatedValidation() public {
@@ -368,7 +376,7 @@ abstract contract ValidatorManagerTest is Test {
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         if (includeUptime) {
             bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
-                validationID, registrationExpiry - registrationTimestamp
+                validationID, completionTimestamp - registrationTimestamp
             );
             _mockGetVerifiedWarpMessage(uptimeMsg, true);
             _mockGetBlockchainID(P_CHAIN_BLOCKCHAIN_ID);
@@ -377,18 +385,6 @@ abstract contract ValidatorManagerTest is Test {
         emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp);
 
         _initializeEndValidation(validationID, includeUptime);
-    }
-
-    function _testCompleteEndValidation(bytes32 validationID) internal virtual {
-        bytes memory subnetValidatorRegistrationMessage =
-            ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
-
-        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
-
-        vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidationPeriodEnded(validationID, ValidatorStatus.Completed);
-
-        validatorManager.completeEndValidation(0);
     }
 
     function _mockSendWarpMessage(bytes memory payload, bytes32 expectedMessageID) internal {

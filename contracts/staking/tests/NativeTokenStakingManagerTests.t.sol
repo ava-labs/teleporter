@@ -213,6 +213,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             data: "", // implies receive()
             returnData: ""
         });
+        // Because we don
         vm.deal(account, account.balance + amount);
     }
 

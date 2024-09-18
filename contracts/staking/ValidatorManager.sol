@@ -306,7 +306,10 @@ abstract contract ValidatorManager is
      * {registrationExpiry} being reached.
      * @return The Validator instance representing the completed validation period
      */
-    function _completeEndValidation(uint32 messageIndex) internal returns (Validator memory) {
+    function _completeEndValidation(uint32 messageIndex)
+        internal
+        returns (Validator memory, bytes32)
+    {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Get the Warp message.
@@ -339,12 +342,10 @@ abstract contract ValidatorManager is
         validator.status = endStatus;
         $._validationPeriods[validationID] = validator;
 
-        // TODO: Unlock the stake.
-
         // Emit event.
         emit ValidationPeriodEnded(validationID, validator.status);
 
-        return validator;
+        return (validator, validationID);
     }
 
     /**
