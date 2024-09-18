@@ -378,6 +378,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             delegator.endedAt = uint64(block.timestamp);
         } else {
             // If the validation period has already ended, we have saved the uptime.
+            // Further, it is impossible to retrieve an uptime proof for an already ended validation,
+            // so there's no need to check any uptime proof provided in this function call.
             validatorUptimeSeconds = $._completedValidationUptimeSeconds[validationID];
 
             delegator.endingNonce = validator.messageNonce;
