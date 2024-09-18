@@ -126,6 +126,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     ) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         require(!$._initializedValidatorSet, "ValidatorManager: already initialized validator set");
+        // Check that the blockchainID and validator manager address in the subnetConversionData correspond to this contract.
+        // Other validation checks are done by the P-Chain when converting the subnet, so are not required here.
         require(
             subnetConversionData.validatorManagerBlockchainID == WARP_MESSENGER.getBlockchainID(),
             "ValidatorManager: invalid blockchain ID"
@@ -134,14 +136,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             address(subnetConversionData.validatorManagerAddress) == address(this),
             "ValidatorManager: invalid validator manager address"
         );
-        require(
-            subnetConversionData.initialValidators.length > 0,
-            "ValidatorManager: no initial validators"
-        );
+
         uint256 numInitialValidators = subnetConversionData.initialValidators.length;
-        require(
-            numInitialValidators < type(uint32).max, "ValidatorManager: too many initial validators"
-        );
 
         // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
         bytes memory encodedConversion = abi.encodePacked(
@@ -155,14 +151,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         for (uint32 i; i < numInitialValidators; ++i) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             bytes32 nodeID = initialValidator.nodeID;
-            require(nodeID != bytes32(0), "ValidatorManager: invalid node ID");
             require(
                 $._activeValidators[nodeID] == bytes32(0),
                 "ValidatorManager: node ID already active"
-            );
-            require(
-                initialValidator.blsPublicKey.length == BLS_PUBLIC_KEY_LENGTH,
-                "ValidatorManager: invalid blsPublicKey length"
             );
 
             // Continue to encode the initial validators.
