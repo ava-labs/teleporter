@@ -434,7 +434,9 @@ abstract contract ValidatorManager is
             "ValidatorManager: maximum churn rate exceeded"
         );
 
-        churnTracker.totalWeight += newWeight - oldWeight;
+        // Two separate calculations because we're using uints and (newWeight - oldWeight) could underflow.
+        churnTracker.totalWeight += newWeight;
+        churnTracker.totalWeight -= oldWeight;
 
         $._churnTracker = churnTracker;
     }
