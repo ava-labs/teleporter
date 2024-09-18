@@ -325,7 +325,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
         Validator memory validator = getValidator(validationID);
-        
+
         // Ensure the delegator is active
         require(
             delegator.status == DelegatorStatus.Active, "PoSValidatorManager: delegation not active"
