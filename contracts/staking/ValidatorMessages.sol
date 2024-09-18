@@ -44,6 +44,22 @@ library ValidatorMessages {
     // TODO: The implementation of these packing and unpacking functions is neither tested nor optimized at all.
     // Full test coverage should be provided, and the implementation should be optimized for gas efficiency.
 
+    /**
+     * @notice Packs a SubnetConversionMessage message into a byte array.
+     * The message format specification is:
+     * +--------------------+----------+----------+
+     * |            codecID :   uint16 |  2 bytes |
+     * +--------------------+----------+----------+
+     * |             typeID :   uint32 |  4 bytes |
+     * +--------------------+----------+----------+
+     * | subnetConversionID : [32]byte | 32 bytes |
+     * +--------------------+----------+----------+
+     *                                 | 38 bytes |
+     *                                 +----------+
+     *
+     * @param subnetConversionID The subnet conversion ID to pack into the message.
+     * @return The packed message.
+     */
     function packSubnetConversionMessage(bytes32 subnetConversionID)
         internal
         pure
@@ -66,6 +82,13 @@ library ValidatorMessages {
         return res;
     }
 
+    /**
+     * @notice Unpacks a byte array as a SubnetConversionMessage message.
+     * The message format specification is the same as the one used in above for packing.
+     *
+     * @param input The byte array to unpack.
+     * @return the unpacked subnetConversionID.
+     */
     function unpackSubnetConversionMessage(bytes memory input) internal pure returns (bytes32) {
         require(input.length == 38, "ValidatorMessages: invalid message length");
 

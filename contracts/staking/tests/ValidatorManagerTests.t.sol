@@ -435,7 +435,7 @@ abstract contract ValidatorManagerTest is Test {
         });
         return SubnetConversionData({
             convertSubnetTxID: bytes32(0),
-            blockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            validatorManagerBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
             validatorManagerAddress: address(validatorManager),
             initialValidators: initialValidators
         });

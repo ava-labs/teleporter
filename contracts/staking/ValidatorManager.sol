@@ -59,6 +59,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
     uint8 public constant MAXIMUM_CHURN_PERCENTAGE_LIMIT = 20;
     uint64 public constant MAXIMUM_REGISTRATION_EXPIRY_LENGTH = 2 days;
+    uint32 public constant ADDRESS_LENGTH = 20; // This is only used as a packed uint32
+    uint8 public constant BLS_PUBLIC_KEY_LENGTH = 48;
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
@@ -125,7 +127,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         require(!$._initializedValidatorSet, "ValidatorManager: already initialized validator set");
         require(
-            subnetConversionData.blockchainID == WARP_MESSENGER.getBlockchainID(),
+            subnetConversionData.validatorManagerBlockchainID == WARP_MESSENGER.getBlockchainID(),
             "ValidatorManager: invalid blockchain ID"
         );
         require(
@@ -144,8 +146,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
         bytes memory encodedConversion = abi.encodePacked(
             subnetConversionData.convertSubnetTxID,
-            subnetConversionData.blockchainID,
-            uint32(20),
+            subnetConversionData.validatorManagerBlockchainID,
+            ADDRESS_LENGTH,
             subnetConversionData.validatorManagerAddress,
             uint32(numInitialValidators)
         );
@@ -159,7 +161,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 "ValidatorManager: node ID already active"
             );
             require(
-                initialValidator.blsPublicKey.length == 48,
+                initialValidator.blsPublicKey.length == BLS_PUBLIC_KEY_LENGTH,
                 "ValidatorManager: invalid blsPublicKey length"
             );
 
@@ -211,6 +213,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
     /**
      * @notice Begins the validator registration process, and sets the initial weight for the validator.
+     * This is the only method related to validator registration and removal that needs the initializedValidatorSet
+     * modifier. All others are guarded by checking the validator status changes initialized in this function.
      * @param input The inputs for a validator registration.
      * @param weight The weight of the validator being registered.
      */
@@ -235,7 +239,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             $._activeValidators[input.nodeID] == bytes32(0),
             "ValidatorManager: node ID already active"
         );
-        require(input.blsPublicKey.length == 48, "ValidatorManager: invalid blsPublicKey length");
+        require(
+            input.blsPublicKey.length == BLS_PUBLIC_KEY_LENGTH,
+            "ValidatorManager: invalid blsPublicKey length"
+        );
 
         // Check that adding this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTrackerAddition(weight);
