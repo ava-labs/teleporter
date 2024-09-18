@@ -12,6 +12,7 @@ import {
     ValidatorStatus,
     Validator,
     ValidatorChurnPeriod,
+    ValidatorWeightUpdate,
     ValidatorRegistrationInput
 } from "./interfaces/IValidatorManager.sol";
 import {
@@ -375,9 +376,28 @@ abstract contract ValidatorManager is
         return warpMessage;
     }
 
-    function _setValidatorWeight(bytes32 validationID, uint64 weight) internal {
+    function _setValidatorWeight(
+        bytes32 validationID,
+        uint64 weight
+    ) internal returns (uint64, bytes32) {
+        uint64 nonce = _incrementAndGetNonce(validationID);
+
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._validationPeriods[validationID].weight = weight;
+
+        // Submit the message to the Warp precompile.
+        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, nonce, weight)
+        );
+
+        emit ValidatorWeightUpdate({
+            validationID: validationID,
+            nonce: nonce,
+            validatorWeight: weight,
+            setWeightMessageID: messageID
+        });
+
+        return (nonce, messageID);
     }
 
     /**

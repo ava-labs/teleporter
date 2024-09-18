@@ -238,19 +238,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             newValidatorWeight <= validator.startingWeight * $._maximumStakeMultiplier,
             "PoSValidatorManager: maximum validator weight reached"
         );
-        _setValidatorWeight(validationID, newValidatorWeight);
 
-        // Construct the delegation ID. This is guaranteed to be unique since it is
-        // constructed using a new nonce.
-        uint64 nonce = _incrementAndGetNonce(validationID);
+        (uint64 nonce, bytes32 messageID) = _setValidatorWeight(validationID, newValidatorWeight);
+
         bytes32 delegationID = keccak256(abi.encodePacked(validationID, nonce));
-
-        // Submit the message to the Warp precompile.
-        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(
-                validationID, nonce, newValidatorWeight
-            )
-        );
 
         // Store the delegation information. Set the delegator status to pending added,
         // so that it can be properly started in the complete step, even if the delivered
@@ -358,25 +349,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             // a delegation whose validator has ended validating has no impact on the stake weight of the chain.
             _checkAndUpdateChurnTrackerRemoval(delegator.weight);
 
-            delegator.endingNonce = _incrementAndGetNonce(validationID);
-            delegator.endedAt = uint64(block.timestamp);
-
             uint64 newValidatorWeight = validator.weight - delegator.weight;
-            _setValidatorWeight(validationID, newValidatorWeight);
+            (delegator.endingNonce,) = _setValidatorWeight(validationID, newValidatorWeight);
 
-            // Submit the message to the Warp precompile.
-            bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
-                ValidatorMessages.packSetSubnetValidatorWeightMessage(
-                    validationID, delegator.endingNonce, newValidatorWeight
-                )
-            );
-
-            emit ValidatorWeightUpdate({
-                validationID: validationID,
-                nonce: delegator.endingNonce,
-                validatorWeight: newValidatorWeight,
-                setWeightMessageID: messageID
-            });
+            delegator.endedAt = uint64(block.timestamp);
         } else {
             delegator.endingNonce = validator.messageNonce;
             delegator.endedAt = validator.endedAt;

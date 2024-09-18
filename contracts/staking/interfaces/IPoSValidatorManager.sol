@@ -89,20 +89,6 @@ interface IPoSValidatorManager is IValidatorManager {
     );
 
     /**
-     * @notice Event emitted when delegator removal is initiated
-     * @param validationID The ID of the validation period
-     * @param nonce The message nonce used to update the validator weight
-     * @param validatorWeight The updated validator weight that is sent to the P-Chain
-     * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
-     */
-    event ValidatorWeightUpdate(
-        bytes32 indexed validationID,
-        uint64 indexed nonce,
-        uint64 validatorWeight,
-        bytes32 setWeightMessageID
-    );
-
-    /**
      * @notice Event emitted when delegator removal is completed
      * @param delegationID The ID of the delegation
      * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
