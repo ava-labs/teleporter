@@ -43,9 +43,6 @@ library ValidatorMessages {
     // the end of their validation period.
     uint32 internal constant VALIDATION_UPTIME_MESSAGE_TYPE_ID = 5;
 
-    // TODO: The implementation of these packing and unpacking functions is neither tested nor optimized at all.
-    // Full test coverage should be provided, and the implementation should be optimized for gas efficiency.
-
     /**
      * @notice Packs a SubnetConversionMessage message into a byte array.
      * The message format specification is:
@@ -140,6 +137,8 @@ library ValidatorMessages {
         pure
         returns (bytes memory)
     {
+        // The formula for the length in the comment above is VM agnostic, but in EVM
+        // the address length is always 20 bytes so the constant term is 72 + 20 = 92.
         bytes memory res = new bytes(92 + subnetConversionData.initialValidators.length * 88);
         // Pack the convertSubnetTx ID
         for (uint256 i; i < 32; ++i) {
@@ -155,7 +154,7 @@ library ValidatorMessages {
         }
         // Pack the address
         bytes20 addrBytes = bytes20(subnetConversionData.validatorManagerAddress);
-        for (uint256 i = 0; i < 20; i++) {
+        for (uint256 i = 0; i < 20; ++i) {
             res[i + 68] = addrBytes[i];
         }
 
