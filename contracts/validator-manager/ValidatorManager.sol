@@ -140,14 +140,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         uint256 numInitialValidators = subnetConversionData.initialValidators.length;
 
-        // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
-        bytes memory encodedConversion = abi.encodePacked(
-            subnetConversionData.convertSubnetTxID,
-            subnetConversionData.validatorManagerBlockchainID,
-            ADDRESS_LENGTH,
-            subnetConversionData.validatorManagerAddress,
-            uint32(numInitialValidators)
-        );
         uint256 totalWeight;
         for (uint32 i; i < numInitialValidators; ++i) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
@@ -155,14 +147,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             require(
                 $._activeValidators[nodeID] == bytes32(0),
                 "ValidatorManager: node ID already active"
-            );
-
-            // Continue to encode the initial validators.
-            encodedConversion = abi.encodePacked(
-                encodedConversion,
-                initialValidator.nodeID,
-                initialValidator.weight,
-                initialValidator.blsPublicKey
             );
 
             // Validation ID of the initial validators is the sha256 hash of the
@@ -195,16 +179,11 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Parse the Warp message into SubnetConversionMessage
         bytes32 subnetConversionID =
             ValidatorMessages.unpackSubnetConversionMessage(warpMessage.payload);
+        bytes memory encodedConversion =
+            ValidatorMessages.packSubnetConversionData(subnetConversionData);
         require(
             sha256(encodedConversion) == subnetConversionID,
             "ValidatorManager: invalid subnet conversion ID"
-        );
-
-        bytes memory encodedConversion2 =
-            ValidatorMessages.packSubnetConversionData(subnetConversionData);
-        require(
-            sha256(encodedConversion2) == subnetConversionID,
-            "ValidatorManager: invalid subnet conversion ID 2"
         );
 
         $._initializedValidatorSet = true;

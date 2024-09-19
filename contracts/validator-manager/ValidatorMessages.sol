@@ -118,63 +118,81 @@ library ValidatorMessages {
 
         return subnetConversionID;
     }
-    /*+-------------------+------------------------+-------------------------------------------------------+
-    | convertSubnetTxID : [32]byte        |                                              32 bytes |
-    +-------------------+--------------------------+-------------------------------------------------------+
-    |    managerChainID : [32]byte        |                                              32 bytes |
-    +-------------------+--------------------------+-------------------------------------------------------+
-    |    managerAddress : []byte          |                         4 + len(managerAddress) bytes |
-    +-------------------+--------------------------+-------------------------------------------------------+
-    |        validators : []ValidatorData |                        4 + len(validators) * 88 bytes |
-    +-------------------+--------------------------+-------------------------------------------------------+
-                                                    | 72 + len(managerAddress) + len(validators) * 88 bytes |
-                                                    +-------------------------------------------------------+
-    */
 
-    function packSubnetConversionData(SubnetConversionData calldata scd)
+    /**
+     * @notice Packs SubnetConversionData into a byte array.
+     * This byte array is the SHA256 pre-image of the subnetConversionID hash
+     * The message format specification is:
+     *
+     * +-------------------+---------------+---------------------------------------------------------+
+     * | convertSubnetTxID : [32]byte        |                                              32 bytes |
+     * +-------------------+-----------------+-------------------------------------------------------+
+     * |    managerChainID : [32]byte        |                                              32 bytes |
+     * +-------------------+-----------------+-------------------------------------------------------+
+     * |    managerAddress : []byte          |                         4 + len(managerAddress) bytes |
+     * +-------------------+-----------------+-------------------------------------------------------+
+     * |        validators : []ValidatorData |                        4 + len(validators) * 88 bytes |
+     * +-------------------+-----------------+-------------------------------------------------------+
+     *                                       | 72 + len(managerAddress) + len(validators) * 88 bytes |
+     *                                       +-------------------------------------------------------+
+     * And ValidatorData:
+     * +--------------+----------+-----------+
+     * |       nodeID : [32]byte |  32 bytes |
+     * +--------------+----------+-----------+
+     * |       weight :   uint64 |   8 bytes |
+     * +--------------+----------+-----------+
+     * | blsPublicKey : [48]byte |  48 bytes |
+     * +--------------+----------+-----------+
+     *                           |  88 bytes |
+     *                           +-----------+
+     *
+     * @param subnetConversionData The struct representing data to pack into the message.
+     * @return The packed message.
+     */
+    function packSubnetConversionData(SubnetConversionData calldata subnetConversionData)
         internal
         pure
         returns (bytes memory)
     {
-        bytes memory res = new bytes(92 + scd.initialValidators.length * 88);
+        bytes memory res = new bytes(92 + subnetConversionData.initialValidators.length * 88);
         // Pack the convertSubnetTx ID
         for (uint256 i; i < 32; ++i) {
-            res[i] = scd.convertSubnetTxID[i];
+            res[i] = subnetConversionData.convertSubnetTxID[i];
         }
         // Pack the validatorManagerBlockchainID
         for (uint256 i; i < 32; ++i) {
-            res[i + 32] = scd.validatorManagerBlockchainID[i];
+            res[i + 32] = subnetConversionData.validatorManagerBlockchainID[i];
         }
         // Pack the ADDRESS_LENGTH
         for (uint256 i; i < 4; ++i) {
             res[i + 64] = bytes1(uint8(20 >> (8 * (3 - i))));
         }
         // Pack the address
-        bytes20 addrBytes = bytes20(scd.validatorManagerAddress);
+        bytes20 addrBytes = bytes20(subnetConversionData.validatorManagerAddress);
         for (uint256 i = 0; i < 20; i++) {
             res[i + 68] = addrBytes[i];
         }
 
-        // Pack the ADDRESS_LENGTH
-        uint32 ivLength = uint32(scd.initialValidators.length);
+        // Pack the initial validators length
+        uint32 ivLength = uint32(subnetConversionData.initialValidators.length);
         for (uint256 i; i < 4; ++i) {
             res[i + 88] = bytes1(uint8(ivLength >> (8 * (3 - i))));
         }
 
-        for (uint256 i = 0; i < scd.initialValidators.length; i++) {
+        for (uint256 i = 0; i < subnetConversionData.initialValidators.length; i++) {
             uint256 offset = 92 + i * 88;
             // Pack the nodeID
             for (uint256 j; j < 32; ++j) {
-                res[offset + j] = scd.initialValidators[i].nodeID[j];
+                res[offset + j] = subnetConversionData.initialValidators[i].nodeID[j];
             }
             // Pack the weight
             for (uint256 j; j < 8; ++j) {
                 res[offset + 32 + j] =
-                    bytes1(uint8(scd.initialValidators[i].weight >> (8 * (7 - j))));
+                    bytes1(uint8(subnetConversionData.initialValidators[i].weight >> (8 * (7 - j))));
             }
             // Pack the blsPublicKey
             for (uint256 j; j < 48; ++j) {
-                res[offset + 40 + j] = scd.initialValidators[i].blsPublicKey[j];
+                res[offset + 40 + j] = subnetConversionData.initialValidators[i].blsPublicKey[j];
             }
         }
         return res;
