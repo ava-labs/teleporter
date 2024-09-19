@@ -17,8 +17,6 @@ import {
 // TODO: Remove this once all unit tests implemented
 // solhint-disable no-empty-blocks
 abstract contract ValidatorManagerTest is Test {
-    bytes32 public constant P_CHAIN_BLOCKCHAIN_ID =
-        bytes32(hex"0000000000000000000000000000000000000000000000000000000000000000");
     bytes32 public constant DEFAULT_SUBNET_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant DEFAULT_NODE_ID =
@@ -178,7 +176,7 @@ abstract contract ValidatorManagerTest is Test {
         bytes memory subnetValidatorRegistrationMessage =
             ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
 
-        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
+        _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
 
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidationPeriodEnded(validationID, ValidatorStatus.Completed);
@@ -197,7 +195,7 @@ abstract contract ValidatorManagerTest is Test {
         bytes memory subnetValidatorRegistrationMessage =
             ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
 
-        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
+        _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
 
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidationPeriodEnded(validationID, ValidatorStatus.Invalidated);
@@ -326,7 +324,7 @@ abstract contract ValidatorManagerTest is Test {
         bytes memory subnetValidatorRegistrationMessage =
             ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, true);
 
-        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
+        _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
 
         vm.warp(registrationTimestamp);
         vm.expectEmit(true, true, true, true, address(validatorManager));
@@ -383,8 +381,8 @@ abstract contract ValidatorManagerTest is Test {
             bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
                 validationID, completionTimestamp - registrationTimestamp
             );
-            _mockGetVerifiedWarpMessage(uptimeMsg, true);
-            _mockGetBlockchainID(P_CHAIN_BLOCKCHAIN_ID);
+            _mockGetUptimeWarpMessage(uptimeMsg, true);
+            _mockGetBlockchainID();
         }
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp);
@@ -403,13 +401,31 @@ abstract contract ValidatorManagerTest is Test {
         );
     }
 
-    function _mockGetVerifiedWarpMessage(bytes memory expectedPayload, bool valid) internal {
+    function _mockGetPChainWarpMessage(bytes memory expectedPayload, bool valid) internal {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
             abi.encode(
                 WarpMessage({
-                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
+                    sourceChainID: validatorManager.P_CHAIN_BLOCKCHAIN_ID(),
+                    originSenderAddress: address(0),
+                    payload: expectedPayload
+                }),
+                valid
+            )
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+    }
+
+    function _mockGetUptimeWarpMessage(bytes memory expectedPayload, bool valid) internal {
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
+            abi.encode(
+                WarpMessage({
+                    sourceChainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                     originSenderAddress: address(0),
                     payload: expectedPayload
                 }),
@@ -437,7 +453,7 @@ abstract contract ValidatorManagerTest is Test {
     }
 
     function _mockInitializeValidatorSet() internal {
-        _mockGetVerifiedWarpMessage(
+        _mockGetPChainWarpMessage(
             ValidatorMessages.packSubnetConversionMessage(DEFAULT_SUBNET_CONVERSION_TX_ID), true
         );
     }
