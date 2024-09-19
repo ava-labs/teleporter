@@ -134,7 +134,9 @@ interface IPoSValidatorManager is IValidatorManager {
      * Note that this function can only be called by the address that registered the delegation.
      * @param delegationID The ID of the delegation being removed.
      * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
-     * If no uptime proof is provided, the validation uptime for the delegation period will be assumed to be 0.
+     * If the validator has completed its validation period, it has already provided an uptime proof, so {includeUptimeProof}
+     * will be ignored and can be set to false. If the validator has not completed its validation period and no uptime proof
+     * is provided, the validation uptime for the delegation period will be assumed to be 0.
      * @param messageIndex If {includeUptimeProof} is true, the index of the Warp message to be received providing the
      * uptime proof.
      */
