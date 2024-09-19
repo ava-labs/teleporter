@@ -164,7 +164,14 @@ abstract contract PoSValidatorManager is
 
         Validator memory validator = _initializeEndValidation(validationID);
 
-        if (!_isPoSValidator(validationID)) {
+        if (_isPoSValidator(validationID)) {
+            // PoS validations can only be ended by their owners.
+            require(
+                $._validatorRequirements[validationID].owner == _msgSender(),
+                "PoSValidatorManager: validator not owned by sender"
+            );
+        } else {
+            // Non-PoS validations can be ended by anyone, and do not get rewards, so return here.
             return;
         }
 
