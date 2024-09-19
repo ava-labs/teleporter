@@ -150,10 +150,8 @@ abstract contract PoSValidatorManager is
     function claimDelegationFees(bytes32 validationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
-        Validator memory validator = getValidator(validationID);
-
         require(
-            validator.status == ValidatorStatus.Completed,
+            getValidator(validationID).status == ValidatorStatus.Completed,
             "PoSValidatorManager: validation period not completed"
         );
         require(
@@ -402,16 +400,13 @@ abstract contract PoSValidatorManager is
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         // Unpack the Warp message
-        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, uint64 nonce,) =
-            ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
-
-        Validator memory validator = getValidator(validationID);
+            ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(_getPChainWarpMessage(messageIndex).payload);
 
         // The received nonce should be no greater than the highest sent nonce. This should never
         // happen since the staking manager is the only entity that can trigger a weight update
         // on the P-Chain.
-        require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
+        require(getValidator(validationID).messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
 
         // The nonce should also be greater than or equal to the delegationID's starting nonce. This allows
         // a weight update using a higher nonce (which implicitly includes the delegation's weight update)
@@ -538,17 +533,15 @@ abstract contract PoSValidatorManager is
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         // Unpack the Warp message
-        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, uint64 nonce,) =
-            ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
+            ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(_getPChainWarpMessage(messageIndex).payload);
 
-        Validator memory validator = getValidator(validationID);
         Delegator memory delegator = $._delegatorStakes[delegationID];
 
         // The received nonce should be no greater than the highest sent nonce. This should never
         // happen since the staking manager is the only entity that can trigger a weight update
         // on the P-Chain.
-        require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
+        require(getValidator(validationID).messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
 
         // The nonce should also be greater than or equal to the delegationID's ending nonce. This allows
         // a weight update using a higher nonce (which implicitly includes the delegation's weight update)

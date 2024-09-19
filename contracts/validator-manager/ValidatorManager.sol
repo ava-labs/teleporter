@@ -191,10 +191,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         $._churnTracker.totalWeight = totalWeight;
 
         // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
-        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
-        // Parse the Warp message into SubnetConversionMessage
         bytes32 subnetConversionID =
-            ValidatorMessages.unpackSubnetConversionMessage(warpMessage.payload);
+            ValidatorMessages.unpackSubnetConversionMessage(_getPChainWarpMessage(messageIndex).payload);
         require(
             sha256(encodedConversion) == subnetConversionID,
             "ValidatorManager: invalid subnet conversion ID"
@@ -294,9 +292,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
      */
     function completeValidatorRegistration(uint32 messageIndex) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, bool validRegistration) =
-            ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
+            ValidatorMessages.unpackSubnetValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
 
         require(validRegistration, "ValidatorManager: Registration not valid");
         // The initial validator set must have been set already to have pending register validation messages.
@@ -402,10 +399,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Get the Warp message.
-        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
-
         (bytes32 validationID, bool validRegistration) =
-            ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
+            ValidatorMessages.unpackSubnetValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
         require(!validRegistration, "ValidatorManager: registration still valid");
 
         Validator memory validator = $._validationPeriods[validationID];
