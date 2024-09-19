@@ -9,8 +9,7 @@ import {
     IPoSValidatorManager, Delegator, DelegatorStatus
 } from "./interfaces/IPoSValidatorManager.sol";
 import {
-    PoSValidatorManagerSettings,
-    PoSValidatorRequirements
+    PoSValidatorManagerSettings, PoSValidatorInfo
 } from "./interfaces/IPoSValidatorManager.sol";
 import {Validator} from "./interfaces/IValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
@@ -53,7 +52,7 @@ abstract contract PoSValidatorManager is
         /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
         /// @notice Maps the validation ID to its requirements.
-        mapping(bytes32 validationID => PoSValidatorRequirements) _validatorRequirements;
+        mapping(bytes32 validationID => PoSValidatorInfo) _validatorInfo;
         /// @notice Maps the delegation ID to the delegator information.
         mapping(bytes32 delegationID => Delegator) _delegatorStakes;
         /// @notice Maps the delegation ID to its pending staking rewards.
@@ -146,13 +145,13 @@ abstract contract PoSValidatorManager is
             "PoSValidatorManager: validation period not completed"
         );
         require(
-            $._validatorRequirements[validationID].owner == _msgSender(),
+            $._validatorInfo[validationID].owner == _msgSender(),
             "PoSValidatorManager: validator not owned by sender"
         );
 
         uint256 rewards = $._redeemableValidatorRewards[validationID];
         delete $._redeemableValidatorRewards[validationID];
-        _reward($._validatorRequirements[validationID].owner, rewards);
+        _reward($._validatorInfo[validationID].owner, rewards);
     }
 
     function initializeEndValidation(
@@ -171,14 +170,14 @@ abstract contract PoSValidatorManager is
 
         // PoS validations can only be ended by their owners.
         require(
-            $._validatorRequirements[validationID].owner == _msgSender(),
+            $._validatorInfo[validationID].owner == _msgSender(),
             "PoSValidatorManager: validator not owned by sender"
         );
 
         // Check that minimum stake duration has passed.
         require(
             validator.endedAt
-                >= validator.startedAt + $._validatorRequirements[validationID].minStakeDuration,
+                >= validator.startedAt + $._validatorInfo[validationID].minStakeDuration,
             "PoSValidatorManager: minimum stake duration not met"
         );
 
@@ -211,7 +210,7 @@ abstract contract PoSValidatorManager is
             return;
         }
 
-        address owner = $._validatorRequirements[validationID].owner;
+        address owner = $._validatorInfo[validationID].owner;
         // The validator can either be Completed or Invalidated here. We only grant rewards for Completed.
         if (validator.status == ValidatorStatus.Completed) {
             uint256 rewards = $._redeemableValidatorRewards[validationID];
@@ -255,9 +254,12 @@ abstract contract PoSValidatorManager is
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         // Validate and save the validator requirements
         require(
-            delegationFeeBips >= $._minimumDelegationFeeBips
-                && delegationFeeBips <= MAXIMUM_DELEGATION_FEE_BIPS,
-            "PoSValidatorManager: invalid delegation fee"
+            delegationFeeBips >= $._minimumDelegationFeeBips,
+            "PoSValidatorManager: delegation fee too low"
+        );
+        require(
+            delegationFeeBips <= MAXIMUM_DELEGATION_FEE_BIPS,
+            "PoSValidatorManager: delegation fee too high"
         );
         require(
             minStakeDuration >= $._minimumStakeDuration,
@@ -274,7 +276,7 @@ abstract contract PoSValidatorManager is
         uint64 weight = valueToWeight(lockedValue);
         bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
 
-        $._validatorRequirements[validationID] = PoSValidatorRequirements({
+        $._validatorInfo[validationID] = PoSValidatorInfo({
             owner: _msgSender(),
             delegationFeeBips: delegationFeeBips,
             minStakeDuration: minStakeDuration
@@ -521,8 +523,7 @@ abstract contract PoSValidatorManager is
         uint256 rewards = $._redeemableDelegatorRewards[delegationID];
         delete $._redeemableDelegatorRewards[delegationID];
 
-        uint256 validatorFees =
-            rewards * $._validatorRequirements[validationID].delegationFeeBips / 10000;
+        uint256 validatorFees = rewards * $._validatorInfo[validationID].delegationFeeBips / 10000;
 
         // Allocate the delegation fees to the validator.
         $._redeemableValidatorRewards[validationID] += validatorFees;
@@ -541,6 +542,6 @@ abstract contract PoSValidatorManager is
 
     function _isPoSValidator(bytes32 validationID) internal view returns (bool) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        return $._validatorRequirements[validationID].owner != address(0);
+        return $._validatorInfo[validationID].owner != address(0);
     }
 }

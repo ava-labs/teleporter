@@ -38,7 +38,7 @@ struct Delegator {
     uint64 endingNonce;
 }
 
-struct PoSValidatorRequirements {
+struct PoSValidatorInfo {
     address owner;
     uint16 delegationFeeBips;
     uint64 minStakeDuration;
