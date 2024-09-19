@@ -145,7 +145,9 @@ abstract contract ValidatorManagerTest is Test {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            includeUptime: false,
+            force: false
         });
     }
 
@@ -157,7 +159,9 @@ abstract contract ValidatorManagerTest is Test {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            includeUptime: false,
+            force: false
         });
         bytes memory setValidatorWeightPayload =
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
@@ -173,7 +177,9 @@ abstract contract ValidatorManagerTest is Test {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            includeUptime: false,
+            force: false
         });
         bytes memory subnetValidatorRegistrationMessage =
             ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
@@ -261,7 +267,7 @@ abstract contract ValidatorManagerTest is Test {
 
         // Second call should fail
         vm.expectRevert("ValidatorManager: maximum churn rate exceeded");
-        _initializeEndValidation(validationID, false);
+        _initializeEndValidation(validationID, false, false);
     }
 
     function _newNodeID() internal returns (bytes32) {
@@ -342,29 +348,9 @@ abstract contract ValidatorManagerTest is Test {
         uint64 registrationExpiry,
         bytes memory blsPublicKey,
         uint64 registrationTimestamp,
-        uint64 completionTimestamp
-    ) internal returns (bytes32 validationID) {
-        return _setUpInitializeEndValidation({
-            nodeID: nodeID,
-            subnetID: subnetID,
-            weight: weight,
-            registrationExpiry: registrationExpiry,
-            blsPublicKey: blsPublicKey,
-            registrationTimestamp: registrationTimestamp,
-            completionTimestamp: completionTimestamp,
-            includeUptime: false
-        });
-    }
-
-    function _setUpInitializeEndValidation(
-        bytes32 nodeID,
-        bytes32 subnetID,
-        uint64 weight,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey,
-        uint64 registrationTimestamp,
         uint64 completionTimestamp,
-        bool includeUptime
+        bool includeUptime,
+        bool force
     ) internal returns (bytes32 validationID) {
         validationID = _setUpCompleteValidatorRegistration({
             nodeID: nodeID,
@@ -390,7 +376,7 @@ abstract contract ValidatorManagerTest is Test {
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp);
 
-        _initializeEndValidation(validationID, includeUptime);
+        _initializeEndValidation(validationID, includeUptime, force);
     }
 
     function _mockSendWarpMessage(bytes memory payload, bytes32 expectedMessageID) internal {
@@ -448,7 +434,7 @@ abstract contract ValidatorManagerTest is Test {
         uint64 weight
     ) internal virtual returns (bytes32);
 
-    function _initializeEndValidation(bytes32 validationID, bool includeUptime) internal virtual;
+    function _initializeEndValidation(bytes32 validationID, bool includeUptime, bool force) internal virtual;
 
     function _beforeSend(uint256 amount, address spender) internal virtual;
 
