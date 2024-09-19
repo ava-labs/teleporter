@@ -67,21 +67,7 @@ library ValidatorMessages {
         pure
         returns (bytes memory)
     {
-        bytes memory res = new bytes(38);
-        // Pack the codec ID
-        for (uint256 i; i < 2; ++i) {
-            res[i] = bytes1(uint8(CODEC_ID >> uint8((8 * (1 - i)))));
-        }
-        // Pack the type ID
-        for (uint256 i; i < 4; ++i) {
-            res[i + 2] = bytes1(uint8(SUBNET_CONVERSION_MESSAGE_TYPE_ID >> uint8((8 * (3 - i)))));
-        }
-        // Pack the subnetConversionID
-        for (uint256 i; i < 32; ++i) {
-            res[i + 6] = bytes1(uint8(uint256(subnetConversionID >> (8 * (31 - i)))));
-        }
-
-        return res;
+        return abi.encodePacked(CODEC_ID, SUBNET_CONVERSION_MESSAGE_TYPE_ID, subnetConversionID);
     }
 
     /**
@@ -230,38 +216,17 @@ library ValidatorMessages {
         require(
             validationPeriod.blsPublicKey.length == 48, "StakingMessages: invalid signature length"
         );
-        bytes memory res = new bytes(134);
-        // Pack the codec ID
-        for (uint256 i; i < 2; ++i) {
-            res[i] = bytes1(uint8(CODEC_ID >> uint8((8 * (1 - i)))));
-        }
-        // Pack the type ID
-        for (uint256 i; i < 4; ++i) {
-            res[i + 2] =
-                bytes1(uint8(REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID >> uint8((8 * (3 - i)))));
-        }
 
-        // Pack the subnetID
-        for (uint256 i; i < 32; ++i) {
-            res[i + 6] = validationPeriod.subnetID[i];
-        }
-        // Pack the nodeID
-        for (uint256 i; i < 32; ++i) {
-            res[i + 38] = validationPeriod.nodeID[i];
-        }
-        // Pack the weight
-        for (uint256 i; i < 8; ++i) {
-            res[i + 70] = bytes1(uint8(validationPeriod.weight >> uint8((8 * (7 - i)))));
-        }
-        // Pack the blsPublicKey
-        for (uint256 i; i < 48; ++i) {
-            res[i + 78] = validationPeriod.blsPublicKey[i];
-        }
-        // Pack the registration expiry
-        for (uint256 i; i < 8; ++i) {
-            res[i + 126] =
-                bytes1(uint8(validationPeriod.registrationExpiry >> uint64((8 * (7 - i)))));
-        }
+        // solhint-disable-next-line func-named-parameters
+        bytes memory res = abi.encodePacked(
+            CODEC_ID,
+            REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID,
+            validationPeriod.subnetID,
+            validationPeriod.nodeID,
+            validationPeriod.weight,
+            validationPeriod.blsPublicKey,
+            validationPeriod.registrationExpiry
+        );
         return (sha256(res), res);
     }
 
@@ -359,23 +324,9 @@ library ValidatorMessages {
         bytes32 validationID,
         bool valid
     ) internal pure returns (bytes memory) {
-        bytes memory res = new bytes(39);
-        // Pack the codec ID.
-        for (uint256 i; i < 2; ++i) {
-            res[i] = bytes1(uint8(CODEC_ID >> (8 * (1 - i))));
-        }
-        // Pack the type ID.
-        for (uint256 i; i < 4; ++i) {
-            res[i + 2] =
-                bytes1(uint8(SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID >> (8 * (3 - i))));
-        }
-        // Pack the validation ID.
-        for (uint256 i; i < 32; ++i) {
-            res[i + 6] = bytes1(uint8(uint256(validationID >> (8 * (31 - i)))));
-        }
-        // Pack the validity.
-        res[38] = bytes1(valid ? 1 : 0);
-        return res;
+        return abi.encodePacked(
+            CODEC_ID, SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID, validationID, valid
+        );
     }
 
     /**
@@ -448,28 +399,9 @@ library ValidatorMessages {
         uint64 nonce,
         uint64 weight
     ) internal pure returns (bytes memory) {
-        bytes memory res = new bytes(54);
-        // Pack the codec ID.
-        for (uint256 i; i < 2; ++i) {
-            res[i] = bytes1(uint8(CODEC_ID >> (8 * (1 - i))));
-        }
-        // Pack the type ID.
-        for (uint256 i; i < 4; ++i) {
-            res[i + 2] = bytes1(uint8(SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID >> (8 * (3 - i))));
-        }
-        // Pack the validation ID.
-        for (uint256 i; i < 32; ++i) {
-            res[i + 6] = bytes1(uint8(uint256(validationID >> (8 * (31 - i)))));
-        }
-        // Pack the nonce.
-        for (uint256 i; i < 8; ++i) {
-            res[i + 38] = bytes1(uint8(nonce >> (8 * (7 - i))));
-        }
-        // Pack the weight.
-        for (uint256 i; i < 8; ++i) {
-            res[i + 46] = bytes1(uint8(weight >> (8 * (7 - i))));
-        }
-        return res;
+        return abi.encodePacked(
+            CODEC_ID, SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID, validationID, nonce, weight
+        );
     }
 
     /**
@@ -546,29 +478,9 @@ library ValidatorMessages {
         uint64 nonce,
         uint64 weight
     ) internal pure returns (bytes memory) {
-        bytes memory res = new bytes(54);
-        // Pack the codec ID.
-        for (uint256 i; i < 2; ++i) {
-            res[i] = bytes1(uint8(CODEC_ID >> (8 * (1 - i))));
-        }
-        // Pack the type ID.
-        for (uint256 i; i < 4; ++i) {
-            res[i + 2] =
-                bytes1(uint8(SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID >> (8 * (3 - i))));
-        }
-        // Pack the validation ID.
-        for (uint256 i; i < 32; ++i) {
-            res[i + 6] = bytes1(uint8(uint256(validationID >> (8 * (31 - i)))));
-        }
-        // Pack the nonce.
-        for (uint256 i; i < 8; ++i) {
-            res[i + 38] = bytes1(uint8(nonce >> (8 * (7 - i))));
-        }
-        // Pack the weight.
-        for (uint256 i; i < 8; ++i) {
-            res[i + 46] = bytes1(uint8(weight >> (8 * (7 - i))));
-        }
-        return res;
+        return abi.encodePacked(
+            CODEC_ID, SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID, validationID, nonce, weight
+        );
     }
 
     /**
@@ -646,25 +558,7 @@ library ValidatorMessages {
         bytes32 validationID,
         uint64 uptime
     ) internal pure returns (bytes memory) {
-        bytes memory res = new bytes(46);
-
-        // Pack the codec ID.
-        for (uint256 i; i < 2; ++i) {
-            res[i] = bytes1(uint8(CODEC_ID >> (8 * (1 - i))));
-        }
-        // Pack the type ID.
-        for (uint256 i; i < 4; ++i) {
-            res[i + 2] = bytes1(uint8(VALIDATION_UPTIME_MESSAGE_TYPE_ID >> (8 * (3 - i))));
-        }
-        // Pack the validation ID.
-        for (uint256 i; i < 32; ++i) {
-            res[i + 6] = bytes1(uint8(uint256(validationID >> (8 * (31 - i)))));
-        }
-        // Pack the uptime.
-        for (uint256 i; i < 8; ++i) {
-            res[i + 38] = bytes1(uint8(uptime >> (8 * (7 - i))));
-        }
-        return res;
+        return abi.encodePacked(CODEC_ID, VALIDATION_UPTIME_MESSAGE_TYPE_ID, validationID, uptime);
     }
 
     /**
