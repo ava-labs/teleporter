@@ -265,6 +265,8 @@ abstract contract PoSValidatorManager is
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         if (uptime > $._validationUptimeSeconds[validationID]) {
             $._validationUptimeSeconds[validationID] = uptime;
+        } else {
+            uptime = $._validationUptimeSeconds[validationID];
         }
 
         emit UptimeUpdated(validationID, uptime);
