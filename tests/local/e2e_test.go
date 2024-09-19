@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/ava-labs/teleporter/tests/flows/governance"
-	"github.com/ava-labs/teleporter/tests/flows/staking"
 	"github.com/ava-labs/teleporter/tests/flows/teleporter"
 	"github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
+	validatorManager "github.com/ava-labs/teleporter/tests/flows/validator-manager"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
@@ -200,31 +200,31 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Native token staking manager",
 		ginkgo.Label(validatorManagerLabel),
 		func() {
-			staking.NativeTokenStakingManager(LocalNetworkInstance)
+			validatorManager.NativeTokenStakingManager(LocalNetworkInstance)
 		})
 	ginkgo.It("ERC20 token staking manager",
 		ginkgo.Label(validatorManagerLabel),
 		func() {
-			staking.ERC20TokenStakingManager(LocalNetworkInstance)
+			validatorManager.ERC20TokenStakingManager(LocalNetworkInstance)
 		})
 	ginkgo.It("PoA validator manager",
 		ginkgo.Label(validatorManagerLabel),
 		func() {
-			staking.PoAValidatorManager(LocalNetworkInstance)
+			validatorManager.PoAValidatorManager(LocalNetworkInstance)
 		})
 	ginkgo.It("ERC20 delegation",
 		ginkgo.Label(validatorManagerLabel),
 		func() {
-			staking.ERC20Delegation(LocalNetworkInstance)
+			validatorManager.ERC20Delegation(LocalNetworkInstance)
 		})
 	ginkgo.It("Native token delegation",
 		ginkgo.Label(validatorManagerLabel),
 		func() {
-			staking.NativeDelegation(LocalNetworkInstance)
+			validatorManager.NativeDelegation(LocalNetworkInstance)
 		})
 	ginkgo.It("PoA migration to PoS",
 		ginkgo.Label(validatorManagerLabel),
 		func() {
-			staking.PoAMigrationToPoS(LocalNetworkInstance)
+			validatorManager.PoAMigrationToPoS(LocalNetworkInstance)
 		})
 })
