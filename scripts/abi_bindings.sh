@@ -16,9 +16,11 @@ export ARCH=$(uname -m)
 [ $ARCH = x86_64 ] && ARCH=amd64
 echo "ARCH set to $ARCH"
 
-DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 TestMessenger ValidatorSetSig NativeTokenStakingManager ERC20TokenStakingManager PoAValidatorManager"
+DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 ExampleRewardCalculator TestMessenger ValidatorSetSig NativeTokenStakingManager ERC20TokenStakingManager PoAValidatorManager"
 
 PROXY_LIST="TransparentUpgradeableProxy ProxyAdmin"
+
+SUBNET_EVM_LIST="INativeMinter"
 
 CONTRACT_LIST=
 HELP=
@@ -101,6 +103,13 @@ cd $TELEPORTER_PATH/
 forge build --skip test --force --extra-output-files abi bin --contracts lib/openzeppelin-contracts/contracts/proxy/transparent
 
 cd $TELEPORTER_PATH/lib/openzeppelin-contracts/contracts/proxy/transparent
+generate_bindings "${contract_names[@]}"
+
+contract_names=($SUBNET_EVM_LIST)
+cd $TELEPORTER_PATH/
+forge build --skip test --force --extra-output-files abi bin --contracts lib/subnet-evm/contracts/contracts/interfaces
+
+cd $TELEPORTER_PATH/lib/subnet-evm/contracts/contracts/interfaces
 generate_bindings "${contract_names[@]}"
 
 exit 0
