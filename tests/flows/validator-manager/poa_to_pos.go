@@ -6,11 +6,10 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/NativeTokenStakingManager"
-	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/PoAValidatorManager"
+	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
+	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	. "github.com/onsi/gomega"
@@ -153,6 +152,15 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	)
 	Expect(err).Should(BeNil())
 
+	utils.AddNativeMinterAdmin(ctx, subnetAInfo, fundedKey, proxyAddress)
+
+	rewardCalculatorAddress, _ := utils.DeployExampleRewardCalculator(
+		ctx,
+		fundedKey,
+		subnetAInfo,
+		uint64(10),
+	)
+
 	tx, err = posValidatorManager.Initialize(
 		opts,
 		nativetokenstakingmanager.PoSValidatorManagerSettings{
@@ -167,7 +175,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 			MinimumStakeDuration:     utils.DefaultMinStakeDurationSeconds,
 			MinimumDelegationFeeBips: utils.DefaultMinDelegateFeeBips,
 			MaximumStakeMultiplier:   utils.DefaultMaxStakeMultiplier,
-			RewardCalculator:         common.Address{},
+			RewardCalculator:         rewardCalculatorAddress,
 		},
 	)
 	Expect(err).Should(BeNil())

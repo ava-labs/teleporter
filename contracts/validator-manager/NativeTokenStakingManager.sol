@@ -6,6 +6,8 @@
 pragma solidity 0.8.25;
 
 import {INativeTokenStakingManager} from "./interfaces/INativeTokenStakingManager.sol";
+import {INativeMinter} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
@@ -20,6 +22,9 @@ contract NativeTokenStakingManager is
     INativeTokenStakingManager
 {
     using Address for address payable;
+
+    INativeMinter public constant NATIVE_MINTER =
+        INativeMinter(0x0200000000000000000000000000000000000001);
 
     constructor(ICMInitializable init) {
         if (init == ICMInitializable.Disallowed) {
@@ -80,7 +85,11 @@ contract NativeTokenStakingManager is
         return value;
     }
 
-    function _unlock(uint256 value, address to) internal virtual override {
+    function _unlock(address to, uint256 value) internal virtual override {
         payable(to).sendValue(value);
+    }
+
+    function _reward(address account, uint256 amount) internal virtual override {
+        NATIVE_MINTER.mintNativeCoin(account, amount);
     }
 }

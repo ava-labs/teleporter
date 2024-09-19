@@ -95,7 +95,11 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
      */
     event DelegationEnded(
-        bytes32 indexed delegationID, bytes32 indexed validationID, uint64 indexed nonce
+        bytes32 indexed delegationID,
+        bytes32 indexed validationID,
+        uint64 indexed nonce,
+        uint256 rewards,
+        uint256 fees
     );
 
     /**
@@ -134,7 +138,9 @@ interface IPoSValidatorManager is IValidatorManager {
      * Note that this function can only be called by the address that registered the delegation.
      * @param delegationID The ID of the delegation being removed.
      * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
-     * If no uptime proof is provided, the validation uptime for the delegation period will be assumed to be 0.
+     * If the validator has completed its validation period, it has already provided an uptime proof, so {includeUptimeProof}
+     * will be ignored and can be set to false. If the validator has not completed its validation period and no uptime proof
+     * is provided, the validation uptime for the delegation period will be assumed to be 0.
      * @param messageIndex If {includeUptimeProof} is true, the index of the Warp message to be received providing the
      * uptime proof.
      */
@@ -163,4 +169,11 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param delegationID The ID of the delegation being removed.
      */
     function completeEndDelegation(uint32 messageIndex, bytes32 delegationID) external;
+
+    /**
+     * @notice Withdraws the delegation fees from completed delegations to the owner of the validator.
+     * Can currently only be called once the validator has completed its validation period.
+     * @param validationID The ID of the validation being ended.
+     */
+    function claimDelegationFees(bytes32 validationID) external;
 }

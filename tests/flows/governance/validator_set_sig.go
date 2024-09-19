@@ -85,7 +85,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 
 	// Construct a ValidatorSetSig message with mock ERC20 as the target contract
 	// and mint 100 tokens as the TxPayload
-	callData, err := erc20ABI.Pack("mint", big.NewInt(100))
+	callData, err := erc20ABI.Pack("mint", validatorSetSigContractAddress, big.NewInt(100))
 	Expect(err).Should(BeNil())
 
 	vssMessage1 := validatorsetsig.ValidatorSetSigMessage{
@@ -99,7 +99,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 
 	// Construct a second ValidatorSetSig message with mock ERC20 as the target contract
 	// and mint 50 tokens as the TxPayload
-	callData2, err := erc20ABI.Pack("mint", big.NewInt(50))
+	callData2, err := erc20ABI.Pack("mint", validatorSetSigContractAddress, big.NewInt(50))
 	Expect(err).Should(BeNil())
 	vssMessage2 := validatorsetsig.ValidatorSetSigMessage{
 		ValidatorSetSigAddress: validatorSetSigContractAddress,
@@ -111,13 +111,18 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	}
 
 	// Create a message for the case where validatorSetSig contract and targetContract are on the same chain.
+	// Construct a ValidatorSetSig message with mock ERC20 as the target contract
+	// and mint 100 tokens as the TxPayload
+	callData3, err := erc20ABI.Pack("mint", validatorSetSigContractAddress2, big.NewInt(100))
+	Expect(err).Should(BeNil())
+
 	vssMessage3 := validatorsetsig.ValidatorSetSigMessage{
 		ValidatorSetSigAddress: validatorSetSigContractAddress2,
 		TargetContractAddress:  exampleERC20ContractAddressB,
 		TargetBlockchainID:     subnetB.BlockchainID,
 		Nonce:                  big.NewInt(0),
 		Value:                  big.NewInt(0),
-		Payload:                callData,
+		Payload:                callData3,
 	}
 
 	// Create chain config file with off-chain validatorsetsig message
