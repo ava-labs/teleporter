@@ -398,9 +398,9 @@ abstract contract PoSValidatorManager is
         uint32 messageIndex
     ) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        bytes32 validationID = $._delegatorStakes[delegationID].validationID;
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
+        bytes32 validationID = delegator.validationID;
         Validator memory validator = getValidator(validationID);
 
         // Ensure the delegator is active
