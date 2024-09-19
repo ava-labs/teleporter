@@ -528,12 +528,13 @@ abstract contract PoSValidatorManager is
         $._redeemableValidatorRewards[validationID] += validatorFees;
 
         // Reward the remaining tokens to the delegator.
-        _reward(delegator.owner, rewards - validatorFees);
+        uint256 delegatorRewards = rewards - validatorFees;
+        _reward(delegator.owner, delegatorRewards);
 
         // Unlock the delegator's stake.
         _unlock(delegator.owner, weightToValue(delegator.weight));
 
-        emit DelegationEnded(delegationID, validationID, nonce);
+        emit DelegationEnded(delegationID, validationID, nonce, delegatorRewards, validatorFees);
     }
 
     function _reward(address account, uint256 amount) internal virtual;

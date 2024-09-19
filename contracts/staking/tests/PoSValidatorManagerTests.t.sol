@@ -71,7 +71,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     );
 
     event DelegationEnded(
-        bytes32 indexed delegationID, bytes32 indexed validationID, uint64 indexed nonce
+        bytes32 indexed delegationID,
+        bytes32 indexed validationID,
+        uint64 indexed nonce,
+        uint256 rewards,
+        uint256 fees
     );
 
     function testDelegationFeeBipsTooLow() public {
@@ -548,8 +552,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             endSupply: 0
         });
 
-        uint256 expectedValidatorReward = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
-        uint256 expectedDelegatorReward = expectedTotalReward - expectedValidatorReward;
+        uint256 expectedValidatorFees = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
+        uint256 expectedDelegatorReward = expectedTotalReward - expectedValidatorFees;
 
         _setUpCompleteEndDelegation({
             validationID: validationID,
@@ -557,6 +561,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             delegator: DEFAULT_DELEGATOR_ADDRESS,
             delegatorWeight: DEFAULT_DELEGATOR_WEIGHT,
             expectedReward: expectedDelegatorReward,
+            expectedFees: expectedValidatorFees,
             validatorWeight: DEFAULT_WEIGHT,
             expectedValidatorWeight: DEFAULT_WEIGHT,
             expectedNonce: 2
@@ -713,8 +718,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             endSupply: 0
         });
 
-        uint256 expectedValidatorReward = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
-        uint256 expectedDelegatorReward = expectedTotalReward - expectedValidatorReward;
+        uint256 expectedValidatorFees = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
+        uint256 expectedDelegatorReward = expectedTotalReward - expectedValidatorFees;
 
         // Complete delegation1 by delivering the weight update from nonce 4 (delegator2's nonce)
         _setUpCompleteEndDelegation({
@@ -723,6 +728,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             delegator: DEFAULT_DELEGATOR_ADDRESS,
             delegatorWeight: DEFAULT_DELEGATOR_WEIGHT,
             expectedReward: expectedDelegatorReward,
+            expectedFees: expectedValidatorFees,
             validatorWeight: DEFAULT_WEIGHT,
             expectedValidatorWeight: DEFAULT_WEIGHT,
             expectedNonce: 4
@@ -939,6 +945,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         address delegator,
         uint64 delegatorWeight,
         uint256 expectedReward,
+        uint256 expectedFees,
         uint64 validatorWeight,
         uint64 expectedValidatorWeight,
         uint64 expectedNonce
@@ -949,7 +956,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetVerifiedWarpMessage(weightUpdateMessage, true);
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
-        emit DelegationEnded(delegationID, validationID, expectedNonce);
+        emit DelegationEnded(
+            delegationID, validationID, expectedNonce, expectedReward, expectedFees
+        );
         uint256 balanceBefore = _getStakeAssetBalance(delegator);
 
         _expectStakeUnlock(delegator, _weightToValue(delegatorWeight));

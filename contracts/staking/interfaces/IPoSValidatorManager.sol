@@ -95,7 +95,11 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
      */
     event DelegationEnded(
-        bytes32 indexed delegationID, bytes32 indexed validationID, uint64 indexed nonce
+        bytes32 indexed delegationID,
+        bytes32 indexed validationID,
+        uint64 indexed nonce,
+        uint256 rewards,
+        uint256 fees
     );
 
     /**
