@@ -33,7 +33,6 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
@@ -60,7 +59,6 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
@@ -83,7 +81,6 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
@@ -105,7 +102,6 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
@@ -127,7 +123,6 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
@@ -150,7 +145,6 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE

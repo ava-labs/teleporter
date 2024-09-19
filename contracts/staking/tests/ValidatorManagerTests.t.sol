@@ -17,8 +17,6 @@ import {
 // TODO: Remove this once all unit tests implemented
 // solhint-disable no-empty-blocks
 abstract contract ValidatorManagerTest is Test {
-    bytes32 public constant P_CHAIN_BLOCKCHAIN_ID =
-        bytes32(hex"0000000000000000000000000000000000000000000000000000000000000000");
     bytes32 public constant DEFAULT_SUBNET_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant DEFAULT_NODE_ID =
@@ -388,7 +386,7 @@ abstract contract ValidatorManagerTest is Test {
             abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
             abi.encode(
                 WarpMessage({
-                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
+                    sourceChainID: validatorManager.P_CHAIN_BLOCKCHAIN_ID(),
                     originSenderAddress: address(0),
                     payload: expectedPayload
                 }),
