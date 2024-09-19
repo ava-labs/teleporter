@@ -164,9 +164,16 @@ abstract contract PoSValidatorManager is
 
         Validator memory validator = _initializeEndValidation(validationID);
 
+        // Non-PoS validators are required to boostrap the network, but are not eligible for rewards.
         if (!_isPoSValidator(validationID)) {
             return;
         }
+
+        // PoS validations can only be ended by their owners.
+        require(
+            $._validatorRequirements[validationID].owner == _msgSender(),
+            "PoSValidatorManager: validator not owned by sender"
+        );
 
         // Check that minimum stake duration has passed.
         require(
@@ -198,7 +205,8 @@ abstract contract PoSValidatorManager is
 
         (bytes32 validationID, Validator memory validator) = _completeEndValidation(messageIndex);
 
-        // Return now if this was originally a PoA validator that was later migrated to this PoS manager
+        // Return now if this was originally a PoA validator that was later migrated to this PoS manager,
+        // or the validator was part of the initial validator set.
         if (!_isPoSValidator(validationID)) {
             return;
         }
@@ -380,15 +388,19 @@ abstract contract PoSValidatorManager is
         });
     }
 
+    /**
+     * @notice See {INativeTokenStakingManager-initializeValidatorRegistration}.
+     * Begins the validator registration process. Locks the provided native asset in the contract as the stake.
+     */
     function initializeEndDelegation(
         bytes32 delegationID,
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        bytes32 validationID = $._delegatorStakes[delegationID].validationID;
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
+        bytes32 validationID = delegator.validationID;
         Validator memory validator = getValidator(validationID);
 
         // Ensure the delegator is active
@@ -484,6 +496,8 @@ abstract contract PoSValidatorManager is
 
         Validator memory validator = getValidator(validationID);
         Delegator memory delegator = $._delegatorStakes[delegationID];
+        // Once this function completes, the delegation is completed and we can clear it from state.
+        delete $._delegatorStakes[delegationID];
 
         // The received nonce should be no greater than the highest sent nonce. This should never
         // happen since the staking manager is the only entity that can trigger a weight update
@@ -504,21 +518,23 @@ abstract contract PoSValidatorManager is
             "PoSValidatorManager: delegation not pending added"
         );
 
-        // Update the delegator status
-        $._delegatorStakes[delegationID].status = DelegatorStatus.Completed;
-
         uint256 rewards = $._redeemableDelegatorRewards[delegationID];
         delete $._redeemableDelegatorRewards[delegationID];
 
         uint256 validatorFees =
             rewards * $._validatorRequirements[validationID].delegationFeeBips / 10000;
+
+        // Allocate the delegation fees to the validator.
         $._redeemableValidatorRewards[validationID] += validatorFees;
 
-        _reward(delegator.owner, rewards - validatorFees);
-        _unlock(delegator.owner, weightToValue(delegator.weight));
-        delete $._delegatorStakes[delegationID];
+        // Reward the remaining tokens to the delegator.
+        uint256 delegatorRewards = rewards - validatorFees;
+        _reward(delegator.owner, delegatorRewards);
 
-        emit DelegationEnded(delegationID, validationID, nonce);
+        // Unlock the delegator's stake.
+        _unlock(delegator.owner, weightToValue(delegator.weight));
+
+        emit DelegationEnded(delegationID, validationID, nonce, delegatorRewards, validatorFees);
     }
 
     function _reward(address account, uint256 amount) internal virtual;
