@@ -195,4 +195,11 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param delegationID The ID of the delegation being removed.
      */
     function completeEndDelegation(uint32 messageIndex, bytes32 delegationID) external;
+
+    /**
+     * @notice Withdraws the delegation fees from completed delegations to the owner of the validator.
+     * Can currently only be called once the validator has completed its validation period.
+     * @param validationID The ID of the validation being ended.
+     */
+    function claimDelegationFees(bytes32 validationID) external;
 }

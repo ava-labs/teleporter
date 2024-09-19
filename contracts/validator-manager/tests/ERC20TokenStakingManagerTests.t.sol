@@ -6,26 +6,32 @@
 pragma solidity 0.8.25;
 
 import {PoSValidatorManagerTest} from "./PoSValidatorManagerTests.t.sol";
-import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
+import {ERC20TokenStakingManager} from "../ERC20TokenStakingManager.sol";
+import {ExampleRewardCalculator} from "../ExampleRewardCalculator.sol";
 import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput
 } from "../interfaces/IValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
-import {ExampleRewardCalculator} from "../ExampleRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
-import {INativeMinter} from
-    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
+import {ExampleERC20} from "@mocks/ExampleERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {IERC20Mintable} from "../interfaces/IERC20Mintable.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 
 // TODO: Remove this once all unit tests implemented
 // solhint-disable no-empty-blocks
-contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
-    NativeTokenStakingManager public app;
+contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
+    using SafeERC20 for IERC20Mintable;
+
+    ERC20TokenStakingManager public app;
+    IERC20Mintable public token;
 
     function setUp() public virtual {
         // Construct the object under test
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
+        token = new ExampleERC20();
         rewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_RATE);
         app.initialize(
             PoSValidatorManagerSettings({
@@ -41,7 +47,8 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
                 rewardCalculator: rewardCalculator
-            })
+            }),
+            token
         );
         validatorManager = app;
         posValidatorManager = app;
@@ -51,7 +58,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     }
 
     function testZeroMinimumDelegationFee() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         vm.expectRevert(_formatErrorMessage("zero delegation fee"));
         app.initialize(
             PoSValidatorManagerSettings({
@@ -67,12 +74,13 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumDelegationFeeBips: 0,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
                 rewardCalculator: IRewardCalculator(address(0))
-            })
+            }),
+            token
         );
     }
 
     function testMaxMinimumDelegationFee() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         uint16 minimumDelegationFeeBips = app.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
         vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
         app.initialize(
@@ -89,12 +97,13 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumDelegationFeeBips: minimumDelegationFeeBips,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
                 rewardCalculator: IRewardCalculator(address(0))
-            })
+            }),
+            token
         );
     }
 
     function testInvalidStakeAmountRange() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         vm.expectRevert(_formatErrorMessage("invalid stake amount range"));
         app.initialize(
             PoSValidatorManagerSettings({
@@ -110,12 +119,13 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
                 rewardCalculator: IRewardCalculator(address(0))
-            })
+            }),
+            token
         );
     }
 
     function testZeroMaxStakeMultiplier() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         vm.expectRevert(_formatErrorMessage("zero maximum stake multiplier"));
         app.initialize(
             PoSValidatorManagerSettings({
@@ -131,12 +141,13 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: 0,
                 rewardCalculator: IRewardCalculator(address(0))
-            })
+            }),
+            token
         );
     }
 
     function testMaxStakeMultiplierOverLimit() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         uint8 maximumStakeMultiplier = app.MAXIMUM_STAKE_MULTIPLIER_LIMIT() + 1;
         vm.expectRevert(_formatErrorMessage("invalid maximum stake multiplier"));
         app.initialize(
@@ -153,19 +164,29 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: maximumStakeMultiplier,
                 rewardCalculator: IRewardCalculator(address(0))
-            })
+            }),
+            token
         );
     }
 
-    // Helpers
+    function testInvalidValidatorMinStakeDuration() public {
+        ValidatorRegistrationInput memory input =
+            ValidatorRegistrationInput(DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY);
+        uint256 stakeAmount = _weightToValue(DEFAULT_WEIGHT);
+        vm.expectRevert(_formatErrorMessage("invalid min stake duration"));
+        app.initializeValidatorRegistration(
+            input, DEFAULT_DELEGATION_FEE_BIPS, DEFAULT_MINIMUM_STAKE_DURATION - 1, stakeAmount
+        );
+    }
+
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory registrationInput,
         uint16 delegationFeeBips,
         uint64 minStakeDuration,
         uint256 stakeAmount
     ) internal virtual override returns (bytes32) {
-        return app.initializeValidatorRegistration{value: stakeAmount}(
-            registrationInput, delegationFeeBips, minStakeDuration
+        return app.initializeValidatorRegistration(
+            registrationInput, delegationFeeBips, minStakeDuration, stakeAmount
         );
     }
 
@@ -173,8 +194,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         ValidatorRegistrationInput memory input,
         uint64 weight
     ) internal virtual override returns (bytes32) {
-        return app.initializeValidatorRegistration{value: _weightToValue(weight)}(
-            input, DEFAULT_MINIMUM_DELEGATION_FEE_BIPS, DEFAULT_MINIMUM_STAKE_DURATION
+        return app.initializeValidatorRegistration(
+            input,
+            DEFAULT_DELEGATION_FEE_BIPS,
+            DEFAULT_MINIMUM_STAKE_DURATION,
+            _weightToValue(weight)
         );
     }
 
@@ -184,40 +208,31 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         uint64 weight
     ) internal virtual override returns (bytes32) {
         uint256 value = _weightToValue(weight);
-        vm.prank(delegatorAddress);
-        vm.deal(delegatorAddress, value);
-        return app.initializeDelegatorRegistration{value: value}(validationID);
+        vm.startPrank(delegatorAddress);
+        bytes32 delegationID = app.initializeDelegatorRegistration(validationID, value);
+        vm.stopPrank();
+        return delegationID;
     }
 
     function _beforeSend(uint256 amount, address spender) internal override {
-        // Native tokens no need pre approve
+        token.safeIncreaseAllowance(spender, amount);
+        token.safeTransfer(spender, amount);
+
+        // ERC20 tokens need to be pre-approved
+        vm.startPrank(spender);
+        token.safeIncreaseAllowance(address(app), amount);
+        vm.stopPrank();
     }
 
     function _expectStakeUnlock(address account, uint256 amount) internal override {
-        // empty calldata implies the receive function will be called
-        vm.expectCall(account, amount, "");
+        vm.expectCall(address(token), abi.encodeCall(IERC20.transfer, (account, amount)));
     }
 
     function _expectRewardIssuance(address account, uint256 amount) internal override {
-        vm.mockCall(
-            address(app.NATIVE_MINTER()),
-            abi.encodeCall(INativeMinter.mintNativeCoin, (account, amount)),
-            ""
-        );
-        // empty calldata implies the receive function will be called:
-        vm.mockCall({
-            callee: account,
-            msgValue: amount,
-            data: "", // implies receive()
-            returnData: ""
-        });
-        // Units tests don't have access to the native minter precompile, so use vm.deal instead.
-        vm.deal(account, account.balance + amount);
+        vm.expectCall(address(token), abi.encodeCall(IERC20Mintable.mint, (account, amount)));
     }
 
     function _getStakeAssetBalance(address account) internal view override returns (uint256) {
-        return account.balance;
+        return token.balanceOf(account);
     }
 }
-// TODO: Remove this once all unit tests implemented
-// solhint-enable no-empty-blocks

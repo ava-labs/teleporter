@@ -31,6 +31,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     uint64 public constant DEFAULT_REWARD_RATE = uint64(10);
     uint64 public constant DEFAULT_MINIMUM_STAKE_DURATION = 24 hours;
     uint16 public constant DEFAULT_MINIMUM_DELEGATION_FEE_BIPS = 100;
+    uint16 public constant DEFAULT_DELEGATION_FEE_BIPS = 150;
     uint8 public constant DEFAULT_MAXIMUM_STAKE_MULTIPLIER = 4;
     uint256 public constant SECONDS_IN_YEAR = 31536000;
 
@@ -76,10 +77,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     event UptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
     function testDelegationFeeBipsTooLow() public {
-        //         ValidatorRegistrationInput calldata registrationInput,
-        // uint16 delegationFeeBips,
-        // uint64 minStakeDuration,
-        // uint256 stakeAmount
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
             registrationExpiry: DEFAULT_EXPIRY,
@@ -119,7 +116,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         vm.expectRevert(_formatErrorMessage("invalid min stake duration"));
         _initializeValidatorRegistration(
             registrationInput,
-            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+            DEFAULT_DELEGATION_FEE_BIPS,
             DEFAULT_MINIMUM_STAKE_DURATION - 1,
             DEFAULT_MINIMUM_STAKE_AMOUNT
         );
@@ -134,7 +131,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         vm.expectRevert(_formatErrorMessage("stake amount too low"));
         _initializeValidatorRegistration(
             registrationInput,
-            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+            DEFAULT_DELEGATION_FEE_BIPS,
             DEFAULT_MINIMUM_STAKE_DURATION,
             DEFAULT_MINIMUM_STAKE_AMOUNT - 1
         );
@@ -149,7 +146,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         vm.expectRevert(_formatErrorMessage("stake amount too high"));
         _initializeValidatorRegistration(
             registrationInput,
-            DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+            DEFAULT_DELEGATION_FEE_BIPS,
             DEFAULT_MINIMUM_STAKE_DURATION,
             DEFAULT_MAXIMUM_STAKE_AMOUNT + 1
         );
@@ -544,7 +541,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             expectedNonce: 2
         });
 
-        uint256 expectedReward = rewardCalculator.calculateReward({
+        uint256 expectedTotalReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
@@ -554,12 +551,15 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             endSupply: 0
         });
 
+        uint256 expectedValidatorReward = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
+        uint256 expectedDelegatorReward = expectedTotalReward - expectedValidatorReward;
+
         _setUpCompleteEndDelegation({
             validationID: validationID,
             delegationID: delegationID,
             delegator: DEFAULT_DELEGATOR_ADDRESS,
             delegatorWeight: DEFAULT_DELEGATOR_WEIGHT,
-            expectedReward: expectedReward,
+            expectedReward: expectedDelegatorReward,
             validatorWeight: DEFAULT_WEIGHT,
             expectedValidatorWeight: DEFAULT_WEIGHT,
             expectedNonce: 2
@@ -706,21 +706,26 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             expectedNonce: 4
         });
 
+        uint256 expectedTotalReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
+
+        uint256 expectedValidatorReward = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
+        uint256 expectedDelegatorReward = expectedTotalReward - expectedValidatorReward;
+
         // Complete delegation1 by delivering the weight update from nonce 4 (delegator2's nonce)
         _setUpCompleteEndDelegation({
             validationID: validationID,
             delegationID: delegationID1,
             delegator: DEFAULT_DELEGATOR_ADDRESS,
             delegatorWeight: DEFAULT_DELEGATOR_WEIGHT,
-            expectedReward: rewardCalculator.calculateReward({
-                stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
-                validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
-                stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
-                stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-                uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
-                initialSupply: 0,
-                endSupply: 0
-            }),
+            expectedReward: expectedDelegatorReward,
             validatorWeight: DEFAULT_WEIGHT,
             expectedValidatorWeight: DEFAULT_WEIGHT,
             expectedNonce: 4
