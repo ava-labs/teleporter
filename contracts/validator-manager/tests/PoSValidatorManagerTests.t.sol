@@ -40,8 +40,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
-    event GeoffEvent(uint256 num);
-
     event DelegatorAdded(
         bytes32 indexed delegationID,
         bytes32 indexed validationID,
@@ -413,6 +411,20 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             DEFAULT_DELEGATOR_WEIGHT + DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
             2
         );
+    }
+
+    function testInitializeEndValidationNotOwner() public {
+        bytes32 validationID = _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
+        vm.prank(address(1));
+        vm.expectRevert("PoSValidatorManager: validator not owned by sender");
+        posValidatorManager.initializeEndValidation(validationID, false, 0);
     }
 
     function testInitializeEndDelegation() public {
