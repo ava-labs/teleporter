@@ -434,7 +434,11 @@ abstract contract ValidatorManagerTest is Test {
         uint64 weight
     ) internal virtual returns (bytes32);
 
-    function _initializeEndValidation(bytes32 validationID, bool includeUptime, bool force) internal virtual;
+    function _initializeEndValidation(
+        bytes32 validationID,
+        bool includeUptime,
+        bool force
+    ) internal virtual;
 
     function _beforeSend(uint256 amount, address spender) internal virtual;
 

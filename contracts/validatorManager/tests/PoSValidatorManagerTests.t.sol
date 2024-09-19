@@ -773,7 +773,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     }
 
     function testInitializeEndValidationUseStoredUptime() public {
-        
         bytes32 validationID = _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
@@ -790,10 +789,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         // Submit an uptime proof via submitUptime
         uint64 uptimePercentage1 = 80;
-        uint64 uptime1 = (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage1 / 100;
-        bytes memory uptimeMsg1 = ValidatorMessages.packValidationUptimeMessage(
-            validationID, uptime1
-        );
+        uint64 uptime1 = (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP)
+            * uptimePercentage1 / 100;
+        bytes memory uptimeMsg1 =
+            ValidatorMessages.packValidationUptimeMessage(validationID, uptime1);
         _mockGetVerifiedWarpMessage(uptimeMsg1, true);
         _mockGetBlockchainID(P_CHAIN_BLOCKCHAIN_ID);
 
@@ -804,16 +803,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         // Submit a second uptime proof via initializeEndValidation. This one is not sufficient for rewards
         // Submit an uptime proof via submitUptime
         uint64 uptimePercentage2 = 79;
-        uint64 uptime2 = (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage2 / 100;
-        bytes memory uptimeMsg2 = ValidatorMessages.packValidationUptimeMessage(
-            validationID, uptime2
-        );
+        uint64 uptime2 = (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP)
+            * uptimePercentage2 / 100;
+        bytes memory uptimeMsg2 =
+            ValidatorMessages.packValidationUptimeMessage(validationID, uptime2);
         _mockGetVerifiedWarpMessage(uptimeMsg2, true);
         _mockGetBlockchainID(P_CHAIN_BLOCKCHAIN_ID);
 
-         vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidatorRemovalInitialized(validationID, bytes32(0), DEFAULT_WEIGHT, DEFAULT_COMPLETION_TIMESTAMP);
-        
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit ValidatorRemovalInitialized(
+            validationID, bytes32(0), DEFAULT_WEIGHT, DEFAULT_COMPLETION_TIMESTAMP
+        );
+
         _initializeEndValidation(validationID, true, false);
     }
 
@@ -834,13 +835,14 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
 
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
-            validationID, (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+            validationID,
+            (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
         );
         _mockGetVerifiedWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID(P_CHAIN_BLOCKCHAIN_ID);
 
         vm.expectRevert("PoSValidatorManager: validation ineligble for rewards");
-        
+
         _initializeEndValidation(validationID, true, false);
     }
 
@@ -873,15 +875,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory setValidatorWeightPayload =
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
-        
+
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
-            validationID, (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+            validationID,
+            (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
         );
         _mockGetVerifiedWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID(P_CHAIN_BLOCKCHAIN_ID);
-        
+
         vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidatorRemovalInitialized(validationID, bytes32(0), DEFAULT_WEIGHT, DEFAULT_COMPLETION_TIMESTAMP);
+        emit ValidatorRemovalInitialized(
+            validationID, bytes32(0), DEFAULT_WEIGHT, DEFAULT_COMPLETION_TIMESTAMP
+        );
 
         _initializeEndValidation(validationID, true, true);
     }
