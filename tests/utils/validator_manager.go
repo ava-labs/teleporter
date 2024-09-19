@@ -90,7 +90,6 @@ func DeployAndInitializeNativeTokenStakingManager(
 		opts,
 		nativetokenstakingmanager.PoSValidatorManagerSettings{
 			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
-				PChainBlockchainID:     pChainInfo.BlockchainID,
 				SubnetID:               subnet.SubnetID,
 				ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
 				MaximumChurnPercentage: DefaultMaxChurnPercentage,
@@ -159,7 +158,6 @@ func DeployAndInitializeERC20TokenStakingManager(
 		opts,
 		erc20tokenstakingmanager.PoSValidatorManagerSettings{
 			BaseSettings: erc20tokenstakingmanager.ValidatorManagerSettings{
-				PChainBlockchainID:     pChainInfo.BlockchainID,
 				SubnetID:               subnet.SubnetID,
 				ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
 				MaximumChurnPercentage: DefaultMaxChurnPercentage,
@@ -216,7 +214,6 @@ func DeployAndInitializePoAValidatorManager(
 	tx, err := validatorManager.Initialize(
 		opts,
 		poavalidatormanager.ValidatorManagerSettings{
-			PChainBlockchainID:     pChainInfo.BlockchainID,
 			SubnetID:               subnet.SubnetID,
 			ChurnPeriodSeconds:     uint64(0),
 			MaximumChurnPercentage: uint8(20),

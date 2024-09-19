@@ -32,8 +32,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
 
     struct ValidatorManagerStorage {
-        /// @notice The blockchainID of the P-Chain.
-        bytes32 _pChainBlockchainID;
         /// @notice The subnetID associated with this validator manager.
         bytes32 _subnetID;
         /// @notice The number of seconds after which to reset the churn tracker.
@@ -62,6 +60,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     uint64 public constant MAXIMUM_REGISTRATION_EXPIRY_LENGTH = 2 days;
     uint32 public constant ADDRESS_LENGTH = 20; // This is only used as a packed uint32
     uint8 public constant BLS_PUBLIC_KEY_LENGTH = 48;
+    bytes32 public constant P_CHAIN_BLOCKCHAIN_ID = bytes32(0);
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
@@ -96,7 +95,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         onlyInitializing
     {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        $._pChainBlockchainID = settings.pChainBlockchainID;
         $._subnetID = settings.subnetID;
 
         require(
@@ -443,12 +441,12 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         view
         returns (WarpMessage memory)
     {
-        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
         require(valid, "ValidatorManager: invalid warp message");
+        // Must match to P-Chain blockchain id, which is 0.
         require(
-            warpMessage.sourceChainID == $._pChainBlockchainID,
+            warpMessage.sourceChainID == P_CHAIN_BLOCKCHAIN_ID,
             "ValidatorManager: invalid source chain ID"
         );
         require(

@@ -174,7 +174,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
-        _mockGetVerifiedWarpMessage(new bytes(0), false);
+        _mockGetUptimeWarpMessage(new bytes(0), false);
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         vm.expectRevert(_formatErrorMessage("invalid warp message"));
         posValidatorManager.initializeEndValidation(validationID, true, 0);
@@ -190,8 +190,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
 
-        _mockGetVerifiedWarpMessage(new bytes(0), true);
-        _mockGetBlockchainID();
+        _mockGetUptimeWarpMessage(new bytes(0), true);
+        _mockGetBlockchainID(posValidatorManager.P_CHAIN_BLOCKCHAIN_ID());
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         vm.expectRevert(_formatErrorMessage("invalid source chain ID"));
         posValidatorManager.initializeEndValidation(validationID, true, 0);
@@ -367,7 +367,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             .packSubnetValidatorWeightUpdateMessage(
             validationID, 1, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
         );
-        _mockGetVerifiedWarpMessage(setValidatorWeightPayload, true);
+        _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
         vm.warp(DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP);
         vm.expectRevert("PoSValidatorManager: nonce does not match");
@@ -650,7 +650,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             .packSubnetValidatorWeightUpdateMessage(
             validationID, 3, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
         );
-        _mockGetVerifiedWarpMessage(setValidatorWeightPayload, true);
+        _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
         vm.expectRevert("PoSValidatorManager: nonce does not match");
         posValidatorManager.completeEndDelegation(0, delegationID2);
@@ -873,7 +873,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             .packSubnetValidatorWeightUpdateMessage(
             validationID, expectedNonce, expectedValidatorWeight
         );
-        _mockGetVerifiedWarpMessage(setValidatorWeightPayload, true);
+        _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
         vm.warp(completeRegistrationTimestamp);
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
@@ -903,8 +903,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
             validationID, endDelegationTimestamp - startDelegationTimestamp
         );
-        _mockGetVerifiedWarpMessage(uptimeMsg, true);
-        _mockGetBlockchainID(P_CHAIN_BLOCKCHAIN_ID);
+        _mockGetUptimeWarpMessage(uptimeMsg, true);
+        _mockGetBlockchainID();
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit ValidatorWeightUpdate({
@@ -934,7 +934,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory subnetValidatorRegistrationMessage =
             ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
 
-        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
+        _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit ValidationPeriodEnded(validationID, ValidatorStatus.Completed);
@@ -965,7 +965,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory weightUpdateMessage = ValidatorMessages.packSubnetValidatorWeightUpdateMessage(
             validationID, expectedNonce, validatorWeight
         );
-        _mockGetVerifiedWarpMessage(weightUpdateMessage, true);
+        _mockGetPChainWarpMessage(weightUpdateMessage, true);
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit DelegationEnded(
