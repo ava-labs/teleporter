@@ -21,10 +21,10 @@ import (
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
-	erc20tokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validatorManager/ERC20TokenStakingManager"
-	examplerewardcalculator "github.com/ava-labs/teleporter/abi-bindings/go/validatorManager/ExampleRewardCalculator"
-	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validatorManager/NativeTokenStakingManager"
-	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validatorManager/PoAValidatorManager"
+	erc20tokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20TokenStakingManager"
+	examplerewardcalculator "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ExampleRewardCalculator"
+	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
+	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -902,7 +902,6 @@ func InitializeEndNativeValidation(
 			false,
 			0,
 		)
-
 	} else {
 		tx, err = stakingManager.InitializeEndValidation(
 			opts,
@@ -932,7 +931,6 @@ func InitializeEndERC20Validation(
 			false,
 			0,
 		)
-
 	} else {
 		tx, err = stakingManager.InitializeEndValidation(
 			opts,

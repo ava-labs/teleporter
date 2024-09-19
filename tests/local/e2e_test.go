@@ -10,7 +10,7 @@ import (
 	"github.com/ava-labs/teleporter/tests/flows/governance"
 	"github.com/ava-labs/teleporter/tests/flows/teleporter"
 	"github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
-	validatorManager "github.com/ava-labs/teleporter/tests/flows/validatorManager"
+	validatorManager "github.com/ava-labs/teleporter/tests/flows/validator-manager"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
