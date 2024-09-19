@@ -200,6 +200,13 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             "ValidatorManager: invalid subnet conversion ID"
         );
 
+        bytes memory encodedConversion2 =
+            ValidatorMessages.packSubnetConversionData(subnetConversionData);
+        require(
+            sha256(encodedConversion2) == subnetConversionID,
+            "ValidatorManager: invalid subnet conversion ID 2"
+        );
+
         $._initializedValidatorSet = true;
     }
 

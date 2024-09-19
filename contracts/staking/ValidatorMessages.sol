@@ -4,6 +4,8 @@
 // SPDX-License-Identifier: Ecosystem
 pragma solidity 0.8.25;
 
+import {SubnetConversionData} from "./interfaces/IValidatorManager.sol";
+
 library ValidatorMessages {
     // The information that uniquely identifies a subnet validation period.
     // The validationID is the SHA-256 hash of the concatenation of the CODEC_ID,
@@ -115,6 +117,67 @@ library ValidatorMessages {
         }
 
         return subnetConversionID;
+    }
+    /*+-------------------+------------------------+-------------------------------------------------------+
+    | convertSubnetTxID : [32]byte        |                                              32 bytes |
+    +-------------------+--------------------------+-------------------------------------------------------+
+    |    managerChainID : [32]byte        |                                              32 bytes |
+    +-------------------+--------------------------+-------------------------------------------------------+
+    |    managerAddress : []byte          |                         4 + len(managerAddress) bytes |
+    +-------------------+--------------------------+-------------------------------------------------------+
+    |        validators : []ValidatorData |                        4 + len(validators) * 88 bytes |
+    +-------------------+--------------------------+-------------------------------------------------------+
+                                                    | 72 + len(managerAddress) + len(validators) * 88 bytes |
+                                                    +-------------------------------------------------------+
+    */
+
+    function packSubnetConversionData(SubnetConversionData calldata scd)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        bytes memory res = new bytes(92 + scd.initialValidators.length * 88);
+        // Pack the convertSubnetTx ID
+        for (uint256 i; i < 32; ++i) {
+            res[i] = scd.convertSubnetTxID[i];
+        }
+        // Pack the validatorManagerBlockchainID
+        for (uint256 i; i < 32; ++i) {
+            res[i + 32] = scd.validatorManagerBlockchainID[i];
+        }
+        // Pack the ADDRESS_LENGTH
+        for (uint256 i; i < 4; ++i) {
+            res[i + 64] = bytes1(uint8(20 >> (8 * (3 - i))));
+        }
+        // Pack the address
+        bytes20 addrBytes = bytes20(scd.validatorManagerAddress);
+        for (uint256 i = 0; i < 20; i++) {
+            res[i + 68] = addrBytes[i];
+        }
+
+        // Pack the ADDRESS_LENGTH
+        uint32 ivLength = uint32(scd.initialValidators.length);
+        for (uint256 i; i < 4; ++i) {
+            res[i + 88] = bytes1(uint8(ivLength >> (8 * (3 - i))));
+        }
+
+        for (uint256 i = 0; i < scd.initialValidators.length; i++) {
+            uint256 offset = 92 + i * 88;
+            // Pack the nodeID
+            for (uint256 j; j < 32; ++j) {
+                res[offset + j] = scd.initialValidators[i].nodeID[j];
+            }
+            // Pack the weight
+            for (uint256 j; j < 8; ++j) {
+                res[offset + 32 + j] =
+                    bytes1(uint8(scd.initialValidators[i].weight >> (8 * (7 - j))));
+            }
+            // Pack the blsPublicKey
+            for (uint256 j; j < 48; ++j) {
+                res[offset + 40 + j] = scd.initialValidators[i].blsPublicKey[j];
+            }
+        }
+        return res;
     }
 
     /**

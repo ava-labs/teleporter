@@ -23,7 +23,7 @@ abstract contract ValidatorManagerTest is Test {
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant DEFAULT_NODE_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
-    bytes32 public constant DEFAULT_INTIIAL_VALIDATOR_NODE_ID =
+    bytes32 public constant DEFAULT_INITIAL_VALIDATOR_NODE_ID =
         bytes32(hex"2345678123456781234567812345678123456781234567812345678123456781");
     bytes public constant DEFAULT_BLS_PUBLIC_KEY = bytes(
         hex"123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
@@ -429,7 +429,7 @@ abstract contract ValidatorManagerTest is Test {
     function _defaultSubnetConversionData() internal view returns (SubnetConversionData memory) {
         InitialValidator[] memory initialValidators = new InitialValidator[](1);
         initialValidators[0] = InitialValidator({
-            nodeID: DEFAULT_INTIIAL_VALIDATOR_NODE_ID,
+            nodeID: DEFAULT_INITIAL_VALIDATOR_NODE_ID,
             weight: DEFAULT_INITIAL_VALIDATOR_WEIGHT,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
