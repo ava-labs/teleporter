@@ -261,7 +261,7 @@ abstract contract ValidatorManagerTest is Test {
 
         // Second call should fail
         vm.expectRevert("ValidatorManager: maximum churn rate exceeded");
-        _initializeEndValidation(validationID);
+        _initializeEndValidation(validationID, false);
     }
 
     function _newNodeID() internal returns (bytes32) {
@@ -344,6 +344,28 @@ abstract contract ValidatorManagerTest is Test {
         uint64 registrationTimestamp,
         uint64 completionTimestamp
     ) internal returns (bytes32 validationID) {
+        return _setUpInitializeEndValidation({
+            nodeID: nodeID,
+            subnetID: subnetID,
+            weight: weight,
+            registrationExpiry: registrationExpiry,
+            blsPublicKey: blsPublicKey,
+            registrationTimestamp: registrationTimestamp,
+            completionTimestamp: completionTimestamp,
+            includeUptime: false
+        });
+    }
+
+    function _setUpInitializeEndValidation(
+        bytes32 nodeID,
+        bytes32 subnetID,
+        uint64 weight,
+        uint64 registrationExpiry,
+        bytes memory blsPublicKey,
+        uint64 registrationTimestamp,
+        uint64 completionTimestamp,
+        bool includeUptime
+    ) internal returns (bytes32 validationID) {
         validationID = _setUpCompleteValidatorRegistration({
             nodeID: nodeID,
             subnetID: subnetID,
@@ -357,16 +379,18 @@ abstract contract ValidatorManagerTest is Test {
         bytes memory setValidatorWeightPayload =
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
-        bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
-            validationID, completionTimestamp - registrationTimestamp
-        );
-        _mockGetVerifiedWarpMessage(uptimeMsg, true);
-        _mockGetBlockchainID(P_CHAIN_BLOCKCHAIN_ID);
-        
+        if (includeUptime) {
+            bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+                validationID, completionTimestamp - registrationTimestamp
+            );
+            _mockGetVerifiedWarpMessage(uptimeMsg, true);
+            _mockGetBlockchainID(P_CHAIN_BLOCKCHAIN_ID);
+        }
+
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp);
 
-        _initializeEndValidation(validationID);
+        _initializeEndValidation(validationID, includeUptime);
     }
 
     function _mockSendWarpMessage(bytes memory payload, bytes32 expectedMessageID) internal {
@@ -424,7 +448,7 @@ abstract contract ValidatorManagerTest is Test {
         uint64 weight
     ) internal virtual returns (bytes32);
 
-    function _initializeEndValidation(bytes32 validationID) internal virtual;
+    function _initializeEndValidation(bytes32 validationID, bool includeUptime) internal virtual;
 
     function _beforeSend(uint256 amount, address spender) internal virtual;
 

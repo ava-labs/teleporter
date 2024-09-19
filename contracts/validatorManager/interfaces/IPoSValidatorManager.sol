@@ -99,29 +99,52 @@ interface IPoSValidatorManager is IValidatorManager {
     );
 
     /**
+     * @notice Event emitted when the uptime of a validator is updated. Only emitted when the uptime is greater than the stored uptime.
+     * @param validationID The ID of the validation period
+     * @param uptime The updated uptime of the validator
+     */
+    event UptimeUpdated(bytes32 indexed validationID, uint64 uptime);
+
+    /**
+     * @notice Updates the uptime of the validationID if the submitted proof is greated than the stored uptime.
+     * Anybody may call this function to ensure the stored uptime is accurate. Callable only when the validation period is active.
+     * @param validationID The ID of the validation period
+     * @param messageIndex The index of the Warp message to be received providing the uptime proof
+     */
+    function submitUptimeProof(bytes32 validationID, uint32 messageIndex) external;
+
+    /**
      * @notice Begins the process of ending an active validation period, and reverts if the validation period is not eligible
      * for uptime-based rewards. This function is used to exit the validator set when rewards are expected.
      * The validation period must have been previously started by a successful call to {completeValidatorRegistration} with the given validationID.
-     * Any rewards for this validation period will stop accruing when this function is called. 
+     * Any rewards for this validation period will stop accruing when this function is called.
      * @param validationID The ID of the validation period being ended.
+     * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period. If no uptime proof is provided,
+     * the latest known uptime will be used.
      * @param messageIndex The index of the Warp message to be received providing the uptime proof. Reverts if the uptime
      * is not eligible for rewards.
      */
     function initializeEndValidation(
         bytes32 validationID,
+        bool includeUptimeProof,
         uint32 messageIndex
     ) external;
 
     /**
-     * @notice Begins the process of ending an active validation period, but does not revert if the provided uptime proof
-     * is not sufficient to collect uptime-based rewards. This function is used to exit the validator set when rewards are 
+     * @notice Begins the process of ending an active validation period, but does not revert if the latest known uptime
+     * is not sufficient to collect uptime-based rewards. This function is used to exit the validator set when rewards are
      * not expected.
      * The validation period must have been previously started by a successful call to {completeValidatorRegistration} with the given validationID.
-     * Any rewards for this validation period will stop accruing when this function is called. 
+     * Any rewards for this validation period will stop accruing when this function is called.
      * @param validationID The ID of the validation period being ended.
+     * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period. If no uptime proof is provided,
      * @param messageIndex The index of the Warp message to be received providing the uptime proof.
      */
-    function forceInitializeEndValidation(bytes32 validationID, uint32 messageIndex) external;
+    function forceInitializeEndValidation(
+        bytes32 validationID,
+        bool includeUptimeProof,
+        uint32 messageIndex
+    ) external;
 
     /**
      * @notice Completes the delegator registration process by returning an acknowledgement of the registration of a

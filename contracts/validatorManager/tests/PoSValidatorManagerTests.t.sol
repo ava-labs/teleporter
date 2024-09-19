@@ -163,7 +163,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
         vm.expectRevert(_formatErrorMessage("minimum stake duration not met"));
-        posValidatorManager.initializeEndValidation(validationID, 0);
+        posValidatorManager.initializeEndValidation(validationID, false, 0);
     }
 
     function testInvalidUptimeWarpMessage() public {
@@ -178,7 +178,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetVerifiedWarpMessage(new bytes(0), false);
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         vm.expectRevert(_formatErrorMessage("invalid warp message"));
-        posValidatorManager.initializeEndValidation(validationID, 0);
+        posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
     function testInvalidUptimeChainID() public {
@@ -195,7 +195,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetBlockchainID();
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         vm.expectRevert(_formatErrorMessage("invalid source chain ID"));
-        posValidatorManager.initializeEndValidation(validationID, 0);
+        posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
     function testInvalidUptimeSenderAddress() public {
@@ -227,7 +227,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         vm.expectRevert(_formatErrorMessage("invalid origin sender address"));
-        posValidatorManager.initializeEndValidation(validationID, 0);
+        posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
     function testInvalidUptimeValidationID() public {
@@ -259,7 +259,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
         vm.expectRevert(_formatErrorMessage("invalid uptime validation ID"));
-        posValidatorManager.initializeEndValidation(validationID, 0);
+        posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
     function testInitializeDelegatorRegistration() public {
@@ -496,7 +496,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            includeUptime: true
         });
         bytes memory setValidatorWeightPayload =
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
@@ -731,7 +732,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            includeUptime: true
         });
 
         uint256 expectedReward = rewardCalculator.calculateReward({
@@ -760,9 +762,19 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            includeUptime: true
         });
     }
+
+    // TODONOW: implement these
+    function testInitializeEndValidationUseStoredUptime() public {}
+
+    function testInitializeEndValidationInsufficientUptime() public {}
+
+    function testForceInitializeEndValidation() public {}
+
+    function testForceInitializeEndValidationInsufficientUptime() public {}
 
     function testValueToWeight() public view {
         uint64 w1 = posValidatorManager.valueToWeight(1e12);
@@ -792,9 +804,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     ) internal virtual returns (bytes32);
 
     function _initializeEndValidation(
-        bytes32 validationID
+        bytes32 validationID,
+        bool includeUptime
     ) internal virtual override {
-        return posValidatorManager.initializeEndValidation(validationID, 0);
+        return posValidatorManager.initializeEndValidation(validationID, includeUptime, 0);
     }
 
     function _initializeDelegatorRegistration(

@@ -60,8 +60,8 @@ abstract contract PoSValidatorManager is
         mapping(bytes32 delegationID => uint256) _redeemableDelegatorRewards;
         /// @notice Maps the validator owner address to its pending staking rewards.
         mapping(bytes32 validationID => uint256) _redeemableValidatorRewards;
-        /// @notice Saves the uptime of a pending completed or completed validation period so that delegators can collect rewards.
-        mapping(bytes32 validationID => uint64) _completedValidationUptimeSeconds;
+        /// @notice Saves the largest known uptime of an active, pending completed, or completed validation period so that delegators can collect rewards.
+        mapping(bytes32 validationID => uint64) _validationUptimeSeconds;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -136,8 +136,20 @@ abstract contract PoSValidatorManager is
         $._rewardCalculator = rewardCalculator;
     }
 
+    function submitUptimeProof(bytes32 validationID, uint32 messageIndex) external {
+        require(_isPoSValidator(validationID), "PoSValidatorManager: not a PoS validator");
+        require(
+            getValidator(validationID).status == ValidatorStatus.Active,
+            "PoSValidatorManager: validator not active"
+        );
+
+        // Uptime proofs include the absolute number of seconds the validator has been active.
+        _updateUptime(validationID, messageIndex);
+    }
+
     function initializeEndValidation(
         bytes32 validationID,
+        bool includeUptimeProof,
         uint32 messageIndex
     ) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
@@ -152,9 +164,12 @@ abstract contract PoSValidatorManager is
         );
 
         // Uptime proofs include the absolute number of seconds the validator has been active.
-        uint64 uptimeSeconds = _getUptime(validationID, messageIndex);
-        // Save this value for use by this validator's delegators.
-        $._completedValidationUptimeSeconds[validationID] = uptimeSeconds;
+        uint64 uptimeSeconds;
+        if (includeUptimeProof) {
+            uptimeSeconds = _updateUptime(validationID, messageIndex);
+        } else {
+            uptimeSeconds = $._validationUptimeSeconds[validationID];
+        }
 
         uint256 reward = $._rewardCalculator.calculateReward({
             stakeAmount: weightToValue(validator.startingWeight),
@@ -171,6 +186,7 @@ abstract contract PoSValidatorManager is
 
     function forceInitializeEndValidation(
         bytes32 validationID,
+        bool includeUptimeProof,
         uint32 messageIndex
     ) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
@@ -185,9 +201,12 @@ abstract contract PoSValidatorManager is
         );
 
         // Uptime proofs include the absolute number of seconds the validator has been active.
-        uint64 uptimeSeconds = _getUptime(validationID, messageIndex);
-        // Save this value for use by this validator's delegators.
-        $._completedValidationUptimeSeconds[validationID] = uptimeSeconds;
+        uint64 uptimeSeconds;
+        if (includeUptimeProof) {
+            uptimeSeconds = _updateUptime(validationID, messageIndex);
+        } else {
+            uptimeSeconds = $._validationUptimeSeconds[validationID];
+        }
 
         $._redeemableValidatorRewards[validationID] += $._rewardCalculator.calculateReward({
             stakeAmount: weightToValue(validator.startingWeight),
@@ -221,7 +240,9 @@ abstract contract PoSValidatorManager is
         _unlock(owner, weightToValue(validator.startingWeight));
     }
 
-    function _getUptime(bytes32 validationID, uint32 messageIndex) internal view returns (uint64) {
+    // Helper function that extracts the uptime from a ValidationUptimeMessage Warp message
+    // If the uptime is greater than the stored uptime, update the stored uptime
+    function _updateUptime(bytes32 validationID, uint32 messageIndex) internal returns (uint64) {
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
         require(valid, "PoSValidatorManager: invalid warp message");
@@ -240,6 +261,13 @@ abstract contract PoSValidatorManager is
         require(
             validationID == uptimeValidationID, "PoSValidatorManager: invalid uptime validation ID"
         );
+
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        if (uptime > $._validationUptimeSeconds[validationID]) {
+            $._validationUptimeSeconds[validationID] = uptime;
+        }
+
+        emit UptimeUpdated(validationID, uptime);
 
         return uptime;
     }
@@ -415,7 +443,7 @@ abstract contract PoSValidatorManager is
         if (validator.status == ValidatorStatus.Active) {
             if (includeUptimeProof) {
                 // Uptime proofs include the absolute number of seconds the validator has been active.
-                validatorUptimeSeconds = _getUptime(validationID, messageIndex);
+                validatorUptimeSeconds = _updateUptime(validationID, messageIndex);
             }
             uint64 newValidatorWeight = validator.weight - delegator.weight;
             (delegator.endingNonce,) = _setValidatorWeight(validationID, newValidatorWeight);
@@ -425,7 +453,7 @@ abstract contract PoSValidatorManager is
             // If the validation period has already ended, we have saved the uptime.
             // Further, it is impossible to retrieve an uptime proof for an already ended validation,
             // so there's no need to check any uptime proof provided in this function call.
-            validatorUptimeSeconds = $._completedValidationUptimeSeconds[validationID];
+            validatorUptimeSeconds = $._validationUptimeSeconds[validationID];
 
             delegator.endingNonce = validator.messageNonce;
             delegator.endedAt = validator.endedAt;
