@@ -22,6 +22,7 @@ import (
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
 	erc20tokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/ERC20TokenStakingManager"
+	examplerewardcalculator "github.com/ava-labs/teleporter/abi-bindings/go/staking/ExampleRewardCalculator"
 	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/NativeTokenStakingManager"
 	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/PoAValidatorManager"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -77,6 +78,12 @@ func DeployAndInitializeNativeTokenStakingManager(
 		senderKey,
 		subnet,
 	)
+	rewardCalculatorAddress, _ := DeployExampleRewardCalculator(
+		ctx,
+		senderKey,
+		subnet,
+		uint64(10),
+	)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.Initialize(
@@ -93,7 +100,7 @@ func DeployAndInitializeNativeTokenStakingManager(
 			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
 			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
 			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
-			RewardCalculator:         common.Address{},
+			RewardCalculator:         rewardCalculatorAddress,
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -140,6 +147,12 @@ func DeployAndInitializeERC20TokenStakingManager(
 	)
 
 	erc20Address, erc20 := DeployExampleERC20(ctx, senderKey, subnet)
+	rewardCalculatorAddress, _ := DeployExampleRewardCalculator(
+		ctx,
+		senderKey,
+		subnet,
+		uint64(10),
+	)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.Initialize(
@@ -156,7 +169,7 @@ func DeployAndInitializeERC20TokenStakingManager(
 			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
 			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
 			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
-			RewardCalculator:         common.Address{},
+			RewardCalculator:         rewardCalculatorAddress,
 		},
 		erc20Address,
 	)
@@ -214,6 +227,27 @@ func DeployAndInitializePoAValidatorManager(
 	WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
 
 	return validatorManagerAddress, validatorManager
+}
+
+func DeployExampleRewardCalculator(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	rewardBasisPoints uint64,
+) (common.Address, *examplerewardcalculator.ExampleRewardCalculator) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	address, tx, calculator, err := examplerewardcalculator.DeployExampleRewardCalculator(
+		opts,
+		subnet.RPCClient,
+		rewardBasisPoints,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	return address, calculator
 }
 
 //

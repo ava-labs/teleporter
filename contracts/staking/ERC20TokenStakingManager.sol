@@ -8,7 +8,7 @@ pragma solidity 0.8.25;
 import {IERC20TokenStakingManager} from "./interfaces/IERC20TokenStakingManager.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
-import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {IERC20Mintable} from "./interfaces/IERC20Mintable.sol";
 import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
@@ -21,13 +21,13 @@ contract ERC20TokenStakingManager is
     PoSValidatorManager,
     IERC20TokenStakingManager
 {
-    using SafeERC20 for IERC20;
-    using SafeERC20TransferFrom for IERC20;
+    using SafeERC20 for IERC20Mintable;
+    using SafeERC20TransferFrom for IERC20Mintable;
 
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.ERC20TokenStakingManager
     struct ERC20TokenStakingManagerStorage {
-        IERC20 _token;
+        IERC20Mintable _token;
         uint8 _tokenDecimals;
     }
     // solhint-enable private-vars-leading-underscore
@@ -63,7 +63,7 @@ contract ERC20TokenStakingManager is
      */
     function initialize(
         PoSValidatorManagerSettings calldata settings,
-        IERC20 token
+        IERC20Mintable token
     ) external reinitializer(2) {
         __ERC20TokenStakingManager_init(settings, token);
     }
@@ -71,14 +71,17 @@ contract ERC20TokenStakingManager is
     // solhint-disable func-name-mixedcase
     function __ERC20TokenStakingManager_init(
         PoSValidatorManagerSettings calldata settings,
-        IERC20 token
+        IERC20Mintable token
     ) internal onlyInitializing {
         __POS_Validator_Manager_init(settings);
         __ERC20TokenStakingManager_init_unchained(token);
     }
 
     // solhint-disable func-name-mixedcase
-    function __ERC20TokenStakingManager_init_unchained(IERC20 token) internal onlyInitializing {
+    function __ERC20TokenStakingManager_init_unchained(IERC20Mintable token)
+        internal
+        onlyInitializing
+    {
         ERC20TokenStakingManagerStorage storage $ = _getERC20StakingManagerStorage();
         require(address(token) != address(0), "ERC20TokenStakingManager: zero token address");
         $._token = token;
@@ -116,7 +119,12 @@ contract ERC20TokenStakingManager is
         return _getERC20StakingManagerStorage()._token.safeTransferFrom(value);
     }
 
-    function _unlock(uint256 value, address to) internal virtual override {
+    function _unlock(address to, uint256 value) internal virtual override {
         _getERC20StakingManagerStorage()._token.safeTransfer(to, value);
+    }
+
+    function _reward(address account, uint256 amount) internal virtual override {
+        ERC20TokenStakingManagerStorage storage $ = _getERC20StakingManagerStorage();
+        $._token.mint(account, amount);
     }
 }

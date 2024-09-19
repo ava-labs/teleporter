@@ -46,6 +46,8 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 		pChainInfo,
 	)
 
+	utils.AddNativeMinterAdmin(ctx, subnetAInfo, fundedKey, stakingManagerAddress)
+
 	_ = utils.InitializeNativeTokenValidatorSet(
 		ctx,
 		fundedKey,
