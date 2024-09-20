@@ -8,7 +8,7 @@ _Disclaimer:_ The contracts in this directory are still under active development
 
 The common case for adding or removing a validator from a Subnet's validator set follows these general steps:
 
-1. Inform the Validator Manager contract of the change. The Validator Manager contract will construct a Warp message attesting to the change in the validator set.
+1. Initiate the change through the Validator Manager contract. The Validator Manager contract will construct a Warp message attesting to the change in the validator set.
 2. Deliver the Warp message containing the validator set change to the P-Chain. The P-Chain will construct a Warp message acknowledging the change to the validator set.
 3. Deliver the Warp message containing the P-Chain acknowledgement back to the Validator Manager contract on the Subnet. The Validator Manager contract finalizes the validator set change.
 
@@ -30,7 +30,7 @@ In the case of a missed expiry, the `RegisterSubnetValidatorTx` will result in a
 
 ### Exiting the Validator Set
 
-Validator exit is initiated with a call to `initializeEndValidation` on the Validator Manager contract. For PoS Validator Managers, a [`ValidationUptimeMessage`](#validationuptimemessage) Warp message may optionally be provided in order to calculate the staking rewards; otherwise the validator's uptime will be set to `0`. This proof may be requested from the P-Chain, which will provide it in a `ValidationUptimeMessage` Warp message. Once `initializeEndValidation` is called, staking rewards cease accruing for PoS Validator Managers: the Validator Manager contract constructs a [`SetSubnetValidatorWeightMessage`](#setsubnetvalidatorweightmessage) Warp message, setting the weight to `0`.
+Validator exit is initiated with a call to `initializeEndValidation` on the Validator Manager contract. For PoS Validator Managers, a [`ValidationUptimeMessage`](#validationuptimemessage) Warp message may optionally be provided in order to calculate the staking rewards; otherwise the validator's uptime will be set to `0`. This proof may be requested directly from the Subnet, which will provide it in a `ValidationUptimeMessage` Warp message. Once `initializeEndValidation` is called, staking rewards cease accruing for PoS Validator Managers: the Validator Manager contract constructs a [`SetSubnetValidatorWeightMessage`](#setsubnetvalidatorweightmessage) Warp message, setting the weight to `0`.
 
 The `SetSubnetValidatorWeightMessage` is delivered to the P-Chain as the payload of a [`SetSubnetValidatorWeightTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#setsubnetvalidatorweighttx). The P-Chain acknowledges validator exit by signing a `SubnetValidatorRegistrationMessage` with `valid=0`, which is delivered to the Validator Manager by calling `completeEndValidation`. The validation is removed from the contract's state, and for PoS Validator Managers, staking rewards are disbursed and stake is returned.
 
@@ -47,6 +47,7 @@ Disabled Subnet validators can re-activate at any time by increasing their balan
 Description: Issued by the Validator Manager contract in order to register a Subnet validator
 
 Signed by: Subnet
+Consumed by: P-Chain
 
 Specification:
 
@@ -76,6 +77,7 @@ Specification:
 Description: Issued by the P-Chain in order to confirm Subnet validator registration
 
 Signed by: P-Chain
+Consumed by: Validator Manager contract
 
 Specification:
 
@@ -95,9 +97,10 @@ Specification:
 
 ### `ValidationUptimeMessage`
 
-Description: Issued by the P-Chain in order to provide validator uptime to the Subnet to calculate staking rewards
+Description: Issued by the Subnet in order to provide validator uptime to the Subnet to calculate staking rewards
 
-Signed by: P-Chain
+Signed by: Subnet
+Consumed by: Validator Manager contract
 
 Specification:
 
@@ -119,7 +122,8 @@ Specification:
 
 Description: Used to set a validator's stake weight on another chain
 
-Signed by: Subnet, P-Chain
+Signed by: Subnet
+Consumed by: P-Chain
 
 Specification:
 
