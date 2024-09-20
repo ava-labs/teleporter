@@ -435,11 +435,11 @@ abstract contract PoSValidatorManager is
             "PoSValidatorManager: validation not completed"
         );
 
-        require(
-            delegator.status == DelegatorStatus.Active
-                || delegator.status == DelegatorStatus.PendingRemoved,
-            "PoSValidatorManager: invalid delegation"
-        );
+        // If the validator completes before the delegator is added, let them exit from here.
+        if (delegator.status == DelegatorStatus.PendingAdded) {
+            _completeEndDelegation(delegationID);
+            return;
+        }
 
         // Calculate and set rewards if the delegator is active.
         if (delegator.status == DelegatorStatus.Active) {
