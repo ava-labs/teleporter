@@ -366,9 +366,9 @@ abstract contract PoSValidatorManager is
         Validator memory validator = getValidator(validationID);
 
         // The received nonce should be no greater than the highest sent nonce, and at least as high as
-        // the delegation's statubg nonce. This allows //a weight update using a higher nonce
+        // the delegation's starting nonce. This allows a weight update using a higher nonce
         // (which implicitly includes the delegation's weight update) to be used to complete delisting
-        // for an earlier delegation. This is necessary because the P-Chainis only willing to sign the latest weight update.
+        // for an earlier delegation. This is necessary because the P-Chain is only willing to sign the latest weight update.
         if (
             validator.messageNonce < nonce || $._delegatorStakes[delegationID].startingNonce > nonce
         ) {
