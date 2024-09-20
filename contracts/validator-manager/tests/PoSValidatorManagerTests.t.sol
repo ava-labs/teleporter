@@ -15,7 +15,6 @@ import {
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
 import {ValidatorRegistrationInput, ValidatorStatus} from "../interfaces/IValidatorManager.sol";
-import {DelegatorStatus} from "../interfaces/IPoSValidatorManager.sol";
 
 abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     uint64 public constant DEFAULT_UPTIME = uint64(100);

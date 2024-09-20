@@ -353,7 +353,7 @@ library ValidatorMessages {
         pure
         returns (bytes32, bool)
     {
-        if(input.length != 39) {
+        if (input.length != 39) {
             revert InvalidMessageLength();
         }
         // Unpack the codec ID
@@ -430,7 +430,7 @@ library ValidatorMessages {
         pure
         returns (bytes32, uint64, uint64)
     {
-        if(input.length != 54) {
+        if (input.length != 54) {
             revert InvalidMessageLength();
         }
 
@@ -530,7 +530,7 @@ library ValidatorMessages {
         for (uint256 i; i < 4; ++i) {
             typeID |= uint32(uint8(input[i + 2])) << uint32((8 * (3 - i)));
         }
-        
+
         if (typeID != SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID) {
             revert InvalidMessageType();
         }
