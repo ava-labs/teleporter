@@ -41,7 +41,7 @@ abstract contract PoSValidatorManager is
         /// @notice The minimum amount of time a validator must be staked for.
         uint64 _minimumStakeDuration;
         /// @notice The minimum delegation fee percentage, in basis points, required to delegate to a validator.
-        uint256 _minimumDelegationFeeBips;
+        uint16 _minimumDelegationFeeBips;
         /**
          * @notice A multiplier applied to validator's initial stake amount to determine
          * the maximum amount of stake a validator can have with delegations.
@@ -118,7 +118,7 @@ abstract contract PoSValidatorManager is
         uint256 minimumStakeAmount,
         uint256 maximumStakeAmount,
         uint64 minimumStakeDuration,
-        uint256 minimumDelegationFeeBips,
+        uint16 minimumDelegationFeeBips,
         uint8 maximumStakeMultiplier,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
