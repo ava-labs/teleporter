@@ -8,6 +8,7 @@ pragma solidity 0.8.25;
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 import {PoSValidatorManager} from "../PoSValidatorManager.sol";
+import {ValidatorManager} from "../ValidatorManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -78,7 +79,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(_formatErrorMessage("delegation fee too low"));
+        vm.expectRevert(PoSValidatorManager.InvalidDelegationFee.selector);
         _initializeValidatorRegistration(
             registrationInput,
             DEFAULT_MINIMUM_DELEGATION_FEE_BIPS - 1,
@@ -94,7 +95,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         uint16 delegationFeeBips = posValidatorManager.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
-        vm.expectRevert(_formatErrorMessage("delegation fee too high"));
+        vm.expectRevert(PoSValidatorManager.InvalidDelegationFee.selector);
+
         _initializeValidatorRegistration(
             registrationInput,
             delegationFeeBips,
@@ -109,7 +111,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(_formatErrorMessage("invalid min stake duration"));
+        vm.expectRevert(PoSValidatorManager.InvalidStakeDuration.selector);
         _initializeValidatorRegistration(
             registrationInput,
             DEFAULT_DELEGATION_FEE_BIPS,
@@ -124,7 +126,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(_formatErrorMessage("stake amount too low"));
+        vm.expectRevert(PoSValidatorManager.InvalidStakeAmount.selector);
         _initializeValidatorRegistration(
             registrationInput,
             DEFAULT_DELEGATION_FEE_BIPS,
@@ -139,7 +141,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(_formatErrorMessage("stake amount too high"));
+        vm.expectRevert(PoSValidatorManager.InvalidStakeAmount.selector);
         _initializeValidatorRegistration(
             registrationInput,
             DEFAULT_DELEGATION_FEE_BIPS,
@@ -157,7 +159,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
-        vm.expectRevert(_formatErrorMessage("minimum stake duration not met"));
+        vm.expectRevert(PoSValidatorManager.InvalidStakeDuration.selector);
         posValidatorManager.initializeEndValidation(validationID, false, 0);
     }
 
@@ -172,7 +174,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
         _mockGetUptimeWarpMessage(new bytes(0), false);
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
-        vm.expectRevert(_formatErrorMessage("invalid warp message"));
+        vm.expectRevert(ValidatorManager.InvalidWarpMessage.selector);
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
@@ -189,7 +191,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetUptimeWarpMessage(new bytes(0), true);
         _mockGetBlockchainID(posValidatorManager.P_CHAIN_BLOCKCHAIN_ID());
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
-        vm.expectRevert(_formatErrorMessage("invalid source chain ID"));
+        vm.expectRevert(ValidatorManager.InvalidBlockchainID.selector);
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
@@ -221,7 +223,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
 
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
-        vm.expectRevert(_formatErrorMessage("invalid origin sender address"));
+        vm.expectRevert(ValidatorManager.InvalidAddress.selector);
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
@@ -253,7 +255,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
 
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
-        vm.expectRevert(_formatErrorMessage("invalid uptime validation ID"));
+        vm.expectRevert(ValidatorManager.InvalidValidationID.selector);
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
@@ -366,7 +368,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
         vm.warp(DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP);
-        vm.expectRevert("PoSValidatorManager: nonce does not match");
+        vm.expectRevert(PoSValidatorManager.InvalidNonce.selector);
         posValidatorManager.completeDelegatorRegistration(0, delegationID2);
     }
 
@@ -419,7 +421,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
         vm.prank(address(1));
-        vm.expectRevert("PoSValidatorManager: validator not owned by sender");
+        vm.expectRevert(ValidatorManager.InvalidAddress.selector);
         posValidatorManager.initializeEndValidation(validationID, false, 0);
     }
 
@@ -648,7 +650,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
-        vm.expectRevert("PoSValidatorManager: nonce does not match");
+        vm.expectRevert(PoSValidatorManager.InvalidNonce.selector);
         posValidatorManager.completeEndDelegation(0, delegationID2);
     }
 
@@ -983,8 +985,4 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function _getStakeAssetBalance(address account) internal virtual returns (uint256);
     function _expectStakeUnlock(address account, uint256 amount) internal virtual;
     function _expectRewardIssuance(address account, uint256 amount) internal virtual;
-
-    function _formatErrorMessage(bytes memory errorMessage) internal pure returns (bytes memory) {
-        return abi.encodePacked("PoSValidatorManager: ", errorMessage);
-    }
 }
