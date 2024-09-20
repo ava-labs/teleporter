@@ -431,6 +431,11 @@ abstract contract PoSValidatorManager is
 
         // Ensure the validation is completed
         require(
+            delegator.status != DelegatorStatus.Unknown, "PoSValidatorManager: delegator not found"
+        );
+
+        // Ensure the validation is completed
+        require(
             validator.status == ValidatorStatus.Completed,
             "PoSValidatorManager: validation not completed"
         );
