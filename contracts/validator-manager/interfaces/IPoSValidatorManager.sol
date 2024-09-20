@@ -12,8 +12,7 @@ enum DelegatorStatus {
     Unknown,
     PendingAdded,
     Active,
-    PendingRemoved,
-    Completed
+    PendingRemoved
 }
 
 // TODO: visit types of these fields, for example uint64 might be too big for stake duration seconds.
@@ -33,12 +32,11 @@ struct Delegator {
     bytes32 validationID;
     uint64 weight;
     uint64 startedAt;
-    uint64 endedAt;
     uint64 startingNonce;
     uint64 endingNonce;
 }
 
-struct PoSValidatorRequirements {
+struct PoSValidatorInfo {
     address owner;
     uint16 delegationFeeBips;
     uint64 minStakeDuration;
@@ -92,14 +90,12 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Event emitted when delegator removal is completed
      * @param delegationID The ID of the delegation
-     * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
+     * @param validationID The ID of the validator the delegator was staked to
+     * @param rewards The rewards given to the delegator
+     * @param fees The portion of the delegator's rewards paid to the validator
      */
     event DelegationEnded(
-        bytes32 indexed delegationID,
-        bytes32 indexed validationID,
-        uint64 indexed nonce,
-        uint256 rewards,
-        uint256 fees
+        bytes32 indexed delegationID, bytes32 indexed validationID, uint256 rewards, uint256 fees
     );
 
     /**
@@ -130,6 +126,15 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param delegationID The ID of the delegation being registered.
      */
     function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external;
+
+    /**
+     * @notice Removes a delegator from a completed validation period. The delegator can be in either the pending added, active
+     * or pending removed state. No uptime proof is required in this case, because it will have been provided by the validator
+     * upon their exit.
+     * Note that this function can be called by any address to clean up the delegation.
+     * @param delegationID The ID of the delegation being removed.
+     */
+    function endDelegationCompletedValidator(bytes32 delegationID) external;
 
     /**
      * @notice Begins the process of removing a delegator from a validation period. The delegator must have been previously

@@ -44,8 +44,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
         /// @notice Maps the validationID to the validator information.
         mapping(bytes32 => Validator) _validationPeriods;
-        /// @notice Maps the nodeID to the validationID for active validation periods.
-        mapping(bytes32 => bytes32) _activeValidators;
+        /// @notice Maps the nodeID to the validationID for validation periods that have not ended.
+        mapping(bytes32 => bytes32) _registeredValidators;
         /// @notice Boolean that indicates if the initial validator set has been set.
         bool _initializedValidatorSet;
     }
@@ -154,7 +154,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         for (uint32 i; i < numInitialValidators; ++i) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             bytes32 nodeID = initialValidator.nodeID;
-            if ($._activeValidators[nodeID] != bytes32(0)) {
+
+            if ($._registeredValidators[nodeID] != bytes32(0)) {
                 revert NodeAlreadyRegistered();
             }
 
@@ -165,7 +166,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
             // Save the initial validator as an active validator.
 
-            $._activeValidators[nodeID] = validationID;
+            $._registeredValidators[nodeID] = validationID;
             $._validationPeriods[validationID] = Validator({
                 status: ValidatorStatus.Active,
                 nodeID: initialValidator.nodeID,
@@ -218,10 +219,11 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         }
 
         // Ensure the nodeID is not the zero address, and is not already an active validator.
+
         if (input.blsPublicKey.length != BLS_PUBLIC_KEY_LENGTH || input.nodeID == bytes32(0)) {
             revert InvalidInput();
         }
-        if ($._activeValidators[input.nodeID] != bytes32(0)) {
+        if ($._registeredValidators[input.nodeID] != bytes32(0)) {
             revert NodeAlreadyRegistered();
         }
 
@@ -239,6 +241,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             })
         );
         $._pendingRegisterValidationMessages[validationID] = registerSubnetValidatorMessage;
+        $._registeredValidators[input.nodeID] = validationID;
 
         // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerSubnetValidatorMessage);
@@ -302,15 +305,14 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         delete $._pendingRegisterValidationMessages[validationID];
         $._validationPeriods[validationID].status = ValidatorStatus.Active;
         $._validationPeriods[validationID].startedAt = uint64(block.timestamp);
-        $._activeValidators[$._validationPeriods[validationID].nodeID] = validationID;
         emit ValidationPeriodRegistered(
             validationID, $._validationPeriods[validationID].weight, block.timestamp
         );
     }
 
-    function activeValidators(bytes32 nodeID) public view returns (bytes32) {
+    function registeredValidators(bytes32 nodeID) public view returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        return $._activeValidators[nodeID];
+        return $._registeredValidators[nodeID];
     }
 
     function getValidator(bytes32 validationID) public view returns (Validator memory) {
@@ -403,7 +405,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         }
 
         Validator memory validator = $._validationPeriods[validationID];
-        ValidatorStatus endStatus;
 
         // The validation status is PendingRemoved if validator removal was initiated with a call to {initiateEndValidation}.
         // The validation status is PendingAdded if the validator was never registered on the P-Chain.
@@ -416,15 +417,14 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         }
 
         if (validator.status == ValidatorStatus.PendingRemoved) {
-            endStatus = ValidatorStatus.Completed;
+            validator.status = ValidatorStatus.Completed;
         } else {
-            endStatus = ValidatorStatus.Invalidated;
+            validator.status = ValidatorStatus.Invalidated;
         }
-        // Remove the validator from the active validators mapping.
-        delete $._activeValidators[validator.nodeID];
+        // Remove the validator from the registered validators mapping.
+        delete $._registeredValidators[validator.nodeID];
 
-        // Update the validator status.
-        validator.status = endStatus;
+        // Update the validator.
         $._validationPeriods[validationID] = validator;
 
         // Emit event.
@@ -443,8 +443,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
     function _incrementAndGetNonce(bytes32 validationID) internal returns (uint64) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        $._validationPeriods[validationID].messageNonce++;
-        return $._validationPeriods[validationID].messageNonce;
+        return ++$._validationPeriods[validationID].messageNonce;
     }
 
     function _getPChainWarpMessage(uint32 messageIndex)
