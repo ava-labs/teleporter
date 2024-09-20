@@ -447,7 +447,7 @@ abstract contract PoSValidatorManager is
                 stakeAmount: weightToValue(delegator.weight),
                 validatorStartTime: validator.startedAt,
                 stakingStartTime: delegator.startedAt,
-                stakingEndTime: delegator.endedAt,
+                stakingEndTime: validator.endedAt,
                 uptimeSeconds: $._completedValidationUptimeSeconds[validationID],
                 initialSupply: 0,
                 endSupply: 0
