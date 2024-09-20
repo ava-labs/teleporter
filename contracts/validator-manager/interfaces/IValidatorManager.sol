@@ -70,19 +70,6 @@ struct ValidatorRegistrationInput {
     bytes blsPublicKey;
 }
 
-error MaxChurnRateExceeded();
-error InvalidWarpMessage();
-error InvalidBlockchainID();
-error InvalidAddress();
-error UnexpectedRegistrationStatus();
-error InvalidStatus();
-error InvalidValidationID();
-error NodeAlreadyRegistered();
-error InvalidSubnetConversionID();
-error InvalidInput();
-error InvalidExpiry();
-error InvalidInitializationStatus();
-
 interface IValidatorManager {
     /**
      * @notice Emitted when a new validation period is created by stake being locked in the manager contract.
