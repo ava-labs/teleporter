@@ -70,6 +70,8 @@ abstract contract ValidatorManagerTest is Test {
 
     event ValidationPeriodEnded(bytes32 indexed validationID, ValidatorStatus indexed status);
 
+    error MaxChurnRateExceeded();
+
     receive() external payable {}
     fallback() external payable {}
 
@@ -221,7 +223,7 @@ abstract contract ValidatorManagerTest is Test {
         _beforeSend(DEFAULT_MINIMUM_STAKE_AMOUNT, address(this)); // TODO may need to be updated with minimum stake amount
 
         // Second call should fail
-        vm.expectRevert("ValidatorManager: maximum churn rate exceeded");
+        vm.expectRevert(MaxChurnRateExceeded.selector);
         _initializeValidatorRegistration(
             ValidatorRegistrationInput({
                 nodeID: DEFAULT_NODE_ID,
@@ -258,7 +260,7 @@ abstract contract ValidatorManagerTest is Test {
         });
 
         // Second call should fail
-        vm.expectRevert("ValidatorManager: maximum churn rate exceeded");
+        vm.expectRevert(MaxChurnRateExceeded.selector);
         _initializeEndValidation(validationID, false);
     }
 

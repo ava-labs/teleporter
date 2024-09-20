@@ -62,6 +62,19 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     uint8 public constant BLS_PUBLIC_KEY_LENGTH = 48;
     bytes32 public constant P_CHAIN_BLOCKCHAIN_ID = bytes32(0);
 
+    error MaxChurnRateExceeded();
+    error InvalidWarpMessage();
+    error InvalidBlockchainID();
+    error InvalidAddress();
+    error UnexpectedRegistrationStatus();
+    error InvalidValidatorStatus();
+    error InvalidValidationID();
+    error NodeAlreadyRegistered();
+    error InvalidSubnetConversionID();
+    error InvalidInput();
+    error InvalidExpiry();
+    error InvalidInitializationStatus();
+
     // solhint-disable ordering
     function _getValidatorManagerStorage()
         private
@@ -97,22 +110,19 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._subnetID = settings.subnetID;
 
-        require(
-            settings.maximumChurnPercentage <= MAXIMUM_CHURN_PERCENTAGE_LIMIT,
-            "ValidatorManager: maximum churn percentage too high"
-        );
-        require(
-            settings.maximumChurnPercentage > 0, "ValidatorManager: zero maximum churn percentage"
-        );
+        if (settings.maximumChurnPercentage > MAXIMUM_CHURN_PERCENTAGE_LIMIT ||
+            settings.maximumChurnPercentage == 0) {
+            revert InvalidInput();
+        }
+
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
         $._churnPeriodSeconds = settings.churnPeriodSeconds;
     }
 
     modifier initializedValidatorSet() {
-        require(
-            _getValidatorManagerStorage()._initializedValidatorSet,
-            "ValidatorManager: validator set not initialized"
-        );
+        if (!_getValidatorManagerStorage()._initializedValidatorSet) {
+            revert InvalidInitializationStatus();
+        }
         _;
     }
 
@@ -124,17 +134,17 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         uint32 messageIndex
     ) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        require(!$._initializedValidatorSet, "ValidatorManager: already initialized validator set");
+        if($._initializedValidatorSet) {
+            revert InvalidInitializationStatus();
+        }
         // Check that the blockchainID and validator manager address in the subnetConversionData correspond to this contract.
         // Other validation checks are done by the P-Chain when converting the subnet, so are not required here.
-        require(
-            subnetConversionData.validatorManagerBlockchainID == WARP_MESSENGER.getBlockchainID(),
-            "ValidatorManager: invalid blockchain ID"
-        );
-        require(
-            address(subnetConversionData.validatorManagerAddress) == address(this),
-            "ValidatorManager: invalid validator manager address"
-        );
+        if (subnetConversionData.validatorManagerBlockchainID != WARP_MESSENGER.getBlockchainID()) {
+            revert InvalidBlockchainID();
+        }
+        if (address(subnetConversionData.validatorManagerAddress) != address(this)) {
+            revert InvalidAddress();
+        }
 
         uint256 numInitialValidators = subnetConversionData.initialValidators.length;
 
@@ -150,10 +160,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         for (uint32 i; i < numInitialValidators; ++i) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
             bytes32 nodeID = initialValidator.nodeID;
-            require(
-                $._activeValidators[nodeID] == bytes32(0),
-                "ValidatorManager: node ID already active"
-            );
+            if ($._activeValidators[nodeID] != bytes32(0)) {
+                revert NodeAlreadyRegistered();
+            }
 
             // Continue to encode the initial validators.
             encodedConversion = abi.encodePacked(
@@ -193,10 +202,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Parse the Warp message into SubnetConversionMessage
         bytes32 subnetConversionID =
             ValidatorMessages.unpackSubnetConversionMessage(warpMessage.payload);
-        require(
-            sha256(encodedConversion) == subnetConversionID,
-            "ValidatorManager: invalid subnet conversion ID"
-        );
+        
+        if (sha256(encodedConversion) != subnetConversionID) {
+            revert InvalidSubnetConversionID();
+        }
 
         $._initializedValidatorSet = true;
     }
@@ -214,25 +223,20 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     ) internal virtual initializedValidatorSet returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
-        require(
-            input.registrationExpiry > block.timestamp,
-            "ValidatorManager: registration expiry not in future"
-        );
-        require(
-            block.timestamp + MAXIMUM_REGISTRATION_EXPIRY_LENGTH > input.registrationExpiry,
-            "ValidatorManager: registration expiry too far in future"
-        );
+        
+        if (input.registrationExpiry <= block.timestamp ||
+            input.registrationExpiry >= block.timestamp + MAXIMUM_REGISTRATION_EXPIRY_LENGTH) {
+            revert InvalidExpiry();
+        }
 
         // Ensure the nodeID is not the zero address, and is not already an active validator.
-        require(input.nodeID != bytes32(0), "ValidatorManager: invalid node ID");
-        require(
-            $._activeValidators[input.nodeID] == bytes32(0),
-            "ValidatorManager: node ID already active"
-        );
-        require(
-            input.blsPublicKey.length == BLS_PUBLIC_KEY_LENGTH,
-            "ValidatorManager: invalid blsPublicKey length"
-        );
+        if (input.blsPublicKey.length != BLS_PUBLIC_KEY_LENGTH ||
+            input.nodeID == bytes32(0)) {
+            revert InvalidInput();
+        }
+        if ($._activeValidators[input.nodeID] != bytes32(0)) {
+            revert NodeAlreadyRegistered();
+        }
 
         // Check that adding this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTracker(weight, 0);
@@ -275,11 +279,12 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     function resendRegisterValidatorMessage(bytes32 validationID) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         // The initial validator set must have been set already to have pending register validation messages.
-        require(
-            $._pendingRegisterValidationMessages[validationID].length > 0
-                && $._validationPeriods[validationID].status == ValidatorStatus.PendingAdded,
-            "ValidatorManager: invalid validation ID"
-        );
+        if ($._pendingRegisterValidationMessages[validationID].length == 0) {
+            revert InvalidValidationID();
+        }
+        if ($._validationPeriods[validationID].status != ValidatorStatus.PendingAdded) {
+            revert InvalidValidatorStatus();
+        }
 
         // Submit the message to the Warp precompile.
         WARP_MESSENGER.sendWarpMessage($._pendingRegisterValidationMessages[validationID]);
@@ -296,13 +301,16 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         (bytes32 validationID, bool validRegistration) =
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
 
-        require(validRegistration, "ValidatorManager: Registration not valid");
+        if (!validRegistration) {
+            revert UnexpectedRegistrationStatus();
+        }
         // The initial validator set must have been set already to have pending register validation messages.
-        require(
-            $._pendingRegisterValidationMessages[validationID].length > 0
-                && $._validationPeriods[validationID].status == ValidatorStatus.PendingAdded,
-            "ValidatorManager: invalid validation ID"
-        );
+        if ($._pendingRegisterValidationMessages[validationID].length == 0) {
+            revert InvalidValidationID();
+        }
+        if ($._validationPeriods[validationID].status != ValidatorStatus.PendingAdded) {
+            revert InvalidValidatorStatus();
+        }
 
         delete $._pendingRegisterValidationMessages[validationID];
         $._validationPeriods[validationID].status = ValidatorStatus.Active;
@@ -339,9 +347,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Ensure the validation period is active.
         // The initial validator set must have been set already to have active validators.
         Validator memory validator = $._validationPeriods[validationID];
-        require(
-            validator.status == ValidatorStatus.Active, "ValidatorManager: validator not active"
-        );
+        if (validator.status != ValidatorStatus.Active) {
+            revert InvalidValidatorStatus();
+        }
 
         // Update the validator status to pending removal.
         // They are not removed from the active validators mapping until the P-Chain acknowledges the removal.
@@ -373,10 +381,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         Validator memory validator = $._validationPeriods[validationID];
 
         // The initial validator set must have been set already to have pending end validation messages.
-        require(
-            validator.status == ValidatorStatus.PendingRemoved,
-            "ValidatorManager: Validator not pending removal"
-        );
+        if (validator.status != ValidatorStatus.PendingRemoved) {
+            revert InvalidValidatorStatus();
+        }
 
         WARP_MESSENGER.sendWarpMessage(
             ValidatorMessages.packSetSubnetValidatorWeightMessage(
@@ -404,7 +411,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         (bytes32 validationID, bool validRegistration) =
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
-        require(!validRegistration, "ValidatorManager: registration still valid");
+        if (validRegistration) {
+            revert UnexpectedRegistrationStatus();
+        }
 
         Validator memory validator = $._validationPeriods[validationID];
         ValidatorStatus endStatus;
@@ -412,11 +421,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // The validation status is PendingRemoved if validator removal was initiated with a call to {initiateEndValidation}.
         // The validation status is PendingAdded if the validator was never registered on the P-Chain.
         // The initial validator set must have been set already to have pending validation messages.
-        require(
-            validator.status == ValidatorStatus.PendingRemoved
-                || validator.status == ValidatorStatus.PendingAdded,
-            "ValidatorManager: invalid validator status"
-        );
+        if (validator.status != ValidatorStatus.PendingRemoved
+        && validator.status != ValidatorStatus.PendingAdded) {
+            revert InvalidValidatorStatus();
+        }
 
         if (validator.status == ValidatorStatus.PendingRemoved) {
             endStatus = ValidatorStatus.Completed;
@@ -457,16 +465,17 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     {
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        require(valid, "ValidatorManager: invalid warp message");
+        if (!valid) {
+            revert InvalidWarpMessage();
+        }
         // Must match to P-Chain blockchain id, which is 0.
-        require(
-            warpMessage.sourceChainID == P_CHAIN_BLOCKCHAIN_ID,
-            "ValidatorManager: invalid source chain ID"
-        );
-        require(
-            warpMessage.originSenderAddress == address(0),
-            "ValidatorManager: invalid origin sender address"
-        );
+        if (warpMessage.sourceChainID != P_CHAIN_BLOCKCHAIN_ID) {
+            revert InvalidBlockchainID();
+        }
+        if (warpMessage.originSenderAddress != address(0)) {
+            revert InvalidAddress();
+        }
+            
         return warpMessage;
     }
 
@@ -532,11 +541,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             churnTracker.churnAmount += weightChange;
         }
 
-        require(
-            // Rearranged equation of maximumChurnPercentage >= currentChurnPercentage to avoid integer division truncation.
-            $._maximumChurnPercentage * churnTracker.initialWeight >= churnTracker.churnAmount * 100,
-            "ValidatorManager: maximum churn rate exceeded"
-        );
+        // Rearranged equation of maximumChurnPercentage >= currentChurnPercentage to avoid integer division truncation.
+        if ($._maximumChurnPercentage * churnTracker.initialWeight < churnTracker.churnAmount * 100) {
+            revert MaxChurnRateExceeded();
+        }
 
         // Two separate calculations because we're using uints and (newValidatorWeight - oldValidatorWeight) could underflow.
         churnTracker.totalWeight += newValidatorWeight;
