@@ -504,9 +504,9 @@ abstract contract PoSValidatorManager is
         delete $._delegatorStakes[delegationID];
 
         // The received nonce should be no greater than the highest sent nonce, and at least as high as
-        // the delegation's ending nonce. This allows //a weight update using a higher nonce
+        // the delegation's ending nonce. This allows a weight update using a higher nonce
         // (which implicitly includes the delegation's weight update) to be used to complete delisting
-        // for an earlier delegation. This is necessary because the P-Chainis only willing to sign the latest weight update.
+        // for an earlier delegation. This is necessary because the P-Chain is only willing to sign the latest weight update.
         if (validator.messageNonce < nonce || delegator.endingNonce > nonce) {
             revert InvalidNonce();
         }
