@@ -7,6 +7,7 @@ pragma solidity 0.8.25;
 
 import {PoSValidatorManagerTest} from "./PoSValidatorManagerTests.t.sol";
 import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
+import {PoSValidatorManager} from "../PoSValidatorManager.sol";
 import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput
@@ -51,7 +52,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroMinimumDelegationFee() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(InvalidDelegationFee.selector);
+        vm.expectRevert(PoSValidatorManager.InvalidDelegationFee.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -72,7 +73,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     function testMaxMinimumDelegationFee() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         uint16 minimumDelegationFeeBips = app.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
-        vm.expectRevert(InvalidDelegationFee.selector);
+        vm.expectRevert(PoSValidatorManager.InvalidDelegationFee.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -92,7 +93,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testInvalidStakeAmountRange() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(InvalidStakeAmount.selector);
+        vm.expectRevert(PoSValidatorManager.InvalidStakeAmount.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -112,7 +113,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroMaxStakeMultiplier() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(InvalidStakeMultiplier.selector);
+        vm.expectRevert(PoSValidatorManager.InvalidStakeMultiplier.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -133,7 +134,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     function testMaxStakeMultiplierOverLimit() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         uint8 maximumStakeMultiplier = app.MAXIMUM_STAKE_MULTIPLIER_LIMIT() + 1;
-        vm.expectRevert(InvalidStakeMultiplier.selector);
+        vm.expectRevert(PoSValidatorManager.InvalidStakeMultiplier.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
