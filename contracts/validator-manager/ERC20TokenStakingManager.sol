@@ -83,7 +83,9 @@ contract ERC20TokenStakingManager is
         onlyInitializing
     {
         ERC20TokenStakingManagerStorage storage $ = _getERC20StakingManagerStorage();
-        require(address(token) != address(0), "ERC20TokenStakingManager: zero token address");
+        if (address(token) == address(0)) {
+            revert InvalidAddress();
+        }
         $._token = token;
     }
 
