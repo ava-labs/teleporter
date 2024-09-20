@@ -422,6 +422,41 @@ abstract contract PoSValidatorManager is
         });
     }
 
+    function endDelegationCompletedValidator(bytes32 delegationID) external {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        Delegator memory delegator = $._delegatorStakes[delegationID];
+        bytes32 validationID = delegator.validationID;
+        Validator memory validator = getValidator(validationID);
+
+        // Ensure the validation is completed
+        require(
+            validator.status == ValidatorStatus.Completed,
+            "PoSValidatorManager: validation not completed"
+        );
+
+        require(
+            delegator.status == DelegatorStatus.Active
+                || delegator.status == DelegatorStatus.PendingRemoved,
+            "PoSValidatorManager: invalid delegation"
+        );
+
+        // Calculate and set rewards if the delegator is active.
+        if (delegator.status == DelegatorStatus.Active) {
+            $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward({
+                stakeAmount: weightToValue(delegator.weight),
+                validatorStartTime: validator.startedAt,
+                stakingStartTime: delegator.startedAt,
+                stakingEndTime: delegator.endedAt,
+                uptimeSeconds: $._completedValidationUptimeSeconds[validationID],
+                initialSupply: 0,
+                endSupply: 0
+            });
+        }
+
+        _completeEndDelegation(delegationID);
+    }
+
     function initializeEndDelegation(
         bytes32 delegationID,
         bool includeUptimeProof,
@@ -486,10 +521,6 @@ abstract contract PoSValidatorManager is
         });
     }
 
-    /**
-     * @dev Resending the latest validator weight with the latest nonce is safe because all weight changes are
-     * cumulative, so the latest weight change will always include the weight change for any added delegators.
-     */
     function resendUpdateDelegation(bytes32 delegationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         Delegator memory delegator = $._delegatorStakes[delegationID];
