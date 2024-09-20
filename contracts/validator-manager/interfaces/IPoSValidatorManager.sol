@@ -129,8 +129,9 @@ interface IPoSValidatorManager is IValidatorManager {
     function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external;
 
     /**
-     * @notice Removes a delegator from a completed validation period. The delegator can be in either the active or pending removed
-     * state. No uptime proof is required in this case, because it will have been provided by the validator upon their exit.
+     * @notice Removes a delegator from a completed validation period. The delegator can be in either the pending added, active
+     * or pending removed state. No uptime proof is required in this case, because it will have been provided by the validator
+     * upon their exit.
      * Note that this function can be called by any address to clean up the delegation.
      * @param delegationID The ID of the delegation being removed.
      */
