@@ -58,7 +58,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroMinimumDelegationFee() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(_formatErrorMessage("zero delegation fee"));
+        vm.expectRevert(InvalidDelegationFee.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -80,7 +80,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     function testMaxMinimumDelegationFee() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         uint16 minimumDelegationFeeBips = app.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
-        vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
+        vm.expectRevert(InvalidDelegationFee.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -101,7 +101,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testInvalidStakeAmountRange() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(_formatErrorMessage("invalid stake amount range"));
+        vm.expectRevert(InvalidStakeAmount.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -122,7 +122,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroMaxStakeMultiplier() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(_formatErrorMessage("zero maximum stake multiplier"));
+        vm.expectRevert(InvalidStakeMultiplier.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -144,7 +144,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     function testMaxStakeMultiplierOverLimit() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         uint8 maximumStakeMultiplier = app.MAXIMUM_STAKE_MULTIPLIER_LIMIT() + 1;
-        vm.expectRevert(_formatErrorMessage("invalid maximum stake multiplier"));
+        vm.expectRevert(InvalidStakeMultiplier.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -167,7 +167,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         ValidatorRegistrationInput memory input =
             ValidatorRegistrationInput(DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY);
         uint256 stakeAmount = _weightToValue(DEFAULT_WEIGHT);
-        vm.expectRevert(_formatErrorMessage("invalid min stake duration"));
+        vm.expectRevert(InvalidStakeDuration.selector);
         app.initializeValidatorRegistration(
             input, DEFAULT_DELEGATION_FEE_BIPS, DEFAULT_MINIMUM_STAKE_DURATION - 1, stakeAmount
         );

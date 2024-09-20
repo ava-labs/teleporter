@@ -71,6 +71,17 @@ abstract contract ValidatorManagerTest is Test {
     event ValidationPeriodEnded(bytes32 indexed validationID, ValidatorStatus indexed status);
 
     error MaxChurnRateExceeded();
+    error InvalidWarpMessage();
+    error InvalidBlockchainID();
+    error InvalidAddress();
+    error UnexpectedRegistrationStatus();
+    error InvalidValidatorStatus();
+    error InvalidValidationID();
+    error NodeAlreadyRegistered();
+    error InvalidSubnetConversionID();
+    error InvalidInput();
+    error InvalidExpiry();
+    error InvalidInitializationStatus();
 
     receive() external payable {}
     fallback() external payable {}

@@ -110,8 +110,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._subnetID = settings.subnetID;
 
-        if (settings.maximumChurnPercentage > MAXIMUM_CHURN_PERCENTAGE_LIMIT ||
-            settings.maximumChurnPercentage == 0) {
+        if (
+            settings.maximumChurnPercentage > MAXIMUM_CHURN_PERCENTAGE_LIMIT
+                || settings.maximumChurnPercentage == 0
+        ) {
             revert InvalidInput();
         }
 
@@ -134,7 +136,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         uint32 messageIndex
     ) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        if($._initializedValidatorSet) {
+        if ($._initializedValidatorSet) {
             revert InvalidInitializationStatus();
         }
         // Check that the blockchainID and validator manager address in the subnetConversionData correspond to this contract.
@@ -202,7 +204,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Parse the Warp message into SubnetConversionMessage
         bytes32 subnetConversionID =
             ValidatorMessages.unpackSubnetConversionMessage(warpMessage.payload);
-        
+
         if (sha256(encodedConversion) != subnetConversionID) {
             revert InvalidSubnetConversionID();
         }
@@ -223,15 +225,15 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     ) internal virtual initializedValidatorSet returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
-        
-        if (input.registrationExpiry <= block.timestamp ||
-            input.registrationExpiry >= block.timestamp + MAXIMUM_REGISTRATION_EXPIRY_LENGTH) {
+        if (
+            input.registrationExpiry <= block.timestamp
+                || input.registrationExpiry >= block.timestamp + MAXIMUM_REGISTRATION_EXPIRY_LENGTH
+        ) {
             revert InvalidExpiry();
         }
 
         // Ensure the nodeID is not the zero address, and is not already an active validator.
-        if (input.blsPublicKey.length != BLS_PUBLIC_KEY_LENGTH ||
-            input.nodeID == bytes32(0)) {
+        if (input.blsPublicKey.length != BLS_PUBLIC_KEY_LENGTH || input.nodeID == bytes32(0)) {
             revert InvalidInput();
         }
         if ($._activeValidators[input.nodeID] != bytes32(0)) {
@@ -421,8 +423,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // The validation status is PendingRemoved if validator removal was initiated with a call to {initiateEndValidation}.
         // The validation status is PendingAdded if the validator was never registered on the P-Chain.
         // The initial validator set must have been set already to have pending validation messages.
-        if (validator.status != ValidatorStatus.PendingRemoved
-        && validator.status != ValidatorStatus.PendingAdded) {
+        if (
+            validator.status != ValidatorStatus.PendingRemoved
+                && validator.status != ValidatorStatus.PendingAdded
+        ) {
             revert InvalidValidatorStatus();
         }
 
@@ -475,7 +479,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         if (warpMessage.originSenderAddress != address(0)) {
             revert InvalidAddress();
         }
-            
+
         return warpMessage;
     }
 
@@ -542,7 +546,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         }
 
         // Rearranged equation of maximumChurnPercentage >= currentChurnPercentage to avoid integer division truncation.
-        if ($._maximumChurnPercentage * churnTracker.initialWeight < churnTracker.churnAmount * 100) {
+        if ($._maximumChurnPercentage * churnTracker.initialWeight < churnTracker.churnAmount * 100)
+        {
             revert MaxChurnRateExceeded();
         }
 

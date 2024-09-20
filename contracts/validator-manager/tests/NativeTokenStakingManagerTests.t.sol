@@ -51,7 +51,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroMinimumDelegationFee() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(_formatErrorMessage("zero delegation fee"));
+        vm.expectRevert(InvalidDelegationFee.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -72,7 +72,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     function testMaxMinimumDelegationFee() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         uint16 minimumDelegationFeeBips = app.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
-        vm.expectRevert(_formatErrorMessage("invalid delegation fee"));
+        vm.expectRevert(InvalidDelegationFee.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -92,7 +92,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testInvalidStakeAmountRange() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(_formatErrorMessage("invalid stake amount range"));
+        vm.expectRevert(InvalidStakeAmount.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -112,7 +112,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroMaxStakeMultiplier() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(_formatErrorMessage("zero maximum stake multiplier"));
+        vm.expectRevert(InvalidStakeMultiplier.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -133,7 +133,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     function testMaxStakeMultiplierOverLimit() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         uint8 maximumStakeMultiplier = app.MAXIMUM_STAKE_MULTIPLIER_LIMIT() + 1;
-        vm.expectRevert(_formatErrorMessage("invalid maximum stake multiplier"));
+        vm.expectRevert(InvalidStakeMultiplier.selector);
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
