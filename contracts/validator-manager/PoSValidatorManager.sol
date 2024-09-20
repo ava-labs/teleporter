@@ -331,7 +331,6 @@ abstract contract PoSValidatorManager is
             validationID: validationID,
             weight: weight,
             startedAt: 0,
-            endedAt: 0,
             startingNonce: nonce,
             endingNonce: 0
         });
@@ -368,7 +367,6 @@ abstract contract PoSValidatorManager is
         if (validator.status == ValidatorStatus.PendingRemoved) {
             delegator.status = DelegatorStatus.PendingRemoved;
             delegator.startedAt = validator.endedAt;
-            delegator.endedAt = validator.endedAt;
             delegator.endingNonce = validator.messageNonce;
 
             // Write back the delegator
@@ -488,6 +486,7 @@ abstract contract PoSValidatorManager is
         delegator.status = DelegatorStatus.PendingRemoved;
 
         uint64 validatorUptimeSeconds;
+        uint64 delegationEndTime;
         if (validator.status == ValidatorStatus.Active) {
             if (includeUptimeProof) {
                 // Uptime proofs include the absolute number of seconds the validator has been active.
@@ -496,7 +495,7 @@ abstract contract PoSValidatorManager is
             uint64 newValidatorWeight = validator.weight - delegator.weight;
             (delegator.endingNonce,) = _setValidatorWeight(validationID, newValidatorWeight);
 
-            delegator.endedAt = uint64(block.timestamp);
+            delegationEndTime = uint64(block.timestamp);
         } else {
             // If the validation period has already ended, we have saved the uptime.
             // Further, it is impossible to retrieve an uptime proof for an already ended validation,
@@ -504,14 +503,14 @@ abstract contract PoSValidatorManager is
             validatorUptimeSeconds = $._completedValidationUptimeSeconds[validationID];
 
             delegator.endingNonce = validator.messageNonce;
-            delegator.endedAt = validator.endedAt;
+            delegationEndTime = validator.endedAt;
         }
 
         $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward({
             stakeAmount: weightToValue(delegator.weight),
             validatorStartTime: validator.startedAt,
             stakingStartTime: delegator.startedAt,
-            stakingEndTime: delegator.endedAt,
+            stakingEndTime: delegationEndTime,
             uptimeSeconds: validatorUptimeSeconds,
             initialSupply: 0,
             endSupply: 0
@@ -522,7 +521,7 @@ abstract contract PoSValidatorManager is
         emit DelegatorRemovalInitialized({
             delegationID: delegationID,
             validationID: validationID,
-            endTime: delegator.endedAt
+            endTime: delegationEndTime
         });
     }
 
