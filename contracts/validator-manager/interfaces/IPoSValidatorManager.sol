@@ -92,14 +92,12 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Event emitted when delegator removal is completed
      * @param delegationID The ID of the delegation
-     * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
+     * @param validationID The ID of the validator the delegator was staked to
+     * @param rewards The rewards given to the delegator
+     * @param fees The portion of the delegator's rewards paid to the validator
      */
     event DelegationEnded(
-        bytes32 indexed delegationID,
-        bytes32 indexed validationID,
-        uint64 indexed nonce,
-        uint256 rewards,
-        uint256 fees
+        bytes32 indexed delegationID, bytes32 indexed validationID, uint256 rewards, uint256 fees
     );
 
     /**

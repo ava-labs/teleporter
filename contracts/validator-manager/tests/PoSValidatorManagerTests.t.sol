@@ -69,11 +69,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     );
 
     event DelegationEnded(
-        bytes32 indexed delegationID,
-        bytes32 indexed validationID,
-        uint64 indexed nonce,
-        uint256 rewards,
-        uint256 fees
+        bytes32 indexed delegationID, bytes32 indexed validationID, uint256 rewards, uint256 fees
     );
 
     function testDelegationFeeBipsTooLow() public {
@@ -968,9 +964,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetPChainWarpMessage(weightUpdateMessage, true);
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
-        emit DelegationEnded(
-            delegationID, validationID, expectedNonce, expectedReward, expectedFees
-        );
+        emit DelegationEnded(delegationID, validationID, expectedReward, expectedFees);
         uint256 balanceBefore = _getStakeAssetBalance(delegator);
 
         _expectStakeUnlock(delegator, _weightToValue(delegatorWeight));
