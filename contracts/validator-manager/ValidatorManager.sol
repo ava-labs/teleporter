@@ -428,8 +428,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
     function _incrementAndGetNonce(bytes32 validationID) internal returns (uint64) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        $._validationPeriods[validationID].messageNonce++;
-        return $._validationPeriods[validationID].messageNonce;
+        return ++$._validationPeriods[validationID].messageNonce;
     }
 
     function _getPChainWarpMessage(uint32 messageIndex)
