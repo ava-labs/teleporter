@@ -29,7 +29,7 @@ abstract contract ValidatorManagerTest is Test {
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     bytes32 public constant DEFAULT_SUBNET_CONVERSION_TX_ID =
-        bytes32(hex"1fa884c03c55ff866c210963db9100dd14964615da464c6b9871854374bb6026");
+        bytes32(hex"1156c1551ee48fa5c2e4916b6ab24b526d7fcff07f3923077ad596325482cb4d");
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     uint64 public constant DEFAULT_WEIGHT = 1e6;
@@ -262,6 +262,29 @@ abstract contract ValidatorManagerTest is Test {
         _initializeEndValidation(validationID, false);
     }
 
+    function _oldSubnetConversionDataPack(SubnetConversionData memory scd)
+        public
+        pure
+        returns (bytes memory)
+    {
+        bytes memory res = abi.encodePacked(
+            scd.convertSubnetTxID,
+            scd.validatorManagerBlockchainID,
+            uint32(20),
+            scd.validatorManagerAddress,
+            uint32(scd.initialValidators.length)
+        );
+        for (uint256 i = 0; i < scd.initialValidators.length; i++) {
+            res = abi.encodePacked(
+                res,
+                scd.initialValidators[i].nodeID,
+                scd.initialValidators[i].weight,
+                scd.initialValidators[i].blsPublicKey
+            );
+        }
+        return res;
+    }
+
     function _newNodeID() internal returns (bytes32) {
         nodeIDCounter++;
         return sha256(new bytes(nodeIDCounter));
@@ -467,13 +490,21 @@ abstract contract ValidatorManagerTest is Test {
 
     function _beforeSend(uint256 amount, address spender) internal virtual;
 
-    function _defaultSubnetConversionData() internal view returns (SubnetConversionData memory) {
-        InitialValidator[] memory initialValidators = new InitialValidator[](1);
-        initialValidators[0] = InitialValidator({
-            nodeID: DEFAULT_INITIAL_VALIDATOR_NODE_ID,
-            weight: DEFAULT_INITIAL_VALIDATOR_WEIGHT,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
-        });
+    function _defaultSubnetConversionData(uint8 numValidators)
+        internal
+        view
+        returns (SubnetConversionData memory)
+    {
+        InitialValidator[] memory initialValidators = new InitialValidator[](numValidators);
+        for (uint8 i = 0; i < numValidators; ++i) {
+            bytes32 nodeID = bytes32(uint256(DEFAULT_INITIAL_VALIDATOR_NODE_ID) + i);
+            bytes memory blsPublicKey = _generateBlsPublicKey(i);
+            initialValidators[i] = InitialValidator({
+                nodeID: nodeID,
+                weight: DEFAULT_INITIAL_VALIDATOR_WEIGHT,
+                blsPublicKey: blsPublicKey
+            });
+        }
         return SubnetConversionData({
             convertSubnetTxID: bytes32(0),
             validatorManagerBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -494,6 +525,14 @@ abstract contract ValidatorManagerTest is Test {
     // These are okay to use for PoA as well, because they're just used for conversions inside the tests.
     function _weightToValue(uint64 weight) internal pure returns (uint256) {
         return uint256(weight) * 1e12;
+    }
+
+    // Function to generate a new BLS public key based on an index
+    // It just sets the last byte to the value of the index
+    function _generateBlsPublicKey(uint8 index) internal pure returns (bytes memory) {
+        bytes memory res = DEFAULT_BLS_PUBLIC_KEY;
+        res[47] = bytes1(index);
+        return res;
     }
 }
 // solhint-enable no-empty-blocks

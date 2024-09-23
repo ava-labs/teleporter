@@ -8,6 +8,8 @@ pragma solidity 0.8.25;
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 import {PoAValidatorManager} from "../PoAValidatorManager.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
+import {SubnetConversionData} from "../ValidatorManager.sol";
+import {ValidatorMessages} from "../ValidatorMessages.sol";
 import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput
@@ -33,7 +35,7 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
         validatorManager = app;
         _mockGetBlockchainID();
         _mockInitializeValidatorSet();
-        app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
+        app.initializeValidatorSet(_defaultSubnetConversionData(1), 0);
     }
 
     function testInvalidOwnerRegistration() public {
@@ -47,6 +49,36 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
             ValidatorRegistrationInput(DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY),
             DEFAULT_WEIGHT
         );
+    }
+
+    function testSubnetConversionDataPackingOld() public view {
+        uint8 numValidators = 50;
+        SubnetConversionData memory scd = _defaultSubnetConversionData(numValidators);
+        bytes memory packedOld = _oldSubnetConversionDataPack(scd);
+        uint256 length = 92 + scd.initialValidators.length * 88;
+
+        require(packedOld.length == length, "Old Packed data length does not match");
+    }
+
+    function testSubnetConversionDataPackingNew() public view {
+        uint8 numValidators = 50;
+        SubnetConversionData memory scd = _defaultSubnetConversionData(numValidators);
+        bytes memory packedNew = ValidatorMessages.packSubnetConversionData(scd);
+        uint256 length = 92 + scd.initialValidators.length * 88;
+
+        require(packedNew.length == length, "New Packed data length does not match");
+    }
+
+    function testSubnetConversionDataPacking() public view {
+        uint8 numValidators = 50;
+        SubnetConversionData memory scd = _defaultSubnetConversionData(numValidators);
+        bytes memory packedOld = _oldSubnetConversionDataPack(scd);
+        bytes memory packedNew = ValidatorMessages.packSubnetConversionData(scd);
+        uint256 length = 92 + scd.initialValidators.length * 88;
+
+        require(packedOld.length == length, "Old Packed data length does not match");
+        require(packedNew.length == length, "New Packed data length does not match");
+        require(sha256(packedOld) == sha256(packedNew), "Packed data does not match");
     }
 
     function _initializeValidatorRegistration(
