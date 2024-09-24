@@ -174,7 +174,7 @@ abstract contract PoSValidatorManager is
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
-        if(!_initializeEndPoSValidation(validationID, includeUptimeProof, messageIndex)) {
+        if (!_initializeEndPoSValidation(validationID, includeUptimeProof, messageIndex)) {
             revert ValidatorIneligibleForRewards();
         }
     }
