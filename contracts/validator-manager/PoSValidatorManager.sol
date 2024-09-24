@@ -373,43 +373,31 @@ abstract contract PoSValidatorManager is
             return _completeEndDelegation(delegationID);
         }
 
-        // In the case where the validator has initiated ending its validation period, we can no
-        // longer stake, but the validator's weight may not have been removed from the p-chain yet,
-        // so we have to wait for confirmation that the validator has been removed before returning the stake.
-        uint64 delegatorStartTime;
-        if (validator.status == ValidatorStatus.PendingRemoved) {
-            delegatorStartTime = validator.endedAt;
-        } else {
-            // Validator Active case
+        // Unpack the Warp message
+        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
+        (bytes32 messageValidationID, uint64 nonce,) =
+            ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
 
-            // Unpack the Warp message
-            WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
-            (bytes32 messageValidationID, uint64 nonce,) =
-                ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
+        if (validationID != messageValidationID) {
+            revert InvalidValidationID();
+        }
 
-            if (validationID != messageValidationID) {
-                revert InvalidValidationID();
-            }
-
-            // The received nonce should be no greater than the highest sent nonce, and at least as high as
-            // the delegation's starting nonce. This allows a weight update using a higher nonce
-            // (which implicitly includes the delegation's weight update) to be used to complete delisting
-            // for an earlier delegation. This is necessary because the P-Chain is only willing to sign the latest weight update.
-            if (validator.messageNonce < nonce || delegator.startingNonce > nonce) {
-                revert InvalidNonce();
-            }
-
-            delegatorStartTime = uint64(block.timestamp);
+        // The received nonce should be no greater than the highest sent nonce, and at least as high as
+        // the delegation's starting nonce. This allows a weight update using a higher nonce
+        // (which implicitly includes the delegation's weight update) to be used to complete delisting
+        // for an earlier delegation. This is necessary because the P-Chain is only willing to sign the latest weight update.
+        if (validator.messageNonce < nonce || delegator.startingNonce > nonce) {
+            revert InvalidNonce();
         }
 
         // Update the delegation status
         $._delegatorStakes[delegationID].status = DelegatorStatus.Active;
-        $._delegatorStakes[delegationID].startedAt = delegatorStartTime;
+        $._delegatorStakes[delegationID].startedAt = uint64(block.timestamp);
 
         emit DelegatorRegistered({
             delegationID: delegationID,
             validationID: validationID,
-            startTime: delegatorStartTime
+            startTime: uint64(block.timestamp)
         });
     }
 
@@ -464,15 +452,18 @@ abstract contract PoSValidatorManager is
             delegationEndTime = validator.endedAt;
         }
 
-        $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward({
-            stakeAmount: weightToValue(delegator.weight),
-            validatorStartTime: validator.startedAt,
-            stakingStartTime: delegator.startedAt,
-            stakingEndTime: delegationEndTime,
-            uptimeSeconds: validatorUptimeSeconds,
-            initialSupply: 0,
-            endSupply: 0
-        });
+        // Only give rewards in the case that the delegation started before the validator exited.
+        if (delegationEndTime > delegator.startedAt) {
+            $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward({
+                stakeAmount: weightToValue(delegator.weight),
+                validatorStartTime: validator.startedAt,
+                stakingStartTime: delegator.startedAt,
+                stakingEndTime: delegationEndTime,
+                uptimeSeconds: validatorUptimeSeconds,
+                initialSupply: 0,
+                endSupply: 0
+            });
+        }
 
         // If the validator has been completed, we don't need any more communication with the p-chain and we can
         // complete processing the delegator's state now.
