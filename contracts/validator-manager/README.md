@@ -143,6 +143,31 @@ Specification:
                           +----------+
 ```
 
+### `SubnetValidatorWeightUpdateMessage`
+
+Description: Acknowledges a validator weight update
+
+Signed by: P-Chain
+Consumed by: Validator Manager contract
+
+Specification:
+
+```
++--------------+----------+----------+
+|      codecID :   uint16 |  2 bytes |
++--------------+----------+----------+
+|       typeID :   uint32 |  4 bytes |
++--------------+----------+----------+
+| validationID : [32]byte | 32 bytes |
++--------------+----------+----------+
+|        nonce :   uint64 |  8 bytes |
++--------------+----------+----------+
+|       weight :   uint64 |  8 bytes |
++--------------+----------+----------+
+                          | 54 bytes |
+                          +----------+
+```
+
 ## Types of Validator Managers
 
 ### Proof of Authority
