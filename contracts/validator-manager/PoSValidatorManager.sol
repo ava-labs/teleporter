@@ -378,7 +378,6 @@ abstract contract PoSValidatorManager is
         // so we have to wait for confirmation that the validator has been removed before returning the stake.
         uint64 delegatorStartTime;
         if (validator.status == ValidatorStatus.PendingRemoved) {
-            $._delegatorStakes[delegationID].endingNonce = validator.messageNonce;
             delegatorStartTime = validator.endedAt;
         } else {
             // Validator Active case
