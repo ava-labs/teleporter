@@ -67,14 +67,10 @@ interface IPoSValidatorManager is IValidatorManager {
      * @notice Event emitted when a delegator registration is completed
      * @param delegationID The ID of the delegation
      * @param validationID The ID of the validation period
-     * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
      * @param startTime The time at which the registration was completed
      */
     event DelegatorRegistered(
-        bytes32 indexed delegationID,
-        bytes32 indexed validationID,
-        uint64 indexed nonce,
-        uint256 startTime
+        bytes32 indexed delegationID, bytes32 indexed validationID, uint256 startTime
     );
 
     /**
@@ -126,15 +122,6 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param delegationID The ID of the delegation being registered.
      */
     function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external;
-
-    /**
-     * @notice Removes a delegator from a completed validation period. The delegator can be in either the pending added, active
-     * or pending removed state. No uptime proof is required in this case, because it will have been provided by the validator
-     * upon their exit.
-     * Note that this function can be called by any address to clean up the delegation.
-     * @param delegationID The ID of the delegation being removed.
-     */
-    function endDelegationCompletedValidator(bytes32 delegationID) external;
 
     /**
      * @notice Begins the process of removing a delegator from a validation period. The delegator must have been previously

@@ -52,10 +52,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     );
 
     event DelegatorRegistered(
-        bytes32 indexed delegationID,
-        bytes32 indexed validationID,
-        uint64 indexed nonce,
-        uint256 startTime
+        bytes32 indexed delegationID, bytes32 indexed validationID, uint256 startTime
     );
 
     event DelegatorRemovalInitialized(
@@ -878,7 +875,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         emit DelegatorRegistered({
             delegationID: delegationID,
             validationID: validationID,
-            nonce: expectedNonce,
             startTime: completeRegistrationTimestamp
         });
         posValidatorManager.completeDelegatorRegistration(0, delegationID);
