@@ -176,8 +176,7 @@ abstract contract PoSValidatorManager is
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
-        uint256 reward = _initializeEndPoSValidation(validationID, includeUptimeProof, messageIndex);
-        if (reward == 0) {
+        if(!_initializeEndPoSValidation(validationID, includeUptimeProof, messageIndex)) {
             revert ValidatorIneligibleForRewards();
         }
     }
@@ -194,14 +193,14 @@ abstract contract PoSValidatorManager is
         bytes32 validationID,
         bool includeUptimeProof,
         uint32 messageIndex
-    ) internal returns (uint256) {
+    ) internal returns (bool) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         Validator memory validator = _initializeEndValidation(validationID);
 
         // Non-PoS validators are required to boostrap the network, but are not eligible for rewards.
         if (!_isPoSValidator(validationID)) {
-            revert ValidatorNotPoS();
+            return true;
         }
 
         // PoS validations can only be ended by their owners.
@@ -235,7 +234,7 @@ abstract contract PoSValidatorManager is
             endSupply: 0
         });
         $._redeemableValidatorRewards[validationID] += reward;
-        return reward;
+        return (reward > 0);
     }
 
     function completeEndValidation(uint32 messageIndex) external {
