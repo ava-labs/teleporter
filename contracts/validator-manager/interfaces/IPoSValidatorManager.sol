@@ -40,6 +40,7 @@ struct PoSValidatorInfo {
     address owner;
     uint16 delegationFeeBips;
     uint64 minStakeDuration;
+    uint64 uptimeSeconds;
 }
 
 interface IPoSValidatorManager is IValidatorManager {

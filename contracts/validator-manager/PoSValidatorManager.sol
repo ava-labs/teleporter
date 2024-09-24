@@ -59,8 +59,6 @@ abstract contract PoSValidatorManager is
         mapping(bytes32 delegationID => uint256) _redeemableDelegatorRewards;
         /// @notice Maps the validation ID to its pending staking rewards.
         mapping(bytes32 validationID => uint256) _redeemableValidatorRewards;
-        /// @notice Saves the largest known uptime of an active, pending completed, or completed validation period so that delegators can collect rewards.
-        mapping(bytes32 validationID => uint64) _validationUptimeSeconds;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -221,7 +219,7 @@ abstract contract PoSValidatorManager is
         if (includeUptimeProof) {
             uptimeSeconds = _updateUptime(validationID, messageIndex);
         } else {
-            uptimeSeconds = $._validationUptimeSeconds[validationID];
+            uptimeSeconds = $._posValidatorInfo[validationID].uptimeSeconds;
         }
 
         uint256 reward = $._rewardCalculator.calculateReward({
@@ -283,11 +281,11 @@ abstract contract PoSValidatorManager is
         }
 
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        if (uptime > $._validationUptimeSeconds[validationID]) {
-            $._validationUptimeSeconds[validationID] = uptime;
+        if (uptime > $._posValidatorInfo[validationID].uptimeSeconds) {
+            $._posValidatorInfo[validationID].uptimeSeconds = uptime;
             emit UptimeUpdated(validationID, uptime);
         } else {
-            uptime = $._validationUptimeSeconds[validationID];
+            uptime = $._posValidatorInfo[validationID].uptimeSeconds;
         }
 
         return uptime;
@@ -326,7 +324,8 @@ abstract contract PoSValidatorManager is
         $._posValidatorInfo[validationID] = PoSValidatorInfo({
             owner: _msgSender(),
             delegationFeeBips: delegationFeeBips,
-            minStakeDuration: minStakeDuration
+            minStakeDuration: minStakeDuration,
+            uptimeSeconds: 0
         });
         return validationID;
     }
@@ -495,7 +494,7 @@ abstract contract PoSValidatorManager is
                 validatorStartTime: validator.startedAt,
                 stakingStartTime: delegator.startedAt,
                 stakingEndTime: validator.endedAt,
-                uptimeSeconds: $._validationUptimeSeconds[validationID],
+                uptimeSeconds: $._posValidatorInfo[validationID].uptimeSeconds,
                 initialSupply: 0,
                 endSupply: 0
             });
@@ -544,7 +543,7 @@ abstract contract PoSValidatorManager is
             // If the validation period has already ended, we have saved the uptime.
             // Further, it is impossible to retrieve an uptime proof for an already ended validation,
             // so there's no need to check any uptime proof provided in this function call.
-            validatorUptimeSeconds = $._validationUptimeSeconds[validationID];
+            validatorUptimeSeconds = $._posValidatorInfo[validationID].uptimeSeconds;
 
             delegator.endingNonce = validator.messageNonce;
             delegationEndTime = validator.endedAt;
