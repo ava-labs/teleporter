@@ -12,8 +12,7 @@ enum DelegatorStatus {
     Unknown,
     PendingAdded,
     Active,
-    PendingRemoved,
-    Completed
+    PendingRemoved
 }
 
 // TODO: visit types of these fields, for example uint64 might be too big for stake duration seconds.
@@ -33,12 +32,11 @@ struct Delegator {
     bytes32 validationID;
     uint64 weight;
     uint64 startedAt;
-    uint64 endedAt;
     uint64 startingNonce;
     uint64 endingNonce;
 }
 
-struct PoSValidatorRequirements {
+struct PoSValidatorInfo {
     address owner;
     uint16 delegationFeeBips;
     uint64 minStakeDuration;
@@ -92,10 +90,12 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Event emitted when delegator removal is completed
      * @param delegationID The ID of the delegation
-     * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
+     * @param validationID The ID of the validator the delegator was staked to
+     * @param rewards The rewards given to the delegator
+     * @param fees The portion of the delegator's rewards paid to the validator
      */
     event DelegationEnded(
-        bytes32 indexed delegationID, bytes32 indexed validationID, uint64 indexed nonce
+        bytes32 indexed delegationID, bytes32 indexed validationID, uint256 rewards, uint256 fees
     );
 
     /**
@@ -160,13 +160,24 @@ interface IPoSValidatorManager is IValidatorManager {
     function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external;
 
     /**
+     * @notice Removes a delegator from a completed validation period. The delegator can be in either the pending added, active
+     * or pending removed state. No uptime proof is required in this case, because it will have been provided by the validator
+     * upon their exit.
+     * Note that this function can be called by any address to clean up the delegation.
+     * @param delegationID The ID of the delegation being removed.
+     */
+    function endDelegationCompletedValidator(bytes32 delegationID) external;
+
+    /**
      * @notice Begins the process of removing a delegator from a validation period. The delegator must have been previously
      * registered with the given validationID. For the purposes of computing delegation rewards, the delegation period is
      * considered ended when this function is called. In order to be eligible for rewards, an uptime proof must be provided.
      * Note that this function can only be called by the address that registered the delegation.
      * @param delegationID The ID of the delegation being removed.
      * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
-     * If no uptime proof is provided, the validation uptime for the delegation period will be assumed to be 0.
+     * If the validator has completed its validation period, it has already provided an uptime proof, so {includeUptimeProof}
+     * will be ignored and can be set to false. If the validator has not completed its validation period and no uptime proof
+     * is provided, the validation uptime for the delegation period will be assumed to be 0.
      * @param messageIndex If {includeUptimeProof} is true, the index of the Warp message to be received providing the
      * uptime proof.
      */

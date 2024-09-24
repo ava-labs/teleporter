@@ -88,7 +88,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	tx, err := poaValidatorManager.Initialize(
 		opts,
 		poavalidatormanager.ValidatorManagerSettings{
-			PChainBlockchainID:     pChainInfo.BlockchainID,
 			SubnetID:               subnetAInfo.SubnetID,
 			ChurnPeriodSeconds:     uint64(0),
 			MaximumChurnPercentage: uint8(20),
@@ -165,7 +164,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		opts,
 		nativetokenstakingmanager.PoSValidatorManagerSettings{
 			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
-				PChainBlockchainID:     pChainInfo.BlockchainID,
 				SubnetID:               subnetAInfo.SubnetID,
 				ChurnPeriodSeconds:     utils.DefaultChurnPeriodSeconds,
 				MaximumChurnPercentage: utils.DefaultMaxChurnPercentage,
@@ -181,8 +179,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 	utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
 
-	// Check that previous validator is still active
-	validationID, err := posValidatorManager.ActiveValidators(&bind.CallOpts{}, poaNodeID)
+	// Check that previous validator is still registered
+	validationID, err := posValidatorManager.RegisteredValidators(&bind.CallOpts{}, poaNodeID)
 	Expect(err).Should(BeNil())
 	Expect(validationID[:]).Should(Equal(poaValidationID[:]))
 

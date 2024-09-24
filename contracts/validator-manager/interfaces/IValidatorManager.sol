@@ -46,7 +46,6 @@ event ValidatorWeightUpdate(
 );
 
 struct ValidatorManagerSettings {
-    bytes32 pChainBlockchainID;
     bytes32 subnetID;
     uint64 churnPeriodSeconds;
     uint8 maximumChurnPercentage;
