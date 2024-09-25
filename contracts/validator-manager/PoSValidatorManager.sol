@@ -420,61 +420,63 @@ abstract contract PoSValidatorManager is
         if (delegator.owner != _msgSender()) {
             revert InvalidAddress();
         }
-        // Delegators may not initiate removal when the validator's state is pending.
-        if (validator.status == ValidatorStatus.PendingRemoved) {
-            revert InvalidValidatorStatus();
-        }
 
         // Set the delegator status to pending removed, so that it can be properly removed in
         // the complete step, even if the delivered nonce is greater than the nonce used to
         // initialize the removal.
         $._delegatorStakes[delegationID].status = DelegatorStatus.PendingRemoved;
 
-        uint64 validatorUptimeSeconds;
-        uint64 delegationEndTime;
         if (validator.status == ValidatorStatus.Active) {
             if (includeUptimeProof) {
                 // Uptime proofs include the absolute number of seconds the validator has been active.
-                validatorUptimeSeconds = _getUptime(validationID, messageIndex);
+                _getUptime(validationID, messageIndex);
             }
-            uint64 newValidatorWeight = validator.weight - delegator.weight;
-            ($._delegatorStakes[delegationID].endingNonce,) =
-                _setValidatorWeight(validationID, newValidatorWeight);
 
+            ($._delegatorStakes[delegationID].endingNonce,) =
+                _setValidatorWeight(validationID, validator.weight - delegator.weight);
+            _calculateDelegationReward(delegationID);
+        } else if (validator.status == ValidatorStatus.Completed) {
+            _calculateDelegationReward(delegationID);
+            return _completeEndDelegation(delegationID);
+        } else {
+            revert InvalidValidatorStatus();
+        }
+
+        emit DelegatorRemovalInitialized({delegationID: delegationID, validationID: validationID});
+    }
+
+    function _calculateDelegationReward(bytes32 delegationID) private {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        Delegator memory delegator = $._delegatorStakes[delegationID];
+        bytes32 validationID = delegator.validationID;
+        Validator memory validator = getValidator(validationID);
+
+        uint64 delegationEndTime;
+        if (
+            validator.status == ValidatorStatus.PendingRemoved
+                || validator.status == ValidatorStatus.Completed
+        ) {
+            delegationEndTime = validator.endedAt;
+        } else if (validator.status == ValidatorStatus.Active) {
             delegationEndTime = uint64(block.timestamp);
         } else {
-            // If the validation period has already ended, we have saved the uptime.
-            // Further, it is impossible to retrieve an uptime proof for an already ended validation,
-            // so there's no need to check any uptime proof provided in this function call.
-            validatorUptimeSeconds = $._completedValidationUptimeSeconds[validationID];
-
-            $._delegatorStakes[delegationID].endingNonce = validator.messageNonce;
-            delegationEndTime = validator.endedAt;
+            revert InvalidValidatorStatus();
         }
 
         // Only give rewards in the case that the delegation started before the validator exited.
-        if (delegationEndTime > delegator.startedAt) {
-            $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward({
-                stakeAmount: weightToValue(delegator.weight),
-                validatorStartTime: validator.startedAt,
-                stakingStartTime: delegator.startedAt,
-                stakingEndTime: delegationEndTime,
-                uptimeSeconds: validatorUptimeSeconds,
-                initialSupply: 0,
-                endSupply: 0
-            });
+        if (delegationEndTime <= delegator.startedAt) {
+            return;
         }
 
-        // If the validator has been completed, we don't need any more communication with the p-chain and we can
-        // complete processing the delegator's state now.
-        if (validator.status == ValidatorStatus.Completed) {
-            return _completeEndDelegation(delegationID);
-        }
-
-        emit DelegatorRemovalInitialized({
-            delegationID: delegationID,
-            validationID: validationID,
-            endTime: delegationEndTime
+        $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward({
+            stakeAmount: weightToValue(delegator.weight),
+            validatorStartTime: validator.startedAt,
+            stakingStartTime: delegator.startedAt,
+            stakingEndTime: delegationEndTime,
+            uptimeSeconds: $._completedValidationUptimeSeconds[validationID],
+            initialSupply: 0,
+            endSupply: 0
         });
     }
 

@@ -77,11 +77,8 @@ interface IPoSValidatorManager is IValidatorManager {
      * @notice Event emitted when delegator removal is initiated
      * @param delegationID The ID of the delegation
      * @param validationID The ID of the validation period
-     * @param endTime The time at which the removal was initiated
      */
-    event DelegatorRemovalInitialized(
-        bytes32 indexed delegationID, bytes32 indexed validationID, uint256 endTime
-    );
+    event DelegatorRemovalInitialized(bytes32 indexed delegationID, bytes32 indexed validationID);
 
     /**
      * @notice Event emitted when delegator removal is completed
