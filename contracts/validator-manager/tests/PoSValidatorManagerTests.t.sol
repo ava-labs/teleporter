@@ -867,6 +867,21 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _initializeEndValidation(validationID, true, false);
     }
 
+    function testInitializeEndValidationPoAValidator() public {
+        bytes32 defaultInitialValidationID = sha256(abi.encodePacked(bytes32(0), uint32(1)));
+
+        vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
+        bytes memory setValidatorWeightPayload =
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(defaultInitialValidationID, 1, 0);
+        _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit ValidatorRemovalInitialized(
+            defaultInitialValidationID, bytes32(0), DEFAULT_WEIGHT, DEFAULT_COMPLETION_TIMESTAMP
+        );
+
+        _initializeEndValidation(defaultInitialValidationID, false, false);
+    }
+
     function testForceInitializeEndValidation() public {
         _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
