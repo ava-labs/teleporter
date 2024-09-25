@@ -268,7 +268,7 @@ abstract contract ValidatorManagerTest is Test {
 
         // Second call should fail
         vm.expectRevert(ValidatorManager.MaxChurnRateExceeded.selector);
-        _initializeEndValidation(validationID, false, false);
+        _initializeEndValidation(validationID, false);
     }
 
     function _newNodeID() internal returns (bytes32) {
@@ -377,7 +377,11 @@ abstract contract ValidatorManagerTest is Test {
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp);
 
-        _initializeEndValidation(validationID, includeUptime, force);
+        if (force) {
+            _forceInitializeEndValidation(validationID, includeUptime);
+        } else {
+            _initializeEndValidation(validationID, includeUptime);
+        }
     }
 
     function _mockSendWarpMessage(bytes memory payload, bytes32 expectedMessageID) internal {
@@ -455,8 +459,12 @@ abstract contract ValidatorManagerTest is Test {
 
     function _initializeEndValidation(
         bytes32 validationID,
-        bool includeUptime,
-        bool force
+        bool includeUptime
+    ) internal virtual;
+
+    function _forceInitializeEndValidation(
+        bytes32 validationID,
+        bool includeUptime
     ) internal virtual;
 
     function _beforeSend(uint256 amount, address spender) internal virtual;
