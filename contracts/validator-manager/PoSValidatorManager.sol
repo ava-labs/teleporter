@@ -435,9 +435,9 @@ abstract contract PoSValidatorManager is
 
             ($._delegatorStakes[delegationID].endingNonce,) =
                 _setValidatorWeight(validationID, validator.weight - delegator.weight);
-            _calculateDelegationReward(delegationID);
+            $._redeemableDelegatorRewards[delegationID] = _calculateDelegationReward(delegator);
         } else if (validator.status == ValidatorStatus.Completed) {
-            _calculateDelegationReward(delegationID);
+            $._redeemableDelegatorRewards[delegationID] = _calculateDelegationReward(delegator);
             return _completeEndDelegation(delegationID);
         } else {
             revert InvalidValidatorStatus();
@@ -446,10 +446,14 @@ abstract contract PoSValidatorManager is
         emit DelegatorRemovalInitialized({delegationID: delegationID, validationID: validationID});
     }
 
-    function _calculateDelegationReward(bytes32 delegationID) private {
+    /// @dev Calculates the reward owed to the delegator based on the state of the delegator and its corresponding validator.
+    function _calculateDelegationReward(Delegator memory delegator)
+        private
+        view
+        returns (uint256)
+    {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
-        Delegator memory delegator = $._delegatorStakes[delegationID];
         bytes32 validationID = delegator.validationID;
         Validator memory validator = getValidator(validationID);
 
@@ -467,10 +471,10 @@ abstract contract PoSValidatorManager is
 
         // Only give rewards in the case that the delegation started before the validator exited.
         if (delegationEndTime <= delegator.startedAt) {
-            return;
+            return 0;
         }
 
-        $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward({
+        return $._rewardCalculator.calculateReward({
             stakeAmount: weightToValue(delegator.weight),
             validatorStartTime: validator.startedAt,
             stakingStartTime: delegator.startedAt,
