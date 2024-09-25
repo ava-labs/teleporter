@@ -66,7 +66,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     error InvalidBlockchainID();
     error InvalidExpiry();
     error InvalidInitializationStatus();
-    error InvalidInput();
+    error InvalidMaximumChurnPercentage();
+    error InvalidBLSKey();
+    error InvalidNodeID();
     error InvalidSubnetConversionID(bytes32 subnetConversionID);
     error InvalidValidationID();
     error InvalidValidatorStatus(ValidatorStatus status);
@@ -114,7 +116,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             settings.maximumChurnPercentage > MAXIMUM_CHURN_PERCENTAGE_LIMIT
                 || settings.maximumChurnPercentage == 0
         ) {
-            revert InvalidInput();
+            revert InvalidMaximumChurnPercentage();
         }
 
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
@@ -221,8 +223,11 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         // Ensure the nodeID is not the zero address, and is not already an active validator.
 
-        if (input.blsPublicKey.length != BLS_PUBLIC_KEY_LENGTH || input.nodeID == bytes32(0)) {
-            revert InvalidInput();
+        if (input.blsPublicKey.length != BLS_PUBLIC_KEY_LENGTH) {
+            revert InvalidBLSKey();
+        }
+        if (input.nodeID == bytes32(0)) {
+            revert InvalidNodeID();
         }
         if ($._registeredValidators[input.nodeID] != bytes32(0)) {
             revert NodeAlreadyRegistered();
