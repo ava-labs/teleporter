@@ -73,6 +73,8 @@ abstract contract PoSValidatorManager is
 
     uint16 public constant MAXIMUM_DELEGATION_FEE_BIPS = 10000;
 
+    event GeoffEvent(uint64 val);
+
     error InvalidDelegatorStatus();
     error InvalidNonce();
     error InvalidDelegationID();
@@ -429,7 +431,8 @@ abstract contract PoSValidatorManager is
         if (validator.status == ValidatorStatus.Active) {
             if (includeUptimeProof) {
                 // Uptime proofs include the absolute number of seconds the validator has been active.
-                _getUptime(validationID, messageIndex);
+                $._completedValidationUptimeSeconds[validationID] =
+                    _getUptime(validationID, messageIndex);
             }
 
             ($._delegatorStakes[delegationID].endingNonce,) =
@@ -463,6 +466,9 @@ abstract contract PoSValidatorManager is
         } else {
             revert InvalidValidatorStatus();
         }
+
+        emit GeoffEvent(delegationEndTime);
+        emit GeoffEvent(delegator.startedAt);
 
         // Only give rewards in the case that the delegation started before the validator exited.
         if (delegationEndTime <= delegator.startedAt) {
