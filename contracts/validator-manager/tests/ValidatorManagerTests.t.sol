@@ -218,10 +218,15 @@ abstract contract ValidatorManagerTest is Test {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
 
-        _beforeSend(DEFAULT_MINIMUM_STAKE_AMOUNT, address(this)); // TODO may need to be updated with minimum stake amount
+        _beforeSend(DEFAULT_MINIMUM_STAKE_AMOUNT, address(this));
 
         // Second call should fail
-        vm.expectRevert(ValidatorManager.MaxChurnRateExceeded.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ValidatorManager.MaxChurnRateExceeded.selector,
+                churnThreshold + _valueToWeight(DEFAULT_MINIMUM_STAKE_AMOUNT)
+            )
+        );
         _initializeValidatorRegistration(
             ValidatorRegistrationInput({
                 nodeID: DEFAULT_NODE_ID,
@@ -258,8 +263,22 @@ abstract contract ValidatorManagerTest is Test {
         });
 
         // Second call should fail
-        vm.expectRevert(ValidatorManager.MaxChurnRateExceeded.selector);
+        // The first registration churn amount is not part of the new churn amount since
+        // a new churn period has started.
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ValidatorManager.MaxChurnRateExceeded.selector,
+                _valueToWeight(DEFAULT_MINIMUM_STAKE_AMOUNT) + churnThreshold
+            )
+        );
         _initializeEndValidation(validationID, false);
+    }
+
+    function testValidatorManagerStorageSlot() public view {
+        assertEq(
+            _erc7201StorageSlot("ValidatorManager"),
+            validatorManager.VALIDATOR_MANAGER_STORAGE_LOCATION()
+        );
     }
 
     function _newNodeID() internal returns (bytes32) {
@@ -494,6 +513,14 @@ abstract contract ValidatorManagerTest is Test {
     // These are okay to use for PoA as well, because they're just used for conversions inside the tests.
     function _weightToValue(uint64 weight) internal pure returns (uint256) {
         return uint256(weight) * 1e12;
+    }
+
+    function _erc7201StorageSlot(bytes memory storageName) internal pure returns (bytes32) {
+        return keccak256(
+            abi.encode(
+                uint256(keccak256(abi.encodePacked("avalanche-icm.storage.", storageName))) - 1
+            )
+        ) & ~bytes32(uint256(0xff));
     }
 }
 // solhint-enable no-empty-blocks

@@ -66,22 +66,22 @@ abstract contract PoSValidatorManager is
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.PoSValidatorManager")) - 1)) & ~bytes32(uint256(0xff));
     // TODO: Unit test for storage slot and update slot
-    bytes32 private constant _POS_VALIDATOR_MANAGER_STORAGE_LOCATION =
+    bytes32 public constant POS_VALIDATOR_MANAGER_STORAGE_LOCATION =
         0x4317713f7ecbdddd4bc99e95d903adedaa883b2e7c2551610bd13e2c7e473d00;
 
     uint8 public constant MAXIMUM_STAKE_MULTIPLIER_LIMIT = 10;
 
     uint16 public constant MAXIMUM_DELEGATION_FEE_BIPS = 10000;
 
-    error InvalidDelegatorStatus();
-    error InvalidNonce();
-    error InvalidDelegationID();
-    error ValidatorNotPoS();
-    error MaxWeightExceeded();
     error InvalidDelegationFee();
-    error InvalidStakeDuration();
+    error InvalidDelegationID();
+    error InvalidDelegatorStatus(DelegatorStatus status);
+    error InvalidNonce(uint64 nonce);
     error InvalidStakeAmount();
+    error InvalidStakeDuration();
     error InvalidStakeMultiplier();
+    error MaxWeightExceeded(uint64 newValidatorWeight);
+    error ValidatorNotPoS();
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
@@ -91,7 +91,7 @@ abstract contract PoSValidatorManager is
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _POS_VALIDATOR_MANAGER_STORAGE_LOCATION
+            $.slot := POS_VALIDATOR_MANAGER_STORAGE_LOCATION
         }
     }
 
@@ -148,7 +148,7 @@ abstract contract PoSValidatorManager is
         Validator memory validator = getValidator(validationID);
 
         if (validator.status != ValidatorStatus.Completed) {
-            revert InvalidValidatorStatus();
+            revert InvalidValidatorStatus(validator.status);
         }
 
         if ($._posValidatorInfo[validationID].owner != _msgSender()) {
@@ -315,13 +315,13 @@ abstract contract PoSValidatorManager is
             revert ValidatorNotPoS();
         }
         if (validator.status != ValidatorStatus.Active) {
-            revert InvalidValidatorStatus();
+            revert InvalidValidatorStatus(validator.status);
         }
 
         // Update the validator weight
         uint64 newValidatorWeight = validator.weight + weight;
         if (newValidatorWeight > validator.startingWeight * $._maximumStakeMultiplier) {
-            revert MaxWeightExceeded();
+            revert MaxWeightExceeded(newValidatorWeight);
         }
 
         (uint64 nonce, bytes32 messageID) = _setValidatorWeight(validationID, newValidatorWeight);
@@ -362,8 +362,8 @@ abstract contract PoSValidatorManager is
         // Ensure the delegator is pending added. Since anybody can call this function once
         // delegator registration has been initialized, we need to make sure that this function is only
         // callable after that has been done.
-        if ($._delegatorStakes[delegationID].status != DelegatorStatus.PendingAdded) {
-            revert InvalidDelegatorStatus();
+        if (delegator.status != DelegatorStatus.PendingAdded) {
+            revert InvalidDelegatorStatus(delegator.status);
         }
 
         // In the case where the validator has initiated ending its validation period, we can no
@@ -409,7 +409,7 @@ abstract contract PoSValidatorManager is
         if (
             validator.messageNonce < nonce || $._delegatorStakes[delegationID].startingNonce > nonce
         ) {
-            revert InvalidNonce();
+            revert InvalidNonce(nonce);
         }
 
         // Update the delegation status
@@ -438,7 +438,7 @@ abstract contract PoSValidatorManager is
 
         // Ensure the validation is completed
         if (validator.status != ValidatorStatus.Completed) {
-            revert InvalidValidatorStatus();
+            revert InvalidValidatorStatus(validator.status);
         }
 
         // If the validator completes before the delegator is added, let them exit from here.
@@ -476,7 +476,7 @@ abstract contract PoSValidatorManager is
 
         // Ensure the delegator is active
         if (delegator.status != DelegatorStatus.Active) {
-            revert InvalidDelegatorStatus();
+            revert InvalidDelegatorStatus(delegator.status);
         }
         // Only the delegation owner can end the delegation.
         if (delegator.owner != _msgSender()) {
@@ -539,7 +539,7 @@ abstract contract PoSValidatorManager is
             delegator.status != DelegatorStatus.PendingAdded
                 && delegator.status != DelegatorStatus.PendingRemoved
         ) {
-            revert InvalidDelegatorStatus();
+            revert InvalidDelegatorStatus(delegator.status);
         }
 
         Validator memory validator = getValidator(delegator.validationID);
@@ -576,14 +576,14 @@ abstract contract PoSValidatorManager is
         // complete delisting for an earlier delegation. This is necessary because the P-Chain is only willing
         // to sign the latest weight update.
         if (delegator.endingNonce > nonce) {
-            revert InvalidNonce();
+            revert InvalidNonce(nonce);
         }
 
         // Ensure the delegator is pending removed. Since anybody can call this function once
         // end delegation has been initialized, we need to make sure that this function is only
         // callable after that has been done.
         if (delegator.status != DelegatorStatus.PendingRemoved) {
-            revert InvalidDelegatorStatus();
+            revert InvalidDelegatorStatus(delegator.status);
         }
 
         _completeEndDelegation(delegationID);

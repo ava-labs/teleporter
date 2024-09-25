@@ -361,14 +361,15 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         // Complete registration of delegator2 with delegator1's nonce
         // Note that registering delegator1 with delegator2's nonce is valid
+        uint64 nonce = 1;
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSubnetValidatorWeightUpdateMessage(
-            validationID, 1, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
+            validationID, nonce, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
         vm.warp(DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP);
-        vm.expectRevert(PoSValidatorManager.InvalidNonce.selector);
+        vm.expectRevert(abi.encodeWithSelector(PoSValidatorManager.InvalidNonce.selector, nonce));
         posValidatorManager.completeDelegatorRegistration(0, delegationID2);
     }
 
@@ -644,13 +645,14 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         // Complete ending delegator2 with delegator1's nonce
         // Note that ending delegator1 with delegator2's nonce is valid
+        uint64 nonce = 3;
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSubnetValidatorWeightUpdateMessage(
-            validationID, 3, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
+            validationID, nonce, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
-        vm.expectRevert(PoSValidatorManager.InvalidNonce.selector);
+        vm.expectRevert(abi.encodeWithSelector(PoSValidatorManager.InvalidNonce.selector, nonce));
         posValidatorManager.completeEndDelegation(0, delegationID2);
     }
 
@@ -806,6 +808,13 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         assertEq(v1, 1e12);
         assertEq(v2, 1e18);
         assertEq(v3, 1e27);
+    }
+
+    function testPoSValidatorManagerStorageSlot() public view {
+        assertEq(
+            _erc7201StorageSlot("PoSValidatorManager"),
+            posValidatorManager.POS_VALIDATOR_MANAGER_STORAGE_LOCATION()
+        );
     }
 
     function _initializeValidatorRegistration(

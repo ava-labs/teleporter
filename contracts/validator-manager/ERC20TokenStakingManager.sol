@@ -34,7 +34,7 @@ contract ERC20TokenStakingManager is
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.ERC20TokenStakingManager")) - 1)) & ~bytes32(uint256(0xff));
     // TODO: Update to correct storage slot
-    bytes32 private constant _ERC20_STAKING_MANAGER_STORAGE_LOCATION =
+    bytes32 public constant ERC20_STAKING_MANAGER_STORAGE_LOCATION =
         0x6e5bdfcce15e53c3406ea67bfce37dcd26f5152d5492824e43fd5e3c8ac5ab00;
 
     // solhint-disable ordering
@@ -45,7 +45,7 @@ contract ERC20TokenStakingManager is
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _ERC20_STAKING_MANAGER_STORAGE_LOCATION
+            $.slot := ERC20_STAKING_MANAGER_STORAGE_LOCATION
         }
     }
 

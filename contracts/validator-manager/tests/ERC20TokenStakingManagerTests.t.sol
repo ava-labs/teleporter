@@ -174,6 +174,13 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         );
     }
 
+    function testERC20TokenStakingManagerStorageSlot() public view {
+        assertEq(
+            _erc7201StorageSlot("ERC20TokenStakingManager"),
+            app.ERC20_STAKING_MANAGER_STORAGE_LOCATION()
+        );
+    }
+
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory registrationInput,
         uint16 delegationFeeBips,

@@ -27,7 +27,7 @@ struct Validator {
 struct ValidatorChurnPeriod {
     uint256 startedAt;
     uint256 initialWeight;
-    uint256 totalWeight; // TODO add initial validator set to total weight.
+    uint256 totalWeight;
     uint64 churnAmount;
 }
 
