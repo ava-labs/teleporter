@@ -358,7 +358,7 @@ abstract contract PoSValidatorManager is
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
         bytes32 validationID = delegator.validationID;
-        Validator memory validator = getValidator(delegator.validationID);
+        Validator memory validator = getValidator(validationID);
 
         // Ensure the delegator is pending added. Since anybody can call this function once
         // delegator registration has been initialized, we need to make sure that this function is only
