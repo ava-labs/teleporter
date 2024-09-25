@@ -184,9 +184,13 @@ abstract contract PoSValidatorManager is
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
+        // Ignore the return value here to force end validation, regardless of possible missed rewards
         _initializeEndPoSValidation(validationID, includeUptimeProof, messageIndex);
     }
 
+    // Helper function that initializes the end of a PoS validation period.
+    // Returns false if it is possible for the validator to claim rewards, but it is not eligible.
+    // Returns true otherwise.
     function _initializeEndPoSValidation(
         bytes32 validationID,
         bool includeUptimeProof,
