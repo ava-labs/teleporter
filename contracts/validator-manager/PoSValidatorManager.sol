@@ -59,8 +59,6 @@ abstract contract PoSValidatorManager is
         mapping(bytes32 delegationID => uint256) _redeemableDelegatorRewards;
         /// @notice Maps the validation ID to its pending staking rewards.
         mapping(bytes32 validationID => uint256) _redeemableValidatorRewards;
-        /// @notice Saves the uptime of a pending completed or completed validation period so that delegators can collect rewards.
-        mapping(bytes32 validationID => uint64) _completedValidationUptimeSeconds;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -82,6 +80,7 @@ abstract contract PoSValidatorManager is
     error InvalidStakeDuration();
     error InvalidStakeAmount();
     error InvalidStakeMultiplier();
+    error ValidatorIneligibleForRewards();
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
@@ -142,12 +141,22 @@ abstract contract PoSValidatorManager is
         $._rewardCalculator = rewardCalculator;
     }
 
+    function submitUptimeProof(bytes32 validationID, uint32 messageIndex) external {
+        if (!_isPoSValidator(validationID)) {
+            revert ValidatorNotPoS();
+        }
+        if (getValidator(validationID).status != ValidatorStatus.Active) {
+            revert InvalidValidatorStatus();
+        }
+
+        // Uptime proofs include the absolute number of seconds the validator has been active.
+        _updateUptime(validationID, messageIndex);
+    }
+
     function claimDelegationFees(bytes32 validationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
-        Validator memory validator = getValidator(validationID);
-
-        if (validator.status != ValidatorStatus.Completed) {
+        if (getValidator(validationID).status != ValidatorStatus.Completed) {
             revert InvalidValidatorStatus();
         }
 
@@ -165,13 +174,35 @@ abstract contract PoSValidatorManager is
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
+        if (!_initializeEndPoSValidation(validationID, includeUptimeProof, messageIndex)) {
+            revert ValidatorIneligibleForRewards();
+        }
+    }
+
+    function forceInitializeEndValidation(
+        bytes32 validationID,
+        bool includeUptimeProof,
+        uint32 messageIndex
+    ) external {
+        // Ignore the return value here to force end validation, regardless of possible missed rewards
+        _initializeEndPoSValidation(validationID, includeUptimeProof, messageIndex);
+    }
+
+    // Helper function that initializes the end of a PoS validation period.
+    // Returns false if it is possible for the validator to claim rewards, but it is not eligible.
+    // Returns true otherwise.
+    function _initializeEndPoSValidation(
+        bytes32 validationID,
+        bool includeUptimeProof,
+        uint32 messageIndex
+    ) internal returns (bool) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         Validator memory validator = _initializeEndValidation(validationID);
 
         // Non-PoS validators are required to boostrap the network, but are not eligible for rewards.
         if (!_isPoSValidator(validationID)) {
-            return;
+            return true;
         }
 
         // PoS validations can only be ended by their owners.
@@ -187,22 +218,25 @@ abstract contract PoSValidatorManager is
             revert InvalidStakeDuration();
         }
 
+        // Uptime proofs include the absolute number of seconds the validator has been active.
+        uint64 uptimeSeconds;
         if (includeUptimeProof) {
-            // Uptime proofs include the absolute number of seconds the validator has been active.
-            uint64 uptimeSeconds = _getUptime(validationID, messageIndex);
-            // Save this value for use by this validator's delegators.
-            $._completedValidationUptimeSeconds[validationID] = uptimeSeconds;
-
-            $._redeemableValidatorRewards[validationID] += $._rewardCalculator.calculateReward({
-                stakeAmount: weightToValue(validator.startingWeight),
-                validatorStartTime: validator.startedAt,
-                stakingStartTime: validator.startedAt,
-                stakingEndTime: validator.endedAt,
-                uptimeSeconds: uptimeSeconds,
-                initialSupply: 0,
-                endSupply: 0
-            });
+            uptimeSeconds = _updateUptime(validationID, messageIndex);
+        } else {
+            uptimeSeconds = $._posValidatorInfo[validationID].uptimeSeconds;
         }
+
+        uint256 reward = $._rewardCalculator.calculateReward({
+            stakeAmount: weightToValue(validator.startingWeight),
+            validatorStartTime: validator.startedAt,
+            stakingStartTime: validator.startedAt,
+            stakingEndTime: validator.endedAt,
+            uptimeSeconds: uptimeSeconds,
+            initialSupply: 0,
+            endSupply: 0
+        });
+        $._redeemableValidatorRewards[validationID] += reward;
+        return (reward > 0);
     }
 
     function completeEndValidation(uint32 messageIndex) external {
@@ -228,7 +262,9 @@ abstract contract PoSValidatorManager is
         _unlock(owner, weightToValue(validator.startingWeight));
     }
 
-    function _getUptime(bytes32 validationID, uint32 messageIndex) internal view returns (uint64) {
+    // Helper function that extracts the uptime from a ValidationUptimeMessage Warp message
+    // If the uptime is greater than the stored uptime, update the stored uptime
+    function _updateUptime(bytes32 validationID, uint32 messageIndex) internal returns (uint64) {
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
         if (!valid) {
@@ -246,6 +282,14 @@ abstract contract PoSValidatorManager is
             ValidatorMessages.unpackValidationUptimeMessage(warpMessage.payload);
         if (validationID != uptimeValidationID) {
             revert InvalidValidationID();
+        }
+
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        if (uptime > $._posValidatorInfo[validationID].uptimeSeconds) {
+            $._posValidatorInfo[validationID].uptimeSeconds = uptime;
+            emit UptimeUpdated(validationID, uptime);
+        } else {
+            uptime = $._posValidatorInfo[validationID].uptimeSeconds;
         }
 
         return uptime;
@@ -284,7 +328,8 @@ abstract contract PoSValidatorManager is
         $._posValidatorInfo[validationID] = PoSValidatorInfo({
             owner: _msgSender(),
             delegationFeeBips: delegationFeeBips,
-            minStakeDuration: minStakeDuration
+            minStakeDuration: minStakeDuration,
+            uptimeSeconds: 0
         });
         return validationID;
     }
@@ -374,9 +419,8 @@ abstract contract PoSValidatorManager is
         }
 
         // Unpack the Warp message
-        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
-        (bytes32 messageValidationID, uint64 nonce,) =
-            ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
+        (bytes32 messageValidationID, uint64 nonce,) = ValidatorMessages
+            .unpackSubnetValidatorWeightUpdateMessage(_getPChainWarpMessage(messageIndex).payload);
 
         if (validationID != messageValidationID) {
             revert InvalidValidationID();
@@ -429,8 +473,7 @@ abstract contract PoSValidatorManager is
         if (validator.status == ValidatorStatus.Active) {
             if (includeUptimeProof) {
                 // Uptime proofs include the absolute number of seconds the validator has been active.
-                $._completedValidationUptimeSeconds[validationID] =
-                    _getUptime(validationID, messageIndex);
+                _updateUptime(validationID, messageIndex);
             }
 
             ($._delegatorStakes[delegationID].endingNonce,) =
@@ -477,7 +520,7 @@ abstract contract PoSValidatorManager is
             validatorStartTime: validator.startedAt,
             stakingStartTime: delegator.startedAt,
             stakingEndTime: delegationEndTime,
-            uptimeSeconds: $._completedValidationUptimeSeconds[delegator.validationID],
+            uptimeSeconds: $._posValidatorInfo[delegator.validationID].uptimeSeconds,
             initialSupply: 0,
             endSupply: 0
         });

@@ -68,6 +68,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 indexed delegationID, bytes32 indexed validationID, uint256 rewards, uint256 fees
     );
 
+    event UptimeUpdated(bytes32 indexed validationID, uint64 uptime);
+
     function testDelegationFeeBipsTooLow() public {
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
@@ -378,7 +380,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
             expectedNonce: 1,
-            includeUptime: true
+            includeUptime: true,
+            force: false
         });
 
         bytes memory setValidatorWeightPayload =
@@ -560,7 +563,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
             expectedNonce: 1,
-            includeUptime: true
+            includeUptime: true,
+            force: false
         });
 
         uint256 expectedReward = rewardCalculator.calculateReward({
@@ -588,8 +592,120 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
             expectedNonce: 1,
-            includeUptime: true
+            includeUptime: true,
+            force: false
         });
+    }
+
+    function testInitializeEndValidationUseStoredUptime() public {
+        bytes32 validationID = _registerDefaultValidator();
+
+        vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
+        bytes memory setValidatorWeightPayload =
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+        _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
+
+        // Submit an uptime proof via submitUptime
+        uint64 uptimePercentage1 = 80;
+        uint64 uptime1 = (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP)
+            * uptimePercentage1 / 100;
+        bytes memory uptimeMsg1 =
+            ValidatorMessages.packValidationUptimeMessage(validationID, uptime1);
+        _mockGetUptimeWarpMessage(uptimeMsg1, true);
+        _mockGetBlockchainID();
+
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit UptimeUpdated(validationID, uptime1);
+        posValidatorManager.submitUptimeProof(validationID, 0);
+
+        // Submit a second uptime proof via initializeEndValidation. This one is not sufficient for rewards
+        // Submit an uptime proof via submitUptime
+        uint64 uptimePercentage2 = 79;
+        uint64 uptime2 = (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP)
+            * uptimePercentage2 / 100;
+        bytes memory uptimeMsg2 =
+            ValidatorMessages.packValidationUptimeMessage(validationID, uptime2);
+        _mockGetUptimeWarpMessage(uptimeMsg2, true);
+        _mockGetBlockchainID();
+
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit ValidatorRemovalInitialized(
+            validationID, bytes32(0), DEFAULT_WEIGHT, DEFAULT_COMPLETION_TIMESTAMP
+        );
+
+        _initializeEndValidation(validationID, true);
+    }
+
+    function testInitializeEndValidationInsufficientUptime() public {
+        bytes32 validationID = _registerDefaultValidator();
+        uint64 uptimePercentage = 79;
+
+        vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
+        bytes memory setValidatorWeightPayload =
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+        _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
+
+        bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+            validationID,
+            (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+        );
+        _mockGetUptimeWarpMessage(uptimeMsg, true);
+        _mockGetBlockchainID();
+
+        vm.expectRevert(PoSValidatorManager.ValidatorIneligibleForRewards.selector);
+
+        _initializeEndValidation(validationID, true);
+    }
+
+    function testInitializeEndValidationPoAValidator() public {
+        bytes32 defaultInitialValidationID = sha256(abi.encodePacked(bytes32(0), uint32(1)));
+
+        vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
+        bytes memory setValidatorWeightPayload =
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(defaultInitialValidationID, 1, 0);
+        _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit ValidatorRemovalInitialized(
+            defaultInitialValidationID, bytes32(0), DEFAULT_WEIGHT, DEFAULT_COMPLETION_TIMESTAMP
+        );
+
+        _initializeEndValidation(defaultInitialValidationID, false);
+    }
+
+    function testForceInitializeEndValidation() public {
+        bytes32 validationID = _registerDefaultValidator();
+        _initializeEndValidation({
+            validationID: validationID,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            expectedNonce: 1,
+            includeUptime: true,
+            force: true
+        });
+    }
+
+    function testForceInitializeEndValidationInsufficientUptime() public {
+        bytes32 validationID = _registerDefaultValidator();
+        uint64 uptimePercentage = 79;
+
+        vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
+        bytes memory setValidatorWeightPayload =
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+        _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
+
+        bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+            validationID,
+            (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+        );
+        _mockGetUptimeWarpMessage(uptimeMsg, true);
+        _mockGetBlockchainID();
+
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit ValidatorRemovalInitialized(
+            validationID, bytes32(0), DEFAULT_WEIGHT, DEFAULT_COMPLETION_TIMESTAMP
+        );
+
+        _forceInitializeEndValidation(validationID, true);
     }
 
     function testValueToWeight() public view {
@@ -623,7 +739,14 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 validationID,
         bool includeUptime
     ) internal virtual override {
-        return posValidatorManager.initializeEndValidation(validationID, includeUptime, 0);
+        posValidatorManager.initializeEndValidation(validationID, includeUptime, 0);
+    }
+
+    function _forceInitializeEndValidation(
+        bytes32 validationID,
+        bool includeUptime
+    ) internal virtual override {
+        posValidatorManager.forceInitializeEndValidation(validationID, includeUptime, 0);
     }
 
     function _initializeDelegatorRegistration(
