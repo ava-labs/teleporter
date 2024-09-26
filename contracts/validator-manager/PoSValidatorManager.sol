@@ -465,38 +465,44 @@ abstract contract PoSValidatorManager is
             revert InvalidAddress();
         }
 
-        // Set the delegator status to pending removed, so that it can be properly removed in
-        // the complete step, even if the delivered nonce is greater than the nonce used to
-        // initialize the removal.
-        $._delegatorStakes[delegationID].status = DelegatorStatus.PendingRemoved;
-
         if (validator.status == ValidatorStatus.Active) {
             if (includeUptimeProof) {
                 // Uptime proofs include the absolute number of seconds the validator has been active.
                 _updateUptime(validationID, messageIndex);
             }
 
+            // Set the delegator status to pending removed, so that it can be properly removed in
+            // the complete step, even if the delivered nonce is greater than the nonce used to
+            // initialize the removal.
+            $._delegatorStakes[delegationID].status = DelegatorStatus.PendingRemoved;
+
             ($._delegatorStakes[delegationID].endingNonce,) =
                 _setValidatorWeight(validationID, validator.weight - delegator.weight);
-            $._redeemableDelegatorRewards[delegationID] =
-                _calculateDelegationReward(delegator, validator);
+
+            $._redeemableDelegatorRewards[delegationID] = _calculateDelegationReward(delegator);
+
+            emit DelegatorRemovalInitialized({
+                delegationID: delegationID,
+                validationID: validationID
+            });
         } else if (validator.status == ValidatorStatus.Completed) {
-            $._redeemableDelegatorRewards[delegationID] =
-                _calculateDelegationReward(delegator, validator);
+            $._redeemableDelegatorRewards[delegationID] = _calculateDelegationReward(delegator);
+
             return _completeEndDelegation(delegationID);
         } else {
             revert InvalidValidatorStatus();
         }
-
-        emit DelegatorRemovalInitialized({delegationID: delegationID, validationID: validationID});
     }
 
     /// @dev Calculates the reward owed to the delegator based on the state of the delegator and its corresponding validator.
-    function _calculateDelegationReward(
-        Delegator memory delegator,
-        Validator memory validator
-    ) private view returns (uint256) {
+    function _calculateDelegationReward(Delegator memory delegator)
+        private
+        view
+        returns (uint256)
+    {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        Validator memory validator = getValidator(delegator.validationID);
 
         uint64 delegationEndTime;
         if (
