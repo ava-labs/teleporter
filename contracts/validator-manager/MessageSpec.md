@@ -2,7 +2,7 @@
 
 ### `RegisterSubnetValidatorMessage`
 
-Description: Issued by the Validator Manager contract in order to register a Subnet validator
+Description: Register a Subnet Validator on the P-Chain
 
 Signed by: Subnet
 Consumed by: P-Chain
@@ -32,7 +32,7 @@ Specification:
 
 ### `SubnetValidatorRegistrationMessage`
 
-Description: Issued by the P-Chain in order to confirm Subnet validator registration
+Description: Confirms a Subnet Validator's registration validity on the P-Chain
 
 Signed by: P-Chain
 Consumed by: Validator Manager contract
@@ -55,7 +55,7 @@ Specification:
 
 ### `ValidationUptimeMessage`
 
-Description: Issued by the Subnet in order to provide validator uptime to the Subnet to calculate staking rewards
+Description: Provides a Validator's uptime for calculating staking rewards
 
 Signed by: Subnet
 Consumed by: Validator Manager contract
@@ -78,7 +78,7 @@ Specification:
 
 ### `SetSubnetValidatorWeightMessage`
 
-Description: Used to set a validator's stake weight on another chain
+Description: Used to set a Validator's stake weight on another chain
 
 Signed by: Subnet
 Consumed by: P-Chain
@@ -103,7 +103,7 @@ Specification:
 
 ### `SubnetValidatorWeightUpdateMessage`
 
-Description: Acknowledges a validator weight update
+Description: Acknowledges a Validator weight update
 
 Signed by: P-Chain
 Consumed by: Validator Manager contract
