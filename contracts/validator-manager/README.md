@@ -1,179 +1,134 @@
 # Validator Manager Contract
 
-`ValidatorManager.sol` defines the abstract staking contract used to manage subnet-only validators, as defined in [ACP-77](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets).
+> [!CAUTION]
+> The contracts in this directory are still under active development, are unaudited, and should not be used in production.
 
-_Disclaimer:_ The contracts in this directory are still under active development, are unaudited, and should not be used in production.
+The contracts in this directory define the Validator Manager used to manage Subnet-only Validators, as defined in [ACP-77](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets). `ValidatorManager.sol` is the top-level abstract contract that provides the basic functionality. The other contracts are related as follows:
+
+```mermaid
+classDiagram
+class ValidatorManager {
+    initializeValidatorSet()
+    completeValidatorRegistration()
+    completeEndValidation()
+    
+}
+<<Abstract>> ValidatorManager
+class PoSValidatorManager {
+    initializeEndValidation()
+    completeDelegatorRegistration()
+    initializeEndDelegation()
+    completeEndDelegation()
+}
+<<Abstract>> PoSValidatorManager
+class ERC20TokenStakingManager {
+    initializeValidatorRegistration()
+    initializeDelegatorRegistration()
+}
+class NativeTokenStakingManager {
+    initializeValidatorRegistration() payable
+    initializeDelegatorRegistration() payable
+}
+class PoAValidatorManager {
+    initializeValidatorRegistration()
+    initializeEndValidation()
+}
+
+ValidatorManager <|-- PoSValidatorManager
+ValidatorManager <|-- PoAValidatorManager
+PoSValidatorManager <|-- ERC20TokenStakingManager
+PoSValidatorManager <|-- NativeTokenStakingManager
+```
+
+## Deploying
+
+Three concrete `ValidatorManager` contracts are provided - `PoAValidatorManager`, `NativeTokenStakingManager`, and `ERC20TokenStakingManager`. `NativeTokenStakingManager`, and `ERC20TokenStakingManager` implement `PoSValidatorManager`, which itself implements `ValidatorManager`. These are implemented as [upgradeable](https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable/blob/main/contracts/proxy/utils/Initializable.sol#L56) contracts. There are numerous [guides](https://blog.chain.link/upgradable-smart-contracts/) for deploying upgradeable smart contracts, but the general steps are as follows:
+1. Deploy the implementation contract
+2. Deploy the proxy contract
+3. Call the implementation contract's `initialize` function
+  - Each flavor of `ValidatorManager`` requires different settings. For example, `ValidatorManagerSettings` specifies the churn parameters, while `PoSValidatorManagerSettings` specifies the staking and rewards parameters.
+4. Initialize the Validator set by calling `initializeValidatorSet`
+  - When a Subnet is first created on the P-Chain, it must be explicitly converted to a Subnet-only Validator compatible Subnet via [`ConvertSubnetTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#setting-a-subnet-manager). The resulting `SubnetConversionMessage` Warp message is provided in the call to `initializeValidatorSet` to specify the starting Validator set in the `ValidatorManager`. Regardless of the implementation, these initial Validators are treated as PoA and are not eligible for staking rewards.
+
+### PoAValidatorManager
+
+Proof-of-Authority Validator management is provided via `PoAValidatorManager`, which restricts modification of the Validator set to an owner address. After deploying `PoAValidatorManager.sol` and a proxy, the `initialize` function takes the owner address, in addition to standard `ValidatorManagerSettings`.
+
+### NativeTokenStakingManager
+
+`NativeTokenStakingManager` implements `PoSValidatorManager`, and allows permissionless addition and removal of Validators that post the Subnet's native token as stake. Staking rewards are minted via the Native Minter Precompile, which is configured with a set of addresses with minting privileges. As such, the address that `NativeTokenStakingManager` is deployed to must be added as an admin to the precompile. This can be done by either calling the precompile's `setAdmin` method from an admin address, or setting the address in the Native Minter precompile settings in the chain's genesis (`config.contractNativeMinterConfig.adminAddresses`). There are a couple of methods to get this address: one is to calculate the resulting deployed address based on the deployer's address and account nonce: `keccak256(rlp.encode(address, nonce))`. The second method involves manually placing the `NativeTokenStakingManager` bytecode at a particular address in the genesis, then setting that address as an admin.
+
+```
+{
+    "config" : {
+        ...
+        "contractNativeMinterConfig": {
+            "blockTimestamp": 0,
+            "adminAddresses": [
+                "0xffffffffffffffffffffffffffffffffffffffff"
+            ]
+        }
+    },
+    "alloc": {
+        "0xffffffffffffffffffffffffffffffffffffffff": {
+            "balance": "0x0",
+            "code": "<NativeTokenStakingManagerByteCode>",
+            "nonce": 1
+        }
+    }
+}
+```
+
+### ERC20TokenStakingManager
+`ERC20TokenStakingManager` also implements `PoSValidatorManager`, and allows permissionless addition and removal of Validators that post the an ERC20 token as stake. The ERC20 is specified in the call to `initialize`, and must implement [`IERC20Mintable`](./interfaces/IERC20Mintable.sol). Care should be taken to enforce that only authorized users are able to call `mint`.
+
+### Convert PoA to PoS
+
+A `PoAValidatorManager` can later be converted to a `PoSValidatorManager` by upgrading the implementation contract pointed to by the proxy. After performing the upgrade, the `PoSValidatorManager` contract should be initialized by calling `initialize` as described above. The Validator set contained in the `PoAValidatorManager` will be tracked by the `PoSValidatorManager` after the upgrade, but will not be eligible to earn staking rewards, nor are they able to be delegated to.
 
 ## Usage
+### Register a Validator
+Validator registration is initiated with a call to `initializeValidatorRegistration`. Churn limitations are checked - only a certain percentage of the total weight is allowed to be added or removed in a given period of time. The `ValidatorManager` then constructs a [`RegisterSubnetValidatorMessage`](./MessageSpec.md#registersubnetvalidatormessage) Warp message to be sent to the P-Chain. Each Validator registration request includes all of the information needed to identify the Validator and its stake weight, as well as an `expiry` timestamp before which the `RegisterSubnetValidatorMessage` must be delivered to the P-Chain. If the Validator is not registered on the P-Chain before the `expiry`, then the Validator may be removed from the contract state by calling `completeEndValidation`.
 
-The common case for adding or removing a validator from a Subnet's validator set follows these general steps:
+The `RegisterSubnetValidatorMessage` is delivered to the P-Chain as the Warp message payload of a [`RegisterSubnetValidatorTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#registersubnetvalidatortx). Please see the transaction [specification](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#step-2-issue-a-registersubnetvalidatortx-on-the-p-chain) for validity requirements. The successful `RegisterSubnetValidatorTx` results in a [`SubnetValidatorRegistrationMessage`](./MessageSpec.md#subnetvalidatorregistrationmessage) Warp message indicating that the specified Validator was successfully registered on the P-Chain.
 
-1. Initiate the change through the Validator Manager contract. The Validator Manager contract will construct a Warp message attesting to the change in the validator set.
-2. Deliver the Warp message containing the validator set change to the P-Chain. The P-Chain will construct a Warp message acknowledging the change to the validator set.
-3. Deliver the Warp message containing the P-Chain acknowledgement back to the Validator Manager contract on the Subnet. The Validator Manager contract finalizes the validator set change.
+The `SubnetValidatorRegistrationMessage` is delivered to the `ValidatorManager` via a call to `completeValidatorRegistration`. For PoS Validator Managers, staking rewards begin accruing at this time.
 
-### Initializing a Validator Set
+### Remove a Validator
+Validator exit is initiated with a call to `initializeEndValidation` on the `ValidatorManager` , For `PoSValidatorManagers` a [`ValidationUptimeMessage`](./MessageSpec.md#validationuptimemessage) Warp message may optionally be provided in order to calculate the staking rewards; otherwise the latest received uptime will be used (see [(PoS only) Submit and Uptime Proof](#pos-only-submit-an-uptime-proof)). This proof may be requested directly from the Subnet Validators, which will provide it in a `ValidationUptimeMessage` Warp message. If the uptime is not sufficient to earn Validation rewards, the call to `initializeEndValidation` will fail. `forceInitializeEndValidation` acts the same as `initializeEndValidation`, but bypasses the uptime-based rewards check. Once `initializeEndValidation` or `forceInitializeEndValidation` is called, staking rewards cease accruing for `PoSValidatorManagers`. 
 
-If the Subnet has no validators registered on the P-Chain, then it will not be able to sign a Warp message to add a validator (step 1 above). In this case, Subnet recovery must be performed on the P-Chain, which allows an initial validator set to be specified, along with each validator's expiry. These validators are *not* registered with the Subnet's Validator Manager, and are only used to bootstrap subnet consensus and Warp message signing. The following steps describe how to register validators with the Subnet's Validator Manager, after which the initial validator set specified during Subnet recovery may safely exit the validator set or expire.
-
-### Registering a Validator
-
-Validator registration is initiated with a call to `initializeValidatorRegistration` on the concrete Validator Manager contract. The Validator Manager contract constructs a [`RegisterSubnetValidatorMessage`](#registersubnetvalidatormessage) Warp message to be sent to the P-Chain. Each validator registration request includes all of the information needed to identify the validator and its stake weight, as well as an `expiry` timestamp before which the `RegisterSubnetValidatorMessage` must be delivered to the P-Chain.
-
-The `RegisterSubnetValidatorMessage` is delivered to the P-Chain as the Warp message payload of a [`RegisterSubnetValidatorTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#registersubnetvalidatortx). Please see the transaction [specification](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#step-2-issue-a-registersubnetvalidatortx-on-the-p-chain) for validity requirements. The successful `RegisterSubnetValidatorTx` results in a [`SubnetValidatorRegistrationMessage`](#subnetvalidatorregistrationmessage) Warp message indicating that the specified validator was successfully registered on the P-Chain.
-
-The `SubnetValidatorRegistrationMessage` is delivered to the Validator Manager contract via a call to `completeValidatorRegistration`. For PoS Validator Managers, staking rewards begin accruing at this time.
-
-#### Handling a Missed Expiry
-
-In the case of a missed expiry, the `RegisterSubnetValidatorTx` will result in a `SubnetValidatorRegistrationMessage` Warp message with `valid=0`. This serves as proof that the corresponding validation has not started and may never start. The `SubnetValidatorRegistrationMessage` can be provided to the Validator Manager contract by calling `completeEndValidation` with `setWeightMessageType=false`.
-
-### Exiting the Validator Set
-
-Validator exit is initiated with a call to `initializeEndValidation` on the Validator Manager contract. For PoS Validator Managers, a [`ValidationUptimeMessage`](#validationuptimemessage) Warp message may optionally be provided in order to calculate the staking rewards; otherwise the validator's uptime will be set to `0`. This proof may be requested directly from the Subnet validators, which will provide it in a `ValidationUptimeMessage` Warp message. Once `initializeEndValidation` is called, staking rewards cease accruing for PoS Validator Managers: the Validator Manager contract constructs a [`SetSubnetValidatorWeightMessage`](#setsubnetvalidatorweightmessage) Warp message, setting the weight to `0`.
-
-The `SetSubnetValidatorWeightMessage` is delivered to the P-Chain as the payload of a [`SetSubnetValidatorWeightTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#setsubnetvalidatorweighttx). The P-Chain acknowledges validator exit by signing a `SubnetValidatorRegistrationMessage` with `valid=0`, which is delivered to the Validator Manager by calling `completeEndValidation`. The validation is removed from the contract's state, and for PoS Validator Managers, staking rewards are disbursed and stake is returned.
+The `ValidatorManager` contructs a [`SetSubnetValidatorWeightMessage`](./MessageSpec.md#setsubnetvalidatorweightmessage) Warp message with the weight set to `0`. This is delivered to the P-Chain as the payload of a [`SetSubnetValidatorWeightTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#setsubnetvalidatorweighttx). The P-Chain acknowledges Validator exit by signing a `SubnetValidatorRegistrationMessage` with `valid=0`, which is delivered to the `ValidatorManager` by calling `completeEndValidation`. The Validation is removed from the contract's state, and for `PoSValidatorManagers`, staking rewards are disbursed and stake is returned.
 
 #### Disable a Validator Directly on the P-Chain
 
-ACP-77 also provides a method to disable a validator without interacting with the Subnet directly. The P-Chain transaction [`DisableValidatorTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#disablevalidatortx) disables the validator on the P-Chain. The disabled validator's weight will still count towards the Subnet's total weight. 
+ACP-77 also provides a method to disable a Validator without interacting with the Subnet directly. The P-Chain transaction [`DisableValidatorTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#disablevalidatortx) disables the Validator on the P-Chain. The disabled Validator's weight will still count towards the Subnet's total weight. 
 
-Disabled Subnet validators can re-activate at any time by increasing their balance with an `IncreaseBalanceTx`. Anyone can call `IncreaseBalanceTx` for any validator on the P-Chain. A disabled validator can only be totally removed from the validator set by a call to `initializeEndValidation`.
+Disabled Subnet Validators can re-activate at any time by increasing their balance with an `IncreaseBalanceTx`. Anyone can call `IncreaseBalanceTx` for any Validator on the P-Chain. A disabled Validator can only be totally removed from the Validator set by a call to `initializeEndValidation`.
 
-## Warp Message Format Reference
+### (PoS only) Register a Delegator
 
-### `RegisterSubnetValidatorMessage`
+`PoSValidatorManager` supports Delegation to an active Validator as a way for users to earn staking rewards without having to validate the chain. Delegators pay a configurable percentage fee on any earned staking rewards to the host Validator. A Delegator may be registered by calling `initializeDelegatorRegistration` and providing an amount to stake. The Delegator will be registered as long as churn restrictions are not violated. The Delegator is reflected on the P-Chain by adjusting the Validator's registered weight via a [`SetSubnetValidatorWeightTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#setsubnetvalidatorweighttx). The weight change acknowledgement is delivered to the `PoSValidatorManager` via a [`SubnetValidatorWeightUpdateMessage`](./MessageSpec.md#subnetvalidatorweightupdatemessage), which is provided by calling `completeDelegatorRegistration`.
 
-Description: Issued by the Validator Manager contract in order to register a Subnet validator
+> [!NOTE]
+> The P-Chain is only willing to sign a `SubnetValidatorWeightUpdateMessage` for an active Validator. Once Validator exit has been initiated (via a call to `initializeEndValidation`), the `PoSValidatorManager` must assume that the Validator has been deactivated on the P-Chain, and will therefore not sign any further weight updates. Therefore, it is invalid to _initiate_ adding or removing a Delegator when the Validator is in this state, though it _may be_ valid to _complete_ an already initiated Delegator action, depending on the order of delivery to the P-Chain. If the Delegator weight change was submitted (and a Warp signature on the acknowledgement retrieved) before the Validator was removed, then the Delegator action may be completed. Otherwise, the acknowledgement of the Validation end must first be delivered before completing the Delegator action. 
 
-Signed by: Subnet
-Consumed by: P-Chain
+### (PoS only) Remove a Delegator
 
-Specification:
+Delegators removal may be initiated by calling `initializeEndDelegation`, as long as churn restrictions are not violated. Similar to `initializeEndValidation`, an uptime proof may be provided to be used to determine Delegator rewards eligibility. If no proof is provided, the latest known uptime will be used (see [(PoS only) Submit and Uptime Proof](#pos-only-submit-an-uptime-proof)). The Validator's weight is updated on the P-Chain by the same mechanism used to register a Delegator. The `SubnetValidatorWeightUpdateMessage` from the P-Chain is delivered to the `PoSValidatorManager` in the call to `completeEndDelegation`.
 
-```
-+--------------+----------+-----------+
-|      codecID :   uint16 |   2 bytes |
-+--------------+----------+-----------+
-|       typeID :   uint32 |   4 bytes |
-+--------------+----------+-----------+
-|     subnetID : [32]byte |  32 bytes |
-+--------------+----------+-----------+
-|       nodeID : [32]byte |  32 bytes |
-+--------------+----------+-----------+
-|       weight :   uint64 |   8 bytes |
-+--------------+----------+-----------+
-| blsPublicKey : [48]byte |  48 bytes |
-+--------------+----------+-----------+
-|       expiry :   uint64 |   8 bytes |
-+--------------+----------+-----------+
-                          | 134 bytes |
-                          +-----------+
+### (PoS only) Submit an Uptime Proof
 
-```
+The [rewards calculater](./interfaces/IRewardCalculator.sol) is a function of uptime seconds since the Validator's start time. In addition to doing so in the calls to `initializeEndValidation` and `initializeEndDelegation` as described above, uptime proofs may also be supplied by calling `submitUptimeProof`. Unlike `initializeEndValidation` and `initializeEndDelegation`, `submitUptimeProof` may be called by anyone, decreasing the likelihood of a Validation or Delegation not being able to claim rewards that it deserved based on its actual uptime.
 
-### `SubnetValidatorRegistrationMessage`
+### (PoS only) Collect Staking Rewards
+#### Validation Rewards
 
-Description: Issued by the P-Chain in order to confirm Subnet validator registration
+Validation rewards are distributed in the call to `completeEndValidation`.
 
-Signed by: P-Chain
-Consumed by: Validator Manager contract
+#### Delegation Rewards
 
-Specification:
+Delegation rewards are distributed in the call to `completeEndDelegation`.
 
-```
-+--------------+----------+----------+
-|      codecID :   uint16 |  2 bytes |
-+--------------+----------+----------+
-|       typeID :   uint32 |  4 bytes |
-+--------------+----------+----------+
-| validationID : [32]byte | 32 bytes |
-+--------------+----------+----------+
-|        valid :     bool |  1 byte  |
-+--------------+----------+----------+
-                          | 39 bytes |
-                          +----------+
-```
+#### Delegation Fees
 
-### `ValidationUptimeMessage`
-
-Description: Issued by the Subnet in order to provide validator uptime to the Subnet to calculate staking rewards
-
-Signed by: Subnet
-Consumed by: Validator Manager contract
-
-Specification:
-
-```
-+--------------+----------+----------+
-|      codecID :   uint16 |  2 bytes |
-+--------------+----------+----------+
-|       typeID :   uint32 |  4 bytes |
-+--------------+----------+----------+
-| validationID : [32]byte | 32 bytes |
-+--------------+----------+----------+
-|       uptime :   uint64 |  8 bytes |
-+--------------+----------+----------+
-                          | 46 bytes |
-                          +----------+
-```
-
-### `SetSubnetValidatorWeightMessage`
-
-Description: Used to set a validator's stake weight on another chain
-
-Signed by: Subnet
-Consumed by: P-Chain
-
-Specification:
-
-```
-+--------------+----------+----------+
-|      codecID :   uint16 |  2 bytes |
-+--------------+----------+----------+
-|       typeID :   uint32 |  4 bytes |
-+--------------+----------+----------+
-| validationID : [32]byte | 32 bytes |
-+--------------+----------+----------+
-|        nonce :   uint64 |  8 bytes |
-+--------------+----------+----------+
-|       weight :   uint64 |  8 bytes |
-+--------------+----------+----------+
-                          | 54 bytes |
-                          +----------+
-```
-
-### `SubnetValidatorWeightUpdateMessage`
-
-Description: Acknowledges a validator weight update
-
-Signed by: P-Chain
-Consumed by: Validator Manager contract
-
-Specification:
-
-```
-+--------------+----------+----------+
-|      codecID :   uint16 |  2 bytes |
-+--------------+----------+----------+
-|       typeID :   uint32 |  4 bytes |
-+--------------+----------+----------+
-| validationID : [32]byte | 32 bytes |
-+--------------+----------+----------+
-|        nonce :   uint64 |  8 bytes |
-+--------------+----------+----------+
-|       weight :   uint64 |  8 bytes |
-+--------------+----------+----------+
-                          | 54 bytes |
-                          +----------+
-```
-
-## Types of Validator Managers
-
-### Proof of Authority
-
-The Proof of Authority (PoA) validator manager is ownable, and only allows the owner to modify changes to the validator set of the Subnet. Validators are given a weight by the owner, but do not accrue staking rewards.
-
-### Proof of Stake
-
-The Proof of Stake (PoS) validator manager allows any validator to register and exit the Subnet validator set. Validators are given a weight based on the amount of stake they provide, and accrue staking rewards based on their uptime. The staking rewards can be either native or erc20 tokens.
+Delegation fees owed to Validators are _not_ distributed when the Validation ends as to bound the amount of gas consumed in the call to `completeEndValidation`. Instead, `claimDelegationFees` may be called after the Validation is completed.
