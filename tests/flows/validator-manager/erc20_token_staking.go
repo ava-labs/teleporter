@@ -73,6 +73,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	)
 	Expect(err).Should(BeNil())
 	validationID := utils.InitializeAndCompleteERC20ValidatorRegistration(
+		ctx,
 		network,
 		signatureAggregator,
 		fundedKey,
@@ -88,6 +89,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	// Delist the validator
 	//
 	utils.InitializeAndCompleteEndERC20Validation(
+		ctx,
 		network,
 		signatureAggregator,
 		fundedKey,

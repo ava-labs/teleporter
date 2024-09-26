@@ -69,6 +69,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 	)
 	Expect(err).Should(BeNil())
 	validationID = utils.InitializeAndCompleteERC20ValidatorRegistration(
+		ctx,
 		network,
 		signatureAggregator,
 		fundedKey,
@@ -96,6 +97,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		nonce := uint64(1)
 
 		receipt := utils.InitializeERC20DelegatorRegistration(
+			ctx,
 			fundedKey,
 			subnetAInfo,
 			validationID,
@@ -136,6 +138,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 
 		// Deliver the Warp message to the subnet
 		receipt = utils.CompleteERC20DelegatorRegistration(
+			ctx,
 			fundedKey,
 			delegationID,
 			subnetAInfo,
@@ -157,6 +160,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 	{
 		nonce := uint64(2)
 		receipt := utils.InitializeEndERC20Delegation(
+			ctx,
 			fundedKey,
 			subnetAInfo,
 			stakingManager,
@@ -191,6 +195,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 
 		// Deliver the Warp message to the subnet
 		receipt = utils.CompleteEndERC20Delegation(
+			ctx,
 			fundedKey,
 			delegationID,
 			subnetAInfo,

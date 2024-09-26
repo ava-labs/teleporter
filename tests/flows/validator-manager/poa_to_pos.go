@@ -112,6 +112,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	// Register a validator
 	poaWeight := uint64(1)
 	poaValidationID := utils.InitializeAndCompletePoAValidatorRegistration(
+		ctx,
 		network,
 		signatureAggregator,
 		ownerKey,
@@ -193,6 +194,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 
 	posValidationID := utils.InitializeAndCompleteNativeValidatorRegistration(
+		ctx,
 		network,
 		signatureAggregator,
 		fundedKey,
@@ -205,6 +207,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 
 	// Delist the previous PoA validator
 	utils.InitializeAndCompleteEndNativeValidation(
+		ctx,
 		network,
 		signatureAggregator,
 		ownerKey,
@@ -219,6 +222,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 
 	// Delist the PoS validator
 	utils.InitializeAndCompleteEndNativeValidation(
+		ctx,
 		network,
 		signatureAggregator,
 		fundedKey,
