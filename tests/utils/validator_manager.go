@@ -253,7 +253,7 @@ func DeployExampleRewardCalculator(
 
 func InitializeNativeTokenValidatorSet(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnetInfo interfaces.SubnetTestInfo,
 	pChainInfo interfaces.SubnetTestInfo,
 	validatorManager *nativetokenstakingmanager.NativeTokenStakingManager,
@@ -289,7 +289,7 @@ func InitializeNativeTokenValidatorSet(
 	// Deliver the Warp message to the subnet
 	receipt := DeliverNativeTokenSubnetConversion(
 		ctx,
-		sendingKey,
+		senderKey,
 		subnetInfo,
 		validatorManagerAddress,
 		subnetConversionSignedMessage,
@@ -312,7 +312,7 @@ func InitializeNativeTokenValidatorSet(
 
 func InitializeERC20TokenValidatorSet(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnetInfo interfaces.SubnetTestInfo,
 	pChainInfo interfaces.SubnetTestInfo,
 	validatorManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
@@ -348,7 +348,7 @@ func InitializeERC20TokenValidatorSet(
 	// Deliver the Warp message to the subnet
 	receipt := DeliverERC20TokenSubnetConversion(
 		ctx,
-		sendingKey,
+		senderKey,
 		subnetInfo,
 		validatorManagerAddress,
 		subnetConversionSignedMessage,
@@ -371,7 +371,7 @@ func InitializeERC20TokenValidatorSet(
 
 func InitializePoAValidatorSet(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnetInfo interfaces.SubnetTestInfo,
 	pChainInfo interfaces.SubnetTestInfo,
 	validatorManager *poavalidatormanager.PoAValidatorManager,
@@ -408,7 +408,7 @@ func InitializePoAValidatorSet(
 	// Deliver the Warp message to the subnet
 	receipt := DeliverPoASubnetConversion(
 		ctx,
-		sendingKey,
+		senderKey,
 		subnetInfo,
 		validatorManagerAddress,
 		subnetConversionSignedMessage,
@@ -431,7 +431,7 @@ func InitializePoAValidatorSet(
 
 func DeliverNativeTokenSubnetConversion(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	validatorManagerAddress common.Address,
 	subnetConversionSignedMessage *avalancheWarp.Message,
@@ -444,7 +444,7 @@ func DeliverNativeTokenSubnetConversion(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		validatorManagerAddress,
 		subnetConversionSignedMessage,
@@ -453,7 +453,7 @@ func DeliverNativeTokenSubnetConversion(
 
 func DeliverERC20TokenSubnetConversion(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	validatorManagerAddress common.Address,
 	subnetConversionSignedMessage *avalancheWarp.Message,
@@ -466,7 +466,7 @@ func DeliverERC20TokenSubnetConversion(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		validatorManagerAddress,
 		subnetConversionSignedMessage,
@@ -475,7 +475,7 @@ func DeliverERC20TokenSubnetConversion(
 
 func DeliverPoASubnetConversion(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	validatorManagerAddress common.Address,
 	subnetConversionSignedMessage *avalancheWarp.Message,
@@ -488,7 +488,7 @@ func DeliverPoASubnetConversion(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		validatorManagerAddress,
 		subnetConversionSignedMessage,
@@ -609,7 +609,7 @@ func InitializePoAValidatorRegistration(
 
 func CompleteNativeValidatorRegistration(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
 	registrationSignedMessage *avalancheWarp.Message,
@@ -621,7 +621,7 @@ func CompleteNativeValidatorRegistration(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		stakingManagerContractAddress,
 		registrationSignedMessage,
@@ -630,7 +630,7 @@ func CompleteNativeValidatorRegistration(
 
 func CompleteERC20ValidatorRegistration(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
 	registrationSignedMessage *avalancheWarp.Message,
@@ -642,7 +642,7 @@ func CompleteERC20ValidatorRegistration(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		stakingManagerContractAddress,
 		registrationSignedMessage,
@@ -651,7 +651,7 @@ func CompleteERC20ValidatorRegistration(
 
 func CompletePoAValidatorRegistration(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	validatorManagerAddress common.Address,
 	registrationSignedMessage *avalancheWarp.Message,
@@ -663,7 +663,7 @@ func CompletePoAValidatorRegistration(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		validatorManagerAddress,
 		registrationSignedMessage,
@@ -674,12 +674,12 @@ func CompletePoAValidatorRegistration(
 func CallWarpReceiver(
 	ctx context.Context,
 	callData []byte,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	contract common.Address,
 	signedMessage *avalancheWarp.Message,
 ) *types.Receipt {
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnet, PrivateKeyToAddress(sendingKey))
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnet, PrivateKeyToAddress(senderKey))
 	registrationTx := predicateutils.NewPredicateTx(
 		subnet.EVMChainID,
 		nonce,
@@ -693,7 +693,7 @@ func CallWarpReceiver(
 		warp.ContractAddress,
 		signedMessage.Bytes(),
 	)
-	signedRegistrationTx := SignTransaction(registrationTx, sendingKey, subnet.EVMChainID)
+	signedRegistrationTx := SignTransaction(registrationTx, senderKey, subnet.EVMChainID)
 	return SendTransactionAndWaitForSuccess(ctx, subnet, signedRegistrationTx)
 }
 
@@ -912,12 +912,12 @@ func InitializeAndCompletePoAValidatorRegistration(
 
 func InitializeEndNativeValidation(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
 	validationID ids.ID,
 ) *types.Receipt {
-	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndValidation(
 		opts,
@@ -931,12 +931,12 @@ func InitializeEndNativeValidation(
 
 func InitializeEndERC20Validation(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	validationID ids.ID,
 ) *types.Receipt {
-	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndValidation(
 		opts,
@@ -950,12 +950,12 @@ func InitializeEndERC20Validation(
 
 func InitializeEndPoAValidation(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	validatorManager *poavalidatormanager.PoAValidatorManager,
 	validationID ids.ID,
 ) *types.Receipt {
-	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := validatorManager.InitializeEndValidation(
 		opts,
@@ -967,7 +967,7 @@ func InitializeEndPoAValidation(
 
 func CompleteEndNativeValidation(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
 	registrationSignedMessage *avalancheWarp.Message,
@@ -979,7 +979,7 @@ func CompleteEndNativeValidation(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		stakingManagerContractAddress,
 		registrationSignedMessage,
@@ -988,7 +988,7 @@ func CompleteEndNativeValidation(
 
 func CompleteEndERC20Validation(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
 	registrationSignedMessage *avalancheWarp.Message,
@@ -1000,7 +1000,7 @@ func CompleteEndERC20Validation(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		stakingManagerContractAddress,
 		registrationSignedMessage,
@@ -1009,7 +1009,7 @@ func CompleteEndERC20Validation(
 
 func CompleteEndPoAValidation(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	validatorManagerAddress common.Address,
 	registrationSignedMessage *avalancheWarp.Message,
@@ -1021,7 +1021,7 @@ func CompleteEndPoAValidation(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		validatorManagerAddress,
 		registrationSignedMessage,
@@ -1067,7 +1067,7 @@ func InitializeERC20DelegatorRegistration(
 
 func CompleteERC20DelegatorRegistration(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	delegationID ids.ID,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
@@ -1080,7 +1080,7 @@ func CompleteERC20DelegatorRegistration(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		stakingManagerContractAddress,
 		signedMessage,
@@ -1089,12 +1089,12 @@ func CompleteERC20DelegatorRegistration(
 
 func InitializeEndERC20Delegation(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	delegationID ids.ID,
 ) *types.Receipt {
-	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndDelegation(
 		opts,
@@ -1108,7 +1108,7 @@ func InitializeEndERC20Delegation(
 
 func CompleteEndERC20Delegation(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	delegationID ids.ID,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
@@ -1121,7 +1121,7 @@ func CompleteEndERC20Delegation(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		stakingManagerContractAddress,
 		signedMessage,
@@ -1157,7 +1157,7 @@ func InitializeNativeDelegatorRegistration(
 
 func CompleteNativeDelegatorRegistration(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	delegationID ids.ID,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
@@ -1170,7 +1170,7 @@ func CompleteNativeDelegatorRegistration(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		stakingManagerContractAddress,
 		signedMessage,
@@ -1179,12 +1179,12 @@ func CompleteNativeDelegatorRegistration(
 
 func InitializeEndNativeDelegation(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
 	delegationID ids.ID,
 ) *types.Receipt {
-	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndDelegation(
 		opts,
@@ -1198,7 +1198,7 @@ func InitializeEndNativeDelegation(
 
 func CompleteEndNativeDelegation(
 	ctx context.Context,
-	sendingKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	delegationID ids.ID,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
@@ -1211,7 +1211,7 @@ func CompleteEndNativeDelegation(
 	return CallWarpReceiver(
 		ctx,
 		callData,
-		sendingKey,
+		senderKey,
 		subnet,
 		stakingManagerContractAddress,
 		signedMessage,
