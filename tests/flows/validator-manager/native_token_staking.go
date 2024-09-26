@@ -76,6 +76,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 	// Iniatiate validator registration
 	validationID := utils.InitializeAndCompleteNativeValidatorRegistration(
+		ctx,
 		network,
 		signatureAggregator,
 		fundedKey,
@@ -90,6 +91,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	// Delist the validator
 	//
 	utils.InitializeAndCompleteEndNativeValidation(
+		ctx,
 		network,
 		signatureAggregator,
 		fundedKey,

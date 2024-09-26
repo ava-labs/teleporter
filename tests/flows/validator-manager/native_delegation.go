@@ -72,6 +72,7 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 	stakeAmount := new(big.Int).SetUint64(utils.DefaultMinStakeAmount)
 	validationID = utils.InitializeAndCompleteNativeValidatorRegistration(
+		ctx,
 		network,
 		signatureAggregator,
 		fundedKey,
@@ -97,6 +98,7 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 		nonce := uint64(1)
 
 		receipt := utils.InitializeNativeDelegatorRegistration(
+			ctx,
 			fundedKey,
 			subnetAInfo,
 			validationID,
@@ -136,6 +138,7 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 
 		// Deliver the Warp message to the subnet
 		receipt = utils.CompleteNativeDelegatorRegistration(
+			ctx,
 			fundedKey,
 			delegationID,
 			subnetAInfo,
@@ -157,6 +160,7 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 	{
 		nonce := uint64(2)
 		receipt := utils.InitializeEndNativeDelegation(
+			ctx,
 			fundedKey,
 			subnetAInfo,
 			stakingManager,
@@ -191,6 +195,7 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 
 		// Deliver the Warp message to the subnet
 		receipt = utils.CompleteEndNativeDelegation(
+			ctx,
 			fundedKey,
 			delegationID,
 			subnetAInfo,
