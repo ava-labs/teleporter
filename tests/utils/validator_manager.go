@@ -1090,6 +1090,7 @@ func InitializeEndERC20Delegation(
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	delegationID ids.ID,
 ) *types.Receipt {
+	WaitMinStakeDuration(subnet, sendingKey)
 	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndDelegation(
@@ -1122,7 +1123,8 @@ func CompleteEndERC20Delegation(
 	)
 }
 
-func InitializeNativeDelegatorRegistration(senderKey *ecdsa.PrivateKey,
+func InitializeNativeDelegatorRegistration(
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	validationID ids.ID,
 	delegationAmount *big.Int,
@@ -1173,6 +1175,7 @@ func InitializeEndNativeDelegation(
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
 	delegationID ids.ID,
 ) *types.Receipt {
+	WaitMinStakeDuration(subnet, sendingKey)
 	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.InitializeEndDelegation(
