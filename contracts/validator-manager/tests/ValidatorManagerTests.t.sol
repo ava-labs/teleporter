@@ -21,18 +21,21 @@ abstract contract ValidatorManagerTest is Test {
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant DEFAULT_NODE_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
-    bytes32 public constant DEFAULT_INITIAL_VALIDATOR_NODE_ID =
+    bytes32 public constant DEFAULT_INITIAL_VALIDATOR_NODE_ID_1 =
         bytes32(hex"2345678123456781234567812345678123456781234567812345678123456781");
+    bytes32 public constant DEFAULT_INITIAL_VALIDATOR_NODE_ID_2 =
+        bytes32(hex"1345678123456781234567812345678123456781234567812345678123456781");
     bytes public constant DEFAULT_BLS_PUBLIC_KEY = bytes(
         hex"123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
     );
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     bytes32 public constant DEFAULT_SUBNET_CONVERSION_TX_ID =
-        bytes32(hex"1fa884c03c55ff866c210963db9100dd14964615da464c6b9871854374bb6026");
+        bytes32(hex"b4836b329538fa9ca7b5bcaabc443ade2b4825246455c5c3932672d083f6b976");
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     uint64 public constant DEFAULT_WEIGHT = 1e6;
+    // Set the default weight to 1e10 to avoid churn issues
     uint64 public constant DEFAULT_INITIAL_VALIDATOR_WEIGHT = DEFAULT_WEIGHT * 1e4;
     uint256 public constant DEFAULT_MINIMUM_STAKE_AMOUNT = 20e12;
     uint256 public constant DEFAULT_MAXIMUM_STAKE_AMOUNT = 1e22;
@@ -41,7 +44,7 @@ abstract contract ValidatorManagerTest is Test {
     uint64 public constant DEFAULT_EXPIRY = 1000;
     uint8 public constant DEFAULT_MAXIMUM_HOURLY_CHURN = 0;
     uint64 public constant DEFAULT_REGISTRATION_TIMESTAMP = 1000;
-    uint256 public constant DEFAULT_STARTING_TOTAL_WEIGHT = 1e10;
+    uint256 public constant DEFAULT_STARTING_TOTAL_WEIGHT = 1e10 + DEFAULT_WEIGHT;
     uint64 public constant DEFAULT_COMPLETION_TIMESTAMP = 100_000;
 
     ValidatorManager public validatorManager;
@@ -135,7 +138,8 @@ abstract contract ValidatorManagerTest is Test {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
             expectedNonce: 1,
-            includeUptime: false
+            includeUptime: false,
+            force: false
         });
     }
 
@@ -146,7 +150,8 @@ abstract contract ValidatorManagerTest is Test {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
             expectedNonce: 1,
-            includeUptime: false
+            includeUptime: false,
+            force: false
         });
 
         bytes memory setValidatorWeightPayload =
@@ -162,7 +167,8 @@ abstract contract ValidatorManagerTest is Test {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
             expectedNonce: 1,
-            includeUptime: false
+            includeUptime: false,
+            force: false
         });
 
         bytes memory subnetValidatorRegistrationMessage =
@@ -349,7 +355,8 @@ abstract contract ValidatorManagerTest is Test {
         uint64 registrationTimestamp,
         uint64 completionTimestamp,
         uint64 expectedNonce,
-        bool includeUptime
+        bool includeUptime,
+        bool force
     ) internal {
         bytes memory setValidatorWeightPayload =
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, expectedNonce, 0);
@@ -364,7 +371,11 @@ abstract contract ValidatorManagerTest is Test {
         }
 
         vm.warp(completionTimestamp);
-        _initializeEndValidation(validationID, includeUptime);
+        if (force) {
+            _forceInitializeEndValidation(validationID, includeUptime);
+        } else {
+            _initializeEndValidation(validationID, includeUptime);
+        }
     }
 
     function _registerDefaultValidator() internal returns (bytes32 validationID) {
@@ -453,13 +464,26 @@ abstract contract ValidatorManagerTest is Test {
 
     function _initializeEndValidation(bytes32 validationID, bool includeUptime) internal virtual;
 
+    function _forceInitializeEndValidation(
+        bytes32 validationID,
+        bool includeUptime
+    ) internal virtual;
+
     function _beforeSend(uint256 amount, address spender) internal virtual;
 
     function _defaultSubnetConversionData() internal view returns (SubnetConversionData memory) {
-        InitialValidator[] memory initialValidators = new InitialValidator[](1);
+        InitialValidator[] memory initialValidators = new InitialValidator[](2);
+        // The first initial validator has a high weight relative to the default PoS validator weight
+        // to avoid churn issues
         initialValidators[0] = InitialValidator({
-            nodeID: DEFAULT_INITIAL_VALIDATOR_NODE_ID,
+            nodeID: DEFAULT_INITIAL_VALIDATOR_NODE_ID_1,
             weight: DEFAULT_INITIAL_VALIDATOR_WEIGHT,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+        });
+        // The second initial validator has a low weight so that it can be safely removed in tests
+        initialValidators[1] = InitialValidator({
+            nodeID: DEFAULT_INITIAL_VALIDATOR_NODE_ID_2,
+            weight: DEFAULT_WEIGHT,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         return SubnetConversionData({

@@ -60,6 +60,10 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
         return app.initializeEndValidation(validationID);
     }
 
+    function _forceInitializeEndValidation(bytes32 validationID, bool) internal virtual override {
+        return app.initializeEndValidation(validationID);
+    }
+
     // solhint-disable-next-line no-empty-blocks
     function _beforeSend(uint256 amount, address spender) internal virtual override {}
 }
