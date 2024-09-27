@@ -52,7 +52,9 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroMinimumDelegationFee() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(PoSValidatorManager.InvalidDelegationFee.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(PoSValidatorManager.InvalidDelegationFee.selector, 0)
+        );
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -73,7 +75,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     function testMaxMinimumDelegationFee() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         uint16 minimumDelegationFeeBips = app.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
-        vm.expectRevert(PoSValidatorManager.InvalidDelegationFee.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.InvalidDelegationFee.selector, minimumDelegationFeeBips
+            )
+        );
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -93,7 +99,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testInvalidStakeAmountRange() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(PoSValidatorManager.InvalidStakeAmount.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.InvalidStakeAmount.selector, DEFAULT_MAXIMUM_STAKE_AMOUNT
+            )
+        );
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -113,7 +123,9 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function testZeroMaxStakeMultiplier() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        vm.expectRevert(PoSValidatorManager.InvalidStakeMultiplier.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(PoSValidatorManager.InvalidStakeMultiplier.selector, 0)
+        );
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
@@ -134,7 +146,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     function testMaxStakeMultiplierOverLimit() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         uint8 maximumStakeMultiplier = app.MAXIMUM_STAKE_MULTIPLIER_LIMIT() + 1;
-        vm.expectRevert(PoSValidatorManager.InvalidStakeMultiplier.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.InvalidStakeMultiplier.selector, maximumStakeMultiplier
+            )
+        );
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({

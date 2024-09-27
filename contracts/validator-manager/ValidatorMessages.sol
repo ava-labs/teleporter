@@ -321,7 +321,7 @@ library ValidatorMessages {
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
-     * @return The validationID and whether or the validation period was registered
+     * @return The validationID and whether the validation period was registered
      * or is not a validator and never will be a validator to do the expiry time passing.
      */
     function unpackSubnetValidatorRegistrationMessage(bytes memory input)
