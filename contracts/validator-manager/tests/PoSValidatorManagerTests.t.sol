@@ -399,7 +399,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 validationID = _registerDefaultValidator();
         bytes32 delegationID = _registerDefaultDelegator(validationID);
 
-        vm.expectRevert(PoSValidatorManager.DelegatorIneligibleForRewards.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.DelegatorIneligibleForRewards.selector, delegationID
+            )
+        );
         vm.warp(DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP);
         vm.prank(DEFAULT_DELEGATOR_ADDRESS);
         posValidatorManager.initializeEndDelegation(delegationID, false, 0);
@@ -531,7 +535,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         _beforeSend(_weightToValue(DEFAULT_DELEGATOR_WEIGHT), DEFAULT_DELEGATOR_ADDRESS);
 
-        vm.expectRevert(ValidatorManager.InvalidValidatorStatus.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ValidatorManager.InvalidValidatorStatus.selector, ValidatorStatus.PendingRemoved
+            )
+        );
         _initializeDelegatorRegistration(
             validationID, DEFAULT_DELEGATOR_ADDRESS, DEFAULT_DELEGATOR_WEIGHT
         );
@@ -584,7 +592,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         _beforeSend(_weightToValue(DEFAULT_DELEGATOR_WEIGHT), DEFAULT_DELEGATOR_ADDRESS);
 
-        vm.expectRevert(ValidatorManager.InvalidValidatorStatus.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ValidatorManager.InvalidValidatorStatus.selector, ValidatorStatus.PendingRemoved
+            )
+        );
         _initializeDelegatorRegistration(
             validationID, DEFAULT_DELEGATOR_ADDRESS, DEFAULT_DELEGATOR_WEIGHT
         );
@@ -647,7 +659,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _beforeSend(_weightToValue(DEFAULT_DELEGATOR_WEIGHT), DEFAULT_DELEGATOR_ADDRESS);
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP + 1);
-        vm.expectRevert(ValidatorManager.InvalidValidatorStatus.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ValidatorManager.InvalidValidatorStatus.selector, ValidatorStatus.Completed
+            )
+        );
         _initializeDelegatorRegistration(
             validationID, DEFAULT_DELEGATOR_ADDRESS, DEFAULT_DELEGATOR_WEIGHT
         );
@@ -1000,7 +1016,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetUptimeWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID();
 
-        vm.expectRevert(PoSValidatorManager.ValidatorIneligibleForRewards.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.ValidatorIneligibleForRewards.selector, validationID
+            )
+        );
 
         _initializeEndValidation(validationID, true);
     }
