@@ -52,15 +52,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     );
 
     event DelegatorRegistered(
-        bytes32 indexed delegationID,
-        bytes32 indexed validationID,
-        uint64 indexed nonce,
-        uint256 startTime
+        bytes32 indexed delegationID, bytes32 indexed validationID, uint256 startTime
     );
 
-    event DelegatorRemovalInitialized(
-        bytes32 indexed delegationID, bytes32 indexed validationID, uint256 endTime
-    );
+    event DelegatorRemovalInitialized(bytes32 indexed delegationID, bytes32 indexed validationID);
 
     event ValidatorWeightUpdate(
         bytes32 indexed validationID,
@@ -447,14 +442,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 validationID = _registerDefaultValidator();
         bytes32 delegationID = _registerDefaultDelegator(validationID);
 
-        uint64 delgationEndTime =
-            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION;
         _initializeEndDelegationValidatorActiveWithChecks({
             validationID: validationID,
             delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
             delegationID: delegationID,
             startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
-            endDelegationTimestamp: delgationEndTime,
+            endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
             expectedValidatorWeight: DEFAULT_WEIGHT,
             expectedNonce: 2,
             includeUptime: true,
@@ -465,8 +458,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
-            stakingEndTime: delgationEndTime,
-            uptimeSeconds: delgationEndTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
             initialSupply: 0,
             endSupply: 0
         });
@@ -482,6 +475,258 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             expectedValidatorWeight: DEFAULT_WEIGHT,
             expectedNonce: 2
         });
+    }
+
+    // Delegator registration is not allowed when Validator is pending removed.
+    function testInitializeDelegatorRegistrationValidatorPendingRemoved() public {
+        bytes32 validationID = _registerDefaultValidator();
+
+        _initializeEndValidation({
+            validationID: validationID,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION,
+            expectedNonce: 1,
+            includeUptime: true,
+            force: false
+        });
+
+        _beforeSend(_weightToValue(DEFAULT_DELEGATOR_WEIGHT), DEFAULT_DELEGATOR_ADDRESS);
+
+        vm.expectRevert(ValidatorManager.InvalidValidatorStatus.selector);
+        _initializeDelegatorRegistration(
+            validationID, DEFAULT_DELEGATOR_ADDRESS, DEFAULT_DELEGATOR_WEIGHT
+        );
+    }
+
+    // Complete delegator registration may be called when validator is pending removed.
+    function testCompleteRegisterDelegatorValidatorPendingRemoved() public {
+        bytes32 validationID = _registerDefaultValidator();
+
+        bytes32 delegationID = _setUpInitializeDelegatorRegistration({
+            validationID: validationID,
+            delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
+            weight: DEFAULT_DELEGATOR_WEIGHT,
+            registrationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
+            expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            expectedNonce: 1
+        });
+
+        uint64 validatorEndTime = DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION;
+        _initializeEndValidation({
+            validationID: validationID,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: validatorEndTime,
+            expectedNonce: 2,
+            includeUptime: true,
+            force: false
+        });
+
+        _setUpCompleteDelegatorRegistrationWithChecks(
+            validationID,
+            delegationID,
+            validatorEndTime + 1,
+            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            1
+        );
+    }
+
+    // Delegator cannot initialize end delegation when validator is pending removed.
+    function testInitializeEndDelegationValidatorPendingRemoved() public {
+        bytes32 validationID = _registerDefaultValidator();
+
+        _initializeEndValidation({
+            validationID: validationID,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION,
+            expectedNonce: 1,
+            includeUptime: true,
+            force: false
+        });
+
+        _beforeSend(_weightToValue(DEFAULT_DELEGATOR_WEIGHT), DEFAULT_DELEGATOR_ADDRESS);
+
+        vm.expectRevert(ValidatorManager.InvalidValidatorStatus.selector);
+        _initializeDelegatorRegistration(
+            validationID, DEFAULT_DELEGATOR_ADDRESS, DEFAULT_DELEGATOR_WEIGHT
+        );
+    }
+
+    // Delegator may complete end delegation while validator is pending removed.
+    function testCompleteEndDelegationValidatorPendingRemoved() public {
+        bytes32 validationID = _registerDefaultValidator();
+        bytes32 delegationID = _registerDefaultDelegator(validationID);
+
+        _initializeEndDelegationValidatorActiveWithChecks({
+            validationID: validationID,
+            delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
+            delegationID: delegationID,
+            startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
+            endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+            expectedValidatorWeight: DEFAULT_WEIGHT,
+            expectedNonce: 2,
+            includeUptime: true,
+            force: false
+        });
+
+        uint64 validationEndTime = DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP + 1;
+        _initializeEndValidation({
+            validationID: validationID,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: validationEndTime,
+            expectedNonce: 3,
+            includeUptime: true,
+            force: false
+        });
+
+        uint256 expectedTotalReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+            uptimeSeconds: validationEndTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
+
+        _completeEndDelegationWithChecks({
+            validationID: validationID,
+            delegationID: delegationID,
+            delegator: DEFAULT_DELEGATOR_ADDRESS,
+            delegatorWeight: DEFAULT_DELEGATOR_WEIGHT,
+            expectedTotalReward: expectedTotalReward,
+            delegationFeeBips: DEFAULT_DELEGATION_FEE_BIPS,
+            validatorWeight: DEFAULT_WEIGHT,
+            expectedValidatorWeight: 0,
+            expectedNonce: 2
+        });
+    }
+
+    function testInitializeDelegatorRegistrationValidatorCompleted() public {
+        bytes32 validationID = _registerDefaultValidator();
+        _endDefaultValidator(validationID, 1);
+
+        _beforeSend(_weightToValue(DEFAULT_DELEGATOR_WEIGHT), DEFAULT_DELEGATOR_ADDRESS);
+
+        vm.warp(DEFAULT_COMPLETION_TIMESTAMP + 1);
+        vm.expectRevert(ValidatorManager.InvalidValidatorStatus.selector);
+        _initializeDelegatorRegistration(
+            validationID, DEFAULT_DELEGATOR_ADDRESS, DEFAULT_DELEGATOR_WEIGHT
+        );
+    }
+
+    function testCompleteDelegatorRegistrationValidatorCompleted() public {
+        bytes32 validationID = _registerDefaultValidator();
+        bytes32 delegationID = _initializeDefaultDelegatorRegistration(validationID);
+
+        _endDefaultValidator(validationID, 2);
+
+        // completeDelegatorRegistration should fall through to _completeEndDelegation and refund the stake
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit DelegationEnded(delegationID, validationID, 0, 0);
+
+        uint256 balanceBefore = _getStakeAssetBalance(DEFAULT_DELEGATOR_ADDRESS);
+
+        _expectStakeUnlock(DEFAULT_DELEGATOR_ADDRESS, _weightToValue(DEFAULT_DELEGATOR_WEIGHT));
+
+        // warp to right after validator ended
+        vm.warp(DEFAULT_COMPLETION_TIMESTAMP + 1);
+        posValidatorManager.completeDelegatorRegistration(0, delegationID);
+
+        assertEq(
+            _getStakeAssetBalance(DEFAULT_DELEGATOR_ADDRESS),
+            balanceBefore + _weightToValue(DEFAULT_DELEGATOR_WEIGHT)
+        );
+    }
+
+    function testInitializeEndDelegationValidatorCompleted() public {
+        bytes32 validationID = _registerDefaultValidator();
+        bytes32 delegationID = _registerDefaultDelegator(validationID);
+
+        _endDefaultValidator(validationID, 2);
+
+        uint64 delegationEndTime = DEFAULT_COMPLETION_TIMESTAMP + 1;
+
+        uint256 expectedTotalReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            stakingEndTime: DEFAULT_COMPLETION_TIMESTAMP,
+            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
+
+        uint256 expectedValidatorFees = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
+        uint256 expectedDelegatorReward = expectedTotalReward - expectedValidatorFees;
+
+        // completeDelegatorRegistration should fall through to _completeEndDelegation and refund the stake
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit DelegationEnded(
+            delegationID, validationID, expectedDelegatorReward, expectedValidatorFees
+        );
+
+        uint256 balanceBefore = _getStakeAssetBalance(DEFAULT_DELEGATOR_ADDRESS);
+
+        _expectStakeUnlock(DEFAULT_DELEGATOR_ADDRESS, _weightToValue(DEFAULT_DELEGATOR_WEIGHT));
+        _expectRewardIssuance(DEFAULT_DELEGATOR_ADDRESS, expectedDelegatorReward);
+
+        // warp to right after validator ended
+        vm.warp(delegationEndTime);
+        vm.prank(DEFAULT_DELEGATOR_ADDRESS);
+        posValidatorManager.initializeEndDelegation(delegationID, false, 0);
+
+        assertEq(
+            _getStakeAssetBalance(DEFAULT_DELEGATOR_ADDRESS),
+            balanceBefore + _weightToValue(DEFAULT_DELEGATOR_WEIGHT) + expectedDelegatorReward
+        );
+    }
+
+    function testCompleteEndDelegationValidatorCompleted() public {
+        bytes32 validationID = _registerDefaultValidator();
+        bytes32 delegationID = _registerDefaultDelegator(validationID);
+
+        _initializeEndDelegationValidatorActiveWithChecks({
+            validationID: validationID,
+            delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
+            delegationID: delegationID,
+            startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
+            endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+            expectedValidatorWeight: DEFAULT_WEIGHT,
+            expectedNonce: 2,
+            includeUptime: true,
+            force: false
+        });
+
+        _endDefaultValidator(validationID, 3);
+
+        uint256 expectedTotalReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
+
+        uint256 expectedValidatorFees = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
+        uint256 expectedDelegatorReward = expectedTotalReward - expectedValidatorFees;
+
+        vm.expectEmit(true, true, true, true, address(posValidatorManager));
+        emit DelegationEnded(
+            delegationID, validationID, expectedDelegatorReward, expectedValidatorFees
+        );
+        uint256 balanceBefore = _getStakeAssetBalance(DEFAULT_DELEGATOR_ADDRESS);
+
+        _expectStakeUnlock(DEFAULT_DELEGATOR_ADDRESS, _weightToValue(DEFAULT_DELEGATOR_WEIGHT));
+        _expectRewardIssuance(DEFAULT_DELEGATOR_ADDRESS, expectedDelegatorReward);
+
+        posValidatorManager.completeEndDelegation(0, delegationID);
+
+        assertEq(
+            _getStakeAssetBalance(DEFAULT_DELEGATOR_ADDRESS),
+            balanceBefore + _weightToValue(DEFAULT_DELEGATOR_WEIGHT) + expectedDelegatorReward
+        );
     }
 
     function testCompleteEndDelegationWrongNonce() public {
@@ -864,14 +1109,29 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
         vm.warp(completeRegistrationTimestamp);
+        posValidatorManager.completeDelegatorRegistration(0, delegationID);
+    }
+
+    function _setUpCompleteDelegatorRegistrationWithChecks(
+        bytes32 validationID,
+        bytes32 delegationID,
+        uint64 completeRegistrationTimestamp,
+        uint64 expectedValidatorWeight,
+        uint64 expectedNonce
+    ) internal {
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit DelegatorRegistered({
             delegationID: delegationID,
             validationID: validationID,
-            nonce: expectedNonce,
             startTime: completeRegistrationTimestamp
         });
-        posValidatorManager.completeDelegatorRegistration(0, delegationID);
+        _setUpCompleteDelegatorRegistration(
+            validationID,
+            delegationID,
+            completeRegistrationTimestamp,
+            expectedValidatorWeight,
+            expectedNonce
+        );
     }
 
     function _registerDefaultDelegator(bytes32 validationID)
@@ -883,6 +1143,33 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
             weight: DEFAULT_DELEGATOR_WEIGHT,
             initRegistrationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
+            completeRegistrationTimestamp: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            expectedNonce: 1
+        });
+    }
+
+    function _initializeDefaultDelegatorRegistration(bytes32 validationID)
+        internal
+        returns (bytes32)
+    {
+        return _setUpInitializeDelegatorRegistration({
+            validationID: validationID,
+            delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
+            weight: DEFAULT_DELEGATOR_WEIGHT,
+            registrationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
+            expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            expectedNonce: 1
+        });
+    }
+
+    function _completeDefaultDelegatorRegistration(
+        bytes32 validationID,
+        bytes32 delegationID
+    ) internal {
+        _setUpCompleteDelegatorRegistration({
+            validationID: validationID,
+            delegationID: delegationID,
             completeRegistrationTimestamp: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
             expectedNonce: 1
@@ -936,11 +1223,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
-        emit DelegatorRemovalInitialized({
-            delegationID: delegationID,
-            validationID: validationID,
-            endTime: endDelegationTimestamp
-        });
+        emit DelegatorRemovalInitialized({delegationID: delegationID, validationID: validationID});
 
         _initializeEndDelegationValidatorActive({
             validationID: validationID,
@@ -995,6 +1278,52 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         } else {
             posValidatorManager.initializeEndDelegation(delegationID, includeUptime, 0);
         }
+    }
+
+    function _endDefaultValidator(bytes32 validationID, uint64 expectedNonce) internal {
+        _endValidationWithChecks({
+            validationID: validationID,
+            validatorOwner: address(this),
+            completeRegistrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            validatorWeight: DEFAULT_WEIGHT,
+            expectedNonce: expectedNonce
+        });
+    }
+
+    function _endValidationWithChecks(
+        bytes32 validationID,
+        address validatorOwner,
+        uint64 completeRegistrationTimestamp,
+        uint64 completionTimestamp,
+        uint64 validatorWeight,
+        uint64 expectedNonce
+    ) internal {
+        _initializeEndValidation({
+            validationID: validationID,
+            registrationTimestamp: completeRegistrationTimestamp,
+            completionTimestamp: completionTimestamp,
+            expectedNonce: expectedNonce,
+            includeUptime: true,
+            force: false
+        });
+
+        uint256 expectedReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(validatorWeight),
+            validatorStartTime: completeRegistrationTimestamp,
+            stakingStartTime: completeRegistrationTimestamp,
+            stakingEndTime: completionTimestamp,
+            uptimeSeconds: completionTimestamp - completeRegistrationTimestamp,
+            initialSupply: 0,
+            endSupply: 0
+        });
+
+        _completeEndValidationWithChecks({
+            validationID: validationID,
+            validatorOwner: validatorOwner,
+            expectedReward: expectedReward,
+            validatorWeight: validatorWeight
+        });
     }
 
     function _completeEndValidationWithChecks(
