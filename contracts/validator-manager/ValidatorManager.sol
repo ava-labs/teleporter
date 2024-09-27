@@ -53,7 +53,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.ValidatorManager")) - 1)) & ~bytes32(uint256(0xff));
     // TODO: Unit test for storage slot and update slot
-    bytes32 private constant _VALIDATOR_MANAGER_STORAGE_LOCATION =
+    bytes32 public constant VALIDATOR_MANAGER_STORAGE_LOCATION =
         0xe92546d698950ddd38910d2e15ed1d923cd0a7b3dde9e2a6a3f380565559cb00;
 
     uint8 public constant MAXIMUM_CHURN_PERCENTAGE_LIMIT = 20;
@@ -62,18 +62,24 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     uint8 public constant BLS_PUBLIC_KEY_LENGTH = 48;
     bytes32 public constant P_CHAIN_BLOCKCHAIN_ID = bytes32(0);
 
-    error MaxChurnRateExceeded();
-    error InvalidWarpMessage();
-    error InvalidBlockchainID();
-    error InvalidAddress();
-    error UnexpectedRegistrationStatus();
-    error InvalidValidatorStatus();
-    error InvalidValidationID();
-    error NodeAlreadyRegistered();
-    error InvalidSubnetConversionID();
-    error InvalidInput();
-    error InvalidExpiry();
+    error InvalidValidatorManagerAddress(address validatorManagerAddress);
+    error InvalidWarpOriginSenderAddress(address senderAddress);
+    error InvalidValidatorManagerBlockchainID(bytes32 blockchainID);
+    error InvalidWarpSourceChainID(bytes32 sourceChainID);
+    error InvalidRegistrationExpiry(uint64 registrationExpiry);
     error InvalidInitializationStatus();
+    error InvalidMaximumChurnPercentage(uint8 maximumChurnPercentage);
+    error InvalidBLSKeyLength(uint256 length);
+    error InvalidNodeID(bytes32 nodeID);
+    error InvalidSubnetConversionID(
+        bytes32 encodedSubnetConversionID, bytes32 expectedSubnetConversionID
+    );
+    error InvalidValidationID(bytes32 validationID);
+    error InvalidValidatorStatus(ValidatorStatus status);
+    error InvalidWarpMessage();
+    error MaxChurnRateExceeded(uint64 churnAmount);
+    error NodeAlreadyRegistered(bytes32 nodeID);
+    error UnexpectedRegistrationStatus(bool validRegistration);
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
@@ -83,7 +89,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _VALIDATOR_MANAGER_STORAGE_LOCATION
+            $.slot := VALIDATOR_MANAGER_STORAGE_LOCATION
         }
     }
 
@@ -114,7 +120,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             settings.maximumChurnPercentage > MAXIMUM_CHURN_PERCENTAGE_LIMIT
                 || settings.maximumChurnPercentage == 0
         ) {
-            revert InvalidInput();
+            revert InvalidMaximumChurnPercentage(settings.maximumChurnPercentage);
         }
 
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
@@ -142,10 +148,14 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Check that the blockchainID and validator manager address in the subnetConversionData correspond to this contract.
         // Other validation checks are done by the P-Chain when converting the subnet, so are not required here.
         if (subnetConversionData.validatorManagerBlockchainID != WARP_MESSENGER.getBlockchainID()) {
-            revert InvalidBlockchainID();
+            revert InvalidValidatorManagerBlockchainID(
+                subnetConversionData.validatorManagerBlockchainID
+            );
         }
         if (address(subnetConversionData.validatorManagerAddress) != address(this)) {
-            revert InvalidAddress();
+            revert InvalidValidatorManagerAddress(
+                address(subnetConversionData.validatorManagerAddress)
+            );
         }
 
         uint256 numInitialValidators = subnetConversionData.initialValidators.length;
@@ -156,7 +166,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             bytes32 nodeID = initialValidator.nodeID;
 
             if ($._registeredValidators[nodeID] != bytes32(0)) {
-                revert NodeAlreadyRegistered();
+                revert NodeAlreadyRegistered(nodeID);
             }
 
             // Validation ID of the initial validators is the sha256 hash of the
@@ -190,8 +200,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         );
         bytes memory encodedConversion =
             ValidatorMessages.packSubnetConversionData(subnetConversionData);
-        if (sha256(encodedConversion) != subnetConversionID) {
-            revert InvalidSubnetConversionID();
+        bytes32 encodedSubnetConversionID = sha256(encodedConversion);
+        if (encodedSubnetConversionID != subnetConversionID) {
+            revert InvalidSubnetConversionID(encodedSubnetConversionID, subnetConversionID);
         }
 
         $._initializedValidatorSet = true;
@@ -214,16 +225,19 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             input.registrationExpiry <= block.timestamp
                 || input.registrationExpiry >= block.timestamp + MAXIMUM_REGISTRATION_EXPIRY_LENGTH
         ) {
-            revert InvalidExpiry();
+            revert InvalidRegistrationExpiry(input.registrationExpiry);
         }
 
         // Ensure the nodeID is not the zero address, and is not already an active validator.
 
-        if (input.blsPublicKey.length != BLS_PUBLIC_KEY_LENGTH || input.nodeID == bytes32(0)) {
-            revert InvalidInput();
+        if (input.blsPublicKey.length != BLS_PUBLIC_KEY_LENGTH) {
+            revert InvalidBLSKeyLength(input.blsPublicKey.length);
+        }
+        if (input.nodeID == bytes32(0)) {
+            revert InvalidNodeID(input.nodeID);
         }
         if ($._registeredValidators[input.nodeID] != bytes32(0)) {
-            revert NodeAlreadyRegistered();
+            revert NodeAlreadyRegistered(input.nodeID);
         }
 
         // Check that adding this validator would not exceed the maximum churn rate.
@@ -269,10 +283,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         // The initial validator set must have been set already to have pending register validation messages.
         if ($._pendingRegisterValidationMessages[validationID].length == 0) {
-            revert InvalidValidationID();
+            revert InvalidValidationID(validationID);
         }
         if ($._validationPeriods[validationID].status != ValidatorStatus.PendingAdded) {
-            revert InvalidValidatorStatus();
+            revert InvalidValidatorStatus($._validationPeriods[validationID].status);
         }
 
         // Submit the message to the Warp precompile.
@@ -290,14 +304,14 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             .unpackSubnetValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
 
         if (!validRegistration) {
-            revert UnexpectedRegistrationStatus();
+            revert UnexpectedRegistrationStatus(validRegistration);
         }
         // The initial validator set must have been set already to have pending register validation messages.
         if ($._pendingRegisterValidationMessages[validationID].length == 0) {
-            revert InvalidValidationID();
+            revert InvalidValidationID(validationID);
         }
         if ($._validationPeriods[validationID].status != ValidatorStatus.PendingAdded) {
-            revert InvalidValidatorStatus();
+            revert InvalidValidatorStatus($._validationPeriods[validationID].status);
         }
 
         delete $._pendingRegisterValidationMessages[validationID];
@@ -335,7 +349,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // The initial validator set must have been set already to have active validators.
         Validator memory validator = $._validationPeriods[validationID];
         if (validator.status != ValidatorStatus.Active) {
-            revert InvalidValidatorStatus();
+            revert InvalidValidatorStatus($._validationPeriods[validationID].status);
         }
 
         // Update the validator status to pending removal.
@@ -369,7 +383,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         // The initial validator set must have been set already to have pending end validation messages.
         if (validator.status != ValidatorStatus.PendingRemoved) {
-            revert InvalidValidatorStatus();
+            revert InvalidValidatorStatus($._validationPeriods[validationID].status);
         }
 
         WARP_MESSENGER.sendWarpMessage(
@@ -397,7 +411,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         (bytes32 validationID, bool validRegistration) = ValidatorMessages
             .unpackSubnetValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
         if (validRegistration) {
-            revert UnexpectedRegistrationStatus();
+            revert UnexpectedRegistrationStatus(validRegistration);
         }
 
         Validator memory validator = $._validationPeriods[validationID];
@@ -409,7 +423,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             validator.status != ValidatorStatus.PendingRemoved
                 && validator.status != ValidatorStatus.PendingAdded
         ) {
-            revert InvalidValidatorStatus();
+            revert InvalidValidatorStatus(validator.status);
         }
 
         if (validator.status == ValidatorStatus.PendingRemoved) {
@@ -454,10 +468,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         }
         // Must match to P-Chain blockchain id, which is 0.
         if (warpMessage.sourceChainID != P_CHAIN_BLOCKCHAIN_ID) {
-            revert InvalidBlockchainID();
+            revert InvalidWarpSourceChainID(warpMessage.sourceChainID);
         }
         if (warpMessage.originSenderAddress != address(0)) {
-            revert InvalidAddress();
+            revert InvalidWarpOriginSenderAddress(warpMessage.originSenderAddress);
         }
 
         return warpMessage;
@@ -528,7 +542,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Rearranged equation of maximumChurnPercentage >= currentChurnPercentage to avoid integer division truncation.
         if ($._maximumChurnPercentage * churnTracker.initialWeight < churnTracker.churnAmount * 100)
         {
-            revert MaxChurnRateExceeded();
+            revert MaxChurnRateExceeded(churnTracker.churnAmount);
         }
 
         // Two separate calculations because we're using uints and (newValidatorWeight - oldValidatorWeight) could underflow.

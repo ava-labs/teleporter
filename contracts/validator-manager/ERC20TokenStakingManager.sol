@@ -34,8 +34,10 @@ contract ERC20TokenStakingManager is
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.ERC20TokenStakingManager")) - 1)) & ~bytes32(uint256(0xff));
     // TODO: Update to correct storage slot
-    bytes32 private constant _ERC20_STAKING_MANAGER_STORAGE_LOCATION =
+    bytes32 public constant ERC20_STAKING_MANAGER_STORAGE_LOCATION =
         0x6e5bdfcce15e53c3406ea67bfce37dcd26f5152d5492824e43fd5e3c8ac5ab00;
+
+    error InvalidTokenAddress(address tokenAddress);
 
     // solhint-disable ordering
     function _getERC20StakingManagerStorage()
@@ -45,7 +47,7 @@ contract ERC20TokenStakingManager is
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _ERC20_STAKING_MANAGER_STORAGE_LOCATION
+            $.slot := ERC20_STAKING_MANAGER_STORAGE_LOCATION
         }
     }
 
@@ -84,7 +86,7 @@ contract ERC20TokenStakingManager is
     {
         ERC20TokenStakingManagerStorage storage $ = _getERC20StakingManagerStorage();
         if (address(token) == address(0)) {
-            revert InvalidAddress();
+            revert InvalidTokenAddress(address(token));
         }
         $._token = token;
     }

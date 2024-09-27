@@ -76,7 +76,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(PoSValidatorManager.InvalidDelegationFee.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.InvalidDelegationFee.selector,
+                DEFAULT_MINIMUM_DELEGATION_FEE_BIPS - 1
+            )
+        );
         _initializeValidatorRegistration(
             registrationInput,
             DEFAULT_MINIMUM_DELEGATION_FEE_BIPS - 1,
@@ -92,7 +97,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         uint16 delegationFeeBips = posValidatorManager.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
-        vm.expectRevert(PoSValidatorManager.InvalidDelegationFee.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.InvalidDelegationFee.selector, delegationFeeBips
+            )
+        );
 
         _initializeValidatorRegistration(
             registrationInput,
@@ -108,7 +117,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(PoSValidatorManager.InvalidStakeDuration.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.InvalidMinStakeDuration.selector,
+                DEFAULT_MINIMUM_STAKE_DURATION - 1
+            )
+        );
         _initializeValidatorRegistration(
             registrationInput,
             DEFAULT_DELEGATION_FEE_BIPS,
@@ -123,7 +137,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(PoSValidatorManager.InvalidStakeAmount.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.InvalidStakeAmount.selector, DEFAULT_MINIMUM_STAKE_AMOUNT - 1
+            )
+        );
         _initializeValidatorRegistration(
             registrationInput,
             DEFAULT_DELEGATION_FEE_BIPS,
@@ -138,7 +156,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationExpiry: DEFAULT_EXPIRY,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        vm.expectRevert(PoSValidatorManager.InvalidStakeAmount.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.InvalidStakeAmount.selector, DEFAULT_MAXIMUM_STAKE_AMOUNT + 1
+            )
+        );
         _initializeValidatorRegistration(
             registrationInput,
             DEFAULT_DELEGATION_FEE_BIPS,
@@ -150,7 +172,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testInvalidInitializeEndTime() public {
         bytes32 validationID = _registerDefaultValidator();
 
-        vm.expectRevert(PoSValidatorManager.InvalidStakeDuration.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.MinStakeDurationNotPassed.selector, block.timestamp
+            )
+        );
         posValidatorManager.initializeEndValidation(validationID, false, 0);
     }
 
@@ -169,7 +195,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetUptimeWarpMessage(new bytes(0), true);
         _mockGetBlockchainID(posValidatorManager.P_CHAIN_BLOCKCHAIN_ID());
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
-        vm.expectRevert(ValidatorManager.InvalidBlockchainID.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ValidatorManager.InvalidWarpSourceChainID.selector, DEFAULT_SOURCE_BLOCKCHAIN_ID
+            )
+        );
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
@@ -194,7 +224,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
 
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
-        vm.expectRevert(ValidatorManager.InvalidAddress.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ValidatorManager.InvalidWarpOriginSenderAddress.selector, address(this)
+            )
+        );
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
@@ -219,7 +253,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
 
         vm.warp(DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION);
-        vm.expectRevert(ValidatorManager.InvalidValidationID.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(ValidatorManager.InvalidValidationID.selector, validationID)
+        );
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
@@ -287,14 +323,15 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         // Complete registration of delegator2 with delegator1's nonce
         // Note that registering delegator1 with delegator2's nonce is valid
+        uint64 nonce = 1;
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSubnetValidatorWeightUpdateMessage(
-            validationID, 1, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
+            validationID, nonce, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
         vm.warp(DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP);
-        vm.expectRevert(PoSValidatorManager.InvalidNonce.selector);
+        vm.expectRevert(abi.encodeWithSelector(PoSValidatorManager.InvalidNonce.selector, nonce));
         posValidatorManager.completeDelegatorRegistration(0, delegationID2);
     }
 
@@ -335,7 +372,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 validationID = _registerDefaultValidator();
 
         vm.prank(address(1));
-        vm.expectRevert(ValidatorManager.InvalidAddress.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(PoSValidatorManager.UnauthorizedOwner.selector, address(1))
+        );
         posValidatorManager.initializeEndValidation(validationID, false, 0);
     }
 
@@ -360,7 +399,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 validationID = _registerDefaultValidator();
         bytes32 delegationID = _registerDefaultDelegator(validationID);
 
-        vm.expectRevert(PoSValidatorManager.DelegatorIneligibleForRewards.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.DelegatorIneligibleForRewards.selector, delegationID
+            )
+        );
         vm.warp(DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP);
         vm.prank(DEFAULT_DELEGATOR_ADDRESS);
         posValidatorManager.initializeEndDelegation(delegationID, false, 0);
@@ -492,7 +535,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         _beforeSend(_weightToValue(DEFAULT_DELEGATOR_WEIGHT), DEFAULT_DELEGATOR_ADDRESS);
 
-        vm.expectRevert(ValidatorManager.InvalidValidatorStatus.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ValidatorManager.InvalidValidatorStatus.selector, ValidatorStatus.PendingRemoved
+            )
+        );
         _initializeDelegatorRegistration(
             validationID, DEFAULT_DELEGATOR_ADDRESS, DEFAULT_DELEGATOR_WEIGHT
         );
@@ -545,7 +592,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         _beforeSend(_weightToValue(DEFAULT_DELEGATOR_WEIGHT), DEFAULT_DELEGATOR_ADDRESS);
 
-        vm.expectRevert(ValidatorManager.InvalidValidatorStatus.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ValidatorManager.InvalidValidatorStatus.selector, ValidatorStatus.PendingRemoved
+            )
+        );
         _initializeDelegatorRegistration(
             validationID, DEFAULT_DELEGATOR_ADDRESS, DEFAULT_DELEGATOR_WEIGHT
         );
@@ -608,7 +659,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _beforeSend(_weightToValue(DEFAULT_DELEGATOR_WEIGHT), DEFAULT_DELEGATOR_ADDRESS);
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP + 1);
-        vm.expectRevert(ValidatorManager.InvalidValidatorStatus.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ValidatorManager.InvalidValidatorStatus.selector, ValidatorStatus.Completed
+            )
+        );
         _initializeDelegatorRegistration(
             validationID, DEFAULT_DELEGATOR_ADDRESS, DEFAULT_DELEGATOR_WEIGHT
         );
@@ -780,13 +835,14 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         // Complete ending delegator2 with delegator1's nonce
         // Note that ending delegator1 with delegator2's nonce is valid
+        uint64 nonce = 3;
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSubnetValidatorWeightUpdateMessage(
-            validationID, 3, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
+            validationID, nonce, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
-        vm.expectRevert(PoSValidatorManager.InvalidNonce.selector);
+        vm.expectRevert(abi.encodeWithSelector(PoSValidatorManager.InvalidNonce.selector, nonce));
         posValidatorManager.completeEndDelegation(0, delegationID2);
     }
 
@@ -960,7 +1016,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetUptimeWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID();
 
-        vm.expectRevert(PoSValidatorManager.ValidatorIneligibleForRewards.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.ValidatorIneligibleForRewards.selector, validationID
+            )
+        );
 
         _initializeEndValidation(validationID, true);
     }
@@ -1034,6 +1094,13 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         assertEq(v1, 1e12);
         assertEq(v2, 1e18);
         assertEq(v3, 1e27);
+    }
+
+    function testPoSValidatorManagerStorageSlot() public view {
+        assertEq(
+            _erc7201StorageSlot("PoSValidatorManager"),
+            posValidatorManager.POS_VALIDATOR_MANAGER_STORAGE_LOCATION()
+        );
     }
 
     function _initializeValidatorRegistration(
