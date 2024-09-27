@@ -81,6 +81,7 @@ abstract contract PoSValidatorManager is
     error InvalidStakeAmount();
     error InvalidStakeMultiplier();
     error ValidatorIneligibleForRewards();
+    error DelegatorIneligibleForRewards();
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
@@ -450,6 +451,28 @@ abstract contract PoSValidatorManager is
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
+        if (!_initializeEndDelegation(delegationID, includeUptimeProof, messageIndex)) {
+            revert DelegatorIneligibleForRewards();
+        }
+    }
+
+    function forceInitializeEndDelegation(
+        bytes32 delegationID,
+        bool includeUptimeProof,
+        uint32 messageIndex
+    ) external {
+        // Ignore the return value here to force end delegation, regardless of possible missed rewards
+        _initializeEndDelegation(delegationID, includeUptimeProof, messageIndex);
+    }
+
+    // Helper function that initializes the end of a PoS delegation period.
+    // Returns false if it is possible for the delegator to claim rewards, but it is not eligible.
+    // Returns true otherwise.
+    function _initializeEndDelegation(
+        bytes32 delegationID,
+        bool includeUptimeProof,
+        uint32 messageIndex
+    ) internal returns (bool) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
@@ -479,16 +502,21 @@ abstract contract PoSValidatorManager is
             ($._delegatorStakes[delegationID].endingNonce,) =
                 _setValidatorWeight(validationID, validator.weight - delegator.weight);
 
-            $._redeemableDelegatorRewards[delegationID] = _calculateDelegationReward(delegator);
+            uint256 reward = _calculateDelegationReward(delegator);
+            $._redeemableDelegatorRewards[delegationID] = reward;
 
             emit DelegatorRemovalInitialized({
                 delegationID: delegationID,
                 validationID: validationID
             });
+            return (reward > 0);
         } else if (validator.status == ValidatorStatus.Completed) {
             $._redeemableDelegatorRewards[delegationID] = _calculateDelegationReward(delegator);
 
-            return _completeEndDelegation(delegationID);
+            _completeEndDelegation(delegationID);
+            // If the validator has completed, then no further uptimes may be submitted, so we always
+            // end the delegation
+            return true;
         } else {
             revert InvalidValidatorStatus();
         }
