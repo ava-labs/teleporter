@@ -15,7 +15,6 @@ enum DelegatorStatus {
     PendingRemoved
 }
 
-// TODO: visit types of these fields, for example uint64 might be too big for stake duration seconds.
 struct PoSValidatorManagerSettings {
     ValidatorManagerSettings baseSettings;
     uint256 minimumStakeAmount;

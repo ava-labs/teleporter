@@ -117,12 +117,12 @@ interface IValidatorManager {
     event ValidationPeriodEnded(bytes32 indexed validationID, ValidatorStatus indexed status);
 
     /**
-    * @notice Event emitted when validator weight is updated.
-    * @param validationID The ID of the validation period
-    * @param nonce The message nonce used to update the validator weight
-    * @param validatorWeight The updated validator weight that is sent to the P-Chain
-    * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
-    */
+     * @notice Event emitted when validator weight is updated.
+     * @param validationID The ID of the validation period
+     * @param nonce The message nonce used to update the validator weight
+     * @param validatorWeight The updated validator weight that is sent to the P-Chain
+     * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
+     */
     event ValidatorWeightUpdate(
         bytes32 indexed validationID,
         uint64 indexed nonce,
