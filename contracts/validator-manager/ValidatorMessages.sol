@@ -146,6 +146,7 @@ library ValidatorMessages {
         pure
         returns (bytes memory)
     {
+        // Hardcoded 20 is for length of the managerAddress
         bytes memory res = abi.encodePacked(
             subnetConversionData.convertSubnetTxID,
             subnetConversionData.validatorManagerBlockchainID,
