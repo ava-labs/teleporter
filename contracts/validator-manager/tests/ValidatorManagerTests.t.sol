@@ -125,38 +125,30 @@ abstract contract ValidatorManagerTest is Test {
     }
 
     function testCompleteValidatorRegistration() public {
-        _setUpCompleteValidatorRegistration({
-            nodeID: DEFAULT_NODE_ID,
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
-        });
+        _registerDefaultValidator();
     }
 
     function testInitializeEndValidation() public virtual {
-        _setUpInitializeEndValidation({
-            nodeID: DEFAULT_NODE_ID,
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+        bytes32 validationID = _registerDefaultValidator();
+        _initializeEndValidation({
+            validationID: validationID,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            expectedNonce: 1,
+            includeUptime: false
         });
     }
 
     function testResendEndValidation() public virtual {
-        bytes32 validationID = _setUpInitializeEndValidation({
-            nodeID: DEFAULT_NODE_ID,
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+        bytes32 validationID = _registerDefaultValidator();
+        _initializeEndValidation({
+            validationID: validationID,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            expectedNonce: 1,
+            includeUptime: false
         });
+
         bytes memory setValidatorWeightPayload =
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
@@ -164,15 +156,15 @@ abstract contract ValidatorManagerTest is Test {
     }
 
     function testCompleteEndValidation() public virtual {
-        bytes32 validationID = _setUpInitializeEndValidation({
-            nodeID: DEFAULT_NODE_ID,
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+        bytes32 validationID = _registerDefaultValidator();
+        _initializeEndValidation({
+            validationID: validationID,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            expectedNonce: 1,
+            includeUptime: false
         });
+
         bytes memory subnetValidatorRegistrationMessage =
             ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
 
@@ -209,7 +201,7 @@ abstract contract ValidatorManagerTest is Test {
         _beforeSend(_weightToValue(churnThreshold), address(this));
 
         // First registration should succeed
-        _setUpCompleteValidatorRegistration({
+        _registerValidator({
             nodeID: _newNodeID(),
             subnetID: DEFAULT_SUBNET_ID,
             weight: churnThreshold,
@@ -239,7 +231,7 @@ abstract contract ValidatorManagerTest is Test {
 
     function testCummulativeChurnRegistrationAndEndValidation() public {
         // Registration should succeed
-        bytes32 validationID = _setUpCompleteValidatorRegistration({
+        bytes32 validationID = _registerValidator({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
             weight: _valueToWeight(DEFAULT_MINIMUM_STAKE_AMOUNT),
@@ -253,7 +245,7 @@ abstract contract ValidatorManagerTest is Test {
         _beforeSend(_weightToValue(churnThreshold), address(this));
 
         // Registration should succeed
-        _setUpCompleteValidatorRegistration({
+        _registerValidator({
             nodeID: _newNodeID(),
             subnetID: DEFAULT_SUBNET_ID,
             weight: churnThreshold,
@@ -329,7 +321,7 @@ abstract contract ValidatorManagerTest is Test {
         );
     }
 
-    function _setUpCompleteValidatorRegistration(
+    function _registerValidator(
         bytes32 nodeID,
         bytes32 subnetID,
         uint64 weight,
@@ -352,50 +344,17 @@ abstract contract ValidatorManagerTest is Test {
         validatorManager.completeValidatorRegistration(0);
     }
 
-    function _setUpInitializeEndValidation(
-        bytes32 nodeID,
-        bytes32 subnetID,
-        uint64 weight,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey,
-        uint64 registrationTimestamp,
-        uint64 completionTimestamp
-    ) internal returns (bytes32 validationID) {
-        return _setUpInitializeEndValidation({
-            nodeID: nodeID,
-            subnetID: subnetID,
-            weight: weight,
-            registrationExpiry: registrationExpiry,
-            blsPublicKey: blsPublicKey,
-            registrationTimestamp: registrationTimestamp,
-            completionTimestamp: completionTimestamp,
-            includeUptime: false
-        });
-    }
-
-    function _setUpInitializeEndValidation(
-        bytes32 nodeID,
-        bytes32 subnetID,
-        uint64 weight,
-        uint64 registrationExpiry,
-        bytes memory blsPublicKey,
+    function _initializeEndValidation(
+        bytes32 validationID,
         uint64 registrationTimestamp,
         uint64 completionTimestamp,
+        uint64 expectedNonce,
         bool includeUptime
-    ) internal returns (bytes32 validationID) {
-        validationID = _setUpCompleteValidatorRegistration({
-            nodeID: nodeID,
-            subnetID: subnetID,
-            weight: weight,
-            registrationExpiry: registrationExpiry,
-            blsPublicKey: blsPublicKey,
-            registrationTimestamp: registrationTimestamp
-        });
-
-        vm.warp(completionTimestamp);
+    ) internal {
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, expectedNonce, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
+
         if (includeUptime) {
             bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
                 validationID, completionTimestamp - registrationTimestamp
@@ -403,10 +362,20 @@ abstract contract ValidatorManagerTest is Test {
             _mockGetUptimeWarpMessage(uptimeMsg, true);
             _mockGetBlockchainID();
         }
-        vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp);
 
+        vm.warp(completionTimestamp);
         _initializeEndValidation(validationID, includeUptime);
+    }
+
+    function _registerDefaultValidator() internal returns (bytes32 validationID) {
+        return _registerValidator({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
     }
 
     function _mockSendWarpMessage(bytes memory payload, bytes32 expectedMessageID) internal {
