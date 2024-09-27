@@ -248,7 +248,7 @@ abstract contract PoSValidatorManager is
         return (reward > 0);
     }
 
-    function completeEndValidation(uint32 messageIndex) external {
+    function completeEndValidation(uint32 messageIndex) external nonReentrant {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         (bytes32 validationID, Validator memory validator) = _completeEndValidation(messageIndex);
