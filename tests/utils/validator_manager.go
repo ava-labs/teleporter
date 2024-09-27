@@ -929,7 +929,46 @@ func InitializeEndNativeValidation(
 	return WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 }
 
+func ForceInitializeEndNativeValidation(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
+	validationID ids.ID,
+) *types.Receipt {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := stakingManager.ForceInitializeEndValidation(
+		opts,
+		validationID,
+		false,
+		0,
+	)
+	Expect(err).Should(BeNil())
+	return WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+}
+
 func InitializeEndERC20Validation(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
+	validationID ids.ID,
+	force bool,
+) *types.Receipt {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := stakingManager.InitializeEndValidation(
+		opts,
+		validationID,
+		false,
+		0,
+	)
+	Expect(err).Should(BeNil())
+	return WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+}
+
+func ForceInitializeEndERC20Validation(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
@@ -938,7 +977,7 @@ func InitializeEndERC20Validation(
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := stakingManager.InitializeEndValidation(
+	tx, err := stakingManager.ForceInitializeEndValidation(
 		opts,
 		validationID,
 		false,
@@ -1094,9 +1133,10 @@ func InitializeEndERC20Delegation(
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	delegationID ids.ID,
 ) *types.Receipt {
+	WaitMinStakeDuration(ctx, subnet, senderKey)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := stakingManager.InitializeEndDelegation(
+	tx, err := stakingManager.ForceInitializeEndDelegation(
 		opts,
 		delegationID,
 		false,
@@ -1184,9 +1224,10 @@ func InitializeEndNativeDelegation(
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
 	delegationID ids.ID,
 ) *types.Receipt {
+	WaitMinStakeDuration(ctx, subnet, senderKey)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := stakingManager.InitializeEndDelegation(
+	tx, err := stakingManager.ForceInitializeEndDelegation(
 		opts,
 		delegationID,
 		false,
@@ -1232,7 +1273,7 @@ func InitializeAndCompleteEndNativeValidation(
 	nonce uint64,
 ) {
 	WaitMinStakeDuration(ctx, subnetInfo, fundedKey)
-	receipt := InitializeEndNativeValidation(
+	receipt := ForceInitializeEndNativeValidation(
 		ctx,
 		fundedKey,
 		subnetInfo,
@@ -1297,7 +1338,7 @@ func InitializeAndCompleteEndERC20Validation(
 	nonce uint64,
 ) {
 	WaitMinStakeDuration(ctx, subnetInfo, fundedKey)
-	receipt := InitializeEndERC20Validation(
+	receipt := ForceInitializeEndERC20Validation(
 		ctx,
 		fundedKey,
 		subnetInfo,
