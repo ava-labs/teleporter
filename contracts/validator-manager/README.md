@@ -54,7 +54,7 @@ Three concrete `ValidatorManager` contracts are provided - `PoAValidatorManager`
 
 Proof-of-Authority Validator management is provided via `PoAValidatorManager`, which restricts modification of the Validator set to an owner address. After deploying `PoAValidatorManager.sol` and a proxy, the `initialize` function takes the owner address, in addition to standard `ValidatorManagerSettings`.
 
-### PoSValidatorManagerr
+### PoSValidatorManager
 
 Proof-of-Stake Validator management is provided by the abstract contract `PoSValidatorManager`, which has two concrete implementations: `NativeTokenStakingManager` and `ERC20TokenStakingManager`. In addition to basic Validator management provided in `ValidatorManager`, `PoSValidatorManager` supports uptime-based Validation rewards, as well as Delegation to a Validator. This [state transition diagram](./StateTransition.md) illustrates the relationship between Validators and Delegators.
 
