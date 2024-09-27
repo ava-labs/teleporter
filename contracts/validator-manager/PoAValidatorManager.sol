@@ -15,6 +15,11 @@ import {
 } from "./interfaces/IValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
 
+/**
+ * @dev Implementation of the {IPoAValidatorManager} interface.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ */
 contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableUpgradeable {
     constructor(ICMInitializable init) {
         if (init == ICMInitializable.Disallowed) {

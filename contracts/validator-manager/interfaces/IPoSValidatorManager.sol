@@ -8,6 +8,9 @@ pragma solidity 0.8.25;
 import {IValidatorManager, ValidatorManagerSettings} from "./IValidatorManager.sol";
 import {IRewardCalculator} from "./IRewardCalculator.sol";
 
+/**
+ * @dev Delegator status
+ */
 enum DelegatorStatus {
     Unknown,
     PendingAdded,
@@ -15,7 +18,9 @@ enum DelegatorStatus {
     PendingRemoved
 }
 
-// TODO: visit types of these fields, for example uint64 might be too big for stake duration seconds.
+/**
+ * @dev PoS Validator Manager settings, used to initialize the PoS Validator Manager
+ */
 struct PoSValidatorManagerSettings {
     ValidatorManagerSettings baseSettings;
     uint256 minimumStakeAmount;
@@ -26,6 +31,9 @@ struct PoSValidatorManagerSettings {
     IRewardCalculator rewardCalculator;
 }
 
+/**
+ * @dev Contains the active state of a Delegator
+ */
 struct Delegator {
     DelegatorStatus status;
     address owner;
@@ -36,6 +44,9 @@ struct Delegator {
     uint64 endingNonce;
 }
 
+/**
+ * @dev Describes the active state of a PoS Validator. Extends {IValidatorManager-Validator}
+ */
 struct PoSValidatorInfo {
     address owner;
     uint16 delegationFeeBips;
@@ -43,6 +54,9 @@ struct PoSValidatorInfo {
     uint64 uptimeSeconds;
 }
 
+/**
+ * @notice Interface for Proof of Stake Validator Managers
+ */
 interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Event emitted when a delegator registration is initiated

@@ -12,7 +12,6 @@ import {
     ValidatorStatus,
     Validator,
     ValidatorChurnPeriod,
-    ValidatorWeightUpdate,
     SubnetConversionData,
     InitialValidator,
     ValidatorRegistrationInput
@@ -27,6 +26,11 @@ import {ContextUpgradeable} from
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 
+/**
+ * @dev Implementation of the {IValidatorManager} interface.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ */
 abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValidatorManager {
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
@@ -52,7 +56,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.ValidatorManager")) - 1)) & ~bytes32(uint256(0xff));
-    // TODO: Unit test for storage slot and update slot
     bytes32 public constant VALIDATOR_MANAGER_STORAGE_LOCATION =
         0xe92546d698950ddd38910d2e15ed1d923cd0a7b3dde9e2a6a3f380565559cb00;
 

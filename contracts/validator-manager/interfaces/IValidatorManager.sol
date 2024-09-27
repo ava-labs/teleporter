@@ -5,6 +5,9 @@
 
 pragma solidity 0.8.25;
 
+/**
+ * @dev Validator status
+ */
 enum ValidatorStatus {
     Unknown,
     PendingAdded,
@@ -14,6 +17,9 @@ enum ValidatorStatus {
     Invalidated
 }
 
+/**
+ * @dev Contains the active state of a Validator
+ */
 struct Validator {
     ValidatorStatus status;
     bytes32 nodeID;
@@ -24,6 +30,9 @@ struct Validator {
     uint64 endedAt;
 }
 
+/**
+ * @dev Describes the current churn period
+ */
 struct ValidatorChurnPeriod {
     uint256 startedAt;
     uint256 initialWeight;
@@ -32,25 +41,20 @@ struct ValidatorChurnPeriod {
 }
 
 /**
- * @notice Event emitted when validator weight is updated.
- * @param validationID The ID of the validation period
- * @param nonce The message nonce used to update the validator weight
- * @param validatorWeight The updated validator weight that is sent to the P-Chain
- * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
+ * @dev Validator Manager settings, used to initialize the Validator Manager
  */
-event ValidatorWeightUpdate(
-    bytes32 indexed validationID,
-    uint64 indexed nonce,
-    uint64 validatorWeight,
-    bytes32 setWeightMessageID
-);
-
 struct ValidatorManagerSettings {
     bytes32 subnetID;
     uint64 churnPeriodSeconds;
     uint8 maximumChurnPercentage;
 }
 
+/**
+ * @dev Description of the subnet conversion data used to convert
+ * a subnet to a permissionless subnet on the P-Chain.
+ * This data is the pre-image of a hash that is authenticated by the P-Chain
+ * and verified by the Validator Manager.
+ */
 struct SubnetConversionData {
     bytes32 convertSubnetTxID;
     bytes32 validatorManagerBlockchainID;
@@ -58,18 +62,27 @@ struct SubnetConversionData {
     InitialValidator[] initialValidators;
 }
 
+/**
+ * @dev Specifies an initial validator, used in the subnet conversion data.
+ */
 struct InitialValidator {
     bytes32 nodeID;
     uint64 weight;
     bytes blsPublicKey;
 }
 
+/**
+ * @dev Specifies a validator to register.
+ */
 struct ValidatorRegistrationInput {
     bytes32 nodeID;
     uint64 registrationExpiry;
     bytes blsPublicKey;
 }
 
+/**
+ * @notice Interface for Validator Manager contracts that implement Subnet-only Validator management.
+ */
 interface IValidatorManager {
     /**
      * @notice Emitted when a new validation period is created by stake being locked in the manager contract.
@@ -129,6 +142,20 @@ interface IValidatorManager {
      * @param validationID The ID of the validation period being removed.
      */
     event ValidationPeriodEnded(bytes32 indexed validationID, ValidatorStatus indexed status);
+
+    /**
+     * @notice Event emitted when validator weight is updated.
+     * @param validationID The ID of the validation period
+     * @param nonce The message nonce used to update the validator weight
+     * @param validatorWeight The updated validator weight that is sent to the P-Chain
+     * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
+     */
+    event ValidatorWeightUpdate(
+        bytes32 indexed validationID,
+        uint64 indexed nonce,
+        uint64 validatorWeight,
+        bytes32 setWeightMessageID
+    );
 
     /**
      * @notice Verifies and sets the initial validator set for the chain through a P-Chain

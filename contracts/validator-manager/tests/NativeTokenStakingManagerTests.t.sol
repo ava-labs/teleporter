@@ -19,8 +19,6 @@ import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 
-// TODO: Remove this once all unit tests implemented
-// solhint-disable no-empty-blocks
 contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     NativeTokenStakingManager public app;
 
@@ -200,9 +198,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         return app.initializeDelegatorRegistration{value: value}(validationID);
     }
 
+    // solhint-disable no-empty-blocks
     function _beforeSend(uint256 amount, address spender) internal override {
         // Native tokens no need pre approve
     }
+    // solhint-enable no-empty-blocks
 
     function _expectStakeUnlock(address account, uint256 amount) internal override {
         // empty calldata implies the receive function will be called
@@ -230,5 +230,3 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         return account.balance;
     }
 }
-// TODO: Remove this once all unit tests implemented
-// solhint-enable no-empty-blocks
