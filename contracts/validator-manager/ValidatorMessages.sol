@@ -154,6 +154,9 @@ library ValidatorMessages {
             subnetConversionData.validatorManagerAddress,
             uint32(subnetConversionData.initialValidators.length)
         );
+        // The approach below of encoding initialValidators using `abi.encodePacked` in a loop
+        // was tested against pre-allocating the array and doing manual byte by byte packing and
+        // it was found to be more gas efficient.
         for (uint256 i = 0; i < subnetConversionData.initialValidators.length; i++) {
             res = abi.encodePacked(
                 res,
