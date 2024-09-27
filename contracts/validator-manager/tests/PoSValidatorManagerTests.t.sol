@@ -355,7 +355,53 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
             endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
             expectedValidatorWeight: DEFAULT_WEIGHT,
-            expectedNonce: 2
+            expectedNonce: 2,
+            includeUptime: true,
+            force: false
+        });
+    }
+
+    function testInitializeEndDelegationInsufficientUptime() public {
+        bytes32 validationID = _registerDefaultValidator();
+        bytes32 delegationID = _registerDefaultDelegator(validationID);
+
+        vm.expectRevert(PoSValidatorManager.DelegatorIneligibleForRewards.selector);
+        vm.warp(DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP);
+        vm.prank(DEFAULT_DELEGATOR_ADDRESS);
+        posValidatorManager.initializeEndDelegation(delegationID, false, 0);
+    }
+
+    function testForceInitializeEndDelegation() public {
+        bytes32 validationID = _registerDefaultValidator();
+        bytes32 delegationID = _registerDefaultDelegator(validationID);
+
+        _initializeEndDelegationValidatorActiveWithChecks({
+            validationID: validationID,
+            delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
+            delegationID: delegationID,
+            startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
+            endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+            expectedValidatorWeight: DEFAULT_WEIGHT,
+            expectedNonce: 2,
+            includeUptime: true,
+            force: true
+        });
+    }
+
+    function testForceInitializeEndDelegationInsufficientUptime() public {
+        bytes32 validationID = _registerDefaultValidator();
+        bytes32 delegationID = _registerDefaultDelegator(validationID);
+
+        _initializeEndDelegationValidatorActiveWithChecks({
+            validationID: validationID,
+            delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
+            delegationID: delegationID,
+            startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
+            endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+            expectedValidatorWeight: DEFAULT_WEIGHT,
+            expectedNonce: 2,
+            includeUptime: false,
+            force: true
         });
     }
 
@@ -370,7 +416,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
             endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
             expectedValidatorWeight: DEFAULT_WEIGHT,
-            expectedNonce: 2
+            expectedNonce: 2,
+            includeUptime: true,
+            force: false
         });
         bytes memory setValidatorWeightPayload =
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 2, DEFAULT_WEIGHT);
@@ -408,7 +456,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
             endDelegationTimestamp: delgationEndTime,
             expectedValidatorWeight: DEFAULT_WEIGHT,
-            expectedNonce: 2
+            expectedNonce: 2,
+            includeUptime: true,
+            force: false
         });
 
         uint256 expectedTotalReward = rewardCalculator.calculateReward({
@@ -467,7 +517,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
             endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
             expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
-            expectedNonce: 3
+            expectedNonce: 3,
+            includeUptime: true,
+            force: false
         });
         _initializeEndDelegationValidatorActiveWithChecks({
             validationID: validationID,
@@ -476,7 +528,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
             endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP + 1,
             expectedValidatorWeight: DEFAULT_WEIGHT,
-            expectedNonce: 4
+            expectedNonce: 4,
+            includeUptime: true,
+            force: false
         });
 
         // Complete ending delegator2 with delegator1's nonce
@@ -525,7 +579,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             startDelegationTimestamp: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
             expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
-            expectedNonce: 3
+            expectedNonce: 3,
+            includeUptime: true,
+            force: false
         });
         _initializeEndDelegationValidatorActiveWithChecks({
             validationID: validationID,
@@ -534,7 +590,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             startDelegationTimestamp: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP + 1,
             expectedValidatorWeight: DEFAULT_WEIGHT,
-            expectedNonce: 4
+            expectedNonce: 4,
+            includeUptime: true,
+            force: false
         });
 
         uint256 expectedTotalReward = rewardCalculator.calculateReward({
@@ -865,7 +923,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 startDelegationTimestamp,
         uint64 endDelegationTimestamp,
         uint64 expectedValidatorWeight,
-        uint64 expectedNonce
+        uint64 expectedNonce,
+        bool includeUptime,
+        bool force
     ) internal {
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit ValidatorWeightUpdate({
@@ -889,7 +949,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             startDelegationTimestamp: startDelegationTimestamp,
             endDelegationTimestamp: endDelegationTimestamp,
             expectedValidatorWeight: expectedValidatorWeight,
-            expectedNonce: expectedNonce
+            expectedNonce: expectedNonce,
+            includeUptime: includeUptime,
+            force: force
         });
     }
 
@@ -900,7 +962,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 startDelegationTimestamp,
         uint64 endDelegationTimestamp,
         uint64 expectedValidatorWeight,
-        uint64 expectedNonce
+        uint64 expectedNonce,
+        bool includeUptime,
+        bool force
     ) internal {
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSetSubnetValidatorWeightMessage(validationID, expectedNonce, expectedValidatorWeight);
@@ -908,20 +972,29 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
             validationID, endDelegationTimestamp - startDelegationTimestamp
         );
-        _mockGetUptimeWarpMessage(uptimeMsg, true);
-        _mockGetBlockchainID();
-
-        _initializeEndDelegation(delegatorAddress, delegationID, endDelegationTimestamp);
+        if (includeUptime) {
+            _mockGetUptimeWarpMessage(uptimeMsg, true);
+            _mockGetBlockchainID();
+        }
+        _initializeEndDelegation(
+            delegatorAddress, delegationID, endDelegationTimestamp, includeUptime, force
+        );
     }
 
     function _initializeEndDelegation(
         address delegatorAddress,
         bytes32 delegationID,
-        uint64 endDelegationTimestamp
+        uint64 endDelegationTimestamp,
+        bool includeUptime,
+        bool force
     ) internal {
         vm.warp(endDelegationTimestamp);
         vm.prank(delegatorAddress);
-        posValidatorManager.initializeEndDelegation(delegationID, true, 0);
+        if (force) {
+            posValidatorManager.forceInitializeEndDelegation(delegationID, includeUptime, 0);
+        } else {
+            posValidatorManager.initializeEndDelegation(delegationID, includeUptime, 0);
+        }
     }
 
     function _completeEndValidationWithChecks(

@@ -1135,7 +1135,7 @@ func InitializeEndERC20Delegation(
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := stakingManager.InitializeEndDelegation(
+	tx, err := stakingManager.ForceInitializeEndDelegation(
 		opts,
 		delegationID,
 		false,
@@ -1225,7 +1225,7 @@ func InitializeEndNativeDelegation(
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := stakingManager.InitializeEndDelegation(
+	tx, err := stakingManager.ForceInitializeEndDelegation(
 		opts,
 		delegationID,
 		false,

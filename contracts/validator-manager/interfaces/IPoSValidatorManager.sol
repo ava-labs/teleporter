@@ -170,19 +170,40 @@ interface IPoSValidatorManager is IValidatorManager {
     function endDelegationCompletedValidator(bytes32 delegationID) external;
 
     /**
-     * @notice Begins the process of removing a delegator from a validation period. The delegator must have been previously
-     * registered with the given validationID. For the purposes of computing delegation rewards, the delegation period is
-     * considered ended when this function is called. In order to be eligible for rewards, an uptime proof must be provided.
+     * @notice Begins the process of removing a delegator from a validation period, and reverts if the delegation is not eligible for rewards.
+     * The delegator must have been previously registered with the given validationID. For the purposes of computing delegation rewards,
+     * the delegation period is considered ended when this function is called. Uses the supplied uptime proof to calculate rewards.
+     * If none is provided in the call, the latest known uptime will be used. Reverts if the uptime is not eligible for rewards.
      * Note that this function can only be called by the address that registered the delegation.
      * @param delegationID The ID of the delegation being removed.
      * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
      * If the validator has completed its validation period, it has already provided an uptime proof, so {includeUptimeProof}
      * will be ignored and can be set to false. If the validator has not completed its validation period and no uptime proof
-     * is provided, the validation uptime for the delegation period will be assumed to be 0.
+     * is provided, the latest known uptime will be used.
      * @param messageIndex If {includeUptimeProof} is true, the index of the Warp message to be received providing the
      * uptime proof.
      */
     function initializeEndDelegation(
+        bytes32 delegationID,
+        bool includeUptimeProof,
+        uint32 messageIndex
+    ) external;
+
+    /**
+     * @notice Begins the process of removing a delegator from a validation period, but does not revert if the delegation is not eligible for rewards.
+     * The delegator must have been previously registered with the given validationID. For the purposes of computing delegation rewards,
+     * the delegation period is considered ended when this function is called. Uses the supplied uptime proof to calculate rewards.
+     * If none is provided in the call, the latest known uptime will be used. Reverts if the uptime is not eligible for rewards.
+     * Note that this function can only be called by the address that registered the delegation.
+     * @param delegationID The ID of the delegation being removed.
+     * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
+     * If the validator has completed its validation period, it has already provided an uptime proof, so {includeUptimeProof}
+     * will be ignored and can be set to false. If the validator has not completed its validation period and no uptime proof
+     * is provided, the latest known uptime will be used.
+     * @param messageIndex If {includeUptimeProof} is true, the index of the Warp message to be received providing the
+     * uptime proof.
+     */
+    function forceInitializeEndDelegation(
         bytes32 delegationID,
         bool includeUptimeProof,
         uint32 messageIndex

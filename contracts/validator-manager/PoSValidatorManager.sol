@@ -81,6 +81,7 @@ abstract contract PoSValidatorManager is
     error InvalidStakeAmount();
     error InvalidStakeMultiplier();
     error ValidatorIneligibleForRewards();
+    error DelegatorIneligibleForRewards();
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
@@ -512,6 +513,25 @@ abstract contract PoSValidatorManager is
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
+        if (_initializeEndDelegation(delegationID, includeUptimeProof, messageIndex) == 0) {
+            revert DelegatorIneligibleForRewards();
+        }
+    }
+
+    function forceInitializeEndDelegation(
+        bytes32 delegationID,
+        bool includeUptimeProof,
+        uint32 messageIndex
+    ) external {
+        // Ignore the return value here to force end delegation, regardless of possible missed rewards
+        _initializeEndDelegation(delegationID, includeUptimeProof, messageIndex);
+    }
+
+    function _initializeEndDelegation(
+        bytes32 delegationID,
+        bool includeUptimeProof,
+        uint32 messageIndex
+    ) internal returns (uint256) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
@@ -553,7 +573,7 @@ abstract contract PoSValidatorManager is
             delegationEndTime = validator.endedAt;
         }
 
-        $._redeemableDelegatorRewards[delegationID] = $._rewardCalculator.calculateReward({
+        uint256 reward = $._rewardCalculator.calculateReward({
             stakeAmount: weightToValue(delegator.weight),
             validatorStartTime: validator.startedAt,
             stakingStartTime: delegator.startedAt,
@@ -562,7 +582,7 @@ abstract contract PoSValidatorManager is
             initialSupply: 0,
             endSupply: 0
         });
-
+        $._redeemableDelegatorRewards[delegationID] = reward;
         $._delegatorStakes[delegationID] = delegator;
 
         emit DelegatorRemovalInitialized({
@@ -570,6 +590,8 @@ abstract contract PoSValidatorManager is
             validationID: validationID,
             endTime: delegationEndTime
         });
+
+        return reward;
     }
 
     /**
