@@ -185,10 +185,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         $._churnTracker.totalWeight = totalWeight;
 
         // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
-        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
-        // Parse the Warp message into SubnetConversionMessage
-        bytes32 subnetConversionID =
-            ValidatorMessages.unpackSubnetConversionMessage(warpMessage.payload);
+        bytes32 subnetConversionID = ValidatorMessages.unpackSubnetConversionMessage(
+            _getPChainWarpMessage(messageIndex).payload
+        );
         bytes memory encodedConversion =
             ValidatorMessages.packSubnetConversionData(subnetConversionData);
         if (sha256(encodedConversion) != subnetConversionID) {
@@ -287,9 +286,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
      */
     function completeValidatorRegistration(uint32 messageIndex) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
-        (bytes32 validationID, bool validRegistration) =
-            ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
+        (bytes32 validationID, bool validRegistration) = ValidatorMessages
+            .unpackSubnetValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
 
         if (!validRegistration) {
             revert UnexpectedRegistrationStatus();
@@ -396,10 +394,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Get the Warp message.
-        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
-
-        (bytes32 validationID, bool validRegistration) =
-            ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
+        (bytes32 validationID, bool validRegistration) = ValidatorMessages
+            .unpackSubnetValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
         if (validRegistration) {
             revert UnexpectedRegistrationStatus();
         }
