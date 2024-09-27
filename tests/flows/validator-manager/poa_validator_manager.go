@@ -107,6 +107,7 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 
 		// Initiate validator registration
 		validationID = utils.InitializeAndCompletePoAValidatorRegistration(
+			ctx,
 			network,
 			signatureAggregator,
 			ownerKey,
@@ -133,6 +134,7 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		Expect(err).ShouldNot(BeNil())
 
 		utils.InitializeAndCompleteEndPoAValidation(
+			ctx,
 			network,
 			signatureAggregator,
 			ownerKey,
