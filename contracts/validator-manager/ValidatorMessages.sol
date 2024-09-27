@@ -146,48 +146,24 @@ library ValidatorMessages {
         pure
         returns (bytes memory)
     {
-        // The formula for the length in the comment above is VM agnostic, but in EVM
-        // the address length is always 20 bytes so the constant term is 72 + 20 = 92.
-        bytes memory res = new bytes(92 + subnetConversionData.initialValidators.length * 88);
-        // Pack the convertSubnetTx ID
-        for (uint256 i; i < 32; ++i) {
-            res[i] = subnetConversionData.convertSubnetTxID[i];
-        }
-        // Pack the validatorManagerBlockchainID
-        for (uint256 i; i < 32; ++i) {
-            res[i + 32] = subnetConversionData.validatorManagerBlockchainID[i];
-        }
-        // Pack the ADDRESS_LENGTH
-        for (uint256 i; i < 4; ++i) {
-            res[i + 64] = bytes1(uint8(20 >> (8 * (3 - i))));
-        }
-        // Pack the address
-        bytes20 addrBytes = bytes20(subnetConversionData.validatorManagerAddress);
-        for (uint256 i = 0; i < 20; ++i) {
-            res[i + 68] = addrBytes[i];
-        }
-
-        // Pack the initial validators length
-        uint32 ivLength = uint32(subnetConversionData.initialValidators.length);
-        for (uint256 i; i < 4; ++i) {
-            res[i + 88] = bytes1(uint8(ivLength >> (8 * (3 - i))));
-        }
-
+        // Hardcoded 20 is for length of the managerAddress
+        bytes memory res = abi.encodePacked(
+            subnetConversionData.convertSubnetTxID,
+            subnetConversionData.validatorManagerBlockchainID,
+            uint32(20),
+            subnetConversionData.validatorManagerAddress,
+            uint32(subnetConversionData.initialValidators.length)
+        );
+        // The approach below of encoding initialValidators using `abi.encodePacked` in a loop
+        // was tested against pre-allocating the array and doing manual byte by byte packing and
+        // it was found to be more gas efficient.
         for (uint256 i = 0; i < subnetConversionData.initialValidators.length; i++) {
-            uint256 offset = 92 + i * 88;
-            // Pack the nodeID
-            for (uint256 j; j < 32; ++j) {
-                res[offset + j] = subnetConversionData.initialValidators[i].nodeID[j];
-            }
-            // Pack the weight
-            for (uint256 j; j < 8; ++j) {
-                res[offset + 32 + j] =
-                    bytes1(uint8(subnetConversionData.initialValidators[i].weight >> (8 * (7 - j))));
-            }
-            // Pack the blsPublicKey
-            for (uint256 j; j < 48; ++j) {
-                res[offset + 40 + j] = subnetConversionData.initialValidators[i].blsPublicKey[j];
-            }
+            res = abi.encodePacked(
+                res,
+                subnetConversionData.initialValidators[i].nodeID,
+                subnetConversionData.initialValidators[i].weight,
+                subnetConversionData.initialValidators[i].blsPublicKey
+            );
         }
         return res;
     }
