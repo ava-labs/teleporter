@@ -12,7 +12,6 @@ import {
     ValidatorStatus,
     Validator,
     ValidatorChurnPeriod,
-    ValidatorWeightUpdate,
     SubnetConversionData,
     InitialValidator,
     ValidatorRegistrationInput
