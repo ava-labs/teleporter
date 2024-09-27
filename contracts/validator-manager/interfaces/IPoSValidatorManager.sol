@@ -54,7 +54,7 @@ struct PoSValidatorInfo {
     uint64 uptimeSeconds;
 }
 
-/** 
+/**
  * @notice Interface for Proof of Stake Validator Managers
  */
 interface IPoSValidatorManager is IValidatorManager {
