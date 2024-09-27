@@ -25,6 +25,11 @@ import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 import {ReentrancyGuardUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
 
+/**
+ * @dev Implementation of the {IPoSValidatorManager} interface.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ */
 abstract contract PoSValidatorManager is
     IPoSValidatorManager,
     ValidatorManager,
@@ -63,7 +68,6 @@ abstract contract PoSValidatorManager is
     // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.PoSValidatorManager")) - 1)) & ~bytes32(uint256(0xff));
-    // TODO: Unit test for storage slot and update slot
     bytes32 public constant POS_VALIDATOR_MANAGER_STORAGE_LOCATION =
         0x4317713f7ecbdddd4bc99e95d903adedaa883b2e7c2551610bd13e2c7e473d00;
 

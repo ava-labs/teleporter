@@ -16,6 +16,11 @@ import {PoSValidatorManager} from "./PoSValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {ValidatorRegistrationInput} from "./interfaces/IValidatorManager.sol";
 
+/**
+ * @dev Implementation of the {IERC20TokenStakingManager} interface.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ */
 contract ERC20TokenStakingManager is
     Initializable,
     PoSValidatorManager,
@@ -33,7 +38,6 @@ contract ERC20TokenStakingManager is
     // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.ERC20TokenStakingManager")) - 1)) & ~bytes32(uint256(0xff));
-    // TODO: Update to correct storage slot
     bytes32 public constant ERC20_STAKING_MANAGER_STORAGE_LOCATION =
         0x6e5bdfcce15e53c3406ea67bfce37dcd26f5152d5492824e43fd5e3c8ac5ab00;
 
@@ -70,7 +74,7 @@ contract ERC20TokenStakingManager is
         __ERC20TokenStakingManager_init(settings, token);
     }
 
-    // solhint-disable func-name-mixedcase
+    // solhint-disable-next-line func-name-mixedcase
     function __ERC20TokenStakingManager_init(
         PoSValidatorManagerSettings calldata settings,
         IERC20Mintable token
@@ -79,7 +83,7 @@ contract ERC20TokenStakingManager is
         __ERC20TokenStakingManager_init_unchained(token);
     }
 
-    // solhint-disable func-name-mixedcase
+    // solhint-disable-next-line func-name-mixedcase
     function __ERC20TokenStakingManager_init_unchained(IERC20Mintable token)
         internal
         onlyInitializing
@@ -123,6 +127,7 @@ contract ERC20TokenStakingManager is
         return _getERC20StakingManagerStorage()._token.safeTransferFrom(value);
     }
 
+    // Must be guarded with reentrancy guard for safe transfer from
     function _unlock(address to, uint256 value) internal virtual override {
         _getERC20StakingManagerStorage()._token.safeTransfer(to, value);
     }

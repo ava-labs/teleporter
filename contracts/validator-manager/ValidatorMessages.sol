@@ -6,6 +6,10 @@ pragma solidity 0.8.25;
 
 import {SubnetConversionData} from "./interfaces/IValidatorManager.sol";
 
+/**
+ @dev Packing utilities for the Warp message types used by the Validator Manager contracts, as specified in ACP-77:
+ * https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets
+ */
 library ValidatorMessages {
     // The information that uniquely identifies a subnet validation period.
     // The validationID is the SHA-256 hash of the concatenation of the CODEC_ID,

@@ -16,6 +16,11 @@ import {PoSValidatorManager} from "./PoSValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {ValidatorRegistrationInput} from "./interfaces/IValidatorManager.sol";
 
+/**
+ * @dev Implementation of the {INativeTokenStakingManager} interface.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ */
 contract NativeTokenStakingManager is
     Initializable,
     PoSValidatorManager,
