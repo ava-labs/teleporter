@@ -1,0 +1,71 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  solidity-unit-tests:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        run: ./scripts/install_foundry.sh
+
+      - name: Run unit tests
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          cd contracts/
+          forge test -vvv
+
+  go-unit-tests:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repositories and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Run Go unit tests
+        run: |
+          source scripts/constants.sh
+          go test ./...
+
+  e2e_tests:
+    name: e2e_tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repositories and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Install Foundry
+        run: ./scripts/install_foundry.sh
+
+      - name: Run E2E Tests
+        # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          export PATH="$PATH:$GOPATH/bin"
+          ./scripts/e2e_test.sh

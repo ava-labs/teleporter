@@ -1,0 +1,41 @@
+name: ABI Go Bindings Checker
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  abi_binding:
+    name: abi_binding
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout avalanche-interchain-token-transfer repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Install Foundry
+        run: ./scripts/install_foundry.sh
+
+      - name: Generate ABI Go bindings
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          export GOPATH=$HOME/go
+          export PATH="$PATH:$GOPATH/bin"
+          ./scripts/abi_bindings.sh
+
+      - name: Print diff
+        run: git --no-pager diff -- abi-bindings/**.go
+
+      - name: Fail if diff exists
+        run: git --no-pager diff --quiet -- abi-bindings/**.go

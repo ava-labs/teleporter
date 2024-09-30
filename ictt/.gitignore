@@ -1,0 +1,14 @@
+# Forge output files
+out/
+cache/
+target/
+bin/
+Cargo.lock
+
+# IDE configurations
+.vscode*
+
+# Ginkgo test outputs
+main.log
+server.log
+*.test
