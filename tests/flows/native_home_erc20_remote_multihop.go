@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
-	nativetokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/NativeTokenHome"
-	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
 	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/utils"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 

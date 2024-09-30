@@ -4,12 +4,11 @@ import (
 	"context"
 	"math/big"
 
-	erc20tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHome"
-	erc20tokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/ERC20TokenRemote"
-	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
+	erc20tokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/ERC20TokenRemote"
 	"github.com/ava-labs/teleporter/tests/interfaces"
-	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
+	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -23,13 +22,13 @@ import (
  */
 func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
+	subnetAInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on the primary network as the token to be transferred
-	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
+	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20Decimals(
 		ctx,
 		fundedKey,
 		cChainInfo,
@@ -104,7 +103,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
 	primaryFee := big.NewInt(1e18)
-	transferredAmount := teleporterUtils.BigIntSub(amount, primaryFee)
+	transferredAmount := utils.BigIntSub(amount, primaryFee)
 
 	// Send tokens from C-Chain to Mock contract on subnet A
 	{
@@ -113,8 +112,8 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 			DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
 			RecipientContract:                  remoteMockERC20SACRAddress,
 			RecipientPayload:                   []byte{1},
-			RequiredGasLimit:                   teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
-			RecipientGasLimit:                  teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
+			RequiredGasLimit:                   utils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
+			RecipientGasLimit:                  utils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
 			FallbackRecipient:                  fallbackAddress,
 			PrimaryFeeTokenAddress:             exampleERC20Address,
 			PrimaryFee:                         big.NewInt(1e18),
@@ -141,12 +140,12 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 			true,
 		)
 
-		event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenRemote.ParseCallSucceeded)
+		event, err := utils.GetEventFromLogs(receipt.Logs, erc20TokenRemote.ParseCallSucceeded)
 		Expect(err).Should(BeNil())
 		Expect(event.RecipientContract).Should(Equal(input.RecipientContract))
 		Expect(event.Amount).Should(Equal(transferredAmount))
 
-		receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, remoteMockERC20SACR.ParseTokensReceived)
+		receiverEvent, err := utils.GetEventFromLogs(receipt.Logs, remoteMockERC20SACR.ParseTokensReceived)
 		Expect(err).Should(BeNil())
 		Expect(receiverEvent.Amount).Should(Equal(transferredAmount))
 		Expect(receiverEvent.Payload).Should(Equal(input.RecipientPayload))
@@ -207,7 +206,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 	// Send tokens to mock contract on C-Chain using sendAndCall
 	{
 		// Fund recipient with gas tokens on subnet A
-		teleporterUtils.SendNativeTransfer(
+		utils.SendNativeTransfer(
 			ctx,
 			subnetAInfo,
 			fundedKey,
@@ -220,8 +219,8 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 			DestinationTokenTransferrerAddress: erc20TokenHomeAddress,
 			RecipientContract:                  homeMockERC20SACRAddress,
 			RecipientPayload:                   []byte{1},
-			RequiredGasLimit:                   teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
-			RecipientGasLimit:                  teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
+			RequiredGasLimit:                   utils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
+			RecipientGasLimit:                  utils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
 			FallbackRecipient:                  fallbackAddress,
 			PrimaryFeeTokenAddress:             erc20TokenRemoteAddress,
 			PrimaryFee:                         big.NewInt(1e10),
@@ -234,7 +233,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 			erc20TokenRemote,
 			erc20TokenRemoteAddress,
 			inputB,
-			teleporterUtils.BigIntSub(transferredAmount, inputB.PrimaryFee),
+			utils.BigIntSub(transferredAmount, inputB.PrimaryFee),
 			recipientKey,
 		)
 
@@ -246,12 +245,12 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 			true,
 		)
 
-		homeEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseCallSucceeded)
+		homeEvent, err := utils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseCallSucceeded)
 		Expect(err).Should(BeNil())
 		Expect(homeEvent.RecipientContract).Should(Equal(inputB.RecipientContract))
 		Expect(homeEvent.Amount).Should(Equal(transferredAmount))
 
-		receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, homeMockERC20SACR.ParseTokensReceived)
+		receiverEvent, err := utils.GetEventFromLogs(receipt.Logs, homeMockERC20SACR.ParseTokensReceived)
 		Expect(err).Should(BeNil())
 		Expect(receiverEvent.Amount).Should(Equal(transferredAmount))
 		Expect(receiverEvent.Payload).Should(Equal(inputB.RecipientPayload))

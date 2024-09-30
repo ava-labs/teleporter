@@ -4,11 +4,10 @@ import (
 	"context"
 	"math/big"
 
-	erc20tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHome"
-	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
 	"github.com/ava-labs/teleporter/tests/interfaces"
-	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
+	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -25,13 +24,13 @@ import (
 */
 func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo := teleporterUtils.GetTwoSubnets(network)
+	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on subnet A as the token to be transferred
-	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
+	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20Decimals(
 		ctx,
 		fundedKey,
 		cChainInfo,
@@ -166,7 +165,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmountA, subnetAInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmountA, subnetAInfo.RPCClient)
 
 	// Send tokens from C-Chain to Subnet B
 	inputB := erc20tokenhome.SendTokensInput{
@@ -200,7 +199,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmountB, subnetBInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmountB, subnetBInfo.RPCClient)
 
 	// Multi-hop transfer to Subnet B
 	// Send half of the received amount to account for gas expenses

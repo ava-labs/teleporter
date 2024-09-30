@@ -4,12 +4,10 @@ import (
 	"context"
 	"math/big"
 
-	erc20tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHome"
-	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/errors"
-	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
 	"github.com/ava-labs/teleporter/tests/interfaces"
-	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
+	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -25,13 +23,13 @@ import (
  */
 func RegistrationAndCollateralCheck(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
+	subnetAInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on subnet A as the token to be transferred
-	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
+	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20Decimals(
 		ctx,
 		fundedKey,
 		cChainInfo,
@@ -91,12 +89,12 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		amount,
 	)
 	Expect(err).Should(Not(BeNil()))
-	Expect(err.Error()).Should(ContainSubstring(errors.ErrRemoteNotRegistered))
+	Expect(err.Error()).Should(ContainSubstring(ErrRemoteNotRegistered))
 
 	// Check the balance of the ERC20TokenHome to ensure it was not changed
 	balance, err := exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHomeAddress)
 	Expect(err).Should(BeNil())
-	teleporterUtils.ExpectBigEqual(balance, initialBalance)
+	utils.ExpectBigEqual(balance, initialBalance)
 
 	// Register the NativeTokenRemote to the ERC20TokenHome
 	collateralNeeded := utils.RegisterTokenRemoteOnHome(
@@ -118,12 +116,12 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		amount,
 	)
 	Expect(err).Should(Not(BeNil()))
-	Expect(err.Error()).Should(ContainSubstring(errors.ErrNonZeroCollateralNeeded))
+	Expect(err.Error()).Should(ContainSubstring(ErrNonZeroCollateralNeeded))
 
 	// Check the balance of the ERC20TokenHome to ensure it was not changed
 	balance, err = exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHomeAddress)
 	Expect(err).Should(BeNil())
-	teleporterUtils.ExpectBigEqual(balance, initialBalance)
+	utils.ExpectBigEqual(balance, initialBalance)
 
 	// Add collateral to the ERC20TokenHome
 	utils.AddCollateralToERC20TokenHome(
@@ -142,10 +140,10 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	// Also set the new initial balance before sending tokens
 	balance, err = exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHomeAddress)
 	Expect(err).Should(BeNil())
-	teleporterUtils.ExpectBigEqual(balance, initialBalance.Add(initialBalance, collateralNeeded))
+	utils.ExpectBigEqual(balance, initialBalance.Add(initialBalance, collateralNeeded))
 
 	// Send the tokens and expect success now that collateral is added
-	utils.ERC20Approve(
+	utils.ERC20DecimalsApprove(
 		ctx,
 		exampleERC20,
 		erc20TokenHomeAddress,
@@ -160,8 +158,8 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	)
 	Expect(err).Should(BeNil())
 
-	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseTokensSent)
+	receipt := utils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
+	event, err := utils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(fundedKey.PublicKey)))
 
@@ -172,12 +170,12 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		input.DestinationTokenTransferrerAddress,
 		amount,
 	)
-	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
+	utils.ExpectBigEqual(event.Amount, scaledAmount)
 
 	// Check the balance of the ERC20TokenHome increased by the transferred amount
 	balance, err = exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHomeAddress)
 	Expect(err).Should(BeNil())
-	teleporterUtils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, amount))
+	utils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, amount))
 
 	// Relay the message to subnet A and check for a native token mint withdrawal
 	network.RelayMessage(
@@ -189,5 +187,5 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, scaledAmount, subnetAInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, scaledAmount, subnetAInfo.RPCClient)
 }

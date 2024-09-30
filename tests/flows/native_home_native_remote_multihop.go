@@ -4,10 +4,9 @@ import (
 	"context"
 	"math/big"
 
-	nativetokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/NativeTokenHome"
-	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
+	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
 	"github.com/ava-labs/teleporter/tests/interfaces"
-	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
+	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -24,7 +23,7 @@ import (
 */
 func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo := teleporterUtils.GetTwoSubnets(network)
+	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -162,7 +161,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmountA, subnetAInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmountA, subnetAInfo.RPCClient)
 
 	// Send tokens from C-Chain to Subnet B
 	inputB := nativetokenhome.SendTokensInput{
@@ -195,7 +194,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmountB, subnetBInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmountB, subnetBInfo.RPCClient)
 
 	// Multi-hop transfer to Subnet B
 	// Send half of the received amount to account for gas expenses

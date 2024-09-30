@@ -4,12 +4,12 @@ import (
 	"context"
 	"math/big"
 
-	erc20tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHome"
-	erc20tokenhomeupgradeable "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHomeUpgradeable"
-	erc20tokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/ERC20TokenRemote"
-	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
+	erc20tokenhomeupgradeable "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHomeUpgradeable"
+	erc20tokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/ERC20TokenRemote"
 	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/utils"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
@@ -35,7 +35,7 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on the primary network as the token to be transferred
-	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
+	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20Decimals(
 		ctx,
 		fundedKey,
 		cChainInfo,

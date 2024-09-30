@@ -4,11 +4,10 @@ import (
 	"context"
 	"math/big"
 
-	nativetokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/NativeTokenHome"
-	nativetokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/NativeTokenRemote"
-	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
+	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
+	nativetokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/NativeTokenRemote"
 	"github.com/ava-labs/teleporter/tests/interfaces"
-	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
+	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -21,7 +20,7 @@ import (
  */
 func NativeTokenHomeNativeDestination(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
+	subnetAInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -118,7 +117,7 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 			true,
 		)
 
-		teleporterUtils.CheckBalance(
+		utils.CheckBalance(
 			ctx,
 			recipientAddress,
 			amount,
@@ -168,6 +167,6 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 			homeAmount,
 		)
 
-		teleporterUtils.CheckBalance(ctx, recipientAddress, homeAmount, cChainInfo.RPCClient)
+		utils.CheckBalance(ctx, recipientAddress, homeAmount, cChainInfo.RPCClient)
 	}
 }
