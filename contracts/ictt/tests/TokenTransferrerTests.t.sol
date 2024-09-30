@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {Test} from "forge-std/Test.sol";
+import {Test} from "@forge-std/Test.sol";
 import {TeleporterRegistry} from "@teleporter/registry/TeleporterRegistry.sol";
 import {
     ITeleporterMessenger,
@@ -22,7 +22,7 @@ import {
     SingleHopCallMessage,
     MultiHopSendMessage,
     MultiHopCallMessage
-} from "../src/interfaces/ITokenTransferrer.sol";
+} from "../interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {IERC20Errors} from "@openzeppelin/contracts@5.0.2/interfaces/draft-IERC6093.sol";
 
@@ -411,7 +411,7 @@ abstract contract TokenTransferrerTest is Test {
                         recipientGasLimit: recipientGasLimit,
                         fallbackRecipient: fallbackRecipient
                     })
-                    )
+                )
             })
         );
     }
@@ -438,7 +438,7 @@ abstract contract TokenTransferrerTest is Test {
                         secondaryGasLimit: secondaryGasLimit,
                         multiHopFallback: multiHopFallback
                     })
-                    )
+                )
             })
         );
     }
@@ -473,7 +473,7 @@ abstract contract TokenTransferrerTest is Test {
                         secondaryRequiredGasLimit: secondaryRequiredGasLimit,
                         secondaryFee: secondaryFee
                     })
-                    )
+                )
             })
         );
     }

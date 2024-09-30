@@ -5,12 +5,12 @@
 
 pragma solidity 0.8.25;
 
-import {Test} from "forge-std/Test.sol";
+import {Test} from "@forge-std/Test.sol";
 // solhint-disable no-console
-import {ERC20TokenHomeUpgradeable} from "../src/TokenHome/ERC20TokenHomeUpgradeable.sol";
-import {ERC20TokenRemoteUpgradeable} from "../src/TokenRemote/ERC20TokenRemoteUpgradeable.sol";
-import {NativeTokenHomeUpgradeable} from "../src/TokenHome/NativeTokenHomeUpgradeable.sol";
-import {NativeTokenRemoteUpgradeable} from "../src/TokenRemote/NativeTokenRemoteUpgradeable.sol";
+import {ERC20TokenHomeUpgradeable} from "../TokenHome/ERC20TokenHomeUpgradeable.sol";
+import {ERC20TokenRemoteUpgradeable} from "../TokenRemote/ERC20TokenRemoteUpgradeable.sol";
+import {NativeTokenHomeUpgradeable} from "../TokenHome/NativeTokenHomeUpgradeable.sol";
+import {NativeTokenRemoteUpgradeable} from "../TokenRemote/NativeTokenRemoteUpgradeable.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 
 contract StorageSlotTest is Test {

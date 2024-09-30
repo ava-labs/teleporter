@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.25;
 
-import {Test} from "forge-std/Test.sol";
-import {ExampleERC20Decimals} from "../src/mocks/ExampleERC20Decimals.sol";
+import {Test} from "@forge-std/Test.sol";
+import {ExampleERC20Decimals} from "../mocks/ExampleERC20Decimals.sol";
 
 contract ExampleERC20DecimalsTest is Test {
     uint8 public constant MOCK_DECIMALS = 11;

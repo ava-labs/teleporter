@@ -7,11 +7,11 @@ pragma solidity 0.8.25;
 
 import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
 import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
-import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
-import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
-import {NativeTokenRemoteUpgradeable} from "../src/TokenRemote/NativeTokenRemoteUpgradeable.sol";
-import {NativeTokenRemote} from "../src/TokenRemote/NativeTokenRemote.sol";
-import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.sol";
+import {INativeSendAndCallReceiver} from "../interfaces/INativeSendAndCallReceiver.sol";
+import {TokenRemote} from "../TokenRemote/TokenRemote.sol";
+import {NativeTokenRemoteUpgradeable} from "../TokenRemote/NativeTokenRemoteUpgradeable.sol";
+import {NativeTokenRemote} from "../TokenRemote/NativeTokenRemote.sol";
+import {TokenRemoteSettings} from "../TokenRemote/interfaces/ITokenRemote.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {
@@ -19,10 +19,10 @@ import {
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
-import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
+import {SendTokensInput} from "../interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
-import {ExampleERC20} from "../lib/teleporter/contracts/mocks/ExampleERC20.sol";
+import {ExampleERC20} from "@mocks/ExampleERC20.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 

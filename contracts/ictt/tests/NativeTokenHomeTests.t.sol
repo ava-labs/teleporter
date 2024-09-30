@@ -7,11 +7,11 @@ pragma solidity 0.8.25;
 
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
-import {NativeTokenHomeUpgradeable} from "../src/TokenHome/NativeTokenHomeUpgradeable.sol";
-import {NativeTokenHome} from "../src/TokenHome/NativeTokenHome.sol";
-import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
-import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
-import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
+import {NativeTokenHomeUpgradeable} from "../TokenHome/NativeTokenHomeUpgradeable.sol";
+import {NativeTokenHome} from "../TokenHome/NativeTokenHome.sol";
+import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
+import {INativeSendAndCallReceiver} from "../interfaces/INativeSendAndCallReceiver.sol";
+import {WrappedNativeToken} from "../WrappedNativeToken.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";

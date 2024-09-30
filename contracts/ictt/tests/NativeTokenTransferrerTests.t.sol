@@ -6,8 +6,8 @@
 pragma solidity 0.8.25;
 
 import {TokenTransferrerTest} from "./TokenTransferrerTests.t.sol";
-import {INativeTokenTransferrer} from "../src/interfaces/INativeTokenTransferrer.sol";
-import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenTransferrer.sol";
+import {INativeTokenTransferrer} from "../interfaces/INativeTokenTransferrer.sol";
+import {SendTokensInput, SendAndCallInput} from "../interfaces/ITokenTransferrer.sol";
 
 abstract contract NativeTokenTransferrerTest is TokenTransferrerTest {
     INativeTokenTransferrer public nativeTokenTransferrer;

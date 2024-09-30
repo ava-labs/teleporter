@@ -7,20 +7,20 @@ pragma solidity 0.8.25;
 
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {TokenTransferrerTest} from "./TokenTransferrerTests.t.sol";
-import {TokenRemote, IWarpMessenger} from "../src/TokenRemote/TokenRemote.sol";
+import {TokenRemote, IWarpMessenger} from "../TokenRemote/TokenRemote.sol";
 import {TeleporterRegistry} from "@teleporter/registry/TeleporterRegistry.sol";
-import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenTransferrer.sol";
+import {SendTokensInput, SendAndCallInput} from "../interfaces/ITokenTransferrer.sol";
 import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
-import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
+import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
     TransferrerMessageType,
     TransferrerMessage,
     RegisterRemoteMessage
-} from "../src/interfaces/ITokenTransferrer.sol";
+} from "../interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
-import {ExampleERC20} from "../lib/teleporter/contracts/mocks/ExampleERC20.sol";
+import {ExampleERC20} from "@mocks/ExampleERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract TokenRemoteTest is TokenTransferrerTest {
@@ -428,7 +428,7 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
                     remoteTokenDecimals: tokenDecimals,
                     homeTokenDecimals: tokenHomeDecimals
                 })
-                )
+            )
         });
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: tokenRemote.getTokenHomeBlockchainID(),

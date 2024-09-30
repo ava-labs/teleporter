@@ -6,8 +6,8 @@
 pragma solidity 0.8.25;
 
 import {TokenTransferrerTest} from "./TokenTransferrerTests.t.sol";
-import {TokenHome, IWarpMessenger} from "../src/TokenHome/TokenHome.sol";
-import {RemoteTokenTransferrerSettings} from "../src/TokenHome/interfaces/ITokenHome.sol";
+import {TokenHome, IWarpMessenger} from "../TokenHome/TokenHome.sol";
+import {RemoteTokenTransferrerSettings} from "../TokenHome/interfaces/ITokenHome.sol";
 import {TeleporterRegistry} from "@teleporter/registry/TeleporterRegistry.sol";
 import {
     SendTokensInput,
@@ -16,7 +16,7 @@ import {
     TransferrerMessage,
     MultiHopSendMessage,
     RegisterRemoteMessage
-} from "../src/interfaces/ITokenTransferrer.sol";
+} from "../interfaces/ITokenTransferrer.sol";
 import {
     ITeleporterMessenger,
     TeleporterMessageInput,

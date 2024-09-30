@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.25;
 
-import {Test} from "forge-std/Test.sol";
-import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
+import {Test} from "@forge-std/Test.sol";
+import {WrappedNativeToken} from "../WrappedNativeToken.sol";
 
 contract WrappedNativeTokenTest is Test {
     address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
