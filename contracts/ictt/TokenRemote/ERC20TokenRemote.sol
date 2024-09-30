@@ -7,7 +7,7 @@ pragma solidity 0.8.25;
 
 import {ERC20TokenRemoteUpgradeable} from "./ERC20TokenRemoteUpgradeable.sol";
 import {TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
-import {ICTTInitializable} from "../utils/ICTTInitializable.sol";
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 
 /**
  * @title ERC20TokenRemote
@@ -20,7 +20,7 @@ contract ERC20TokenRemote is ERC20TokenRemoteUpgradeable {
         string memory tokenName,
         string memory tokenSymbol,
         uint8 tokenDecimals
-    ) ERC20TokenRemoteUpgradeable(ICTTInitializable.Allowed) {
+    ) ERC20TokenRemoteUpgradeable(ICMInitializable.Allowed) {
         initialize(settings, tokenName, tokenSymbol, tokenDecimals);
     }
 }

@@ -19,7 +19,7 @@ import {ERC20Upgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/ERC20Upgradeable.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
-import {ICTTInitializable} from "../utils/ICTTInitializable.sol";
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 
 /**
  * @title ERC20TokenRemoteUpgradeable
@@ -59,8 +59,8 @@ contract ERC20TokenRemoteUpgradeable is IERC20TokenTransferrer, ERC20Upgradeable
         }
     }
 
-    constructor(ICTTInitializable init) {
-        if (init == ICTTInitializable.Disallowed) {
+    constructor(ICMInitializable init) {
+        if (init == ICMInitializable.Disallowed) {
             _disableInitializers();
         }
     }

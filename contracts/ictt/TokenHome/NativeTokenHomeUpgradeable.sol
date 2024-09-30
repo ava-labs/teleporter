@@ -17,7 +17,7 @@ import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {SafeWrappedNativeTokenDeposit} from "../utils/SafeWrappedNativeTokenDeposit.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
-import {ICTTInitializable} from "../utils/ICTTInitializable.sol";
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 
 /**
  * @title NativeTokenHomeUpgradeable
@@ -58,8 +58,8 @@ contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
         }
     }
 
-    constructor(ICTTInitializable init) {
-        if (init == ICTTInitializable.Disallowed) {
+    constructor(ICMInitializable init) {
+        if (init == ICMInitializable.Disallowed) {
             _disableInitializers();
         }
     }

@@ -28,7 +28,7 @@ import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
-import {ICTTInitializable} from "../utils/ICTTInitializable.sol";
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 
 /**
  * @title NativeTokenRemoteUpgradeable
@@ -130,8 +130,8 @@ contract NativeTokenRemoteUpgradeable is
         _;
     }
 
-    constructor(ICTTInitializable init) {
-        if (init == ICTTInitializable.Disallowed) {
+    constructor(ICMInitializable init) {
+        if (init == ICMInitializable.Disallowed) {
             _disableInitializers();
         }
     }

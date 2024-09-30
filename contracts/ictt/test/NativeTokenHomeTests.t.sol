@@ -15,7 +15,7 @@ import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
-import {ICTTInitializable} from "../src/utils/ICTTInitializable.sol";
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
 contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
@@ -32,7 +32,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
         TokenHomeTest.setUp();
 
         wavax = new WrappedNativeToken("AVAX");
-        app = new NativeTokenHomeUpgradeable(ICTTInitializable.Allowed);
+        app = new NativeTokenHomeUpgradeable(ICMInitializable.Allowed);
         app.initialize(
             MOCK_TELEPORTER_REGISTRY_ADDRESS, MOCK_TELEPORTER_MESSENGER_ADDRESS, 1, address(wavax)
         );
@@ -47,12 +47,13 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
      * Initialization unit tests
      */
     function testNonUpgradeableInitialization() public {
-        app = new NativeTokenHome(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), 1, address(wavax));
+        app =
+            new NativeTokenHome(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), 1, address(wavax));
         assertEq(app.getBlockchainID(), DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID);
     }
 
     function testDisableInitialization() public {
-        app = new NativeTokenHomeUpgradeable(ICTTInitializable.Disallowed);
+        app = new NativeTokenHomeUpgradeable(ICMInitializable.Disallowed);
         vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         app.initialize(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), 1, address(wavax));
     }
@@ -171,7 +172,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
         address wrappedTokenAddress,
         bytes memory expectedErrorMessage
     ) private {
-        app = new NativeTokenHomeUpgradeable(ICTTInitializable.Allowed);
+        app = new NativeTokenHomeUpgradeable(ICMInitializable.Allowed);
         vm.expectRevert(expectedErrorMessage);
         app.initialize(teleporterRegistryAddress, teleporterManagerAddress, 1, wrappedTokenAddress);
     }
