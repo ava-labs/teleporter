@@ -24,6 +24,14 @@ const (
 	upgradabilityLabel       = "upgradability"
 	utilsLabel               = "utils"
 	validatorSetSigLabel     = "ValidatorSetSig"
+
+	erc20TokenHomeLabel    = "ERC20TokenHome"
+	erc20TokenRemoteLabel  = "ERC20TokenRemote"
+	nativeTokenHomeLabel   = "NativeTokenHome"
+	nativeTokenRemoteLabel = "NativeTokenRemote"
+	multiHopLabel          = "MultiHop"
+	sendAndCallLabel       = "SendAndCall"
+	registrationLabel      = "Registration"
 )
 
 var (
@@ -197,4 +205,61 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Since the validator churn test modifies the network topology, we put it last for now.
 	// It should not affect the other tests, but we get some errors if we run it before the other tests.
 	// TODO: we should fix this so that the order of the tests does not matter.
+
+	// ICTT tests
+	ginkgo.It("Transfer an ERC20 token between two Subnets",
+		ginkgo.Label(erc20TokenHomeLabel, erc20TokenRemoteLabel),
+		func() {
+			flows.ERC20TokenHomeERC20TokenRemote(LocalNetworkInstance)
+		})
+	ginkgo.It("Transfer a native token to an ERC20 token",
+		ginkgo.Label(nativeTokenHomeLabel, erc20TokenRemoteLabel),
+		func() {
+			flows.NativeTokenHomeERC20TokenRemote(LocalNetworkInstance)
+		})
+	ginkgo.It("Transfer a native token to a native token",
+		ginkgo.Label(nativeTokenHomeLabel, nativeTokenRemoteLabel),
+		func() {
+			flows.NativeTokenHomeNativeDestination(LocalNetworkInstance)
+		})
+	ginkgo.It("Transfer an ERC20 token with ERC20TokenHome multi-hop",
+		ginkgo.Label(erc20TokenHomeLabel, erc20TokenRemoteLabel, multiHopLabel),
+		func() {
+			flows.ERC20TokenHomeERC20TokenRemoteMultiHop(LocalNetworkInstance)
+		})
+	ginkgo.It("Transfer a native token with NativeTokenHome multi-hop",
+		ginkgo.Label(nativeTokenHomeLabel, erc20TokenRemoteLabel, multiHopLabel),
+		func() {
+			flows.NativeTokenHomeERC20TokenRemoteMultiHop(LocalNetworkInstance)
+		})
+	ginkgo.It("Transfer an ERC20 token to a native token",
+		ginkgo.Label(erc20TokenHomeLabel, nativeTokenRemoteLabel),
+		func() {
+			flows.ERC20TokenHomeNativeTokenRemote(LocalNetworkInstance)
+		})
+	ginkgo.It("Transfer a native token with ERC20TokenHome multi-hop",
+		ginkgo.Label(erc20TokenHomeLabel, nativeTokenRemoteLabel, multiHopLabel),
+		func() {
+			flows.ERC20TokenHomeNativeTokenRemoteMultiHop(LocalNetworkInstance)
+		})
+	ginkgo.It("Transfer a native token to a native token multi-hop",
+		ginkgo.Label(nativeTokenHomeLabel, nativeTokenRemoteLabel, multiHopLabel),
+		func() {
+			flows.NativeTokenHomeNativeTokenRemoteMultiHop(LocalNetworkInstance)
+		})
+	ginkgo.It("Transfer an ERC20 token using sendAndCall",
+		ginkgo.Label(erc20TokenHomeLabel, erc20TokenRemoteLabel, sendAndCallLabel),
+		func() {
+			flows.ERC20TokenHomeERC20TokenRemoteSendAndCall(LocalNetworkInstance)
+		})
+	ginkgo.It("Registration and collateral checks",
+		ginkgo.Label(erc20TokenHomeLabel, nativeTokenRemoteLabel, registrationLabel),
+		func() {
+			flows.RegistrationAndCollateralCheck(LocalNetworkInstance)
+		})
+	ginkgo.It("Transparent proxy upgrade",
+		ginkgo.Label(erc20TokenHomeLabel, erc20TokenRemoteLabel, upgradabilityLabel),
+		func() {
+			flows.TransparentUpgradeableProxy(LocalNetworkInstance)
+		})
 })

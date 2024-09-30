@@ -1,5 +1,0 @@
-@openzeppelin/contracts@5.0.2/=lib/openzeppelin-contracts/contracts/
-@openzeppelin/contracts-upgradeable@5.0.2/=lib/openzeppelin-contracts-upgradeable/contracts/
-@avalabs/subnet-evm-contracts@1.2.0/=lib/teleporter/lib/subnet-evm/contracts/
-@teleporter/=lib/teleporter/contracts/teleporter/
-@teleporter-mocks/=lib/teleporter/contracts/mocks
