@@ -161,6 +161,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         tokenTransferrer = app;
 
         vm.expectRevert("NativeTokenRemote: contract undercollateralized");
+        // solhint-disable-next-line check-send-result
         app.send{value: 1e17}(_createDefaultSendTokensInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
@@ -251,7 +252,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
         );
-
+        // solhint-disable-next-line check-send-result
         app.send{value: amount}(input);
     }
 

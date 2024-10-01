@@ -57,6 +57,7 @@ abstract contract ERC20TokenTransferrerTest is TokenTransferrerTest {
     }
 
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {
+        // solhint-disable-next-line check-send-result
         erc20TokenTransferrer.send(input, amount);
     }
 

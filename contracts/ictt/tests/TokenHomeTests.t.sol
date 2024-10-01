@@ -811,7 +811,7 @@ abstract contract TokenHomeTest is TokenTransferrerTest {
      * Different from `_setUpExpectedDeposit` since the send that follows isn't
      * expected to succeed. So `setUpDeposit` does not check for expected emit events.
      */
-    function _setUpDeposit(uint256 amount) internal virtual {}
+    function _setUpDeposit(uint256 amount) internal virtual;
 
     function _setUpRegisteredRemote(
         bytes32 remoteBlockchainID,
