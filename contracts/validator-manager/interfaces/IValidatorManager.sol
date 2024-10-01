@@ -17,12 +17,21 @@ enum ValidatorStatus {
     Invalidated
 }
 
+ /**
+  * @dev Specifies the owner of a validator's remaining balance or disable owner on the P-Chain.
+  * P-Chain addresses are also 20-bytes, so we use the address type to represent them.
+  */
+struct PChainOwner {
+    uint32 threshold;
+    address[] addresses;
+}
+
 /**
  * @dev Contains the active state of a Validator
  */
 struct Validator {
     ValidatorStatus status;
-    bytes32 nodeID;
+    bytes nodeID;
     uint64 startingWeight;
     uint64 messageNonce;
     uint64 weight;
@@ -56,7 +65,7 @@ struct ValidatorManagerSettings {
  * and verified by the Validator Manager.
  */
 struct SubnetConversionData {
-    bytes32 convertSubnetTxID;
+    bytes32 subnetID;
     bytes32 validatorManagerBlockchainID;
     address validatorManagerAddress;
     InitialValidator[] initialValidators;
@@ -66,18 +75,20 @@ struct SubnetConversionData {
  * @dev Specifies an initial validator, used in the subnet conversion data.
  */
 struct InitialValidator {
-    bytes32 nodeID;
-    uint64 weight;
+    bytes nodeID;
     bytes blsPublicKey;
+    uint64 weight;
 }
 
 /**
  * @dev Specifies a validator to register.
  */
 struct ValidatorRegistrationInput {
-    bytes32 nodeID;
-    uint64 registrationExpiry;
+    bytes nodeID;
     bytes blsPublicKey;
+    PChainOwner remainingBalanceOwner;
+    PChainOwner disableOwner;
+    uint64 registrationExpiry;
 }
 
 /**
@@ -98,14 +109,14 @@ interface IValidatorManager {
      */
     event ValidationPeriodCreated(
         bytes32 indexed validationID,
-        bytes32 indexed nodeID,
+        bytes indexed nodeID,
         bytes32 indexed registerValidationMessageID,
         uint256 weight,
         uint64 registrationExpiry
     );
 
     event InitialValidatorCreated(
-        bytes32 indexed validationID, bytes32 indexed nodeID, uint256 weight
+        bytes32 indexed validationID, bytes indexed nodeID, uint256 weight
     );
 
     /**
