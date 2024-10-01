@@ -10,6 +10,7 @@ Consumed by: Validator Manager contract
 
 Specification:
 
+```
 +--------------------+----------+----------+
 |            codecID :   uint16 |  2 bytes |
 +--------------------+----------+----------+
@@ -19,6 +20,7 @@ Specification:
 +--------------------+----------+----------+
                                 | 38 bytes |
                                 +----------+
+```
 
 ### `RegisterSubnetValidatorMessage`
 
