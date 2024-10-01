@@ -31,13 +31,13 @@ library ValidatorMessages {
     // Subnets send a RegisterSubnetValidator message to the P-Chain to register a validator.
     uint32 internal constant REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID = 1;
 
-    // Subnets can send a SetSubnetValidatorWeight message to the P-Chain to update a validator's weight.
-    // The P-Chain responds with a SetSubnetValidatorWeight message acknowledging the weight update.
-    uint32 internal constant SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID = 2;
-
     // The P-Chain responds with a RegisterSubnetValidator message indicating whether the registration was successful
     // for the given validation ID.
-    uint32 internal constant SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID = 3;
+    uint32 internal constant SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID = 2;
+
+    // Subnets can send a SetSubnetValidatorWeight message to the P-Chain to update a validator's weight.
+    // The P-Chain responds with a SetSubnetValidatorWeight message acknowledging the weight update.
+    uint32 internal constant SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID = 3;
 
     // The P-Chain responds with a SubnetValidatorWeightUpdateMessage message indicating whether the weight update was successful
     // for the given validation ID.
@@ -45,7 +45,7 @@ library ValidatorMessages {
 
     // The Subnet will self-sign a ValidationUptimeMessage to be provided when a validator is initiating
     // the end of their validation period.
-    uint32 internal constant VALIDATION_UPTIME_MESSAGE_TYPE_ID = 5;
+    uint32 internal constant VALIDATION_UPTIME_MESSAGE_TYPE_ID = 0;
 
     error InvalidMessageLength();
     error InvalidCodecID();
