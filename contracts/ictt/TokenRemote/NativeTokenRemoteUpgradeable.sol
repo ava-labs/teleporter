@@ -25,9 +25,9 @@ import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
 import {ERC20Upgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/ERC20Upgradeable.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
-import {CallUtils} from "../utils/CallUtils.sol";
-import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
-import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
+import {CallUtils} from "@utilities/CallUtils.sol";
+import {TokenScalingUtils} from "@utilities/TokenScalingUtils.sol";
+import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 
 /**

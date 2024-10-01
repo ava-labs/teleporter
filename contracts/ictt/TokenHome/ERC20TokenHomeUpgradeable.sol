@@ -15,8 +15,8 @@ import {
 } from "../interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
-import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
-import {CallUtils} from "../utils/CallUtils.sol";
+import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
+import {CallUtils} from "@utilities/CallUtils.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 
 /**

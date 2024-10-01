@@ -11,7 +11,7 @@ import {TokenRemote, IWarpMessenger} from "../TokenRemote/TokenRemote.sol";
 import {TeleporterRegistry} from "@teleporter/registry/TeleporterRegistry.sol";
 import {SendTokensInput, SendAndCallInput} from "../interfaces/ITokenTransferrer.sol";
 import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
-import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
+import {TokenScalingUtils} from "@utilities/TokenScalingUtils.sol";
 import {
     SendTokensInput,
     SendAndCallInput,

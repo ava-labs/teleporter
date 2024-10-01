@@ -22,8 +22,8 @@ import {TeleporterRegistryOwnableAppUpgradeable} from
     "@teleporter/registry/TeleporterRegistryOwnableAppUpgradeable.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
-import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
+import {SendReentrancyGuardUpgradeable} from "@utilities/SendReentrancyGuardUpgradeable.sol";
+import {TokenScalingUtils} from "@utilities/TokenScalingUtils.sol";
 
 /**
  * @title TokenRemote
@@ -35,7 +35,7 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 abstract contract TokenRemote is
     ITokenRemote,
     TeleporterRegistryOwnableAppUpgradeable,
-    SendReentrancyGuard
+    SendReentrancyGuardUpgradeable
 {
     // solhint-disable private-vars-leading-underscore
     /**

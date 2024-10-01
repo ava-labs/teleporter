@@ -19,7 +19,7 @@ import {Initializable} from
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-abstract contract SendReentrancyGuard is Initializable {
+abstract contract SendReentrancyGuardUpgradeable is Initializable {
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-ictt.storage.SendReentrancyGuard
     struct SendReentrancyGuardStorage {

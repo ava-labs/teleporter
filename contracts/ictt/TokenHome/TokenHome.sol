@@ -20,9 +20,9 @@ import {
     MultiHopCallMessage,
     RegisterRemoteMessage
 } from "../interfaces/ITokenTransferrer.sol";
-import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
-import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
-import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
+import {SendReentrancyGuardUpgradeable} from "@utilities/SendReentrancyGuardUpgradeable.sol";
+import {TokenScalingUtils} from "@utilities/TokenScalingUtils.sol";
+import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
@@ -39,7 +39,7 @@ import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
 abstract contract TokenHome is
     ITokenHome,
     TeleporterRegistryOwnableAppUpgradeable,
-    SendReentrancyGuard
+    SendReentrancyGuardUpgradeable
 {
     // solhint-disable private-vars-leading-underscore
     /**
