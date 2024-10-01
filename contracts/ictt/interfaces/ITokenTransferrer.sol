@@ -165,7 +165,7 @@ struct MultiHopCallMessage {
 /**
  * @notice Interface for an Avalanche interchain token transferrer that sends tokens to another chain.
  *
- * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 interface ITokenTransferrer is ITeleporterReceiver {
     /**

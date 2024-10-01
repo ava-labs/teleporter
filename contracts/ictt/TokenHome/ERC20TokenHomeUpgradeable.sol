@@ -23,7 +23,7 @@ import {ICMInitializable} from "@utilities/ICMInitializable.sol";
  * @title ERC20TokenHomeUpgradeable
  * @notice An {IERC20TokenHome} implementation that locks a specified ERC20 token to be sent to
  * TokenRemote instances on other chains.
- * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
     using SafeERC20 for IERC20;

@@ -12,7 +12,7 @@ import {ITokenHome} from "./ITokenHome.sol";
  * @notice Interface for a ERC20 token "home" contract that locks its specified ERC20
  * token on its chain to be transferred to supported remote token transfer contracts on other chains.
  *
- * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 interface IERC20TokenHome is IERC20TokenTransferrer, ITokenHome {
     /**

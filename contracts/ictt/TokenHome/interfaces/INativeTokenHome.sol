@@ -12,7 +12,7 @@ import {ITokenHome} from "./ITokenHome.sol";
  * @notice Interface for a native token "home" contract that locks the native token
  * on its chain to be transferred to supported remote token transfer contracts on other chains.
  *
- * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 interface INativeTokenHome is INativeTokenTransferrer, ITokenHome {
     /**

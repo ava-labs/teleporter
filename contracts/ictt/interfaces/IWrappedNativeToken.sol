@@ -12,7 +12,7 @@ import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
  * @notice Interface for a wrapped native token
  * @dev Implements the {IERC20} interface, and adds deposit and withdraw functions.
  *
- * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 interface IWrappedNativeToken is IERC20 {
     /**

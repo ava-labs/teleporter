@@ -17,7 +17,7 @@ import {Initializable} from
  * as a part of processing a multi-hop transfer, or as a part of an external call made to process a "sendAndCall"
  * message.
  *
- * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 abstract contract SendReentrancyGuardUpgradeable is Initializable {
     // solhint-disable private-vars-leading-underscore

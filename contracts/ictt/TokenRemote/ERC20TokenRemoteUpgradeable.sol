@@ -25,7 +25,7 @@ import {ICMInitializable} from "@utilities/ICMInitializable.sol";
  * @title ERC20TokenRemoteUpgradeable
  * @notice This contract is an {IERC20TokenTransferrer} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens with an ERC20 token on this chain.
- * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 contract ERC20TokenRemoteUpgradeable is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemote {
     // solhint-disable private-vars-leading-underscore

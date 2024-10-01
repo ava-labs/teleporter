@@ -11,7 +11,7 @@ import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 /**
  * @title NativeTokenHome
  * @notice A non-upgradeable version of {NativeTokenHomeUpgradeable} that calls the parent upgradeable contract's initialize function.
- * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 contract NativeTokenHome is NativeTokenHomeUpgradeable {
     constructor(

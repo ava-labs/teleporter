@@ -23,7 +23,7 @@ import {ICMInitializable} from "@utilities/ICMInitializable.sol";
  * @title NativeTokenHomeUpgradeable
  * @notice An {INativeTokenHome} implementation that locks the native token of this chain to be transferred to
  * TokenRemote instances on other chains.
- * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
     using Address for address payable;
