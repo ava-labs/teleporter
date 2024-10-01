@@ -1,10 +1,31 @@
 ## Warp Message Format Reference
 
+### `SubnetConversionMessage`
+
+Description: Confirms conversion to a Permissionless Subnet on the P-Chain
+
+Signed by: P-Chain
+
+Consumed by: Validator Manager contract
+
+Specification:
+
++--------------------+----------+----------+
+|            codecID :   uint16 |  2 bytes |
++--------------------+----------+----------+
+|             typeID :   uint32 |  4 bytes |
++--------------------+----------+----------+
+| subnetConversionID : [32]byte | 32 bytes |
++--------------------+----------+----------+
+                                | 38 bytes |
+                                +----------+
+
 ### `RegisterSubnetValidatorMessage`
 
-Description: Register a Subnet Validator on the P-Chain
+Description: Registers a Subnet Validator on the P-Chain
 
 Signed by: Subnet
+
 Consumed by: P-Chain
 
 Specification:
@@ -35,6 +56,7 @@ Specification:
 Description: Confirms a Subnet Validator's registration validity on the P-Chain
 
 Signed by: P-Chain
+
 Consumed by: Validator Manager contract
 
 Specification:
@@ -53,34 +75,12 @@ Specification:
                           +----------+
 ```
 
-### `ValidationUptimeMessage`
-
-Description: Provides a Validator's uptime for calculating staking rewards
-
-Signed by: Subnet
-Consumed by: Validator Manager contract
-
-Specification:
-
-```
-+--------------+----------+----------+
-|      codecID :   uint16 |  2 bytes |
-+--------------+----------+----------+
-|       typeID :   uint32 |  4 bytes |
-+--------------+----------+----------+
-| validationID : [32]byte | 32 bytes |
-+--------------+----------+----------+
-|       uptime :   uint64 |  8 bytes |
-+--------------+----------+----------+
-                          | 46 bytes |
-                          +----------+
-```
-
 ### `SetSubnetValidatorWeightMessage`
 
 Description: Used to set a Validator's stake weight on another chain
 
 Signed by: Subnet
+
 Consumed by: P-Chain
 
 Specification:
@@ -106,6 +106,7 @@ Specification:
 Description: Acknowledges a Validator weight update
 
 Signed by: P-Chain
+
 Consumed by: Validator Manager contract
 
 Specification:
@@ -123,5 +124,29 @@ Specification:
 |       weight :   uint64 |  8 bytes |
 +--------------+----------+----------+
                           | 54 bytes |
+                          +----------+
+```
+
+### `ValidationUptimeMessage`
+
+Description: Provides a Validator's uptime for calculating staking rewards
+
+Signed by: Subnet
+
+Consumed by: Validator Manager contract
+
+Specification:
+
+```
++--------------+----------+----------+
+|      codecID :   uint16 |  2 bytes |
++--------------+----------+----------+
+|       typeID :   uint32 |  4 bytes |
++--------------+----------+----------+
+| validationID : [32]byte | 32 bytes |
++--------------+----------+----------+
+|       uptime :   uint64 |  8 bytes |
++--------------+----------+----------+
+                          | 46 bytes |
                           +----------+
 ```
