@@ -26,106 +26,69 @@ A breakdown of the structure of the contracts that implement this function can b
 Some contracts in this repository have been audited. The `main` branch may contain unaudited code. Please check [here](./audits/README.md) for which versions of each contract have been audited.
 DO NOT USE UN-AUDITED CODE IN PRODUCTION!
 
-## Upgradeability
+## Upgradability
 
-The avalanche-interchain-token-transfer contracts are non-upgradeable and cannot be changed once it is deployed. This provides immutability to the contracts, and ensures that the contract's behavior at each address is unchanging.
+The token transferrer contracts implement both upgradeable and non-upgradeable versions. The non-upgradeable versions are extensions of their respective upgradeable token transferrer contract, and has a `constructor` that calls the `initialize` function of the upgradeable version. The upgradeable contracts are ERC7201 compliant, and use namespace storage to store the state of the contract.
 
-## Setup
+## `ITokenTransferrer`
 
-### Initialize the repository
+Interface that defines the events token transfer contract implementations must emit. Also defines the message types and formats of messages between all implementations.
 
-- Get all submodules: `git submodule update --init --recursive`
+## `IERC20TokenTransferrer` and `INativeTokenTransferrer`
 
-### Dependencies
+Interfaces that define the external functions for interacting with token transfer contract implementations of each type. ERC20 and native token transferrer interfaces vary from each other in that the native token transferrer functions are `payable` and do not take an explicit amount parameter (it is implied by `msg.value`), while the ERC20 token transferrer functions are not `payable` and require the explicit amount parameter. Otherwise, they include the same functions.
 
-- [Foundry](https://book.getfoundry.sh/getting-started/installation)
-- [Ginkgo](https://onsi.github.io/ginkgo/#installing-ginkgo) for running the end-to-end tests
+## `TokenHome`
 
-## Structure
+An abstract implementation of `ITokenTransferrer` for a token transfer contract on the "home" chain with the asset to be transferred. Each `TokenHome` instance supports transferring exactly one token type (ERC20 or native) on its chain to arbitrarily many "remote" instances on other chains. It handles locking tokens to be sent to `TokenRemote` instances, as well as receiving token transfer messages to either redeem tokens it holds as collateral (i.e. unlock), or route them to other `TokenRemote` instances (i.e. "multi-hop"). In the case of a multi-hop transfer, the `TokenHome` already has the collateral locked from when the tokens were originally transferred to the first `TokenRemote` instance, so it simply updates the accounting of the transferred balances to each respective `TokenRemote` instance. Remote contracts must first be registered with a `TokenHome` instance before the home contract will allow for sending tokens to them. This is to prevent tokens from being transferred to invalid remote addresses. Anyone is able to deploy and register remote contracts, which may have been modified from this repository. It is the responsibility of the users of the home contract to independently evaluate each remote for its security and correctness.
 
-- `contracts/` is a Foundry project that includes the implementation of the token transferrer contracts and Solidity unit tests
-- `scripts/` includes various bash utility scripts
-- `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
+## `ERC20TokenHome`
 
-## Solidity Unit Tests
+A concrete implementation of `TokenHome` and `IERC20TokenTransferrer` that handles the locking and releasing of an ERC20 token.
 
-Unit tests are written under `contracts/test/` and can be run with `forge`:
+## `NativeTokenHome`
 
-```
-cd contracts
-forge test -vvv
-```
+A concrete implementation of `TokenHome` and `INativeTokenTransferrer` that handles the locking and release of the native EVM asset.
 
-Unit test coverage of the contracts can be viewed using `forge coverage`:
+## `TokenRemote`
 
-```
-$ forge coverage
-[⠢] Compiling...
-[⠒] Compiling 78 files with 0.8.25
-[⠆] Solc 0.8.25 finished in 3.92s
-Compiler run successful!
-Analysing contracts...
-Running tests...
-| File                                             | % Lines           | % Statements      | % Branches      | % Funcs           |
-|--------------------------------------------------|-------------------|-------------------|-----------------|-------------------|
-| src/TokenHome/ERC20TokenHome.sol                 | 100.00% (1/1)     | 100.00% (1/1)     | 100.00% (0/0)   | 100.00% (1/1)     |
-| src/TokenHome/ERC20TokenHomeUpgradeable.sol      | 100.00% (27/27)   | 100.00% (33/33)   | 100.00% (6/6)   | 100.00% (11/11)   |
-| src/TokenHome/NativeTokenHome.sol                | 100.00% (1/1)     | 100.00% (1/1)     | 100.00% (0/0)   | 100.00% (1/1)     |
-| src/TokenHome/NativeTokenHomeUpgradeable.sol     | 100.00% (24/24)   | 100.00% (29/29)   | 100.00% (4/4)   | 100.00% (11/11)   |
-| src/TokenHome/TokenHome.sol                      | 100.00% (158/158) | 100.00% (198/198) | 100.00% (26/26) | 100.00% (22/22)   |
-| src/TokenRemote/ERC20TokenRemote.sol             | 100.00% (1/1)     | 100.00% (1/1)     | 100.00% (0/0)   | 100.00% (1/1)     |
-| src/TokenRemote/ERC20TokenRemoteUpgradeable.sol  | 100.00% (36/36)   | 100.00% (40/40)   | 100.00% (10/10) | 100.00% (12/12)   |
-| src/TokenRemote/NativeTokenRemote.sol            | 100.00% (1/1)     | 100.00% (1/1)     | 100.00% (0/0)   | 100.00% (1/1)     |
-| src/TokenRemote/NativeTokenRemoteUpgradeable.sol | 100.00% (60/60)   | 100.00% (74/74)   | 100.00% (10/10) | 100.00% (19/19)   |
-| src/TokenRemote/TokenRemote.sol                  | 100.00% (118/118) | 100.00% (155/155) | 100.00% (12/12) | 100.00% (24/24)   |
-| src/WrappedNativeToken.sol                       | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)   | 100.00% (4/4)     |
-| src/mocks/ExampleERC20Decimals.sol               | 100.00% (2/2)     | 100.00% (2/2)     | 100.00% (0/0)   | 100.00% (2/2)     |
-| src/mocks/MockERC20SendAndCallReceiver.sol       | 100.00% (5/5)     | 100.00% (5/5)     | 100.00% (0/0)   | 100.00% (2/2)     |
-| src/mocks/MockNativeSendAndCallReceiver.sol      | 100.00% (4/4)     | 100.00% (4/4)     | 100.00% (0/0)   | 100.00% (2/2)     |
-| src/utils/CallUtils.sol                          | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (2/2)   | 100.00% (2/2)     |
-| src/utils/SafeERC20TransferFrom.sol              | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (0/0)   | 100.00% (1/1)     |
-| src/utils/SafeWrappedNativeTokenDeposit.sol      | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (0/0)   | 100.00% (1/1)     |
-| src/utils/SendReentrancyGuard.sol                | 100.00% (8/8)     | 100.00% (10/10)   | 100.00% (0/0)   | 100.00% (4/4)     |
-| src/utils/TokenScalingUtils.sol                  | 100.00% (8/8)     | 100.00% (14/14)   | 100.00% (2/2)   | 100.00% (4/4)     |
-| Total                                            | 100.00% (478/478) | 100.00% (599/599) | 100.00% (72/72) | 100.00% (125/125) |
-```
+An abstract implementation of `ITokenTransferrer` for a token transfer contract on a "remote" chain that receives transferred assets from a specific `TokenHome` instance. Each `TokenRemote` instance has a single `TokenHome` instance that it receives token transfers from to mint tokens. It also handles sending messages (and correspondingly burning tokens) to route tokens back to other chains (either its `TokenHome`, or other `TokenRemote` instances). Once deployed, a `TokenRemote` instance must be registered with its specified `TokenHome` contract. This is done by calling `registerWithHome` on the remote contract, which will send a Teleporter message to the home contract with the information to register.
 
-## E2E tests
+All messages sent by `TokenRemote` instances are sent to the specified `TokenHome` contract, whether they are to redeem the collateral from the `TokenHome` instance or route the tokens to another `TokenRemote` instance. Routing tokens from one `TokenRemote` instance to another is referred to as a "multi-hop", where the tokens are first sent back to their `TokenHome` contract to update its accounting, and then automatically routed on to their intended destination `TokenRemote` instance.
 
-End-to-end integration tests written using Ginkgo are provided in the `tests/` directory. E2E tests are run as part of CI, but can also be run locally. Any new features or cross-chain example applications checked into the repository should be accompanied by an end-to-end tests.
+TokenRemote contracts allow for scaling token amounts, which should be used when the remote asset has a higher or lower denomination than the home asset, such as allowing for a ERC20 home asset with a denomination of 6 to be used as the native EVM asset on a remote chain (with a denomination of 18).
 
-To run the E2E tests locally, you'll need to install Gingko following the instructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo).
+## `ERC20TokenRemote`
 
-Then run the following command from the root of the repository:
+A concrete implementation of `TokenRemote`, `IERC20TokenTransferrer`, and `IERC20` that handles the minting and burning of an ERC20 asset. Note that the `ERC20TokenRemote` contract is an ERC20 implementation itself, which is why it takes the `tokenName`, `tokenSymbol`, and `tokenDecimals` in its constructor. All of the ERC20 interface implementations are inherited from the standard OpenZeppelin ERC20 implementation, and can be overriden in other implementations if desired.
 
-```bash
-./scripts/e2e_test.sh
-```
+## `NativeTokenRemote`
 
-### Run specific E2E tests
+A concrete implementation of `TokenRemote`, `INativeTokenTransferrer`, and `IWrappedNativeToken` that handles the minting and burning of the native EVM asset on its chain using the native minter precompile. Deployments of this contract must be given the permission to mint native coins in the chain's configuration. Note that the `NativeTokenRemote` is also an implementation of `IWrappedNativeToken` itself, which is why the `nativeAssetSymbol` must be provided in its constructor. `NativeTokenRemote` instances always have a denomination of 18, which is the denomination of the native asset of EVM chains.
 
-To run a specific E2E test, specify the environment variable `GINKGO_FOCUS`, which will then look for test descriptions that match the provided input. For example, to run the `Transfer an ERC20 token between two Subnets` test:
+The [native minter precompile](https://docs.avax.network/build/subnet/upgrade/customize-a-subnet#minting-native-coins) must be configured to allow the contract address of the `NativeTokenRemote` instance to call `mintNativeCoin`. The correctness of a native token transferrer implemented using `NativeTokenRemote` relies on no other accounts being allowed to call `mintNativeCoin`, which could result in the token transferrer becoming undercollateralized. Example initialization steps for a `NativeTokenRemote` instance are shown below.
 
-```bash
-GINKGO_FOCUS="Transfer an ERC20 token between two Subnets" ./scripts/e2e_test.sh
-```
+Since the native minter precompile does not provide an interface for burning the native EVM asset, the "burn" functionality is implemented by transferring the native coins to an unowned address. The contract also provides a `reportBurnedTxFees` interface in order to burn the collateral in the `TokenHome` instance that should be made unredeemable to account for native tokens burnt on the chain with the `NativeTokenRemote` instance to pay for transaction fees.
 
-A substring of the full test description can be used as well:
+To account for the need to bootstrap the chain using a transferred asset as its native token, the `NativeTokenRemote` takes the `initialReserveImbalance` in its constructor. Once registered with its `TokenHome`, the `TokenHome` will require the `initialReserveImbalance` to be accounted for before sending token amounts to be minted on the given remote chain. The following example demonstrates the intended initialization flow:
 
-```bash
-GINKGO_FOCUS="Transfer an ERC20 token" ./scripts/e2e_test.sh
-```
+1. Create a new blockchain with 100 native tokens allocated in its genesis block, and set the pre-derived `NativeTokenRemote` contract address (based on the deployer nonce) to have the permission to mint native tokens using the native minter precompile. Note that the deployer account will need to be funded in order to deploy the `NativeTokenRemote` contract, and an account used to relay messages into this chain must also be funded to relay the first messages.
+2. Deploy the `NativeTokenRemote` contract to the pre-derived address set in the blockchain configuration of step 1. The `initialReserveImbalance` should be 100, matching the number of tokens allocated in the genesis block that were not initially backed by collateral in the `TokenHome` instance.
+3. Call the `registerWithHome` function on the `NativeTokenRemote` instance to send a Teleporter message registering this remote with its `TokenHome`. This message should be relayed and delivered to the `TokenHome` instance.
+4. Once registered on the `TokenHome` contract, add 100 tokens as collateral for the new `NativeTokenRemote` instance by calling the `addCollateral` function on the `TokenHome` contract. A `CollateralAdded` event will be emitted by the `TokenHome` contract with a `remaining` amount of 0 once the `NativeTokenRemote` is fully collateralized.
+5. Now that the `NativeTokenRemote` contract is fully collateralized, tokens can be moved normally in both directions across the token transfer contracts by calling their `send` functions.
 
-The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test cases and run them together. For example, to run all `ERC20TokenHome` E2E tests:
+The `totalNativeAssetSupply` implementation of `NativeTokenRemote` takes into account:
 
-```go
-	ginkgo.It("Transfer an ERC20 token between two Subnets",
-		ginkgo.Label(erc20TokenHomeLabel, erc20TokenRemoteLabel),
-		func() {
-			flows.ERC20TokenHomeERC20TokenRemote(LocalNetworkInstance)
-		})
-```
+- the initial reserve imbalance
+- the number of native tokens that it has minted
+- the number of native tokens that have been burned to pay for transaction fees
+- the number of native tokens "burned" to be transferred to other chains, which are sent to a pre-defined `BURNED_FOR_TRANSFER_ADDRESS`.
 
-```bash
-GINKGO_LABEL_FILTER="ERC20TokenHome" ./scripts/e2e_test.sh
-```
+Note that the value returned by `totalNativeAssetSupply` is an upper bound on the circulating supply of the native asset on the chain using the `NativeTokenRemote` instance since tokens could be burned in other ways that it does not account for.
+
+## Teleporter Message Fees
+
+Fees can be optionally added to Teleporter messages in order to incentivize relayers to deliver them, as documented [here](https://github.com/ava-labs/teleporter/tree/main/contracts/teleporter#fees). The token transfer contracts in this repository allow for specifying any ERC20 token and amount to be used as the Teleporter message fee for single-hop transfers in either direction between `TokenHome` and `TokenRemote` instances. Fee amounts must be pre-approved to be spent by the token transfer contract before initiating a transfer.
+
+Multi-hop transfers between two `TokenRemote` instances involve two Teleporter messages: the first from the initiating `TokenRemote` instance to its home, and the second from its home to the destination `TokenRemote` instance. In the multi-hop case, the first message fee can be paid in any ERC20 token and amount (similar to the single-hop case), but the second message fee must be paid in-kind of the asset being transferred and is deducted from the amount being transferred. This restriction on the secondary message fee is necessary because the transaction on the intermediate chain routing the funds to the destination `TokenRemote` instance is not sent by the wallet performing the transfer. Because of this, it can not directly spend an arbitrary ERC20 token from that wallet. Using the asset being transferred for the optional secondary fee allows users to perform an incentivized multi-hop transfer without needing to make any interaction with the home themselves. If there is a need for the second message from the home to the destination `TokenRemote` instance to pay a fee in another asset, it is recommended to perform two single-hop transfers, which allows for specifying an arbitrary ERC20 token to be used for the fee of each.
