@@ -10,7 +10,7 @@ Vulnerabilities must be disclosed to us privately with reasonable time to respon
 
 Do not test for or validate any security issues in the live Avalanche networks (Mainnet and Fuji testnet), confirm all exploits in a local private testnet.
 
-Please refer to the [Bug Bounty Page](https://hackenproof.com/avalanche) for the most up-to-date program rules and scope.
+Please refer to the [Bug Bounty Page](https://immunefi.com/bug-bounty/avalanche/information/) for the most up-to-date program rules and scope.
 
 ## Supported Versions
 
