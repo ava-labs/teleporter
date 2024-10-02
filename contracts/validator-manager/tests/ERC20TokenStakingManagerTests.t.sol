@@ -20,6 +20,7 @@ import {ExampleERC20} from "@mocks/ExampleERC20.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {IERC20Mintable} from "../interfaces/IERC20Mintable.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 
 contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     using SafeERC20 for IERC20Mintable;
@@ -27,7 +28,9 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     ERC20TokenStakingManager public app;
     IERC20Mintable public token;
 
-    function setUp() public virtual {
+    function setUp() public override {
+        ValidatorManagerTest.setUp();
+
         // Construct the object under test
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         token = new ExampleERC20();
@@ -179,8 +182,13 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     }
 
     function testInvalidValidatorMinStakeDuration() public {
-        ValidatorRegistrationInput memory input =
-            ValidatorRegistrationInput(DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY);
+        ValidatorRegistrationInput memory input = ValidatorRegistrationInput({
+            nodeID: DEFAULT_NODE_ID,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationExpiry: DEFAULT_EXPIRY,
+            remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+            disableOwner: DEFAULT_P_CHAIN_OWNER
+        });
         uint256 stakeAmount = _weightToValue(DEFAULT_WEIGHT);
         vm.expectRevert(
             abi.encodeWithSelector(
