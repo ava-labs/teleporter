@@ -13,8 +13,11 @@ import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 
 contract ExampleRegistryAppUpgradeable is TeleporterRegistryAppUpgradeable {
-    function initialize(address teleporterRegistryAddress) public initializer {
-        __TeleporterRegistryApp_init(teleporterRegistryAddress);
+    function initialize(
+        address teleporterRegistryAddress,
+        uint256 minTeleporterVersion
+    ) public initializer {
+        __TeleporterRegistryApp_init(teleporterRegistryAddress, minTeleporterVersion);
     }
 
     function setMinTeleporterVersion(uint256 version) public {
@@ -40,9 +43,10 @@ contract ExampleRegistryAppUpgradeable is TeleporterRegistryAppUpgradeable {
 }
 
 contract ExampleRegistryApp is TeleporterRegistryApp {
-    constructor(address teleporterRegistryAddress)
-        TeleporterRegistryApp(teleporterRegistryAddress)
-    {}
+    constructor(
+        address teleporterRegistryAddress,
+        uint256 minTeleporterVersion
+    ) TeleporterRegistryApp(teleporterRegistryAddress, minTeleporterVersion) {}
 
     function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
