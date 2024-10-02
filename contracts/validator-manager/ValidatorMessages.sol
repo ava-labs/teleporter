@@ -49,7 +49,6 @@ library ValidatorMessages {
     error InvalidCodecID();
     error InvalidMessageType();
     error InvalidSignatureLength();
-    error InvalidNodeID();
 
     /**
      * @notice Packs a SubnetConversionMessage message into a byte array.
@@ -166,15 +165,12 @@ library ValidatorMessages {
         // was tested against pre-allocating the array and doing manual byte by byte packing and
         // it was found to be more gas efficient.
         for (uint256 i = 0; i < subnetConversionData.initialValidators.length; i++) {
-            if (subnetConversionData.initialValidators[i].nodeID.length != 32) {
-                revert InvalidNodeID();
-            }
             if (subnetConversionData.initialValidators[i].blsPublicKey.length != 48) {
                 revert InvalidSignatureLength();
             }
             res = abi.encodePacked(
                 res,
-                subnetConversionData.initialValidators[i].nodeID.length,
+                uint32(subnetConversionData.initialValidators[i].nodeID.length),
                 subnetConversionData.initialValidators[i].nodeID,
                 subnetConversionData.initialValidators[i].blsPublicKey,
                 subnetConversionData.initialValidators[i].weight
@@ -236,7 +232,7 @@ library ValidatorMessages {
             CODEC_ID,
             REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID,
             validationPeriod.subnetID,
-            validationPeriod.nodeID.length,
+            uint32(validationPeriod.nodeID.length),
             validationPeriod.nodeID,
             validationPeriod.blsPublicKey,
             validationPeriod.registrationExpiry,
