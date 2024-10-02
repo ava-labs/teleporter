@@ -17,10 +17,10 @@ enum ValidatorStatus {
     Invalidated
 }
 
- /**
-  * @dev Specifies the owner of a validator's remaining balance or disable owner on the P-Chain.
-  * P-Chain addresses are also 20-bytes, so we use the address type to represent them.
-  */
+/**
+ * @dev Specifies the owner of a validator's remaining balance or disable owner on the P-Chain.
+ * P-Chain addresses are also 20-bytes, so we use the address type to represent them.
+ */
 struct PChainOwner {
     uint32 threshold;
     address[] addresses;
@@ -86,9 +86,9 @@ struct InitialValidator {
 struct ValidatorRegistrationInput {
     bytes nodeID;
     bytes blsPublicKey;
+    uint64 registrationExpiry;
     PChainOwner remainingBalanceOwner;
     PChainOwner disableOwner;
-    uint64 registrationExpiry;
 }
 
 /**
