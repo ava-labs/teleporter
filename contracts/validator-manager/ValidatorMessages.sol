@@ -45,10 +45,10 @@ library ValidatorMessages {
     // the end of their validation period.
     uint32 internal constant VALIDATION_UPTIME_MESSAGE_TYPE_ID = 0;
 
-    error InvalidMessageLength();
-    error InvalidCodecID();
+    error InvalidMessageLength(uint32 actual, uint32 expected);
+    error InvalidCodecID(uint32 id);
     error InvalidMessageType();
-    error InvalidSignatureLength();
+    error InvalidBLSPublicKey();
 
     /**
      * @notice Packs a SubnetConversionMessage message into a byte array.
@@ -83,7 +83,7 @@ library ValidatorMessages {
      */
     function unpackSubnetConversionMessage(bytes memory input) internal pure returns (bytes32) {
         if (input.length != 38) {
-            revert InvalidMessageLength();
+            revert InvalidMessageLength(uint32(input.length), 38);
         }
 
         // Unpack the codec ID
@@ -92,7 +92,7 @@ library ValidatorMessages {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
         if (codecID != CODEC_ID) {
-            revert InvalidCodecID();
+            revert InvalidCodecID(codecID);
         }
 
         // Unpack the type ID
@@ -131,7 +131,7 @@ library ValidatorMessages {
      * |     validators : []ValidatorData |                        4 + sum(validatorLengths) bytes |
      * +----------------+-----------------+--------------------------------------------------------+
      *                                    | 74 + len(managerAddress) + len(validatorLengths) bytes |
-     *                                    +--------------------------------------------------------+ 
+     *                                    +--------------------------------------------------------+
      * ValidatorData:
      * +--------------+----------+------------------------+
      * |       nodeID :   []byte |  4 + len(nodeID) bytes |
@@ -166,7 +166,7 @@ library ValidatorMessages {
         // it was found to be more gas efficient.
         for (uint256 i = 0; i < subnetConversionData.initialValidators.length; i++) {
             if (subnetConversionData.initialValidators[i].blsPublicKey.length != 48) {
-                revert InvalidSignatureLength();
+                revert InvalidBLSPublicKey();
             }
             res = abi.encodePacked(
                 res,
@@ -182,7 +182,7 @@ library ValidatorMessages {
     /**
      * @notice Packs a RegisterSubnetValidatorMessage message into a byte array.
      * The message format specification is:
-     * 
+     *
      * RegisterSubnetValidatorMessage:
      * +-----------------------+-------------+--------------------------------------------------------------------+
      * |               codecID :      uint16 |                                                            2 bytes |
@@ -203,9 +203,9 @@ library ValidatorMessages {
      * +-----------------------+-------------+--------------------------------------------------------------------+
      * |                weight :      uint64 |                                                            8 bytes |
      * +-----------------------+-------------+--------------------------------------------------------------------+
-     *                                       | 114 + len(nodeID) + (len(addresses1) + len(addresses2)) * 20 bytes |
+     *                                       | 122 + len(nodeID) + (len(addresses1) + len(addresses2)) * 20 bytes |
      *                                       +--------------------------------------------------------------------+
-     * 
+     *
      * PChainOwner:
      * +-----------+------------+-------------------------------+
      * | threshold :     uint32 |                       4 bytes |
@@ -213,7 +213,7 @@ library ValidatorMessages {
      * | addresses : [][20]byte | 4 + len(addresses) * 20 bytes |
      * +-----------+------------+-------------------------------+
      *                          | 8 + len(addresses) * 20 bytes |
-     *                          +-------------------------------+                                      
+     *                          +-------------------------------+
      *
      * @param validationPeriod The information to pack into the message.
      * @return The validationID and the packed message.
@@ -224,7 +224,7 @@ library ValidatorMessages {
         returns (bytes32, bytes memory)
     {
         if (validationPeriod.blsPublicKey.length != 48) {
-            revert InvalidMessageLength();
+            revert InvalidBLSPublicKey();
         }
 
         // solhint-disable-next-line func-named-parameters
@@ -267,150 +267,169 @@ library ValidatorMessages {
         pure
         returns (ValidationPeriod memory)
     {
-        if (input.length != 134) {
-            revert InvalidMessageLength();
-        }
         uint32 index = 0;
+        ValidationPeriod memory validation;
 
         // Unpack the codec ID
-        uint16 codecID;
-        for (uint256 i; i < 2; ++i) {
-            codecID |= uint16(uint8(input[i + index])) << uint16((8 * (1 - i)));
+        {
+            uint16 codecID;
+            for (uint256 i; i < 2; ++i) {
+                codecID |= uint16(uint8(input[i + index])) << uint16((8 * (1 - i)));
+            }
+            if (codecID != CODEC_ID) {
+                revert InvalidCodecID(codecID);
+            }
+            index += 2;
         }
-        if (codecID != CODEC_ID) {
-            revert InvalidCodecID();
-        }
-        index += 2;
 
         // Unpack the type ID
-        uint32 typeID;
-        for (uint256 i; i < 4; ++i) {
-            typeID |= uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
+        {
+            uint32 typeID;
+            for (uint256 i; i < 4; ++i) {
+                typeID |= uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
+            }
+            if (typeID != REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID) {
+                revert InvalidMessageType();
+            }
+            index += 4;
         }
-        if (typeID != REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID) {
-            revert InvalidMessageType();
-        }
-        index += 4;
 
         // Unpack the subnetID
-        bytes32 subnetID;
-        for (uint256 i; i < 32; ++i) {
-            subnetID |= bytes32(uint256(uint8(input[i + index])) << (8 * (31 - i)));
+        {
+            bytes32 subnetID;
+            for (uint256 i; i < 32; ++i) {
+                subnetID |= bytes32(uint256(uint8(input[i + index])) << (8 * (31 - i)));
+            }
+            validation.subnetID = subnetID;
+            index += 32;
         }
-        index += 32;
 
         // Unpack the nodeID length
         uint32 nodeIDLength;
-        for (uint256 i; i < 4; ++i) {
-            nodeIDLength |= uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
-        }
-        index += 4;
+        {
+            for (uint256 i; i < 4; ++i) {
+                nodeIDLength |= uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
+            }
+            index += 4;
 
-        // Unpack the nodeID
-        bytes memory nodeID = new bytes(nodeIDLength);
-        for (uint256 i; i < nodeIDLength; ++i) {
-            nodeID[i] = input[i + index];
+            // Unpack the nodeID
+            bytes memory nodeID = new bytes(nodeIDLength);
+            for (uint256 i; i < nodeIDLength; ++i) {
+                nodeID[i] = input[i + index];
+            }
+            validation.nodeID = nodeID;
+            index += nodeIDLength;
         }
-        index += nodeIDLength;
 
         // Unpack the blsPublicKey
-        bytes memory blsPublicKey = new bytes(48);
-        for (uint256 i; i < 48; ++i) {
-            blsPublicKey[i] = input[i + index];
+        {
+            bytes memory blsPublicKey = new bytes(48);
+            for (uint256 i; i < 48; ++i) {
+                blsPublicKey[i] = input[i + index];
+            }
+            validation.blsPublicKey = blsPublicKey;
+            index += 48;
         }
-        index += 48;
 
         // Unpack the registration expiry
-        uint64 expiry;
-        for (uint256 i; i < 8; ++i) {
-            expiry |= uint64(uint8(input[i + index])) << uint64((8 * (7 - i)));
+        {
+            uint64 expiry;
+            for (uint256 i; i < 8; ++i) {
+                expiry |= uint64(uint8(input[i + index])) << uint64((8 * (7 - i)));
+            }
+            validation.registrationExpiry = expiry;
+            index += 8;
         }
-        index += 8;
 
         // Unpack the remainingBalanceOwner threshold
-        uint32 remainingBalanceOwnerThreshold;
-        for (uint256 i; i < 4; ++i) {
-            remainingBalanceOwnerThreshold |= uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
-        }
-        index += 4;
-
-        // Unpack the remainingBalanceOwner addresses length
         uint32 remainingBalanceOwnerAddressesLength;
-        for (uint256 i; i < 4; ++i) {
-            remainingBalanceOwnerAddressesLength |= uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
-        }
-        index += 4;
+        {
+            uint32 remainingBalanceOwnerThreshold;
+            for (uint256 i; i < 4; ++i) {
+                remainingBalanceOwnerThreshold |=
+                    uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
+            }
+            index += 4;
 
-        // Unpack the remainingBalanceOwner addresses
-        address[] memory remainingBalanceOwnerAddresses = new address[](remainingBalanceOwnerAddressesLength);
-        for (uint256 i; i < remainingBalanceOwnerAddressesLength; ++i) {
-            bytes memory addrBytes = new bytes(20);
-            for (uint256 j; j < 20; ++j) {
-                addrBytes[j] = input[j + index];
+            // Unpack the remainingBalanceOwner addresses length
+            for (uint256 i; i < 4; ++i) {
+                remainingBalanceOwnerAddressesLength |=
+                    uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
             }
-            address addr;
-            assembly {
-                addr := mload(add(addrBytes, 20))
+            index += 4;
+
+            // Unpack the remainingBalanceOwner addresses
+            address[] memory remainingBalanceOwnerAddresses =
+                new address[](remainingBalanceOwnerAddressesLength);
+            for (uint256 i; i < remainingBalanceOwnerAddressesLength; ++i) {
+                bytes memory addrBytes = new bytes(20);
+                for (uint256 j; j < 20; ++j) {
+                    addrBytes[j] = input[j + index];
+                }
+                address addr;
+                // solhint-disable-next-line no-inline-assembly
+                assembly {
+                    addr := mload(add(addrBytes, 20))
+                }
+                remainingBalanceOwnerAddresses[i] = addr;
+                index += 20;
             }
-            remainingBalanceOwnerAddresses[i] = addr;
-            index += 20;
+            validation.remainingBalanceOwner = PChainOwner({
+                threshold: remainingBalanceOwnerThreshold,
+                addresses: remainingBalanceOwnerAddresses
+            });
         }
 
         // Unpack the disableOwner threshold
-        uint32 disableOwnerThreshold;
-        for (uint256 i; i < 4; ++i) {
-            disableOwnerThreshold |= uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
-        }
-        index += 4;
-
-        // Unpack the disableOwner addresses length
         uint32 disableOwnerAddressesLength;
-        for (uint256 i; i < 4; ++i) {
-            disableOwnerAddressesLength |= uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
-        }
-        index += 4;
-
-        // Now that we have all the lengths, validate the input length
-        if (input.length != 114 + nodeIDLength + (remainingBalanceOwnerAddressesLength + disableOwnerAddressesLength) * 20) {
-            revert InvalidMessageLength();
-        }
-
-        // Unpack the disableOwner addresses
-        address[] memory disableOwnerAddresses = new address[](disableOwnerAddressesLength);
-        for (uint256 i; i < disableOwnerAddressesLength; ++i) {
-            bytes memory addrBytes = new bytes(20);
-            for (uint256 j; j < 20; ++j) {
-                addrBytes[j] = input[j + index];
+        {
+            uint32 disableOwnerThreshold;
+            for (uint256 i; i < 4; ++i) {
+                disableOwnerThreshold |= uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
             }
-            address addr;
-            assembly {
-                addr := mload(add(addrBytes, 20))
-            }
-            remainingBalanceOwnerAddresses[i] = addr;
-            index += 20;
-        }
+            index += 4;
 
+            // Unpack the disableOwner addresses length
+            for (uint256 i; i < 4; ++i) {
+                disableOwnerAddressesLength |=
+                    uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
+            }
+            index += 4;
+
+            // Unpack the disableOwner addresses
+            address[] memory disableOwnerAddresses = new address[](disableOwnerAddressesLength);
+            for (uint256 i; i < disableOwnerAddressesLength; ++i) {
+                bytes memory addrBytes = new bytes(20);
+                for (uint256 j; j < 20; ++j) {
+                    addrBytes[j] = input[j + index];
+                }
+                address addr;
+                // solhint-disable-next-line no-inline-assembly
+                assembly {
+                    addr := mload(add(addrBytes, 20))
+                }
+                disableOwnerAddresses[i] = addr;
+                index += 20;
+            }
+            validation.disableOwner =
+                PChainOwner({threshold: disableOwnerThreshold, addresses: disableOwnerAddresses});
+        }
+        // Now that we have all the variable lengths, validate the input length
+        uint32 expectedLength = 122 + nodeIDLength
+            + (remainingBalanceOwnerAddressesLength + disableOwnerAddressesLength) * 20;
+        if (input.length != expectedLength) {
+            revert InvalidMessageLength(uint32(input.length), expectedLength);
+        }
         // Unpack the weight
-        uint64 weight;
-        for (uint256 i; i < 8; ++i) {
-            weight |= uint64(uint8(input[i + index])) << uint64((8 * (7 - i)));
+        {
+            uint64 weight;
+            for (uint256 i; i < 8; ++i) {
+                weight |= uint64(uint8(input[i + index])) << uint64((8 * (7 - i)));
+            }
+            validation.weight = weight;
         }
 
-        return ValidationPeriod({
-            subnetID: subnetID,
-            nodeID: nodeID,
-            registrationExpiry: expiry,
-            blsPublicKey: blsPublicKey,
-            remainingBalanceOwner: PChainOwner({
-                threshold: remainingBalanceOwnerThreshold,
-                addresses: remainingBalanceOwnerAddresses
-            }),
-            disableOwner: PChainOwner({
-                threshold: disableOwnerThreshold,
-                addresses: disableOwnerAddresses
-            }),
-            weight: weight
-        });
+        return validation;
     }
 
     /**
@@ -456,7 +475,7 @@ library ValidatorMessages {
         returns (bytes32, bool)
     {
         if (input.length != 39) {
-            revert InvalidMessageLength();
+            revert InvalidMessageLength(uint32(input.length), 39);
         }
         // Unpack the codec ID
         uint16 codecID;
@@ -464,7 +483,7 @@ library ValidatorMessages {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
         if (codecID != CODEC_ID) {
-            revert InvalidCodecID();
+            revert InvalidCodecID(codecID);
         }
 
         // Unpack the type ID
@@ -533,7 +552,7 @@ library ValidatorMessages {
         returns (bytes32, uint64, uint64)
     {
         if (input.length != 54) {
-            revert InvalidMessageLength();
+            revert InvalidMessageLength(uint32(input.length), 54);
         }
 
         // Unpack the codec ID.
@@ -542,7 +561,7 @@ library ValidatorMessages {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
         if (codecID != CODEC_ID) {
-            revert InvalidCodecID();
+            revert InvalidCodecID(codecID);
         }
 
         // Unpack the type ID.
@@ -614,7 +633,7 @@ library ValidatorMessages {
         returns (bytes32, uint64)
     {
         if (input.length != 46) {
-            revert InvalidMessageLength();
+            revert InvalidMessageLength(uint32(input.length), 46);
         }
 
         // Unpack the codec ID.
@@ -623,7 +642,7 @@ library ValidatorMessages {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
         if (codecID != CODEC_ID) {
-            revert InvalidCodecID();
+            revert InvalidCodecID(codecID);
         }
 
         // Unpack the type ID.
