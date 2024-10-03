@@ -3,6 +3,7 @@ package teleporter
 import (
 	"context"
 	"math/big"
+	"time"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
@@ -59,7 +60,9 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	//
 
 	// Add new nodes to the validator set
-	network.AddSubnetValidators(ctx, subnetAInfo.SubnetID, newNodeCount)
+	addValidatorsCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+	network.AddSubnetValidators(addValidatorsCtx, subnetAInfo.SubnetID, newNodeCount)
 
 	// Refresh the subnet info
 	subnetAInfo, subnetBInfo = utils.GetTwoSubnets(network)

@@ -4,8 +4,10 @@
 package local
 
 import (
+	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/ava-labs/teleporter/tests/flows/governance"
 	"github.com/ava-labs/teleporter/tests/flows/teleporter"
@@ -53,7 +55,10 @@ var _ = ginkgo.BeforeSuite(func() {
 	Expect(err).Should(BeNil())
 
 	// Create the local network instance
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
 	LocalNetworkInstance = NewLocalNetwork(
+		ctx,
 		"teleporter-test-local-network",
 		warpGenesisTemplateFile,
 		[]SubnetSpec{
