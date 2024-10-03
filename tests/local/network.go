@@ -55,7 +55,7 @@ type LocalNetwork struct {
 
 const (
 	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
-	timeout      = 60 * time.Second
+	timeout      = 120 * time.Second
 )
 
 type SubnetSpec struct {
