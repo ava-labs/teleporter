@@ -146,7 +146,7 @@ library ValidatorMessages {
      * @param subnetConversionData The struct representing data to pack into the message.
      * @return The packed message.
      */
-    function packSubnetConversionData(SubnetConversionData calldata subnetConversionData)
+    function packSubnetConversionData(SubnetConversionData memory subnetConversionData)
         internal
         pure
         returns (bytes memory)
