@@ -97,7 +97,7 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		_, err = validatorManager.InitializeValidatorRegistration(
 			opts,
 			poavalidatormanager.ValidatorRegistrationInput{
-				NodeID:             nodeID,
+				NodeID:             nodeID[:],
 				RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
 				BlsPublicKey:       blsPublicKey[:],
 			},
