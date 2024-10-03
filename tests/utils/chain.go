@@ -24,6 +24,7 @@ import (
 	"github.com/ava-labs/awm-relayer/peers"
 	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	sigAggConfig "github.com/ava-labs/awm-relayer/signature-aggregator/config"
+	"github.com/ava-labs/awm-relayer/signature-aggregator/metrics"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/eth/tracers"
@@ -559,11 +560,17 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 		constants.DefaultNetworkMaximumInboundTimeout,
 	)
 	Expect(err).Should(BeNil())
-	return aggregator.NewSignatureAggregator(
+	agg, err := aggregator.NewSignatureAggregator(
 		appRequestNetwork,
 		logger,
+		1024,
+		metrics.NewSignatureAggregatorMetrics(prometheus.DefaultRegisterer),
 		messageCreator,
+		// Setting the etnaTime to a minute ago so that the post-etna code path is used in the test
+		time.Now().Add(-1*time.Minute),
 	)
+	Expect(err).Should(BeNil())
+	return agg
 }
 
 // Funded key must have admin access to set new admin.
