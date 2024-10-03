@@ -18,9 +18,13 @@ function getDepVersion() {
 
 function extract_commit() {
   local version=$1
-  if [[ $version == *-* ]]; then
+
+  # Regex for a commit hash (assumed to be a 12+ character hex string)
+  commit_hash_regex="-([0-9a-f]{12,})$"
+
+  if [[ "$version" =~ $commit_hash_regex ]]; then
       # Extract the substring after the last '-'
-      version=${version##*-}
+      version=${BASH_REMATCH[1]}
   fi
   echo "$version"
 }
