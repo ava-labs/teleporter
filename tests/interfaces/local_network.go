@@ -6,6 +6,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	pwallet "github.com/ava-labs/avalanchego/wallet/chain/p/wallet"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -36,4 +37,5 @@ type LocalNetwork interface {
 	)
 	GetNetworkID() uint32
 	Dir() string
+	GetPChainWallet() pwallet.Wallet
 }

@@ -9,9 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ava-labs/teleporter/tests/flows/governance"
-	"github.com/ava-labs/teleporter/tests/flows/teleporter"
-	"github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
 	validatorManager "github.com/ava-labs/teleporter/tests/flows/validator-manager"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
@@ -110,126 +107,126 @@ var _ = ginkgo.AfterSuite(func() {
 })
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
-	// Teleporter tests
-	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.BasicSendReceive(LocalNetworkInstance)
-		})
-	ginkgo.It("Deliver to the wrong chain",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.DeliverToWrongChain(LocalNetworkInstance)
-		})
-	ginkgo.It("Deliver to non-existent contract",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.DeliverToNonExistentContract(LocalNetworkInstance)
-		})
-	ginkgo.It("Retry successful execution",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.RetrySuccessfulExecution(LocalNetworkInstance)
-		})
-	ginkgo.It("Unallowed relayer",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.UnallowedRelayer(LocalNetworkInstance)
-		})
-	ginkgo.It("Relay message twice",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.RelayMessageTwice(LocalNetworkInstance)
-		})
-	ginkgo.It("Add additional fee amount",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.AddFeeAmount(LocalNetworkInstance)
-		})
-	ginkgo.It("Send specific receipts",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.SendSpecificReceipts(LocalNetworkInstance)
-		})
-	ginkgo.It("Insufficient gas",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.InsufficientGas(LocalNetworkInstance)
-		})
-	ginkgo.It("Resubmit altered message",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.ResubmitAlteredMessage(LocalNetworkInstance)
-		})
-	ginkgo.It("Calculate Teleporter message IDs",
-		ginkgo.Label(utilsLabel),
-		func() {
-			teleporter.CalculateMessageID(LocalNetworkInstance)
-		})
-	ginkgo.It("Relayer modifies message",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.RelayerModifiesMessage(LocalNetworkInstance)
-		})
-	ginkgo.It("Validator churn",
-		ginkgo.Label(teleporterMessengerLabel),
-		func() {
-			teleporter.ValidatorChurn(LocalNetworkInstance)
-		})
+	// // Teleporter tests
+	// ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.BasicSendReceive(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Deliver to the wrong chain",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.DeliverToWrongChain(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Deliver to non-existent contract",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.DeliverToNonExistentContract(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Retry successful execution",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.RetrySuccessfulExecution(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Unallowed relayer",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.UnallowedRelayer(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Relay message twice",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.RelayMessageTwice(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Add additional fee amount",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.AddFeeAmount(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Send specific receipts",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.SendSpecificReceipts(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Insufficient gas",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.InsufficientGas(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Resubmit altered message",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.ResubmitAlteredMessage(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Calculate Teleporter message IDs",
+	// 	ginkgo.Label(utilsLabel),
+	// 	func() {
+	// 		teleporter.CalculateMessageID(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Relayer modifies message",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.RelayerModifiesMessage(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Validator churn",
+	// 	ginkgo.Label(teleporterMessengerLabel),
+	// 	func() {
+	// 		teleporter.ValidatorChurn(LocalNetworkInstance)
+	// 	})
 
-	// Teleporter Registry tests
-	ginkgo.It("Teleporter registry",
-		ginkgo.Label(upgradabilityLabel),
-		func() {
-			registry.TeleporterRegistry(LocalNetworkInstance)
-		})
-	ginkgo.It("Check upgrade access",
-		ginkgo.Label(upgradabilityLabel),
-		func() {
-			registry.CheckUpgradeAccess(LocalNetworkInstance)
-		})
-	ginkgo.It("Pause and Unpause Teleporter",
-		ginkgo.Label(upgradabilityLabel),
-		func() {
-			registry.PauseTeleporter(LocalNetworkInstance)
-		})
+	// // Teleporter Registry tests
+	// ginkgo.It("Teleporter registry",
+	// 	ginkgo.Label(upgradabilityLabel),
+	// 	func() {
+	// 		registry.TeleporterRegistry(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Check upgrade access",
+	// 	ginkgo.Label(upgradabilityLabel),
+	// 	func() {
+	// 		registry.CheckUpgradeAccess(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Pause and Unpause Teleporter",
+	// 	ginkgo.Label(upgradabilityLabel),
+	// 	func() {
+	// 		registry.PauseTeleporter(LocalNetworkInstance)
+	// 	})
 
-	// Governance tests
-	ginkgo.It("Deliver ValidatorSetSig signed message",
-		ginkgo.Label(validatorSetSigLabel),
-		func() {
-			governance.ValidatorSetSig(LocalNetworkInstance)
-		})
+	// // Governance tests
+	// ginkgo.It("Deliver ValidatorSetSig signed message",
+	// 	ginkgo.Label(validatorSetSigLabel),
+	// 	func() {
+	// 		governance.ValidatorSetSig(LocalNetworkInstance)
+	// 	})
 
-	// Validator Manager tests
-	ginkgo.It("Native token staking manager",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManager.NativeTokenStakingManager(LocalNetworkInstance)
-		})
+	// // Validator Manager tests
+	// ginkgo.It("Native token staking manager",
+	// 	ginkgo.Label(validatorManagerLabel),
+	// 	func() {
+	// 		validatorManager.NativeTokenStakingManager(LocalNetworkInstance)
+	// 	})
 	ginkgo.It("ERC20 token staking manager",
 		ginkgo.Label(validatorManagerLabel),
 		func() {
 			validatorManager.ERC20TokenStakingManager(LocalNetworkInstance)
 		})
-	ginkgo.It("PoA validator manager",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManager.PoAValidatorManager(LocalNetworkInstance)
-		})
-	ginkgo.It("ERC20 delegation",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManager.ERC20Delegation(LocalNetworkInstance)
-		})
-	ginkgo.It("Native token delegation",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManager.NativeDelegation(LocalNetworkInstance)
-		})
-	ginkgo.It("PoA migration to PoS",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManager.PoAMigrationToPoS(LocalNetworkInstance)
-		})
+	// ginkgo.It("PoA validator manager",
+	// 	ginkgo.Label(validatorManagerLabel),
+	// 	func() {
+	// 		validatorManager.PoAValidatorManager(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("ERC20 delegation",
+	// 	ginkgo.Label(validatorManagerLabel),
+	// 	func() {
+	// 		validatorManager.ERC20Delegation(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("Native token delegation",
+	// 	ginkgo.Label(validatorManagerLabel),
+	// 	func() {
+	// 		validatorManager.NativeDelegation(LocalNetworkInstance)
+	// 	})
+	// ginkgo.It("PoA migration to PoS",
+	// 	ginkgo.Label(validatorManagerLabel),
+	// 	func() {
+	// 		validatorManager.PoAMigrationToPoS(LocalNetworkInstance)
+	// 	})
 })

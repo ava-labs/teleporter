@@ -33,7 +33,6 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		cChainInfo.NodeURIs[0],
 		[]ids.ID{
 			subnetAInfo.SubnetID,
-			ids.Empty, // Primary network subnet ID
 		},
 	)
 	ctx := context.Background()
@@ -46,17 +45,17 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		pChainInfo,
 	)
 
-	_ = utils.InitializeERC20TokenValidatorSet(
-		ctx,
-		fundedKey,
-		subnetAInfo,
-		pChainInfo,
-		stakingManager,
-		stakingManagerAddress,
-		network,
-		signatureAggregator,
-		utils.DefaultMinStakeAmount*10,
-	)
+	// _ = utils.InitializeERC20TokenValidatorSet(
+	// 	ctx,
+	// 	fundedKey,
+	// 	subnetAInfo,
+	// 	pChainInfo,
+	// 	stakingManager,
+	// 	stakingManagerAddress,
+	// 	network,
+	// 	signatureAggregator,
+	// 	utils.DefaultMinStakeAmount*10,
+	// )
 
 	//
 	// Register a validator

@@ -44,7 +44,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		cChainInfo.NodeURIs[0],
 		[]ids.ID{
 			subnetAInfo.SubnetID,
-			ids.Empty, // Primary network subnet ID
 		},
 	)
 

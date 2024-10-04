@@ -3,6 +3,8 @@ package local
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"os"
@@ -14,9 +16,14 @@ import (
 	"github.com/ava-labs/avalanchego/config"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
+	"github.com/ava-labs/avalanchego/upgrade"
 	"github.com/ava-labs/avalanchego/utils/constants"
+	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/vms/platformvm"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
+	pwallet "github.com/ava-labs/avalanchego/wallet/chain/p/wallet"
+	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -25,7 +32,6 @@ import (
 	"github.com/ava-labs/subnet-evm/rpc"
 	subnetEvmTestUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
-
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/registry/TeleporterRegistry"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -48,6 +54,7 @@ type LocalNetwork struct {
 	extraNodes []*tmpnet.Node // to add as more subnet validators in the tests
 
 	globalFundedKey *ecdsa.PrivateKey
+	pChainWallet    pwallet.Wallet
 
 	// Internal vars only used to set up the local network
 	tmpnet *tmpnet.Network
@@ -82,6 +89,23 @@ func NewLocalNetwork(
 	var allNodes []*tmpnet.Node
 	allNodes = append(allNodes, extraNodes...) // to be appended w/ subnet validators
 
+	fundedKey, err := hex.DecodeString(fundedKeyStr)
+	Expect(err).Should(BeNil())
+	globalFundedKey, err := secp256k1.ToPrivateKey(fundedKey)
+	Expect(err).Should(BeNil())
+
+	globalFundedECDSAKey := globalFundedKey.ToECDSA()
+	Expect(err).Should(BeNil())
+
+	g, err := crypto.HexToECDSA(fundedKeyStr)
+	Expect(err).Should(BeNil())
+	// TODONOW: remove these once txs are verified
+	Expect(g.PublicKey.X).Should(Equal(globalFundedECDSAKey.PublicKey.X))
+	Expect(g.PublicKey.Y).Should(Equal(globalFundedECDSAKey.PublicKey.Y))
+	Expect(g.X).Should(Equal(globalFundedECDSAKey.X))
+	Expect(g.Y).Should(Equal(globalFundedECDSAKey.Y))
+	Expect(g.D).Should(Equal(globalFundedECDSAKey.D))
+
 	var subnets []*tmpnet.Subnet
 	for _, subnetSpec := range subnetSpecs {
 		nodes := subnetEvmTestUtils.NewTmpnetNodes(subnetSpec.NodeCount)
@@ -99,6 +123,7 @@ func NewLocalNetwork(
 			utils.WarpEnabledChainConfig,
 			nodes...,
 		)
+		subnet.OwningKey = globalFundedKey
 		subnets = append(subnets, subnet)
 	}
 
@@ -109,6 +134,17 @@ func NewLocalNetwork(
 		subnets...,
 	)
 	Expect(network).ShouldNot(BeNil())
+
+	// Activate Etna
+	upgrades := upgrade.Default
+	upgrades.EtnaTime = time.Now().Add(-1 * time.Minute)
+	upgradeJSON, err := json.Marshal(upgrades)
+	Expect(err).Should(BeNil())
+
+	upgradeBase64 := base64.StdEncoding.EncodeToString(upgradeJSON)
+	network.DefaultFlags.SetDefaults(tmpnet.FlagsMap{
+		config.UpgradeFileContentKey: upgradeBase64,
+	})
 
 	avalancheGoBuildPath, ok := os.LookupEnv("AVALANCHEGO_BUILD_PATH")
 	Expect(ok).Should(Equal(true))
@@ -125,25 +161,40 @@ func NewLocalNetwork(
 	)
 	Expect(err).Should(BeNil())
 
-	globalFundedKey, err := crypto.HexToECDSA(fundedKeyStr)
-	Expect(err).Should(BeNil())
-
 	// Issue transactions to activate the proposerVM fork on the chains
 	for _, subnet := range network.Subnets {
-		setupProposerVM(ctx, globalFundedKey, network, subnet.SubnetID)
+		setupProposerVM(ctx, globalFundedECDSAKey, network, subnet.SubnetID)
 	}
 
+	// TODONOW: add Wallet LocalNetwork struct
 	localNetwork := &LocalNetwork{
 		primaryNetworkInfo: &interfaces.SubnetTestInfo{},
 		subnetsInfo:        make(map[ids.ID]*interfaces.SubnetTestInfo),
 		extraNodes:         extraNodes,
-		globalFundedKey:    globalFundedKey,
+		globalFundedKey:    globalFundedECDSAKey,
 		tmpnet:             network,
 	}
 	for _, subnet := range network.Subnets {
 		localNetwork.setSubnetValues(subnet)
 	}
 	localNetwork.setPrimaryNetworkValues()
+
+	// Create the P-Chain wallet to issue transactions
+	kc := secp256k1fx.NewKeychain(globalFundedKey)
+	localNetwork.GetSubnetsInfo()
+	var subnetIDs []ids.ID
+	for _, subnet := range localNetwork.GetSubnetsInfo() {
+		subnetIDs = append(subnetIDs, subnet.SubnetID)
+	}
+	wallet, err := primary.MakeWallet(ctx, &primary.WalletConfig{
+		URI:          localNetwork.GetPrimaryNetworkInfo().NodeURIs[0],
+		AVAXKeychain: kc,
+		EthKeychain:  kc,
+		SubnetIDs:    subnetIDs,
+	})
+	Expect(err).Should(BeNil())
+	localNetwork.pChainWallet = wallet.P()
+
 	return localNetwork
 }
 
@@ -673,4 +724,8 @@ func (n *LocalNetwork) GetNetworkID() uint32 {
 
 func (n *LocalNetwork) Dir() string {
 	return n.tmpnet.Dir
+}
+
+func (n *LocalNetwork) GetPChainWallet() pwallet.Wallet {
+	return n.pChainWallet
 }

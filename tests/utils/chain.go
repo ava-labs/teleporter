@@ -19,6 +19,7 @@ import (
 	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/utils/set"
+	"github.com/ava-labs/avalanchego/vms/platformvm/signer"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	relayerConfig "github.com/ava-labs/awm-relayer/config"
 	"github.com/ava-labs/awm-relayer/peers"
@@ -69,6 +70,11 @@ var WarpEnabledChainConfig = tmpnet.FlagsMap{
 		"debug-file-tracer",
 		"debug-handler",
 	},
+}
+
+type Node struct {
+	NodeID  ids.NodeID
+	NodePoP *signer.ProofOfPossession
 }
 
 //
