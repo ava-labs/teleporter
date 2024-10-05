@@ -649,12 +649,11 @@ func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 	}
 }
 
-func (n *LocalNetwork) ConstructSignedWarpMessage(
+func (n *LocalNetwork) ExtractWarpMessageFromLog(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-) *avalancheWarp.Message {
+) *avalancheWarp.UnsignedMessage {
 	log.Info("Fetching relevant warp logs from the newly produced block")
 	logs, err := source.RPCClient.FilterLogs(ctx, subnetEvmInterfaces.FilterQuery{
 		BlockHash: &sourceReceipt.BlockHash,
@@ -669,6 +668,16 @@ func (n *LocalNetwork) ConstructSignedWarpMessage(
 	log.Info("Parsing logData as unsigned warp message")
 	unsignedMsg, err := warp.UnpackSendWarpEventDataToMessage(txLog.Data)
 	Expect(err).Should(BeNil())
+	return unsignedMsg
+}
+
+func (n *LocalNetwork) ConstructSignedWarpMessage(
+	ctx context.Context,
+	sourceReceipt *types.Receipt,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
+) *avalancheWarp.Message {
+	unsignedMsg := n.ExtractWarpMessageFromLog(ctx, sourceReceipt, source)
 
 	// Set local variables for the duration of the test
 	unsignedWarpMessageID := unsignedMsg.ID()

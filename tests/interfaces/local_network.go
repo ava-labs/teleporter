@@ -14,6 +14,11 @@ import (
 type LocalNetwork interface {
 	Network
 	AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint)
+	ExtractWarpMessageFromLog(
+		ctx context.Context,
+		sourceReceipt *types.Receipt,
+		source SubnetTestInfo,
+	) *avalancheWarp.UnsignedMessage
 	ConstructSignedWarpMessage(
 		ctx context.Context,
 		sourceReceipt *types.Receipt,

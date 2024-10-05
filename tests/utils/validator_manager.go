@@ -13,9 +13,14 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/bls"
+	"github.com/ava-labs/avalanchego/utils/formatting/address"
+	"github.com/ava-labs/avalanchego/utils/units"
+	"github.com/ava-labs/avalanchego/vms/components/avax"
+	"github.com/ava-labs/avalanchego/vms/platformvm/stakeable"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	warpMessages "github.com/ava-labs/avalanchego/vms/platformvm/warp/message"
 	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
+	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
 	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -35,7 +40,7 @@ import (
 const (
 	DefaultMinDelegateFeeBips      uint16 = 1
 	DefaultMinStakeDurationSeconds uint64 = 1
-	DefaultMinStakeAmount          uint64 = 1e18
+	DefaultMinStakeAmount          uint64 = 1e16
 	DefaultMaxStakeAmount          uint64 = 10e18
 	DefaultMaxStakeMultiplier      uint8  = 4
 	DefaultMaxChurnPercentage      uint8  = 20
@@ -364,6 +369,10 @@ func InitializeERC20TokenValidatorSet(
 		network,
 		signatureAggregator,
 	)
+	log.Println("SubnetConversionSignedMessage")
+	log.Println(subnetConversionSignedMessage.Signature.NumSigners())
+	log.Println(subnetConversionSignedMessage.Signature.String())
+	log.Println(subnetConversionSignedMessage.SourceChainID.String())
 	// Deliver the Warp message to the subnet
 	receipt := DeliverERC20TokenSubnetConversion(
 		ctx,
@@ -568,8 +577,8 @@ func InitializeERC20ValidatorRegistration(
 	stakeAmount *big.Int,
 	token *exampleerc20.ExampleERC20,
 	stakingManagerAddress common.Address,
-	nodeID ids.ID,
-	blsPublicKey [bls.PublicKeyLen]byte,
+	node Node,
+	expiry uint64,
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 ) (*types.Receipt, ids.ID) {
 	ERC20Approve(
@@ -587,9 +596,9 @@ func InitializeERC20ValidatorRegistration(
 	tx, err := stakingManager.InitializeValidatorRegistration(
 		opts,
 		erc20tokenstakingmanager.ValidatorRegistrationInput{
-			NodeID:             nodeID[:],
-			RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
-			BlsPublicKey:       blsPublicKey[:],
+			NodeID:             node.NodeID[:],
+			RegistrationExpiry: expiry,
+			BlsPublicKey:       node.NodePoP.PublicKey[:],
 		},
 		DefaultMinDelegateFeeBips,
 		DefaultMinStakeDurationSeconds,
@@ -771,6 +780,9 @@ func InitializeAndCompleteNativeValidatorRegistration(
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		0,
+		Node{},
+		0,
 		true,
 		subnetInfo,
 		pChainInfo,
@@ -808,10 +820,12 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	stakingManagerAddress common.Address,
 	erc20 *exampleerc20.ExampleERC20,
 	stakeAmount *big.Int,
+	weight uint64,
+	expiry uint64,
+	node Node,
 ) ids.ID {
+
 	// Initiate validator registration
-	nodeID := ids.GenerateTestID()
-	blsPublicKey := [bls.PublicKeyLen]byte{}
 	var receipt *types.Receipt
 	receipt, validationID := InitializeERC20ValidatorRegistration(
 		ctx,
@@ -820,8 +834,8 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 		stakeAmount,
 		erc20,
 		stakingManagerAddress,
-		nodeID,
-		blsPublicKey,
+		node,
+		expiry,
 		stakingManager,
 	)
 
@@ -830,23 +844,33 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	// TODONOW: construct the pre-image of the validationID as the justification
 	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo)
 
-	weight, err := stakingManager.ValueToWeight(
-		&bind.CallOpts{},
-		stakeAmount,
+	// weight, err := stakingManager.ValueToWeight(
+	// 	&bind.CallOpts{},
+	// 	stakeAmount,
+	// )
+	// Expect(err).Should(BeNil())
+	// Validate the Warp message, (this will be done on the P-Chain in the future)
+	// ValidateRegisterSubnetValidatorMessage(
+	// 	signedWarpMessage,
+	// 	nodeID,
+	// 	weight,
+	// 	subnetInfo.SubnetID,
+	// 	blsPublicKey,
+	// )
+	_, err := network.GetPChainWallet().IssueRegisterSubnetValidatorTx(
+		units.Avax,
+		node.NodePoP.ProofOfPossession,
+		signedWarpMessage.Bytes(),
 	)
 	Expect(err).Should(BeNil())
-	// Validate the Warp message, (this will be done on the P-Chain in the future)
-	ValidateRegisterSubnetValidatorMessage(
-		signedWarpMessage,
-		nodeID,
-		weight,
-		subnetInfo.SubnetID,
-		blsPublicKey,
-	)
+	PChainProposerVMWorkaround(network)
 
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		expiry,
+		node,
+		weight,
 		true,
 		subnetInfo,
 		pChainInfo,
@@ -914,6 +938,9 @@ func InitializeAndCompletePoAValidatorRegistration(
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		0,
+		Node{},
+		0,
 		true,
 		subnetInfo,
 		pChainInfo,
@@ -1329,6 +1356,9 @@ func InitializeAndCompleteEndNativeValidation(
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		0,
+		Node{},
+		0,
 		false,
 		subnetInfo,
 		pChainInfo,
@@ -1364,6 +1394,8 @@ func InitializeAndCompleteEndERC20Validation(
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	stakingManagerAddress common.Address,
 	validationID ids.ID,
+	expiry uint64,
+	node Node,
 	weight uint64,
 	nonce uint64,
 ) {
@@ -1385,15 +1417,28 @@ func InitializeAndCompleteEndERC20Validation(
 
 	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 	// (Sending to the P-Chain will be skipped for now)
-	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo)
+	unsignedMessage := network.ExtractWarpMessageFromLog(ctx, receipt, subnetInfo)
+	signedWarpMessage, err := signatureAggregator.CreateSignedMessage(
+		unsignedMessage,
+		nil,
+		subnetInfo.SubnetID,
+		67,
+	)
 	Expect(err).Should(BeNil())
+	log.Println("SetSubnetValidatorWeightMessage")
+	log.Println(signedWarpMessage.Signature.NumSigners())
+	log.Println(signedWarpMessage.Signature.String())
+	log.Println(signedWarpMessage.SourceChainID.String())
 
-	// Validate the Warp message, (this will be done on the P-Chain in the future)
-	ValidateSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, nonce)
-
+	// Deliver the Warp message to the P-Chain
+	network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
+	PChainProposerVMWorkaround(network)
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		expiry,
+		node,
+		weight,
 		false,
 		subnetInfo,
 		pChainInfo,
@@ -1459,6 +1504,9 @@ func InitializeAndCompleteEndPoAValidation(
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		0,
+		Node{},
+		0,
 		false,
 		subnetInfo,
 		pChainInfo,
@@ -1490,12 +1538,26 @@ func InitializeAndCompleteEndPoAValidation(
 
 func ConstructSubnetValidatorRegistrationMessage(
 	validationID ids.ID,
+	expiry uint64,
+	node Node,
+	weight uint64,
 	valid bool,
 	subnet interfaces.SubnetTestInfo,
 	pChainInfo interfaces.SubnetTestInfo,
 	network interfaces.LocalNetwork,
 	signatureAggregator *aggregator.SignatureAggregator,
 ) *avalancheWarp.Message {
+	justification, err := warpMessages.NewRegisterSubnetValidator(
+		subnet.SubnetID,
+		node.NodeID,
+		node.NodePoP.PublicKey,
+		expiry,
+		warpMessages.PChainOwner{},
+		warpMessages.PChainOwner{},
+		weight,
+	)
+	Expect(err).Should(BeNil())
+
 	registrationPayload, err := warpMessages.NewSubnetValidatorRegistration(validationID, valid)
 	Expect(err).Should(BeNil())
 	registrationAddressedCall, err := warpPayload.NewAddressedCall(nil, registrationPayload.Bytes())
@@ -1509,10 +1571,14 @@ func ConstructSubnetValidatorRegistrationMessage(
 
 	registrationSignedMessage, err := signatureAggregator.CreateSignedMessage(
 		registrationUnsignedMessage,
-		nil,
+		justification.Bytes(),
 		subnet.SubnetID,
 		67,
 	)
+	log.Println("registrationSignedMessage")
+	log.Println(registrationSignedMessage.Signature.NumSigners())
+	log.Println(registrationSignedMessage.Signature.String())
+	log.Println(registrationSignedMessage.SourceChainID.String())
 	Expect(err).Should(BeNil())
 	return registrationSignedMessage
 }
@@ -1768,4 +1834,62 @@ func PackInitialValidator(iv interface{}) ([]byte, error) {
 	binary.BigEndian.PutUint64(b[4+len(nodeID):4+len(nodeID)+8], weight)
 	copy(b[4+len(nodeID)+8:4+len(nodeID)+8+48], blsPublicKey)
 	return b, nil
+}
+
+func PChainProposerVMWorkaround(
+	network interfaces.LocalNetwork,
+) {
+	// // Workaround current block map rules
+	destAddrStr := "P-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u00z96u"
+	destAddr, err := address.ParseToID(destAddrStr)
+	Expect(err).Should(BeNil())
+	log.Println("Waiting for P-Chain...")
+	time.Sleep(30 * time.Second)
+
+	pBuilder := network.GetPChainWallet().Builder()
+	pContext := pBuilder.Context()
+	avaxAssetID := pContext.AVAXAssetID
+	locktime := uint64(time.Date(2030, 1, 1, 0, 0, 0, 0, time.UTC).Unix())
+	amount := 500 * units.MilliAvax
+	_, err = network.GetPChainWallet().IssueBaseTx([]*avax.TransferableOutput{
+		{
+			Asset: avax.Asset{
+				ID: avaxAssetID,
+			},
+			Out: &stakeable.LockOut{
+				Locktime: locktime,
+				TransferableOut: &secp256k1fx.TransferOutput{
+					Amt: amount,
+					OutputOwners: secp256k1fx.OutputOwners{
+						Threshold: 1,
+						Addrs: []ids.ShortID{
+							destAddr,
+						},
+					},
+				},
+			},
+		},
+	})
+	Expect(err).Should(BeNil())
+	_, err = network.GetPChainWallet().IssueBaseTx([]*avax.TransferableOutput{
+		{
+			Asset: avax.Asset{
+				ID: avaxAssetID,
+			},
+			Out: &stakeable.LockOut{
+				Locktime: locktime,
+				TransferableOut: &secp256k1fx.TransferOutput{
+					Amt: amount,
+					OutputOwners: secp256k1fx.OutputOwners{
+						Threshold: 1,
+						Addrs: []ids.ShortID{
+							destAddr,
+						},
+					},
+				},
+			},
+		},
+	})
+	Expect(err).Should(BeNil())
+	// End workaround
 }

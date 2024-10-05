@@ -67,20 +67,20 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		validatorStake,
 	)
 	Expect(err).Should(BeNil())
-	validationID = utils.InitializeAndCompleteERC20ValidatorRegistration(
-		ctx,
-		network,
-		signatureAggregator,
-		fundedKey,
-		subnetAInfo,
-		pChainInfo,
-		stakingManager,
-		stakingManagerAddress,
-		erc20,
-		validatorStake,
-	)
+	// validationID = utils.InitializeAndCompleteERC20ValidatorRegistration(
+	// 	ctx,
+	// 	network,
+	// 	signatureAggregator,
+	// 	fundedKey,
+	// 	subnetAInfo,
+	// 	pChainInfo,
+	// 	stakingManager,
+	// 	stakingManagerAddress,
+	// 	erc20,
+	// 	validatorStake,
+	// )
 
-	//
+	// //
 	// Register a delegator
 	//
 	var delegationID ids.ID
