@@ -2,6 +2,7 @@ package staking
 
 import (
 	"context"
+	"log"
 	"sort"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
 	"github.com/ava-labs/avalanchego/vms/platformvm/warp/message"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
@@ -130,6 +130,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		},
 	}
 
+	log.Println("Issuing ConvertSubnetTx")
 	_, err = network.GetPChainWallet().IssueConvertSubnetTx(
 		subnetAInfo.SubnetID,
 		subnetAInfo.BlockchainID,
@@ -140,15 +141,10 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 
 	utils.PChainProposerVMWorkaround(network)
 
-	// Issue txs on the subnet to advance the proposer vm
-	for i := 0; i < 5; i++ {
-		err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
-			ctx, subnetAInfo.EVMChainID, fundedKey, subnetAInfo.WSClient,
-		)
-		Expect(err).Should(BeNil())
-	}
+	utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
 
 	// Initialize the validator set on the subnet
+	log.Println("Initializing validator set")
 	_ = utils.InitializeERC20TokenValidatorSet(
 		ctx,
 		fundedKey,

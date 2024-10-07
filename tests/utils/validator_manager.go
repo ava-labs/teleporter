@@ -26,6 +26,7 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
+	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
 	erc20tokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20TokenStakingManager"
 	examplerewardcalculator "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ExampleRewardCalculator"
@@ -827,6 +828,7 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 
 	// Initiate validator registration
 	var receipt *types.Receipt
+	log.Println("Initializing validator registration")
 	receipt, validationID := InitializeERC20ValidatorRegistration(
 		ctx,
 		fundedKey,
@@ -858,14 +860,15 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	// 	blsPublicKey,
 	// )
 	_, err := network.GetPChainWallet().IssueRegisterSubnetValidatorTx(
-		units.Avax,
+		100*units.Avax,
 		node.NodePoP.ProofOfPossession,
 		signedWarpMessage.Bytes(),
 	)
 	Expect(err).Should(BeNil())
 	PChainProposerVMWorkaround(network)
-
+	AdvanceProposerVM(ctx, subnetInfo, fundedKey, 5)
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
+	log.Println("Completing validator registration")
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
 		expiry,
@@ -1399,6 +1402,7 @@ func InitializeAndCompleteEndERC20Validation(
 	weight uint64,
 	nonce uint64,
 ) {
+	log.Println("Initializing validator removal")
 	WaitMinStakeDuration(ctx, subnetInfo, fundedKey)
 	receipt := ForceInitializeEndERC20Validation(
 		ctx,
@@ -1422,7 +1426,7 @@ func InitializeAndCompleteEndERC20Validation(
 		unsignedMessage,
 		nil,
 		subnetInfo.SubnetID,
-		67,
+		100,
 	)
 	Expect(err).Should(BeNil())
 	log.Println("SetSubnetValidatorWeightMessage")
@@ -1433,7 +1437,11 @@ func InitializeAndCompleteEndERC20Validation(
 	// Deliver the Warp message to the P-Chain
 	network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
 	PChainProposerVMWorkaround(network)
+	PChainProposerVMWorkaround(network)
+	AdvanceProposerVM(ctx, subnetInfo, fundedKey, 5)
+
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
+	log.Println("Completing validator removal")
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
 		expiry,
@@ -1456,12 +1464,12 @@ func InitializeAndCompleteEndERC20Validation(
 	)
 
 	// Check that the validator is has been delisted from the staking contract
-	registrationEvent, err := GetEventFromLogs(
+	validationEndedEvent, err := GetEventFromLogs(
 		receipt.Logs,
 		stakingManager.ParseValidationPeriodEnded,
 	)
 	Expect(err).Should(BeNil())
-	Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+	Expect(validationEndedEvent.ValidationID[:]).Should(Equal(validationID[:]))
 }
 
 func InitializeAndCompleteEndPoAValidation(
@@ -1573,13 +1581,16 @@ func ConstructSubnetValidatorRegistrationMessage(
 		registrationUnsignedMessage,
 		justification.Bytes(),
 		subnet.SubnetID,
-		67,
+		100,
 	)
-	log.Println("registrationSignedMessage")
-	log.Println(registrationSignedMessage.Signature.NumSigners())
-	log.Println(registrationSignedMessage.Signature.String())
-	log.Println(registrationSignedMessage.SourceChainID.String())
 	Expect(err).Should(BeNil())
+	log.Println("SubnetValidatorRegistrationMessage")
+	log.Printf("valid=%t", valid)
+	numSigners, err := registrationSignedMessage.Signature.NumSigners()
+	Expect(err).Should(BeNil())
+	log.Println("numSigners", numSigners)
+	log.Println("signature", registrationSignedMessage.Signature.String())
+	log.Println("sourceChain", registrationSignedMessage.SourceChainID.String())
 	return registrationSignedMessage
 }
 
@@ -1638,7 +1649,7 @@ func ConstructSubnetConversionMessage(
 		subnetConversionUnsignedMessage,
 		subnet.SubnetID[:],
 		subnet.SubnetID,
-		67,
+		100,
 	)
 	Expect(err).Should(BeNil())
 	return subnetConversionSignedMessage
@@ -1892,4 +1903,18 @@ func PChainProposerVMWorkaround(
 	})
 	Expect(err).Should(BeNil())
 	// End workaround
+}
+
+func AdvanceProposerVM(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	fundedKey *ecdsa.PrivateKey,
+	blocks int,
+) {
+	for i := 0; i < blocks; i++ {
+		err := subnetEvmUtils.IssueTxsToActivateProposerVMFork(
+			ctx, subnet.EVMChainID, fundedKey, subnet.WSClient,
+		)
+		Expect(err).Should(BeNil())
+	}
 }

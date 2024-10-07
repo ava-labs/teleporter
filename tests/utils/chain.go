@@ -539,7 +539,14 @@ func InstantiateGenesisTemplate(
 //
 
 func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.SignatureAggregator {
-	logger := logging.NoLog{}
+	logger := logging.NewLogger(
+		"test-debug",
+		logging.NewWrappedCore(
+			logging.Debug,
+			os.Stdout,
+			logging.JSON.ConsoleEncoder(),
+		),
+	)
 	cfg := sigAggConfig.Config{
 		PChainAPI: &relayerConfig.APIConfig{
 			BaseURL: apiUri,
@@ -560,7 +567,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	Expect(err).Should(BeNil())
 
 	messageCreator, err := message.NewCreator(
-		logger,
+		logging.NoLog{},
 		registry,
 		constants.DefaultNetworkCompressionType,
 		constants.DefaultNetworkMaximumInboundTimeout,
