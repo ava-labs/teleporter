@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/proto/pb/platformvm"
 	"github.com/ava-labs/avalanchego/utils/crypto/bls"
 	"github.com/ava-labs/avalanchego/utils/formatting/address"
 	"github.com/ava-labs/avalanchego/utils/units"
@@ -34,6 +35,7 @@ import (
 	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
+	"google.golang.org/protobuf/proto"
 
 	. "github.com/onsi/gomega"
 )
@@ -390,7 +392,7 @@ func InitializeERC20TokenValidatorSet(
 	Expect(err).Should(BeNil())
 	var validationIDs []ids.ID
 	for i := range nodes {
-		validationIDs = append(validationIDs, CalculateSubnetConversionValidationId(subnetInfo.SubnetID, uint32(i)))
+		validationIDs = append(validationIDs, subnetInfo.SubnetID.Append(uint32(i)))
 	}
 
 	// TODONOW: Validate all nodes
@@ -781,6 +783,8 @@ func InitializeAndCompleteNativeValidatorRegistration(
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		false,
+		0,
 		0,
 		Node{},
 		0,
@@ -871,6 +875,8 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	log.Println("Completing validator registration")
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		false,
+		0,
 		expiry,
 		node,
 		weight,
@@ -941,6 +947,8 @@ func InitializeAndCompletePoAValidatorRegistration(
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		false,
+		0,
 		0,
 		Node{},
 		0,
@@ -1359,6 +1367,8 @@ func InitializeAndCompleteEndNativeValidation(
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		false,
+		0,
 		0,
 		Node{},
 		0,
@@ -1385,6 +1395,93 @@ func InitializeAndCompleteEndNativeValidation(
 	)
 	Expect(err).Should(BeNil())
 	Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+}
+
+func InitializeAndCompleteEndInitialERC20Validation(
+	ctx context.Context,
+	network interfaces.LocalNetwork,
+	signatureAggregator *aggregator.SignatureAggregator,
+	fundedKey *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
+	stakingManagerAddress common.Address,
+	validationID ids.ID,
+	index uint32,
+	expiry uint64,
+	node Node,
+	weight uint64,
+	nonce uint64,
+) {
+	log.Println("Initializing initial validator removal")
+	WaitMinStakeDuration(ctx, subnetInfo, fundedKey)
+	receipt := ForceInitializeEndERC20Validation(
+		ctx,
+		fundedKey,
+		subnetInfo,
+		stakingManager,
+		validationID,
+	)
+	validatorRemovalEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		stakingManager.ParseValidatorRemovalInitialized,
+	)
+	Expect(err).Should(BeNil())
+	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
+	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(weight))
+
+	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
+	// (Sending to the P-Chain will be skipped for now)
+	unsignedMessage := network.ExtractWarpMessageFromLog(ctx, receipt, subnetInfo)
+	signedWarpMessage, err := signatureAggregator.CreateSignedMessage(
+		unsignedMessage,
+		nil,
+		subnetInfo.SubnetID,
+		100,
+	)
+	Expect(err).Should(BeNil())
+	log.Println("SetSubnetValidatorWeightMessage")
+	log.Println(signedWarpMessage.Signature.NumSigners())
+	log.Println(signedWarpMessage.Signature.String())
+	log.Println(signedWarpMessage.SourceChainID.String())
+
+	// Deliver the Warp message to the P-Chain
+	network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
+	PChainProposerVMWorkaround(network)
+	AdvanceProposerVM(ctx, subnetInfo, fundedKey, 5)
+
+	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
+	log.Println("Completing validator removal")
+	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
+		validationID,
+		true,
+		index,
+		expiry,
+		node,
+		weight,
+		false,
+		subnetInfo,
+		pChainInfo,
+		network,
+		signatureAggregator,
+	)
+
+	// Deliver the Warp message to the subnet
+	receipt = CompleteEndERC20Validation(
+		ctx,
+		fundedKey,
+		subnetInfo,
+		stakingManagerAddress,
+		registrationSignedMessage,
+	)
+
+	// Check that the validator is has been delisted from the staking contract
+	validationEndedEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		stakingManager.ParseValidationPeriodEnded,
+	)
+	Expect(err).Should(BeNil())
+	Expect(validationEndedEvent.ValidationID[:]).Should(Equal(validationID[:]))
 }
 
 func InitializeAndCompleteEndERC20Validation(
@@ -1443,6 +1540,8 @@ func InitializeAndCompleteEndERC20Validation(
 	log.Println("Completing validator removal")
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		false,
+		0,
 		expiry,
 		node,
 		weight,
@@ -1511,6 +1610,8 @@ func InitializeAndCompleteEndPoAValidation(
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	registrationSignedMessage := ConstructSubnetValidatorRegistrationMessage(
 		validationID,
+		false,
+		0,
 		0,
 		Node{},
 		0,
@@ -1545,6 +1646,8 @@ func InitializeAndCompleteEndPoAValidation(
 
 func ConstructSubnetValidatorRegistrationMessage(
 	validationID ids.ID,
+	initialValidator bool,
+	index uint32,
 	expiry uint64,
 	node Node,
 	weight uint64,
@@ -1554,16 +1657,40 @@ func ConstructSubnetValidatorRegistrationMessage(
 	network interfaces.LocalNetwork,
 	signatureAggregator *aggregator.SignatureAggregator,
 ) *avalancheWarp.Message {
-	justification, err := warpMessages.NewRegisterSubnetValidator(
-		subnet.SubnetID,
-		node.NodeID,
-		node.NodePoP.PublicKey,
-		expiry,
-		warpMessages.PChainOwner{},
-		warpMessages.PChainOwner{},
-		weight,
+	var (
+		justificationBytes []byte
+		err                error
 	)
-	Expect(err).Should(BeNil())
+	if !initialValidator {
+		msg, err := warpMessages.NewRegisterSubnetValidator(
+			subnet.SubnetID,
+			node.NodeID,
+			node.NodePoP.PublicKey,
+			expiry,
+			warpMessages.PChainOwner{},
+			warpMessages.PChainOwner{},
+			weight,
+		)
+		Expect(err).Should(BeNil())
+		justification := platformvm.SubnetValidatorRegistrationJustification{
+			Preimage: &platformvm.SubnetValidatorRegistrationJustification_RegisterSubnetValidatorMessage{
+				RegisterSubnetValidatorMessage: msg.Bytes(),
+			},
+		}
+		justificationBytes, err = proto.Marshal(&justification)
+		Expect(err).Should(BeNil())
+	} else {
+		justification := platformvm.SubnetValidatorRegistrationJustification{
+			Preimage: &platformvm.SubnetValidatorRegistrationJustification_ConvertSubnetTxData{
+				ConvertSubnetTxData: &platformvm.SubnetIDIndex{
+					SubnetId: subnet.SubnetID[:],
+					Index:    index,
+				},
+			},
+		}
+		justificationBytes, err = proto.Marshal(&justification)
+		Expect(err).Should(BeNil())
+	}
 
 	registrationPayload, err := warpMessages.NewSubnetValidatorRegistration(validationID, valid)
 	Expect(err).Should(BeNil())
@@ -1578,7 +1705,7 @@ func ConstructSubnetValidatorRegistrationMessage(
 
 	registrationSignedMessage, err := signatureAggregator.CreateSignedMessage(
 		registrationUnsignedMessage,
-		justification.Bytes(),
+		justificationBytes,
 		subnet.SubnetID,
 		100,
 	)

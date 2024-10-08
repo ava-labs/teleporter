@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	goLog "log"
 	"math/big"
 	"os"
 	"strconv"
@@ -317,10 +318,13 @@ func TraceTransaction(ctx context.Context, rpcClient ethclient.Client, txHash co
 // Takes a tx hash instead of the full tx in the subnet-evm version of this function.
 // Copied and modified from https://github.com/ava-labs/subnet-evm/blob/v0.6.0-fuji/accounts/abi/bind/util.go#L42
 func WaitMined(ctx context.Context, rpcClient ethclient.Client, txHash common.Hash) (*types.Receipt, error) {
+	now := time.Now()
 	receipt, err := waitForTransactionReceipt(ctx, rpcClient, txHash)
 	if err != nil {
 		return nil, err
 	}
+	since := time.Since(now)
+	goLog.Println("Transaction mined", "txHash", txHash.Hex(), "duration", since)
 
 	// Check that the block height endpoint returns a block height as high as the block number that the transaction was
 	// included in. This is to workaround the issue where multiple nodes behind a public RPC endpoint see
