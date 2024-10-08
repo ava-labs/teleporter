@@ -1437,7 +1437,6 @@ func InitializeAndCompleteEndERC20Validation(
 	// Deliver the Warp message to the P-Chain
 	network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
 	PChainProposerVMWorkaround(network)
-	PChainProposerVMWorkaround(network)
 	AdvanceProposerVM(ctx, subnetInfo, fundedKey, 5)
 
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain

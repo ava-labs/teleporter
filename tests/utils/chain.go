@@ -214,7 +214,7 @@ func waitForTransaction(
 	txHash common.Hash,
 	success bool,
 ) *types.Receipt {
-	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
 	receipt, err := WaitMined(cctx, subnetInfo.RPCClient, txHash)
@@ -317,10 +317,7 @@ func TraceTransaction(ctx context.Context, rpcClient ethclient.Client, txHash co
 // Takes a tx hash instead of the full tx in the subnet-evm version of this function.
 // Copied and modified from https://github.com/ava-labs/subnet-evm/blob/v0.6.0-fuji/accounts/abi/bind/util.go#L42
 func WaitMined(ctx context.Context, rpcClient ethclient.Client, txHash common.Hash) (*types.Receipt, error) {
-	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
-	defer cancel()
-
-	receipt, err := waitForTransactionReceipt(cctx, rpcClient, txHash)
+	receipt, err := waitForTransactionReceipt(ctx, rpcClient, txHash)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +329,7 @@ func WaitMined(ctx context.Context, rpcClient ethclient.Client, txHash common.Ha
 	// configured to return the lowest value currently returned by any node behind the load balancer, so waiting for
 	// it to be at least as high as the block height specified in the receipt should provide a relatively strong
 	// indication that the transaction has been seen widely throughout the network.
-	err = waitForBlockHeight(cctx, rpcClient, receipt.BlockNumber.Uint64())
+	err = waitForBlockHeight(ctx, rpcClient, receipt.BlockNumber.Uint64())
 	if err != nil {
 		return nil, err
 	}
