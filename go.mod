@@ -2,6 +2,7 @@ module github.com/ava-labs/teleporter
 
 go 1.22.8
 
+replace github.com/ava-labs/awm-relayer => /Users/cameron.schultz/awm-relayer
 require (
 	github.com/ava-labs/avalanchego v1.12.0-initial-poc.3
 	github.com/supranational/blst v0.3.11 // indirect
