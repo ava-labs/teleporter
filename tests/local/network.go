@@ -65,7 +65,7 @@ type SubnetSpec struct {
 	Name                       string
 	EVMChainID                 uint64
 	TeleporterContractAddress  common.Address
-	TeleporterDeployedBytecode []byte
+	TeleporterDeployedBytecode string
 	TeleporterDeployerAddress  common.Address
 	NodeCount                  int
 }
