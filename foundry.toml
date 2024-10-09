@@ -6,8 +6,6 @@ solc_version = '0.8.25'
 evm_version = 'shanghai'
 test = 'tests'
 bytecode_hash = "none"
-# TODO: this fails to compile when set to false
-auto_detect_remappings = true
 
 [fmt]
 line_length = 100
