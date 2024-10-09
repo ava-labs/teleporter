@@ -9,6 +9,53 @@ TELEPORTER_PATH=$(
   cd ../.. && pwd
 )
 
+function printHelp() {
+    echo "Usage: ./scripts/local/e2e_test.sh [--component component]"
+    echo ""
+    printUsage
+}
+
+function printUsage() {
+    cat << EOF
+Arguments:
+    --component <component>          Component test suite to run. If omitted, runs all tests.
+Options:
+    --help                           Print this help message
+EOF
+}
+
+valid_components="teleporter governance validator-manager"
+component=
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --component)  
+            if [[ $2 != --* ]]; then
+                component=$2
+            else 
+                echo "Invalid component $2" && printHelp && exit 1
+            fi 
+            shift;;
+        --help) 
+            printHelp && exit 0 ;;
+        *) 
+            echo "Invalid option: $1" && printHelp && exit 1;;
+    esac
+    shift
+done
+
+# Exit if no component is provided
+# TODONOW: Run all tests if no component is provided
+if [ -z "$component" ]; then
+    echo "No component provided" && exit 1
+fi
+
+if echo "$valid_components" | grep -q "\b$component\b"; then
+    echo "" > /dev/null
+else
+    echo "Invalid component" && exit 1
+fi
+
 source "$TELEPORTER_PATH"/scripts/constants.sh
 source "$TELEPORTER_PATH"/scripts/versions.sh
 
@@ -20,8 +67,7 @@ rm -rf $BASEDIR/avalanchego
 BASEDIR=$BASEDIR AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego "${TELEPORTER_PATH}/scripts/install_avalanchego_release.sh"
 BASEDIR=$BASEDIR "${TELEPORTER_PATH}/scripts/install_subnetevm_release.sh"
 
-# cp ${BASEDIR}/subnet-evm/subnet-evm ${BASEDIR}/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
-cp /Users/cameron.schultz/.avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy ${BASEDIR}/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
+cp ${BASEDIR}/subnet-evm/subnet-evm ${BASEDIR}/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
 echo "Copied ${BASEDIR}/subnet-evm/subnet-evm binary to ${BASEDIR}/avalanchego/plugins/"
 
 export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
@@ -39,11 +85,11 @@ cd "$TELEPORTER_PATH"
 # to install the ginkgo binary (required for test build and run)
 go install -v github.com/onsi/ginkgo/v2/ginkgo@${GINKGO_VERSION}
 
-ginkgo build ./tests/local/
+ginkgo build ./tests/local/$component
 
 # Run the tests
 echo "Running e2e tests $RUN_E2E"
-RUN_E2E=true ./tests/local/local.test \
+RUN_E2E=true ./tests/local//$component/$component.test \
   --ginkgo.vv \
   --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""} \
   --ginkgo.focus=${GINKGO_FOCUS:-""} \

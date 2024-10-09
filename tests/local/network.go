@@ -74,6 +74,7 @@ type SubnetSpec struct {
 	NodeCount                  int
 }
 
+// TODONOW: Decouple Teleporter from the network interface
 func NewLocalNetwork(
 	ctx context.Context,
 	name string,
@@ -186,6 +187,10 @@ func NewLocalNetwork(
 	localNetwork.pChainWallet = wallet.P()
 
 	return localNetwork
+}
+
+func (n *LocalNetwork) TmpNet() *tmpnet.Network {
+	return n.tmpnet
 }
 
 // Should be called after setSubnetValues for all subnets
