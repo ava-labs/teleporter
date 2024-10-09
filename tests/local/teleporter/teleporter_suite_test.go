@@ -88,6 +88,7 @@ var _ = ginkgo.BeforeSuite(func() {
 		fundedKey,
 	)
 	LocalNetworkInstance.SetTeleporterContractAddress(teleporterContractAddress)
+	LocalNetworkInstance.InitializeBlockchainIDOnAllChains(fundedKey)
 
 	// Deploy the Teleporter registry contracts to all subnets and the C-Chain.
 	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
@@ -103,6 +104,7 @@ var _ = ginkgo.BeforeSuite(func() {
 
 var _ = ginkgo.AfterSuite(func() {
 	LocalNetworkInstance.TearDownNetwork()
+	LocalNetworkInstance = nil
 })
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {

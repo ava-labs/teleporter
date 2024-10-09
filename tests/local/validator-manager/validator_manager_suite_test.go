@@ -39,6 +39,7 @@ func TestValidatorManager(t *testing.T) {
 }
 
 // Define the Teleporter before and after suite functions.
+// TODONOW: Tear down the network in between each spec so that we start with a fresh subnet each time.
 var _ = ginkgo.BeforeSuite(func() {
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployedBytecode, teleporterDeployerAddress, teleporterContractAddress, err :=
@@ -87,6 +88,7 @@ var _ = ginkgo.BeforeSuite(func() {
 		fundedKey,
 	)
 	LocalNetworkInstance.SetTeleporterContractAddress(teleporterContractAddress)
+	LocalNetworkInstance.InitializeBlockchainIDOnAllChains(fundedKey)
 
 	// Deploy the Teleporter registry contracts to all subnets and the C-Chain.
 	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)

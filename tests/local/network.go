@@ -360,6 +360,20 @@ func (n *LocalNetwork) DeployTeleporterContractToAllChains(
 	log.Info("Deployed Teleporter contracts to C-Chain and all subnets")
 }
 
+func (n *LocalNetwork) InitializeBlockchainIDOnAllChains(
+	fundedKey *ecdsa.PrivateKey,
+) {
+	log.Info("Initializing blockchainID on C-Chain and all subnets")
+	ctx := context.Background()
+	for _, subnetInfo := range n.GetAllSubnetsInfo() {
+		opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetInfo.EVMChainID)
+		Expect(err).Should(BeNil())
+		tx, err := subnetInfo.TeleporterMessenger.InitializeBlockchainID(opts)
+		Expect(err).Should(BeNil())
+		utils.WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
+	}
+}
+
 func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 	teleporterAddress common.Address,
 	deployerKey *ecdsa.PrivateKey,
