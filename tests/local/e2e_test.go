@@ -49,7 +49,11 @@ func TestE2E(t *testing.T) {
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployedBytecode, teleporterDeployerAddress, teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(
+	teleporterDeployerTransaction,
+		teleporterDeployedBytecode,
+		teleporterDeployerAddress,
+		teleporterContractAddress,
+		err := deploymentUtils.ConstructKeylessTransaction(
 		teleporterByteCodeFile,
 		false,
 		deploymentUtils.GetDefaultContractCreationGasPrice(),
