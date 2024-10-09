@@ -48,6 +48,7 @@ const (
 	DefaultMaxStakeMultiplier      uint8  = 4
 	DefaultMaxChurnPercentage      uint8  = 20
 	DefaultChurnPeriodSeconds      uint64 = 1
+	DefaultPChainAddress           string = "P-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u00z96u"
 )
 
 //
@@ -395,10 +396,6 @@ func InitializeERC20TokenValidatorSet(
 		validationIDs = append(validationIDs, subnetInfo.SubnetID.Append(uint32(i)))
 	}
 
-	// TODONOW: Validate all nodes
-	// for i := range nodes {
-	// TODONOW: Fix this validation
-	// Expect(initialValidatorCreatedEvent.NodeID).Should(Equal(subnetConversionData.Validators[i].NodeID))
 	Expect(initialValidatorCreatedEvent.Weight).Should(Equal(new(big.Int).SetUint64(initialValidatorWeights[0])))
 
 	emittedValidationID := ids.ID(initialValidatorCreatedEvent.ValidationID)
@@ -847,22 +844,8 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 
 	// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
 	// (Sending to the P-Chain will be skipped for now)
-	// TODONOW: construct the pre-image of the validationID as the justification
 	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo)
 
-	// weight, err := stakingManager.ValueToWeight(
-	// 	&bind.CallOpts{},
-	// 	stakeAmount,
-	// )
-	// Expect(err).Should(BeNil())
-	// Validate the Warp message, (this will be done on the P-Chain in the future)
-	// ValidateRegisterSubnetValidatorMessage(
-	// 	signedWarpMessage,
-	// 	nodeID,
-	// 	weight,
-	// 	subnetInfo.SubnetID,
-	// 	blsPublicKey,
-	// )
 	_, err := network.GetPChainWallet().IssueRegisterSubnetValidatorTx(
 		100*units.Avax,
 		node.NodePoP.ProofOfPossession,
@@ -1976,9 +1959,8 @@ func PackInitialValidator(iv interface{}) ([]byte, error) {
 func PChainProposerVMWorkaround(
 	network interfaces.LocalNetwork,
 ) {
-	// // Workaround current block map rules
-	destAddrStr := "P-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u00z96u"
-	destAddr, err := address.ParseToID(destAddrStr)
+	// Workaround current block map rules
+	destAddr, err := address.ParseToID(DefaultPChainAddress)
 	Expect(err).Should(BeNil())
 	log.Println("Waiting for P-Chain...")
 	time.Sleep(30 * time.Second)

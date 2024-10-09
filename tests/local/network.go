@@ -97,15 +97,6 @@ func NewLocalNetwork(
 	globalFundedECDSAKey := globalFundedKey.ToECDSA()
 	Expect(err).Should(BeNil())
 
-	g, err := crypto.HexToECDSA(fundedKeyStr)
-	Expect(err).Should(BeNil())
-	// TODONOW: remove these once txs are verified
-	Expect(g.PublicKey.X).Should(Equal(globalFundedECDSAKey.PublicKey.X))
-	Expect(g.PublicKey.Y).Should(Equal(globalFundedECDSAKey.PublicKey.Y))
-	Expect(g.X).Should(Equal(globalFundedECDSAKey.X))
-	Expect(g.Y).Should(Equal(globalFundedECDSAKey.Y))
-	Expect(g.D).Should(Equal(globalFundedECDSAKey.D))
-
 	var subnets []*tmpnet.Subnet
 	for _, subnetSpec := range subnetSpecs {
 		nodes := subnetEvmTestUtils.NewTmpnetNodes(subnetSpec.NodeCount)
@@ -166,7 +157,6 @@ func NewLocalNetwork(
 		setupProposerVM(ctx, globalFundedECDSAKey, network, subnet.SubnetID)
 	}
 
-	// TODONOW: add Wallet LocalNetwork struct
 	localNetwork := &LocalNetwork{
 		primaryNetworkInfo: &interfaces.SubnetTestInfo{},
 		subnetsInfo:        make(map[ids.ID]*interfaces.SubnetTestInfo),
