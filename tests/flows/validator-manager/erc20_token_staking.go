@@ -142,7 +142,6 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	//
 	// Delist one initial validators
 	//
-	expiry := uint64(time.Now().Add(24 * time.Hour).Unix())
 	utils.InitializeAndCompleteEndInitialERC20Validation(
 		ctx,
 		network,
@@ -154,10 +153,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		stakingManagerAddress,
 		initialValidationIDs[0],
 		0,
-		expiry,
-		nodes[0],
 		weights[0],
-		1,
 	)
 
 	//
@@ -168,6 +164,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		weights[0],
 	)
 	Expect(err).Should(BeNil())
+	expiry := uint64(time.Now().Add(24 * time.Hour).Unix())
 	validationID := utils.InitializeAndCompleteERC20ValidatorRegistration(
 		ctx,
 		network,
