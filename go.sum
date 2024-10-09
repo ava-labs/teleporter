@@ -60,6 +60,8 @@ github.com/ava-labs/avalanchego v1.12.0-initial-poc.3 h1:JfVooBCdMzpeGUT9/phJNl2
 github.com/ava-labs/avalanchego v1.12.0-initial-poc.3/go.mod h1:qSHmog3wMVjo/ruIAQo0ppXAilyni07NIu5K88RyhWE=
 github.com/ava-labs/avalanchego v1.12.0-initial-poc.4 h1:0g1+aJS6f4I2m8oEF3djlfyNbL9UrQTS+6A0eXbRLtM=
 github.com/ava-labs/avalanchego v1.12.0-initial-poc.4/go.mod h1:qSHmog3wMVjo/ruIAQo0ppXAilyni07NIu5K88RyhWE=
+github.com/ava-labs/avalanchego v1.12.0-initial-poc.5 h1:gW4xAqZNvkA4gP8M9yDyd7YUzuwfQbbCR+hgd1ztOto=
+github.com/ava-labs/avalanchego v1.12.0-initial-poc.5/go.mod h1:qSHmog3wMVjo/ruIAQo0ppXAilyni07NIu5K88RyhWE=
 github.com/ava-labs/awm-relayer v1.4.1-0.20241003183820-366b0dc8cea6 h1:v7k5wQxcvnYcMaz+zoO1OLAcU8REDD1EhfPZdl4Q+aI=
 github.com/ava-labs/awm-relayer v1.4.1-0.20241003183820-366b0dc8cea6/go.mod h1:sSXpQtgiduMdZw5IVTSa1v418VCjb8GDLyrcGwJZ/HE=
 github.com/ava-labs/coreth v0.13.8 h1:f14X3KgwHl9LwzfxlN6S4bbn5VA2rhEsNnHaRLSTo/8=
