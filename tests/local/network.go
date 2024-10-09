@@ -20,18 +20,14 @@ import (
 	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/vms/platformvm"
-	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
 	pwallet "github.com/ava-labs/avalanchego/wallet/chain/p/wallet"
 	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
-	subnetEvmInterfaces "github.com/ava-labs/subnet-evm/interfaces"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	"github.com/ava-labs/subnet-evm/rpc"
 	subnetEvmTestUtils "github.com/ava-labs/subnet-evm/tests/utils"
-	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/registry/TeleporterRegistry"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -155,7 +151,7 @@ func NewLocalNetwork(
 
 	// Issue transactions to activate the proposerVM fork on the chains
 	for _, subnet := range network.Subnets {
-		setupProposerVM(ctx, globalFundedECDSAKey, network, subnet.SubnetID)
+		utils.SetupProposerVM(ctx, globalFundedECDSAKey, network, subnet.SubnetID)
 	}
 
 	localNetwork := &LocalNetwork{
@@ -187,10 +183,6 @@ func NewLocalNetwork(
 	localNetwork.pChainWallet = wallet.P()
 
 	return localNetwork
-}
-
-func (n *LocalNetwork) TmpNet() *tmpnet.Network {
-	return n.tmpnet
 }
 
 // Should be called after setSubnetValues for all subnets
@@ -656,84 +648,6 @@ func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 			log.Error("failed to write subnets", "error", err)
 		}
 	}
-}
-
-func (n *LocalNetwork) ExtractWarpMessageFromLog(
-	ctx context.Context,
-	sourceReceipt *types.Receipt,
-	source interfaces.SubnetTestInfo,
-) *avalancheWarp.UnsignedMessage {
-	log.Info("Fetching relevant warp logs from the newly produced block")
-	logs, err := source.RPCClient.FilterLogs(ctx, subnetEvmInterfaces.FilterQuery{
-		BlockHash: &sourceReceipt.BlockHash,
-		Addresses: []common.Address{warp.Module.Address},
-	})
-	Expect(err).Should(BeNil())
-	Expect(len(logs)).Should(Equal(1))
-
-	// Check for relevant warp log from subscription and ensure that it matches
-	// the log extracted from the last block.
-	txLog := logs[0]
-	log.Info("Parsing logData as unsigned warp message")
-	unsignedMsg, err := warp.UnpackSendWarpEventDataToMessage(txLog.Data)
-	Expect(err).Should(BeNil())
-	return unsignedMsg
-}
-
-func (n *LocalNetwork) ConstructSignedWarpMessage(
-	ctx context.Context,
-	sourceReceipt *types.Receipt,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-) *avalancheWarp.Message {
-	unsignedMsg := n.ExtractWarpMessageFromLog(ctx, sourceReceipt, source)
-
-	// Set local variables for the duration of the test
-	unsignedWarpMessageID := unsignedMsg.ID()
-	log.Info(
-		"Parsed unsignedWarpMsg",
-		"unsignedWarpMessageID", unsignedWarpMessageID,
-		"unsignedWarpMessage", unsignedMsg,
-	)
-
-	// Loop over each client on source chain to ensure they all have time to accept the block.
-	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
-	// has accepted the block.
-	waitForAllValidatorsToAcceptBlock(ctx, source.NodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
-
-	// Get the aggregate signature for the Warp message
-	log.Info("Fetching aggregate signature from the source chain validators")
-	return n.GetSignedMessage(ctx, source, destination, unsignedWarpMessageID)
-}
-
-func (n *LocalNetwork) GetSignedMessage(
-	ctx context.Context,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-	unsignedWarpMessageID ids.ID,
-) *avalancheWarp.Message {
-	Expect(len(source.NodeURIs)).Should(BeNumerically(">", 0))
-	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
-	Expect(err).Should(BeNil())
-
-	signingSubnetID := source.SubnetID
-	if source.SubnetID == constants.PrimaryNetworkID {
-		signingSubnetID = destination.SubnetID
-	}
-
-	// Get the aggregate signature for the Warp message
-	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
-		ctx,
-		unsignedWarpMessageID,
-		warp.WarpDefaultQuorumNumerator,
-		signingSubnetID.String(),
-	)
-	Expect(err).Should(BeNil())
-
-	signedWarpMsg, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
-	Expect(err).Should(BeNil())
-
-	return signedWarpMsg
 }
 
 func (n *LocalNetwork) GetNetworkID() uint32 {

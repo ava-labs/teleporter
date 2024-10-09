@@ -9,6 +9,7 @@ import (
 	goLog "log"
 	"math/big"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -33,6 +34,9 @@ import (
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetEvmInterfaces "github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/nativeminter"
+	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
+	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
+	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	nativeMinter "github.com/ava-labs/teleporter/abi-bindings/go/INativeMinter"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
@@ -587,6 +591,10 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	return agg
 }
 
+//
+// Native minter utils
+//
+
 // Funded key must have admin access to set new admin.
 func AddNativeMinterAdmin(
 	ctx context.Context,
@@ -602,4 +610,127 @@ func AddNativeMinterAdmin(
 	tx, err := nativeMinterPrecompile.SetAdmin(opts, address)
 	Expect(err).Should(BeNil())
 	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+}
+
+// Blocks until all validators specified in nodeURIs have reached the specified block height
+func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, blockchainID ids.ID, height uint64) {
+	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	for i, uri := range nodeURIs {
+		chainAWSURI := HttpToWebsocketURI(uri, blockchainID.String())
+		log.Debug("Creating ethclient for blockchain", "blockchainID", blockchainID.String(), "wsURI", chainAWSURI)
+		client, err := ethclient.Dial(chainAWSURI)
+		Expect(err).Should(BeNil())
+		defer client.Close()
+
+		// Loop until each node has advanced to >= the height of the block that emitted the warp log
+		for {
+			block, err := client.BlockByNumber(cctx, nil)
+			Expect(err).Should(BeNil())
+			if block.NumberU64() >= height {
+				log.Debug("Client accepted the block containing SendWarpMessage", "client", i, "height", block.NumberU64())
+				break
+			}
+		}
+	}
+}
+
+func ExtractWarpMessageFromLog(
+	ctx context.Context,
+	sourceReceipt *types.Receipt,
+	source interfaces.SubnetTestInfo,
+) *avalancheWarp.UnsignedMessage {
+	log.Info("Fetching relevant warp logs from the newly produced block")
+	logs, err := source.RPCClient.FilterLogs(ctx, subnetEvmInterfaces.FilterQuery{
+		BlockHash: &sourceReceipt.BlockHash,
+		Addresses: []common.Address{warp.Module.Address},
+	})
+	Expect(err).Should(BeNil())
+	Expect(len(logs)).Should(Equal(1))
+
+	// Check for relevant warp log from subscription and ensure that it matches
+	// the log extracted from the last block.
+	txLog := logs[0]
+	log.Info("Parsing logData as unsigned warp message")
+	unsignedMsg, err := warp.UnpackSendWarpEventDataToMessage(txLog.Data)
+	Expect(err).Should(BeNil())
+	return unsignedMsg
+}
+
+func ConstructSignedWarpMessage(
+	ctx context.Context,
+	sourceReceipt *types.Receipt,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
+) *avalancheWarp.Message {
+	unsignedMsg := ExtractWarpMessageFromLog(ctx, sourceReceipt, source)
+
+	// Set local variables for the duration of the test
+	unsignedWarpMessageID := unsignedMsg.ID()
+	log.Info(
+		"Parsed unsignedWarpMsg",
+		"unsignedWarpMessageID", unsignedWarpMessageID,
+		"unsignedWarpMessage", unsignedMsg,
+	)
+
+	// Loop over each client on source chain to ensure they all have time to accept the block.
+	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
+	// has accepted the block.
+	WaitForAllValidatorsToAcceptBlock(ctx, source.NodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
+
+	// Get the aggregate signature for the Warp message
+	log.Info("Fetching aggregate signature from the source chain validators")
+	return GetSignedMessage(ctx, source, destination, unsignedWarpMessageID)
+}
+
+func GetSignedMessage(
+	ctx context.Context,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
+	unsignedWarpMessageID ids.ID,
+) *avalancheWarp.Message {
+	Expect(len(source.NodeURIs)).Should(BeNumerically(">", 0))
+	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
+	Expect(err).Should(BeNil())
+
+	signingSubnetID := source.SubnetID
+	if source.SubnetID == constants.PrimaryNetworkID {
+		signingSubnetID = destination.SubnetID
+	}
+
+	// Get the aggregate signature for the Warp message
+	// TODONOW: use signature aggregator
+	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
+		ctx,
+		unsignedWarpMessageID,
+		warp.WarpDefaultQuorumNumerator,
+		signingSubnetID.String(),
+	)
+	Expect(err).Should(BeNil())
+
+	signedWarpMsg, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
+	Expect(err).Should(BeNil())
+
+	return signedWarpMsg
+}
+
+func SetupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, network *tmpnet.Network, subnetID ids.ID) {
+	subnetDetails := network.Subnets[slices.IndexFunc(
+		network.Subnets,
+		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
+	)]
+
+	chainID := subnetDetails.Chains[0].ChainID
+
+	nodeURI, err := network.GetURIForNodeID(subnetDetails.ValidatorIDs[0])
+	Expect(err).Should(BeNil())
+	uri := HttpToWebsocketURI(nodeURI, chainID.String())
+
+	client, err := ethclient.Dial(uri)
+	Expect(err).Should(BeNil())
+	chainIDInt, err := client.ChainID(ctx)
+	Expect(err).Should(BeNil())
+
+	err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(ctx, chainIDInt, fundedKey, client)
+	Expect(err).Should(BeNil())
 }

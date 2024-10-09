@@ -92,12 +92,6 @@ var _ = ginkgo.BeforeSuite(func() {
 	// Deploy the Teleporter registry contracts to all subnets and the C-Chain.
 	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
 
-	ginkgo.AddReportEntry(
-		"network directory with node logs & configs; useful in the case of failures",
-		LocalNetworkInstance.TmpNet().Dir,
-		ginkgo.ReportEntryVisibilityFailureOrVerbose,
-	)
-
 	log.Info("Set up ginkgo before suite")
 })
 

@@ -250,7 +250,7 @@ func AddProtocolVersionAndWaitForAcceptance(
 	senderKey *ecdsa.PrivateKey,
 	unsignedMessage *avalancheWarp.UnsignedMessage,
 ) {
-	signedWarpMsg := network.GetSignedMessage(ctx, subnet, subnet, unsignedMessage.ID())
+	signedWarpMsg := GetSignedMessage(ctx, subnet, subnet, unsignedMessage.ID())
 	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
 
 	// Construct tx to add protocol version and send to destination chain

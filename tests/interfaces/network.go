@@ -4,8 +4,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 
-	"github.com/ava-labs/avalanchego/ids"
-	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -40,14 +38,6 @@ type Network interface {
 	// BLS signatures, and false for testnet networks where test application does not necessarily have
 	// connections with each validator.
 	SupportsIndependentRelaying() bool
-
-	// GetSignedMessage returns the signed Warp message for the specified Warp message ID.
-	GetSignedMessage(
-		ctx context.Context,
-		source SubnetTestInfo,
-		destination SubnetTestInfo,
-		messageID ids.ID,
-	) *avalancheWarp.Message
 
 	// For implementations where SupportsIndependentRelaying() is true, relays the specified message between the
 	// two subnets,and returns the receipt of the transaction the message was delivered in.

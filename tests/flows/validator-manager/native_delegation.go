@@ -114,7 +114,7 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 
 		// Gather subnet-evm Warp signatures for the SubnetValidatorWeightUpdateMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
-		signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
 
 		// Validate the Warp message, (this will be done on the P-Chain in the future)
 		utils.ValidateSubnetValidatorWeightMessage(
@@ -175,7 +175,7 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 
 		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
-		signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
 		Expect(err).Should(BeNil())
 
 		// Validate the Warp message, (this will be done on the P-Chain in the future)
