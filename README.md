@@ -41,7 +41,7 @@ To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subn
 
 ## A Note on Versioning
 
-Release versions follow the [semver](https://semver.org/) convention of incompatible Major releases, and backwards-compatible Minor and Patch releases. A new Major version is released whenever the `TeleporterMessenger` bytecode is changed, due to the use of Nick's method to deploy the contract to the same address on all chains (see [Teleporter Contract Deployment](./utils/contract-deployment/README.md) for details). Minor and Patch versions may pertain to contract changes that do not change the `TeleporterMessenger` bytecode, or to changes in the test frameworks.
+Release versions follow the [semver](https://semver.org/) convention of incompatible Major releases. A new Major version is released whenever the `TeleporterMessenger` bytecode is changed, and a new version of `TeleporterMessenger` is meant to be deployed. Due to the use of Nick's method to deploy the contract to the same address on all chains (see [Teleporter Contract Deployment](./utils/contract-deployment/README.md) for details), this also means that new release versions would result in different Teleporter contract addresses. Minor and Patch versions may pertain to contract changes that do not change the `TeleporterMessenger` bytecode, or to changes in the test frameworks, and will only be included in tags.
 
 ## Setup
 

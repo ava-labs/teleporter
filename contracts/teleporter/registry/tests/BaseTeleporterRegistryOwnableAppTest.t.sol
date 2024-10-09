@@ -17,9 +17,12 @@ import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITelepor
 contract ExampleRegistryOwnableAppUpgradeable is TeleporterRegistryOwnableAppUpgradeable {
     function initialize(
         address teleporterRegistryAddress,
-        address initialOwner
+        address initialOwner,
+        uint256 minTeleporterVersion
     ) public initializer {
-        __TeleporterRegistryOwnableApp_init(teleporterRegistryAddress, initialOwner);
+        __TeleporterRegistryOwnableApp_init(
+            teleporterRegistryAddress, initialOwner, minTeleporterVersion
+        );
     }
 
     function setMinTeleporterVersion(uint256 version) public {
@@ -48,8 +51,9 @@ contract ExampleRegistryOwnableAppUpgradeable is TeleporterRegistryOwnableAppUpg
 contract ExampleRegistryOwnableApp is TeleporterRegistryOwnableApp {
     constructor(
         address teleporterRegistryAddress,
-        address initialOwner
-    ) TeleporterRegistryOwnableApp(teleporterRegistryAddress, initialOwner) {}
+        address initialOwner,
+        uint256 minTeleporterVersion
+    ) TeleporterRegistryOwnableApp(teleporterRegistryAddress, initialOwner, minTeleporterVersion) {}
 
     function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
@@ -225,7 +229,9 @@ abstract contract BaseTeleporterRegistryOwnableAppTest is BaseTeleporterRegistry
         // Create a new Ownable app with a passed in teleporterManager
         ExampleRegistryOwnableAppUpgradeable newOwnerApp =
             new ExampleRegistryOwnableAppUpgradeable();
-        newOwnerApp.initialize(address(teleporterRegistry), DEFAULT_OWNER_ADDRESS);
+        newOwnerApp.initialize(
+            address(teleporterRegistry), DEFAULT_OWNER_ADDRESS, teleporterRegistry.latestVersion()
+        );
 
         // Check that the teleporterManager is set correctly
         assertEq(newOwnerApp.owner(), DEFAULT_OWNER_ADDRESS);

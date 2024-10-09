@@ -3,6 +3,7 @@ package flows
 import (
 	"context"
 	"math/big"
+	"time"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
@@ -93,6 +94,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 		TargetContractAddress:  exampleERC20ContractAddressA,
 		TargetBlockchainID:     subnetA.BlockchainID,
 		Nonce:                  big.NewInt(0),
+		Value:                  big.NewInt(0),
 		Payload:                callData,
 	}
 
@@ -105,6 +107,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 		TargetContractAddress:  exampleERC20ContractAddressA,
 		TargetBlockchainID:     subnetA.BlockchainID,
 		Nonce:                  big.NewInt(1),
+		Value:                  big.NewInt(0),
 		Payload:                callData2,
 	}
 
@@ -114,6 +117,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 		TargetContractAddress:  exampleERC20ContractAddressB,
 		TargetBlockchainID:     subnetB.BlockchainID,
 		Nonce:                  big.NewInt(0),
+		Value:                  big.NewInt(0),
 		Payload:                callData,
 	}
 
@@ -132,7 +136,9 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 
 	// Restart nodes with new chain config
 	network.SetChainConfigs(chainConfigs)
-	network.RestartNodes(ctx, network.GetAllNodeIDs())
+	restartCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
+	network.RestartNodes(restartCtx, network.GetAllNodeIDs())
 
 	// ************************************************************************************************
 	// Test Case 1: validatorChain (subnetB) != targetChain (subnetA)
