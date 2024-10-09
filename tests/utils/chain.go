@@ -80,6 +80,7 @@ var WarpEnabledChainConfig = tmpnet.FlagsMap{
 type Node struct {
 	NodeID  ids.NodeID
 	NodePoP *signer.ProofOfPossession
+	Weight  uint64
 }
 
 //

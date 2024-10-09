@@ -4,15 +4,9 @@ import (
 	"context"
 	"log"
 	"math/big"
-	"sort"
 	"time"
 
-	"github.com/ava-labs/avalanchego/api/info"
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/formatting/address"
-	"github.com/ava-labs/avalanchego/utils/units"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
-	"github.com/ava-labs/avalanchego/vms/platformvm/warp/message"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -58,71 +52,13 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		pChainInfo,
 	)
 
-	var nodes []utils.Node
-
-	// Remove the current validators before converting the subnet
-	for _, uri := range subnetAInfo.NodeURIs {
-		infoClient := info.NewClient(uri)
-		nodeID, nodePoP, err := infoClient.GetNodeID(ctx)
-		Expect(err).Should(BeNil())
-		nodes = append(nodes, utils.Node{
-			NodeID:  nodeID,
-			NodePoP: nodePoP,
-		})
-
-		_, err = network.GetPChainWallet().IssueRemoveSubnetValidatorTx(
-			nodeID,
-			subnetAInfo.SubnetID,
-		)
-		Expect(err).Should(BeNil())
-	}
-
-	// Sort the nodeIDs so that the subnet conversion ID matches the P-Chain
-	sort.Slice(nodes, func(i, j int) bool {
-		return string(nodes[i].NodeID.Bytes()) < string(nodes[j].NodeID.Bytes())
-	})
-
-	weights := make([]uint64, len(nodes))
-	totalWeight := uint64(len(nodes)-1) * units.Schmeckle
-	for i := 0; i < len(nodes)-1; i++ {
-		weights[i] = units.Schmeckle
-		totalWeight += units.Schmeckle
-	}
-	// Set the last node's weight such that removing any other node will not violate the churn limit
-	weights[len(nodes)-1] = 4 * totalWeight
-
-	// Construct the convert subnet info
-	destAddr, err := address.ParseToID(utils.DefaultPChainAddress)
-	Expect(err).Should(BeNil())
-	vdrs := make([]*txs.ConvertSubnetValidator, len(nodes))
-	for i, node := range nodes {
-		vdrs[i] = &txs.ConvertSubnetValidator{
-			NodeID:  node.NodeID.Bytes(),
-			Weight:  weights[i],
-			Balance: units.Avax * 100,
-			Signer:  *node.NodePoP,
-			RemainingBalanceOwner: message.PChainOwner{
-				Threshold: 1,
-				Addresses: []ids.ShortID{destAddr},
-			},
-			DeactivationOwner: message.PChainOwner{
-				Threshold: 1,
-				Addresses: []ids.ShortID{destAddr},
-			},
-		}
-	}
-
-	log.Println("Issuing ConvertSubnetTx")
-	_, err = network.GetPChainWallet().IssueConvertSubnetTx(
-		subnetAInfo.SubnetID,
-		subnetAInfo.BlockchainID,
-		stakingManagerAddress[:],
-		vdrs,
+	nodes := utils.ConvertSubnet(
+		ctx,
+		subnetAInfo,
+		network,
+		stakingManagerAddress,
+		fundedKey,
 	)
-	Expect(err).Should(BeNil())
-
-	utils.PChainProposerVMWorkaround(network)
-	utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
 
 	// Initialize the validator set on the subnet
 	log.Println("Initializing validator set")
@@ -136,11 +72,10 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		network,
 		signatureAggregator,
 		nodes,
-		weights,
 	)
 
 	//
-	// Delist one initial validators
+	// Delist one initial validator
 	//
 	utils.InitializeAndCompleteEndInitialERC20Validation(
 		ctx,
@@ -153,7 +88,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		stakingManagerAddress,
 		initialValidationIDs[0],
 		0,
-		weights[0],
+		nodes[0].Weight,
 	)
 
 	//
@@ -161,7 +96,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	//
 	stakeAmount, err := stakingManager.WeightToValue(
 		&bind.CallOpts{},
-		weights[0],
+		nodes[0].Weight,
 	)
 	Expect(err).Should(BeNil())
 	expiry := uint64(time.Now().Add(24 * time.Hour).Unix())
@@ -176,7 +111,6 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		stakingManagerAddress,
 		erc20,
 		stakeAmount,
-		weights[0],
 		expiry,
 		nodes[0],
 	)
@@ -189,7 +123,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		log.Println("Registering delegator")
 		delegatorStake, err := stakingManager.WeightToValue(
 			&bind.CallOpts{},
-			weights[0],
+			nodes[0].Weight,
 		)
 		Expect(err).Should(BeNil())
 		delegatorStake.Div(delegatorStake, big.NewInt(10))
@@ -198,7 +132,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 			delegatorStake,
 		)
 		Expect(err).Should(BeNil())
-		newValidatorWeight := weights[0] + delegatorWeight
+		newValidatorWeight := nodes[0].Weight + delegatorWeight
 
 		nonce := uint64(1)
 
@@ -294,7 +228,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		signedMessage := utils.ConstructSubnetValidatorWeightUpdateMessage(
 			validationID,
 			nonce,
-			weights[0],
+			nodes[0].Weight,
 			subnetAInfo,
 			pChainInfo,
 			network,
@@ -336,7 +270,6 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		validationID,
 		expiry,
 		nodes[0],
-		weights[0],
 		1,
 	)
 }
