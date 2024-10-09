@@ -1400,7 +1400,7 @@ func InitializeAndCompleteEndInitialERC20Validation(
 		unsignedMessage,
 		nil,
 		subnetInfo.SubnetID,
-		100,
+		67,
 	)
 	Expect(err).Should(BeNil())
 
@@ -1478,7 +1478,7 @@ func InitializeAndCompleteEndERC20Validation(
 		unsignedMessage,
 		nil,
 		subnetInfo.SubnetID,
-		100,
+		67,
 	)
 	Expect(err).Should(BeNil())
 
@@ -1626,7 +1626,7 @@ func ConstructSubnetValidatorRegistrationMessageForInitialValidator(
 		registrationUnsignedMessage,
 		justificationBytes,
 		subnet.SubnetID,
-		100,
+		67,
 	)
 	Expect(err).Should(BeNil())
 
@@ -1677,7 +1677,7 @@ func ConstructSubnetValidatorRegistrationMessage(
 		registrationUnsignedMessage,
 		justificationBytes,
 		subnet.SubnetID,
-		100,
+		67,
 	)
 	Expect(err).Should(BeNil())
 
@@ -1739,7 +1739,7 @@ func ConstructSubnetConversionMessage(
 		subnetConversionUnsignedMessage,
 		subnet.SubnetID[:],
 		subnet.SubnetID,
-		100,
+		67,
 	)
 	Expect(err).Should(BeNil())
 	return subnetConversionSignedMessage
