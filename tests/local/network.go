@@ -65,7 +65,7 @@ type SubnetSpec struct {
 	Name                       string
 	EVMChainID                 uint64
 	TeleporterContractAddress  common.Address
-	TeleporterDeployedBytecode string
+	TeleporterDeployedBytecode []byte
 	TeleporterDeployerAddress  common.Address
 	NodeCount                  int
 }
@@ -475,7 +475,7 @@ func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessage := n.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
+	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
 
 	// Construct the transaction to send the Warp message to the destination chain
 	signedTx := utils.CreateReceiveCrossChainMessageTransaction(
@@ -570,22 +570,18 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 	n.setAllSubnetValues()
 }
 
-// GetAllNodeIDs returns a slice that copies the NodeID's of all nodes in the network
-func (n *LocalNetwork) GetAllNodeIDs() []ids.NodeID {
-	nodeIDs := make([]ids.NodeID, len(n.tmpnet.Nodes))
-	for i, node := range n.tmpnet.Nodes {
-		nodeIDs[i] = node.NodeID
-	}
-	return nodeIDs
-}
-
+// Restarts the nodes with the given nodeIDs. If nodeIDs is empty, restarts all nodes.
 func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 	log.Info("Restarting nodes", "nodeIDs", nodeIDs)
 	var nodes []*tmpnet.Node
-	for _, nodeID := range nodeIDs {
-		for _, node := range n.tmpnet.Nodes {
-			if node.NodeID == nodeID {
-				nodes = append(nodes, node)
+	if len(nodeIDs) == 0 {
+		nodes = n.tmpnet.Nodes
+	} else {
+		for _, nodeID := range nodeIDs {
+			for _, node := range n.tmpnet.Nodes {
+				if node.NodeID == nodeID {
+					nodes = append(nodes, node)
+				}
 			}
 		}
 	}

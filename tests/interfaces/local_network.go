@@ -12,7 +12,6 @@ import (
 type LocalNetwork interface {
 	Network
 	AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint)
-	GetAllNodeIDs() []ids.NodeID
 	SetChainConfigs(chainConfigs map[string]string)
 	RestartNodes(ctx context.Context, nodeIDs []ids.NodeID)
 	DeployTeleporterContractToCChain(
