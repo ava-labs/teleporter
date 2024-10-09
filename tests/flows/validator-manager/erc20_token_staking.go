@@ -3,6 +3,7 @@ package staking
 import (
 	"context"
 	"log"
+	"math/big"
 	"sort"
 	"time"
 
@@ -205,6 +206,152 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		expiry,
 		nodes[0],
 	)
+
+	// //
+	// Register a delegator
+	//
+	var delegationID ids.ID
+	{
+		// delegatorStake := big.NewInt(1e17)
+		log.Println("Registering delegator")
+		delegatorStake, err := stakingManager.WeightToValue(
+			&bind.CallOpts{},
+			weights[0],
+		)
+		Expect(err).Should(BeNil())
+		delegatorStake.Div(delegatorStake, big.NewInt(10))
+		delegatorWeight, err := stakingManager.ValueToWeight(
+			&bind.CallOpts{},
+			delegatorStake,
+		)
+		Expect(err).Should(BeNil())
+		newValidatorWeight := weights[0] + delegatorWeight
+
+		nonce := uint64(1)
+
+		receipt := utils.InitializeERC20DelegatorRegistration(
+			ctx,
+			fundedKey,
+			subnetAInfo,
+			validationID,
+			delegatorStake,
+			erc20,
+			stakingManagerAddress,
+			stakingManager,
+		)
+		initRegistrationEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			stakingManager.ParseDelegatorAdded,
+		)
+		Expect(err).Should(BeNil())
+		delegationID = initRegistrationEvent.DelegationID
+
+		// Gather subnet-evm Warp signatures for the SubnetValidatorWeightUpdateMessage & relay to the P-Chain
+		// (Sending to the P-Chain will be skipped for now)
+		signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+
+		// Validate the Warp message, (this will be done on the P-Chain in the future)
+		// utils.ValidateSubnetValidatorWeightMessage(
+		// 	signedWarpMessage,
+		// 	validationID,
+		// 	newValidatorWeight,
+		// 	nonce,
+		// )
+		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
+		utils.PChainProposerVMWorkaround(network)
+		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
+
+		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
+		registrationSignedMessage := utils.ConstructSubnetValidatorWeightUpdateMessage(
+			validationID,
+			nonce,
+			newValidatorWeight,
+			subnetAInfo,
+			pChainInfo,
+			network,
+			signatureAggregator,
+		)
+
+		// Deliver the Warp message to the subnet
+		receipt = utils.CompleteERC20DelegatorRegistration(
+			ctx,
+			fundedKey,
+			delegationID,
+			subnetAInfo,
+			stakingManagerAddress,
+			registrationSignedMessage,
+		)
+		// Check that the validator is registered in the staking contract
+		registrationEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			stakingManager.ParseDelegatorRegistered,
+		)
+		Expect(err).Should(BeNil())
+		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+		Expect(registrationEvent.DelegationID[:]).Should(Equal(delegationID[:]))
+	}
+	//
+	// Delist the delegator
+	//
+	{
+		log.Println("Delisting delegator")
+		nonce := uint64(2)
+		receipt := utils.InitializeEndERC20Delegation(
+			ctx,
+			fundedKey,
+			subnetAInfo,
+			stakingManager,
+			delegationID,
+		)
+		delegatorRemovalEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			stakingManager.ParseDelegatorRemovalInitialized,
+		)
+		Expect(err).Should(BeNil())
+		Expect(delegatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
+		Expect(delegatorRemovalEvent.DelegationID[:]).Should(Equal(delegationID[:]))
+
+		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
+		// (Sending to the P-Chain will be skipped for now)
+		signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+		Expect(err).Should(BeNil())
+
+		// Validate the Warp message, (this will be done on the P-Chain in the future)
+		// utils.ValidateSubnetValidatorWeightMessage(signedWarpMessage, validationID, weights[0], 2)
+		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
+		utils.PChainProposerVMWorkaround(network)
+		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
+
+		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
+		signedMessage := utils.ConstructSubnetValidatorWeightUpdateMessage(
+			validationID,
+			nonce,
+			weights[0],
+			subnetAInfo,
+			pChainInfo,
+			network,
+			signatureAggregator,
+		)
+
+		// Deliver the Warp message to the subnet
+		receipt = utils.CompleteEndERC20Delegation(
+			ctx,
+			fundedKey,
+			delegationID,
+			subnetAInfo,
+			stakingManagerAddress,
+			signedMessage,
+		)
+
+		// Check that the delegator has been delisted from the staking contract
+		registrationEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			stakingManager.ParseDelegationEnded,
+		)
+		Expect(err).Should(BeNil())
+		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+		Expect(registrationEvent.DelegationID[:]).Should(Equal(delegationID[:]))
+	}
 
 	//
 	// Delist the validator
