@@ -33,7 +33,6 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		cChainInfo.NodeURIs[0],
 		[]ids.ID{
 			subnetAInfo.SubnetID,
-			ids.Empty, // Primary network subnet ID
 		},
 	)
 	ctx := context.Background()
@@ -46,17 +45,17 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		pChainInfo,
 	)
 
-	_ = utils.InitializeERC20TokenValidatorSet(
-		ctx,
-		fundedKey,
-		subnetAInfo,
-		pChainInfo,
-		stakingManager,
-		stakingManagerAddress,
-		network,
-		signatureAggregator,
-		utils.DefaultMinStakeAmount*10,
-	)
+	// _ = utils.InitializeERC20TokenValidatorSet(
+	// 	ctx,
+	// 	fundedKey,
+	// 	subnetAInfo,
+	// 	pChainInfo,
+	// 	stakingManager,
+	// 	stakingManagerAddress,
+	// 	network,
+	// 	signatureAggregator,
+	// 	utils.DefaultMinStakeAmount*10,
+	// )
 
 	//
 	// Register a validator
@@ -68,20 +67,20 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		validatorStake,
 	)
 	Expect(err).Should(BeNil())
-	validationID = utils.InitializeAndCompleteERC20ValidatorRegistration(
-		ctx,
-		network,
-		signatureAggregator,
-		fundedKey,
-		subnetAInfo,
-		pChainInfo,
-		stakingManager,
-		stakingManagerAddress,
-		erc20,
-		validatorStake,
-	)
+	// validationID = utils.InitializeAndCompleteERC20ValidatorRegistration(
+	// 	ctx,
+	// 	network,
+	// 	signatureAggregator,
+	// 	fundedKey,
+	// 	subnetAInfo,
+	// 	pChainInfo,
+	// 	stakingManager,
+	// 	stakingManagerAddress,
+	// 	erc20,
+	// 	validatorStake,
+	// )
 
-	//
+	// //
 	// Register a delegator
 	//
 	var delegationID ids.ID
@@ -118,7 +117,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
 
 		// Validate the Warp message, (this will be done on the P-Chain in the future)
-		utils.ValidateSetSubnetValidatorWeightMessage(
+		utils.ValidateSubnetValidatorWeightMessage(
 			signedWarpMessage,
 			validationID,
 			newValidatorWeight,
@@ -180,7 +179,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 
 		// Validate the Warp message, (this will be done on the P-Chain in the future)
-		utils.ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, validatorWeight, 2)
+		utils.ValidateSubnetValidatorWeightMessage(signedWarpMessage, validationID, validatorWeight, 2)
 
 		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
 		signedMessage := utils.ConstructSubnetValidatorWeightUpdateMessage(

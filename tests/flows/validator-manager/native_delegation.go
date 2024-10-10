@@ -33,7 +33,6 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 		cChainInfo.NodeURIs[0],
 		[]ids.ID{
 			subnetAInfo.SubnetID,
-			ids.Empty, // Primary network subnet ID
 		},
 	)
 	ctx := context.Background()
@@ -118,7 +117,7 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 		signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
 
 		// Validate the Warp message, (this will be done on the P-Chain in the future)
-		utils.ValidateSetSubnetValidatorWeightMessage(
+		utils.ValidateSubnetValidatorWeightMessage(
 			signedWarpMessage,
 			validationID,
 			newValidatorWeight,
@@ -180,7 +179,7 @@ func NativeDelegation(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 
 		// Validate the Warp message, (this will be done on the P-Chain in the future)
-		utils.ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, validatorWeight, 2)
+		utils.ValidateSubnetValidatorWeightMessage(signedWarpMessage, validationID, validatorWeight, 2)
 
 		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
 		signedMessage := utils.ConstructSubnetValidatorWeightUpdateMessage(

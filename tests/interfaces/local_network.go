@@ -6,6 +6,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	pwallet "github.com/ava-labs/avalanchego/wallet/chain/p/wallet"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -13,6 +14,11 @@ import (
 type LocalNetwork interface {
 	Network
 	AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint)
+	ExtractWarpMessageFromLog(
+		ctx context.Context,
+		sourceReceipt *types.Receipt,
+		source SubnetTestInfo,
+	) *avalancheWarp.UnsignedMessage
 	ConstructSignedWarpMessage(
 		ctx context.Context,
 		sourceReceipt *types.Receipt,
@@ -36,4 +42,5 @@ type LocalNetwork interface {
 	)
 	GetNetworkID() uint32
 	Dir() string
+	GetPChainWallet() pwallet.Wallet
 }

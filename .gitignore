@@ -44,3 +44,4 @@ server.log
 
 # Forge documentation
 docs/
+coverage/

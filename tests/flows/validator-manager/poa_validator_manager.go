@@ -45,7 +45,6 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		cChainInfo.NodeURIs[0],
 		[]ids.ID{
 			subnetAInfo.SubnetID,
-			ids.Empty, // Primary network subnet ID
 		},
 	)
 
@@ -97,7 +96,7 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		_, err = validatorManager.InitializeValidatorRegistration(
 			opts,
 			poavalidatormanager.ValidatorRegistrationInput{
-				NodeID:             nodeID,
+				NodeID:             nodeID[:],
 				RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
 				BlsPublicKey:       blsPublicKey[:],
 			},

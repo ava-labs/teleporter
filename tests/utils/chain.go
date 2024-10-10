@@ -19,11 +19,13 @@ import (
 	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/utils/set"
+	"github.com/ava-labs/avalanchego/vms/platformvm/signer"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	relayerConfig "github.com/ava-labs/awm-relayer/config"
 	"github.com/ava-labs/awm-relayer/peers"
 	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	sigAggConfig "github.com/ava-labs/awm-relayer/signature-aggregator/config"
+	"github.com/ava-labs/awm-relayer/signature-aggregator/metrics"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/eth/tracers"
@@ -68,6 +70,11 @@ var WarpEnabledChainConfig = tmpnet.FlagsMap{
 		"debug-file-tracer",
 		"debug-handler",
 	},
+}
+
+type Node struct {
+	NodeID  ids.NodeID
+	NodePoP *signer.ProofOfPossession
 }
 
 //
@@ -559,11 +566,17 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 		constants.DefaultNetworkMaximumInboundTimeout,
 	)
 	Expect(err).Should(BeNil())
-	return aggregator.NewSignatureAggregator(
+	agg, err := aggregator.NewSignatureAggregator(
 		appRequestNetwork,
 		logger,
+		1024,
+		metrics.NewSignatureAggregatorMetrics(prometheus.DefaultRegisterer),
 		messageCreator,
+		// Setting the etnaTime to a minute ago so that the post-etna code path is used in the test
+		time.Now().Add(-1*time.Minute),
 	)
+	Expect(err).Should(BeNil())
+	return agg
 }
 
 // Funded key must have admin access to set new admin.

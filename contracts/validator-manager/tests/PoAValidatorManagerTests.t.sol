@@ -14,13 +14,16 @@ import {
 } from "../interfaces/IValidatorManager.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
+import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 
 contract PoAValidatorManagerTest is ValidatorManagerTest {
     PoAValidatorManager public app;
 
     address public constant DEFAULT_OWNER = address(0x1);
 
-    function setUp() public {
+    function setUp() public override {
+        ValidatorManagerTest.setUp();
+
         app = new PoAValidatorManager(ICMInitializable.Allowed);
         app.initialize(
             ValidatorManagerSettings({
@@ -44,7 +47,13 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
             )
         );
         _initializeValidatorRegistration(
-            ValidatorRegistrationInput(DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY),
+            ValidatorRegistrationInput({
+                nodeID: DEFAULT_NODE_ID,
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+                registrationExpiry: DEFAULT_EXPIRY,
+                remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+                disableOwner: DEFAULT_P_CHAIN_OWNER
+            }),
             DEFAULT_WEIGHT
         );
     }

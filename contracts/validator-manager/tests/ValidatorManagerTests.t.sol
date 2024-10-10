@@ -8,7 +8,11 @@ pragma solidity 0.8.25;
 import {Test} from "@forge-std/Test.sol";
 import {ValidatorManager, SubnetConversionData, InitialValidator} from "../ValidatorManager.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
-import {ValidatorStatus, ValidatorRegistrationInput} from "../interfaces/IValidatorManager.sol";
+import {
+    ValidatorStatus,
+    ValidatorRegistrationInput,
+    PChainOwner
+} from "../interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -19,19 +23,19 @@ import {
 abstract contract ValidatorManagerTest is Test {
     bytes32 public constant DEFAULT_SUBNET_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
-    bytes32 public constant DEFAULT_NODE_ID =
-        bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
-    bytes32 public constant DEFAULT_INITIAL_VALIDATOR_NODE_ID_1 =
-        bytes32(hex"2345678123456781234567812345678123456781234567812345678123456781");
-    bytes32 public constant DEFAULT_INITIAL_VALIDATOR_NODE_ID_2 =
-        bytes32(hex"1345678123456781234567812345678123456781234567812345678123456781");
+    bytes public constant DEFAULT_NODE_ID =
+        bytes(hex"1234567812345678123456781234567812345678123456781234567812345678");
+    bytes public constant DEFAULT_INITIAL_VALIDATOR_NODE_ID_1 =
+        bytes(hex"2345678123456781234567812345678123456781234567812345678123456781");
+    bytes public constant DEFAULT_INITIAL_VALIDATOR_NODE_ID_2 =
+        bytes(hex"1345678123456781234567812345678123456781234567812345678123456781");
     bytes public constant DEFAULT_BLS_PUBLIC_KEY = bytes(
         hex"123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
     );
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
-    bytes32 public constant DEFAULT_SUBNET_CONVERSION_TX_ID =
-        bytes32(hex"b4836b329538fa9ca7b5bcaabc443ade2b4825246455c5c3932672d083f6b976");
+    bytes32 public constant DEFAULT_SUBNET_CONVERSION_ID =
+        bytes32(hex"76a386628f079b7b00452f8cab0925740363fcd52b721a8cf91773e857327b36");
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     uint64 public constant DEFAULT_WEIGHT = 1e6;
@@ -46,6 +50,8 @@ abstract contract ValidatorManagerTest is Test {
     uint64 public constant DEFAULT_REGISTRATION_TIMESTAMP = 1000;
     uint256 public constant DEFAULT_STARTING_TOTAL_WEIGHT = 1e10 + DEFAULT_WEIGHT;
     uint64 public constant DEFAULT_COMPLETION_TIMESTAMP = 100_000;
+    // solhint-disable-next-line var-name-mixedcase
+    PChainOwner public DEFAULT_P_CHAIN_OWNER;
 
     ValidatorManager public validatorManager;
 
@@ -54,7 +60,7 @@ abstract contract ValidatorManagerTest is Test {
 
     event ValidationPeriodCreated(
         bytes32 indexed validationID,
-        bytes32 indexed nodeID,
+        bytes indexed nodeID,
         bytes32 indexed registerValidationMessageID,
         uint256 weight,
         uint64 registrationExpiry
@@ -75,6 +81,12 @@ abstract contract ValidatorManagerTest is Test {
 
     receive() external payable {}
     fallback() external payable {}
+
+    function setUp() public virtual {
+        address[] memory addresses = new address[](1);
+        addresses[0] = 0x1234567812345678123456781234567812345678;
+        DEFAULT_P_CHAIN_OWNER = PChainOwner({threshold: 1, addresses: addresses});
+    }
 
     function testInitializeValidatorRegistrationSuccess() public {
         _setUpInitializeValidatorRegistration(
@@ -118,9 +130,11 @@ abstract contract ValidatorManagerTest is Test {
             ValidatorMessages.ValidationPeriod({
                 subnetID: DEFAULT_SUBNET_ID,
                 nodeID: DEFAULT_NODE_ID,
-                weight: DEFAULT_WEIGHT,
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
                 registrationExpiry: DEFAULT_EXPIRY,
-                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+                remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+                disableOwner: DEFAULT_P_CHAIN_OWNER,
+                weight: DEFAULT_WEIGHT
             })
         );
         _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
@@ -155,7 +169,7 @@ abstract contract ValidatorManagerTest is Test {
         });
 
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         validatorManager.resendEndValidatorMessage(validationID);
     }
@@ -228,8 +242,10 @@ abstract contract ValidatorManagerTest is Test {
         _initializeValidatorRegistration(
             ValidatorRegistrationInput({
                 nodeID: DEFAULT_NODE_ID,
-                registrationExpiry: DEFAULT_REGISTRATION_TIMESTAMP + 1,
-                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+                remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+                disableOwner: DEFAULT_P_CHAIN_OWNER,
+                registrationExpiry: DEFAULT_REGISTRATION_TIMESTAMP + 1
             }),
             _valueToWeight(DEFAULT_MINIMUM_STAKE_AMOUNT)
         );
@@ -279,13 +295,13 @@ abstract contract ValidatorManagerTest is Test {
         );
     }
 
-    function _newNodeID() internal returns (bytes32) {
+    function _newNodeID() internal returns (bytes memory) {
         nodeIDCounter++;
-        return sha256(new bytes(nodeIDCounter));
+        return abi.encodePacked(sha256(new bytes(nodeIDCounter)));
     }
 
     function _setUpInitializeValidatorRegistration(
-        bytes32 nodeID,
+        bytes memory nodeID,
         bytes32 subnetID,
         uint64 weight,
         uint64 registrationExpiry,
@@ -295,9 +311,11 @@ abstract contract ValidatorManagerTest is Test {
             ValidatorMessages.ValidationPeriod({
                 nodeID: nodeID,
                 subnetID: subnetID,
-                weight: weight,
+                blsPublicKey: blsPublicKey,
                 registrationExpiry: registrationExpiry,
-                blsPublicKey: blsPublicKey
+                remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+                disableOwner: DEFAULT_P_CHAIN_OWNER,
+                weight: weight
             })
         );
         (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
@@ -305,9 +323,11 @@ abstract contract ValidatorManagerTest is Test {
             ValidatorMessages.ValidationPeriod({
                 subnetID: subnetID,
                 nodeID: nodeID,
-                weight: weight,
+                blsPublicKey: blsPublicKey,
                 registrationExpiry: registrationExpiry,
-                blsPublicKey: blsPublicKey
+                remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+                disableOwner: DEFAULT_P_CHAIN_OWNER,
+                weight: weight
             })
         );
         vm.warp(registrationExpiry - 1);
@@ -320,15 +340,17 @@ abstract contract ValidatorManagerTest is Test {
         _initializeValidatorRegistration(
             ValidatorRegistrationInput({
                 nodeID: nodeID,
-                registrationExpiry: registrationExpiry,
-                blsPublicKey: blsPublicKey
+                blsPublicKey: blsPublicKey,
+                remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+                disableOwner: DEFAULT_P_CHAIN_OWNER,
+                registrationExpiry: registrationExpiry
             }),
             weight
         );
     }
 
     function _registerValidator(
-        bytes32 nodeID,
+        bytes memory nodeID,
         bytes32 subnetID,
         uint64 weight,
         uint64 registrationExpiry,
@@ -359,7 +381,7 @@ abstract contract ValidatorManagerTest is Test {
         bool force
     ) internal {
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, expectedNonce, 0);
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, expectedNonce, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
 
         if (includeUptime) {
@@ -453,7 +475,7 @@ abstract contract ValidatorManagerTest is Test {
 
     function _mockInitializeValidatorSet() internal {
         _mockGetPChainWarpMessage(
-            ValidatorMessages.packSubnetConversionMessage(DEFAULT_SUBNET_CONVERSION_TX_ID), true
+            ValidatorMessages.packSubnetConversionMessage(DEFAULT_SUBNET_CONVERSION_ID), true
         );
     }
 
@@ -487,7 +509,7 @@ abstract contract ValidatorManagerTest is Test {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
         return SubnetConversionData({
-            convertSubnetTxID: bytes32(0),
+            subnetID: DEFAULT_SUBNET_ID,
             validatorManagerBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
             validatorManagerAddress: address(validatorManager),
             initialValidators: initialValidators
