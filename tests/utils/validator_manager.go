@@ -815,7 +815,6 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	expiry uint64,
 	node Node,
 ) ids.ID {
-
 	// Initiate validator registration
 	var receipt *types.Receipt
 	log.Println("Initializing validator registration")
