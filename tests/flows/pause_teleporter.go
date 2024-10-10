@@ -4,21 +4,21 @@ import (
 	"context"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
 
-func PauseTeleporter(network interfaces.Network) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	fundedAddress, fundedKey := network.GetFundedAccountInfo()
+func PauseTeleporter(n *network.LocalNetwork) {
+	subnetAInfo := n.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := n.GetTwoSubnets()
+	fundedAddress, fundedKey := n.GetFundedAccountInfo()
 
 	//
 	// Deploy TestMessenger to Subnets A and B
 	//
 	ctx := context.Background()
-	teleporterAddress := network.GetTeleporterContractAddress()
+	teleporterAddress := n.GetTeleporterContractAddress()
 	_, testMessengerA := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
@@ -49,9 +49,9 @@ func PauseTeleporter(network interfaces.Network) {
 	Expect(isPaused).Should(BeTrue())
 
 	// Send a message from subnet A to subnet B, which should fail
-	utils.SendExampleCrossChainMessageAndVerify(
+	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		network,
+		n,
 		subnetAInfo,
 		testMessengerA,
 		subnetBInfo,
@@ -59,7 +59,8 @@ func PauseTeleporter(network interfaces.Network) {
 		testMessengerB,
 		fundedKey,
 		"message_1",
-		false)
+		false,
+	)
 
 	// Unpause Teleporter on subnet B
 	tx, err = testMessengerB.UnpauseTeleporterAddress(opts, teleporterAddress)
@@ -75,9 +76,9 @@ func PauseTeleporter(network interfaces.Network) {
 	Expect(isPaused).Should(BeFalse())
 
 	// Send a message from subnet A to subnet B again, which should now succeed
-	utils.SendExampleCrossChainMessageAndVerify(
+	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		network,
+		n,
 		subnetAInfo,
 		testMessengerA,
 		subnetBInfo,
@@ -85,5 +86,6 @@ func PauseTeleporter(network interfaces.Network) {
 		testMessengerB,
 		fundedKey,
 		"message_2",
-		true)
+		true,
+	)
 }

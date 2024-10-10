@@ -6,17 +6,17 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
-func ResubmitAlteredMessage(network interfaces.Network) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	fundedAddress, fundedKey := network.GetFundedAccountInfo()
+func ResubmitAlteredMessage(n *network.LocalNetwork) {
+	subnetAInfo := n.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := n.GetTwoSubnets()
+	fundedAddress, fundedKey := n.GetFundedAccountInfo()
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ctx := context.Background()
@@ -37,7 +37,7 @@ func ResubmitAlteredMessage(network interfaces.Network) {
 		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message to the destination
-	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receipt = n.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	log.Info("Checking the message was received on the destination")
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)

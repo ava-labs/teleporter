@@ -6,17 +6,17 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )
 
-func AddFeeAmount(network interfaces.Network) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	teleporterContractAddress := network.GetTeleporterContractAddress()
-	fundedAddress, fundedKey := network.GetFundedAccountInfo()
+func AddFeeAmount(n *network.LocalNetwork) {
+	subnetAInfo := n.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := n.GetTwoSubnets()
+	teleporterContractAddress := n.GetTeleporterContractAddress()
+	fundedAddress, fundedKey := n.GetFundedAccountInfo()
 	ctx := context.Background()
 
 	// Use mock token as the fee token
@@ -66,7 +66,7 @@ func AddFeeAmount(network interfaces.Network) {
 	)
 
 	// Relay message from Subnet A to Subnet B
-	deliveryReceipt := network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
+	deliveryReceipt := n.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
 	receiveEvent, err := utils.GetEventFromLogs(
 		deliveryReceipt.Logs,
 		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
@@ -98,7 +98,7 @@ func AddFeeAmount(network interfaces.Network) {
 		fundedKey)
 
 	// Relay message containing the specific receipt from Subnet B to Subnet A
-	network.RelayMessage(ctx, sendSpecificReceiptsReceipt, subnetBInfo, subnetAInfo, true)
+	n.RelayMessage(ctx, sendSpecificReceiptsReceipt, subnetBInfo, subnetAInfo, true)
 
 	// Check message delivered
 	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, sendSpecificReceiptsMessageID)

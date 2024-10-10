@@ -6,7 +6,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/tests/TestMessenger"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -14,10 +14,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func DeliverToNonExistentContract(network interfaces.Network) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	fundedAddress, fundedKey := network.GetFundedAccountInfo()
+func DeliverToNonExistentContract(n *network.LocalNetwork) {
+	subnetAInfo := n.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := n.GetTwoSubnets()
+	fundedAddress, fundedKey := n.GetFundedAccountInfo()
 
 	deployerKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
@@ -84,9 +84,11 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	// Relay the message to the destination
 	//
 	log.Info("Relaying the message to the destination")
-	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
-	receiveEvent, err :=
-		utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+	receipt = n.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receiveEvent, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 
 	//

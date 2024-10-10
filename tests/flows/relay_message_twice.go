@@ -6,7 +6,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -14,10 +14,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func RelayMessageTwice(network interfaces.Network) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	fundedAddress, fundedKey := network.GetFundedAccountInfo()
+func RelayMessageTwice(n *network.LocalNetwork) {
+	subnetAInfo := n.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := n.GetTwoSubnets()
+	fundedAddress, fundedKey := n.GetFundedAccountInfo()
 
 	//
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
@@ -47,7 +47,7 @@ func RelayMessageTwice(network interfaces.Network) {
 	//
 	// Relay the message to the destination
 	//
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	n.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	//
 	// Check Teleporter message received on the destination
@@ -63,5 +63,5 @@ func RelayMessageTwice(network interfaces.Network) {
 	// Attempt to send the same message again, should fail
 	//
 	log.Info("Relaying the same Teleporter message again on the destination")
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
+	n.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	teleporterutils "github.com/ava-labs/teleporter/utils/teleporter-utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -16,15 +17,15 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func SendSpecificReceipts(network interfaces.Network) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	teleporterContractAddress := network.GetTeleporterContractAddress()
-	_, fundedKey := network.GetFundedAccountInfo()
+func SendSpecificReceipts(n *network.LocalNetwork) {
+	subnetAInfo := n.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := n.GetTwoSubnets()
+	teleporterContractAddress := n.GetTeleporterContractAddress()
+	_, fundedKey := n.GetFundedAccountInfo()
 	ctx := context.Background()
 
 	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
-	utils.ClearReceiptQueue(ctx, network, fundedKey, subnetBInfo, subnetAInfo)
+	network.ClearReceiptQueue(ctx, n, fundedKey, subnetBInfo, subnetAInfo)
 
 	// Use mock token as the fee token
 	mockTokenAddress, mockToken := utils.DeployExampleERC20(
@@ -60,7 +61,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message from SubnetA to SubnetB
-	deliveryReceipt1 := network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
+	deliveryReceipt1 := n.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
 	receiveEvent1, err := utils.GetEventFromLogs(
 		deliveryReceipt1.Logs,
 		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
@@ -77,7 +78,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message from SubnetA to SubnetB
-	deliveryReceipt2 := network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
+	deliveryReceipt2 := n.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
 	receiveEvent2, err := utils.GetEventFromLogs(
 		deliveryReceipt2.Logs,
 		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
@@ -104,7 +105,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 	)
 
 	// Relay message from Subnet B to Subnet A
-	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
+	receipt = n.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
 
 	// Check that the message back to Subnet A was delivered
 	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
@@ -140,7 +141,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay message from Subnet B to Subnet A
-	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
+	receipt = n.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
 	// Check delivered
 	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(
 		&bind.CallOpts{},

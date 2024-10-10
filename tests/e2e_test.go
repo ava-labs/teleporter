@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ava-labs/teleporter/tests/flows"
+	"github.com/ava-labs/teleporter/tests/network"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
@@ -27,7 +28,7 @@ const (
 )
 
 var (
-	LocalNetworkInstance *LocalNetwork
+	LocalNetworkInstance *network.LocalNetwork
 )
 
 func TestE2E(t *testing.T) {
@@ -53,11 +54,11 @@ var _ = ginkgo.BeforeSuite(func() {
 	// Create the local network instance
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
-	LocalNetworkInstance = NewLocalNetwork(
+	LocalNetworkInstance = network.NewLocalNetwork(
 		ctx,
 		"teleporter-test-local-network",
 		warpGenesisTemplateFile,
-		[]SubnetSpec{
+		[]network.SubnetSpec{
 			{
 				Name:                       "A",
 				EVMChainID:                 12345,
@@ -94,7 +95,7 @@ var _ = ginkgo.BeforeSuite(func() {
 
 	ginkgo.AddReportEntry(
 		"network directory with node logs & configs; useful in the case of failures",
-		LocalNetworkInstance.tmpnet.Dir,
+		LocalNetworkInstance.Dir(),
 		ginkgo.ReportEntryVisibilityFailureOrVerbose,
 	)
 

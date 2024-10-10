@@ -8,12 +8,12 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
 
-func ValidatorSetSig(network interfaces.LocalNetwork) {
+func ValidatorSetSig(n *network.LocalNetwork) {
 	// ************************************************************************************************
 	// Setup
 	// ************************************************************************************************
@@ -36,8 +36,8 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// ************************************************************************************************
 	// Setup
 	// ************************************************************************************************
-	subnetA, subnetB := utils.GetTwoSubnets(network)
-	_, fundedKey := network.GetFundedAccountInfo()
+	subnetA, subnetB := n.GetTwoSubnets()
+	_, fundedKey := n.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
@@ -122,7 +122,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	}
 
 	// Create chain config file with off-chain validatorsetsig message
-	networkID := network.GetNetworkID()
+	networkID := n.GetNetworkID()
 	offchainMessages, warpEnabledChainConfigWithMsg := utils.InitOffChainMessageChainConfigValidatorSetSig(
 		networkID,
 		subnetB,
@@ -135,19 +135,19 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	chainConfigs.Add(subnetB, warpEnabledChainConfigWithMsg)
 
 	// Restart nodes with new chain config
-	network.SetChainConfigs(chainConfigs)
+	n.SetChainConfigs(chainConfigs)
 	restartCtx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
-	network.RestartNodes(restartCtx, network.GetAllNodeIDs())
+	n.RestartNodes(restartCtx, n.GetAllNodeIDs())
 
 	// ************************************************************************************************
 	// Test Case 1: validatorChain (subnetB) != targetChain (subnetA)
 	// ************************************************************************************************
 
 	// Execute the ValidatorSetSig executeCall and wait for acceptance
-	receipt := utils.ExecuteValidatorSetSigCallAndVerify(
+	receipt := network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
+		n,
 		subnetB,
 		subnetA,
 		validatorSetSigContractAddress,
@@ -168,9 +168,9 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 
 	// Resend the same message again and it should fail due to nonce being consumed
 
-	_ = utils.ExecuteValidatorSetSigCallAndVerify(
+	_ = network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
+		n,
 		subnetB,
 		subnetA,
 		validatorSetSigContractAddress,
@@ -185,9 +185,9 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	Expect(endingBalance).Should(Equal(big.NewInt(100)))
 
 	// Send another valid transaction with the incremented nonce
-	receipt2 := utils.ExecuteValidatorSetSigCallAndVerify(
+	receipt2 := network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
+		n,
 		subnetB,
 		subnetA,
 		validatorSetSigContractAddress,
@@ -217,9 +217,9 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 
 	// Send the third transaction where the validatorSetSig contract expects validator signatures
 	// from the same chain that it is deployed on.
-	receipt3 := utils.ExecuteValidatorSetSigCallAndVerify(
+	receipt3 := network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
+		n,
 		subnetB,
 		subnetB,
 		validatorSetSigContractAddress2,

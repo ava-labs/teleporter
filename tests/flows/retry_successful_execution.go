@@ -6,15 +6,15 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/tests/TestMessenger"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
 
-func RetrySuccessfulExecution(network interfaces.Network) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	fundedAddress, fundedKey := network.GetFundedAccountInfo()
+func RetrySuccessfulExecution(n *network.LocalNetwork) {
+	subnetAInfo := n.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := n.GetTwoSubnets()
+	fundedAddress, fundedKey := n.GetFundedAccountInfo()
 
 	//
 	// Deploy TestMessenger to Subnets A and B
@@ -63,9 +63,11 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	//
 	// Relay the message to the destination
 	//
-	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
-	receiveEvent, err :=
-		utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+	receipt = n.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receiveEvent, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	deliveredTeleporterMessage := receiveEvent.Message
 
@@ -90,8 +92,11 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	//
 	optsB, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err =
-		subnetBInfo.TeleporterMessenger.RetryMessageExecution(optsB, subnetAInfo.BlockchainID, deliveredTeleporterMessage)
+	tx, err = subnetBInfo.TeleporterMessenger.RetryMessageExecution(
+		optsB,
+		subnetAInfo.BlockchainID,
+		deliveredTeleporterMessage,
+	)
 	Expect(err).Should(Not(BeNil()))
 	Expect(tx).Should(BeNil())
 }

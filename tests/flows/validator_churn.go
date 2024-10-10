@@ -8,7 +8,7 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -17,10 +17,10 @@ import (
 
 const newNodeCount = 2
 
-func ValidatorChurn(network interfaces.LocalNetwork) {
-	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
-	teleporterContractAddress := network.GetTeleporterContractAddress()
-	fundedAddress, fundedKey := network.GetFundedAccountInfo()
+func ValidatorChurn(n *network.LocalNetwork) {
+	subnetAInfo, subnetBInfo := n.GetTwoSubnets()
+	teleporterContractAddress := n.GetTeleporterContractAddress()
+	fundedAddress, fundedKey := n.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
@@ -53,7 +53,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	sentTeleporterMessage := sendEvent.Message
 
 	// Construct the signed warp message
-	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, receipt, subnetAInfo, subnetBInfo)
+	signedWarpMessage := n.ConstructSignedWarpMessage(ctx, receipt, subnetAInfo, subnetBInfo)
 
 	//
 	// Modify the validator set on Subnet A
@@ -62,15 +62,15 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	// Add new nodes to the validator set
 	addValidatorsCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
-	network.AddSubnetValidators(addValidatorsCtx, subnetAInfo.SubnetID, newNodeCount)
+	n.AddSubnetValidators(addValidatorsCtx, subnetAInfo.SubnetID, newNodeCount)
 
 	// Refresh the subnet info
-	subnetAInfo, subnetBInfo = utils.GetTwoSubnets(network)
+	subnetAInfo, subnetBInfo = n.GetTwoSubnets()
 
 	// Trigger the proposer VM to update its height so that the inner VM can see the new validator set
 	// We have to update all subnets, not just the ones directly involved in this test to ensure that the
 	// proposer VM is updated on all subnets.
-	for _, subnetInfo := range network.GetSubnetsInfo() {
+	for _, subnetInfo := range n.GetSubnetsInfo() {
 		err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
 			ctx, subnetInfo.EVMChainID, fundedKey, subnetInfo.WSClient,
 		)
@@ -114,7 +114,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	// Wait for the transaction to be mined
 	receipt = utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	n.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	// Verify the message was delivered
 	delivered, err = subnetBInfo.TeleporterMessenger.MessageReceived(
