@@ -583,7 +583,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 		appRequestNetwork,
 		logger,
 		1024,
-		metrics.NewSignatureAggregatorMetrics(prometheus.DefaultRegisterer),
+		metrics.NewSignatureAggregatorMetrics(prometheus.NewRegistry()),
 		messageCreator,
 		// Setting the etnaTime to a minute ago so that the post-etna code path is used in the test
 		time.Now().Add(-1*time.Minute),
