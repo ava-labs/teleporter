@@ -40,7 +40,7 @@ func TestValidatorManager(t *testing.T) {
 
 // Define the Teleporter before and after suite functions.
 // TODONOW: Tear down the network in between each spec so that we start with a fresh subnet each time.
-var _ = ginkgo.BeforeSuite(func() {
+var _ = ginkgo.BeforeEach(func() {
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployedBytecode, teleporterDeployerAddress, teleporterContractAddress, err :=
 		deploymentUtils.ConstructKeylessTransaction(
@@ -96,8 +96,9 @@ var _ = ginkgo.BeforeSuite(func() {
 	log.Info("Set up ginkgo before suite")
 })
 
-var _ = ginkgo.AfterSuite(func() {
+var _ = ginkgo.AfterEach(func() {
 	LocalNetworkInstance.TearDownNetwork()
+	LocalNetworkInstance = nil
 })
 
 var _ = ginkgo.Describe("[Validator manager integration tests]", func() {
