@@ -69,17 +69,6 @@ jobs:
           export PATH="$PATH:$GOPATH/bin"
           ./scripts/local/e2e_test.sh --component teleporter
 
-      - name: Upload tmpnet network dir
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e2e-tmpnet-data
-          path: |
-            ~/.tmpnet/networks
-            ~/.tmpnet/prometheus/prometheus.log
-            ~/.tmpnet/promtail/promtail.log
-          if-no-files-found: error
-
   governance_e2e:
     name: governance-e2e-tests
     runs-on: ubuntu-22.04
@@ -104,17 +93,6 @@ jobs:
           export PATH="$PATH:$GOPATH/bin"
           ./scripts/local/e2e_test.sh --component governance
 
-      - name: Upload tmpnet network dir
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e2e-tmpnet-data
-          path: |
-            ~/.tmpnet/networks
-            ~/.tmpnet/prometheus/prometheus.log
-            ~/.tmpnet/promtail/promtail.log
-          if-no-files-found: error
-
   validator_manager_e2e:
     name: validator-manager-e2e-tests
     runs-on: ubuntu-22.04
@@ -138,14 +116,3 @@ jobs:
           export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
           ./scripts/local/e2e_test.sh --component validator-manager
-
-      - name: Upload tmpnet network dir
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e2e-tmpnet-data
-          path: |
-            ~/.tmpnet/networks
-            ~/.tmpnet/prometheus/prometheus.log
-            ~/.tmpnet/promtail/promtail.log
-          if-no-files-found: error
