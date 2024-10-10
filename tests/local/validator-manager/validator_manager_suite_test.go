@@ -39,7 +39,6 @@ func TestValidatorManager(t *testing.T) {
 }
 
 // Define the Teleporter before and after suite functions.
-// TODONOW: Tear down the network in between each spec so that we start with a fresh subnet each time.
 var _ = ginkgo.BeforeEach(func() {
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployedBytecode, teleporterDeployerAddress, teleporterContractAddress, err :=
@@ -103,24 +102,19 @@ var _ = ginkgo.AfterEach(func() {
 
 var _ = ginkgo.Describe("[Validator manager integration tests]", func() {
 	// Validator Manager tests
-	// ginkgo.It("Native token staking manager",
-	// 	ginkgo.Label(validatorManagerLabel),
-	// 	func() {
-	// 		validatorManagerFlows.NativeTokenStakingManager(LocalNetworkInstance)
-	// 	})
+	ginkgo.It("Native token staking manager",
+		ginkgo.Label(validatorManagerLabel),
+		func() {
+			validatorManagerFlows.NativeTokenStakingManager(LocalNetworkInstance)
+		})
 	ginkgo.It("ERC20 token staking manager",
 		ginkgo.Label(validatorManagerLabel),
 		func() {
 			validatorManagerFlows.ERC20TokenStakingManager(LocalNetworkInstance)
 		})
-	// ginkgo.It("PoA validator manager",
-	// 	ginkgo.Label(validatorManagerLabel),
-	// 	func() {
-	// 		validatorManagerFlows.PoAValidatorManager(LocalNetworkInstance)
-	// 	})
-	// ginkgo.It("PoA migration to PoS",
-	// 	ginkgo.Label(validatorManagerLabel),
-	// 	func() {
-	// 		validatorManagerFlows.PoAMigrationToPoS(LocalNetworkInstance)
-	// 	})
+	ginkgo.It("PoA migration to PoS",
+		ginkgo.Label(validatorManagerLabel),
+		func() {
+			validatorManagerFlows.PoAMigrationToPoS(LocalNetworkInstance)
+		})
 })
