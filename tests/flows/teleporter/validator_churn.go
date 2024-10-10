@@ -53,7 +53,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	sentTeleporterMessage := sendEvent.Message
 
 	// Construct the signed warp message
-	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, receipt, subnetAInfo, subnetBInfo)
+	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, receipt, subnetAInfo, subnetBInfo)
 
 	//
 	// Modify the validator set on Subnet A

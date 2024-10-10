@@ -48,7 +48,7 @@ func ExecuteValidatorSetSigCallAndVerify(
 	unsignedMessage *avalancheWarp.UnsignedMessage,
 	expectSuccess bool,
 ) *types.Receipt {
-	signedWarpMsg := network.GetSignedMessage(ctx, source, destination, unsignedMessage.ID())
+	signedWarpMsg := GetSignedMessage(ctx, source, destination, unsignedMessage.ID())
 	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
 
 	signedPredicateTx := CreateExecuteCallPredicateTransaction(

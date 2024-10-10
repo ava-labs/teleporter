@@ -79,7 +79,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	network.SetChainConfigs(chainConfigs)
 	restartCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-	network.RestartNodes(restartCtx, network.GetAllNodeIDs())
+	network.RestartNodes(restartCtx, nil)
 
 	// Call addProtocolVersion on subnetB to register the new Teleporter version
 	utils.AddProtocolVersionAndWaitForAcceptance(
