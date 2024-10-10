@@ -1,4 +1,4 @@
-package local
+package network
 
 import (
 	"context"
@@ -36,8 +36,6 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
-
-var _ interfaces.LocalNetwork = &LocalNetwork{}
 
 // Implements Network, pointing to the network setup in local_network_setup.go
 type LocalNetwork struct {
@@ -415,16 +413,6 @@ func (n *LocalNetwork) SetTeleporterContractAddress(newTeleporterAddress common.
 func (n *LocalNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
 	fundedAddress := crypto.PubkeyToAddress(n.globalFundedKey.PublicKey)
 	return fundedAddress, n.globalFundedKey
-}
-
-func (n *LocalNetwork) IsExternalNetwork() bool {
-	return false
-}
-
-func (n *LocalNetwork) SupportsIndependentRelaying() bool {
-	// Messages can be relayed by the test application for local
-	// networks with connections to each node.
-	return true
 }
 
 func (n *LocalNetwork) RelayMessage(ctx context.Context,

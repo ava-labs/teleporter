@@ -36,7 +36,7 @@ To start developing on Teleporter, you'll need Solidity >= v0.8.25. [Foundry](ht
 - Run the end-to-end tests
 
 ```sh
-./scripts/local/e2e_test.sh
+./scripts/e2e_test.sh
 ```
 
 - Run the Solidity and Golang linters

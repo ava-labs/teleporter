@@ -34,9 +34,6 @@ contracts/pkg
 docker-compose-test-local.yml
 docker-compose-run-local.yml
 
-# Environment and configuration values
-.env
-
 # Ginkgo
 main.log
 server.log

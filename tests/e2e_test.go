@@ -1,7 +1,7 @@
 // Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package local
+package tests
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ava-labs/teleporter/tests/flows"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
@@ -26,9 +27,7 @@ const (
 	validatorSetSigLabel     = "ValidatorSetSig"
 )
 
-var (
-	LocalNetworkInstance *LocalNetwork
-)
+var LocalNetworkInstance *localnetwork.LocalNetwork
 
 func TestE2E(t *testing.T) {
 	if os.Getenv("RUN_E2E") == "" {
@@ -42,22 +41,25 @@ func TestE2E(t *testing.T) {
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployedBytecode, teleporterDeployerAddress, teleporterContractAddress, err :=
-		deploymentUtils.ConstructKeylessTransaction(
-			teleporterByteCodeFile,
-			false,
-			deploymentUtils.GetDefaultContractCreationGasPrice(),
-		)
+	teleporterDeployerTransaction,
+		teleporterDeployedBytecode,
+		teleporterDeployerAddress,
+		teleporterContractAddress,
+		err := deploymentUtils.ConstructKeylessTransaction(
+		teleporterByteCodeFile,
+		false,
+		deploymentUtils.GetDefaultContractCreationGasPrice(),
+	)
 	Expect(err).Should(BeNil())
 
 	// Create the local network instance
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
-	LocalNetworkInstance = NewLocalNetwork(
+	LocalNetworkInstance = localnetwork.NewLocalNetwork(
 		ctx,
 		"teleporter-test-local-network",
 		warpGenesisTemplateFile,
-		[]SubnetSpec{
+		[]localnetwork.SubnetSpec{
 			{
 				Name:                       "A",
 				EVMChainID:                 12345,
@@ -94,7 +96,7 @@ var _ = ginkgo.BeforeSuite(func() {
 
 	ginkgo.AddReportEntry(
 		"network directory with node logs & configs; useful in the case of failures",
-		LocalNetworkInstance.tmpnet.Dir,
+		LocalNetworkInstance.Dir(),
 		ginkgo.ReportEntryVisibilityFailureOrVerbose,
 	)
 

@@ -20,7 +20,6 @@ To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subn
 - [Structure](#structure)
 - [E2E tests](#e2e-tests)
   - [Run specific E2E tests](#run-specific-e2e-tests)
-  - [Run the E2E tests on another network](#run-the-e2e-tests-on-another-network)
 - [Upgradability](#upgradability)
 - [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet)
 - [Deploy TeleporterRegistry to a Subnet](#deploy-teleporterregistry-to-a-subnet)
@@ -67,7 +66,7 @@ Release versions follow the [semver](https://semver.org/) convention of incompat
 - `scripts/` includes bash scripts for interacting with Teleporter in various environments, as well as utility scripts.
   - `abi_bindings.sh` generates ABI bindings for the contracts in `contracts/` and outputs them to `abi-bindings/`.
   - `lint.sh` performs Solidity and Golang linting.
-  - `scripts/local/` includes scripts for running Teleporter in Docker.
+  - `scripts/` includes scripts for running Teleporter in Docker.
 - `docker/` includes configurations for a local, containerized setup of Teleporter.
 
 ## E2E tests
@@ -79,7 +78,7 @@ To run the E2E tests locally, you'll need to install Gingko following the instru
 Then run the following command from the root of the repository:
 
 ```bash
-./scripts/local/e2e_test.sh
+./scripts/e2e_test.sh
 ```
 
 ### Run specific E2E tests
@@ -87,13 +86,13 @@ Then run the following command from the root of the repository:
 To run a specific E2E test, specify the environment variable `GINKGO_FOCUS`, which will then look for test descriptions that match the provided input. For example, to run the `Calculate Teleporter message IDs` test:
 
 ```bash
-GINKGO_FOCUS="Calculate Teleporter message IDs" ./scripts/local/e2e_test.sh
+GINKGO_FOCUS="Calculate Teleporter message IDs" ./scripts/e2e_test.sh
 ```
 
 A substring of the full test description can be used as well:
 
 ```bash
-GINKGO_FOCUS="Calculate Teleporter" ./scripts/local/e2e_test.sh
+GINKGO_FOCUS="Calculate Teleporter" ./scripts/e2e_test.sh
 ```
 
 The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test cases and run them together. For example, to run all E2E tests for the example cross chain applications:
@@ -107,19 +106,8 @@ The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test 
 ```
 
 ```bash
-GINKGO_LABEL_FILTER="cross chain apps" ./scripts/local/e2e_test.sh
+GINKGO_LABEL_FILTER="cross chain apps" ./scripts/e2e_test.sh
 ```
-
-### Run the E2E tests on another network
-
-The same E2E test flows can be executed against external network by setting the proper environment variables in `.env.testnet` and `.env`, and running the following commands:
-
-```bash
-cp .env.example .env # Set proper values after copying.
-./scripts/testnet/run_testnet_e2e_flows.sh
-```
-
-The user wallet set in `.env` must have native tokens for each of the Subnets used in order for the test flows to be able to send transactions on those networks. The [Avalanche Testnet Faucet](https://core.app/tools/testnet-faucet) can be used to obtain native tokens for certain public testnet Subnets.
 
 ## Upgradability
 
