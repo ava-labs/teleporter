@@ -257,7 +257,6 @@ library ValidatorMessages {
     /**
      * @notice Unpacks a byte array as a RegisterSubnetValidatorMessage message.
      * The message format specification is the same as the one used in above for packing.
-     * @dev Individual fields are unpacked in their own scopes to avoid stack too deep errors.
      *
      * @param input The byte array to unpack.
      * @return the unpacked ValidationPeriod.
@@ -271,6 +270,7 @@ library ValidatorMessages {
         ValidationPeriod memory validation;
 
         // Unpack the codec ID
+        // Individual fields are unpacked in their own scopes to avoid stack too deep errors.
         {
             uint16 codecID;
             for (uint256 i; i < 2; ++i) {
