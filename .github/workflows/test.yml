@@ -46,7 +46,7 @@ jobs:
           go test ./...
 
   teleporter_e2e:
-    name: e2e_tests
+    name: teleporter-e2e-tests
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repositories and submodules
@@ -81,7 +81,7 @@ jobs:
           if-no-files-found: error
 
   governance_e2e:
-    name: e2e_tests
+    name: governance-e2e-tests
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repositories and submodules
@@ -116,7 +116,7 @@ jobs:
           if-no-files-found: error
 
   validator_manager_e2e:
-    name: e2e_tests
+    name: validator-manager-e2e-tests
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repositories and submodules
