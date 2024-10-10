@@ -5,15 +5,15 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/teleporter/tests/network"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
 
-func InsufficientGas(n *network.LocalNetwork) {
-	subnetAInfo := n.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := n.GetTwoSubnets()
-	fundedAddress, fundedKey := n.GetFundedAccountInfo()
+func InsufficientGas(network *localnetwork.LocalNetwork) {
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := network.GetTwoSubnets()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
 
 	// Deploy TestMessenger to Subnets A
@@ -51,7 +51,7 @@ func InsufficientGas(n *network.LocalNetwork) {
 	messageID := event.MessageID
 
 	// Relay message from SubnetA to SubnetB
-	receipt = n.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	// Check Teleporter message received on the destination
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)

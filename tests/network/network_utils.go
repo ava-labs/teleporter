@@ -70,14 +70,12 @@ func waitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 	}
 }
 
-func ClearReceiptQueue(
+func (network *LocalNetwork) ClearReceiptQueue(
 	ctx context.Context,
-	network *LocalNetwork,
 	fundedKey *ecdsa.PrivateKey,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
 ) {
-	Expect(network.IsExternalNetwork()).Should(BeFalse())
 	outstandReceiptCount := utils.GetOutstandingReceiptCount(source, destination.BlockchainID)
 	for outstandReceiptCount.Cmp(big.NewInt(0)) != 0 {
 		log.Info("Emptying receipt queue", "remainingReceipts", outstandReceiptCount.String())
@@ -110,9 +108,8 @@ func ClearReceiptQueue(
 
 // Returns Receipt for the transaction unlike TeleporterRegistry version since this is a non-teleporter case
 // and we don't want to add the ValidatorSetSig ABI to the subnetInfo
-func ExecuteValidatorSetSigCallAndVerify(
+func (network *LocalNetwork) ExecuteValidatorSetSigCallAndVerify(
 	ctx context.Context,
-	network *LocalNetwork,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
 	validatorSetSigAddress common.Address,
@@ -138,9 +135,8 @@ func ExecuteValidatorSetSigCallAndVerify(
 	return utils.SendTransactionAndWaitForFailure(ctx, destination, signedPredicateTx)
 }
 
-func AddProtocolVersionAndWaitForAcceptance(
+func (network *LocalNetwork) AddProtocolVersionAndWaitForAcceptance(
 	ctx context.Context,
-	network *LocalNetwork,
 	subnet interfaces.SubnetTestInfo,
 	newTeleporterAddress common.Address,
 	senderKey *ecdsa.PrivateKey,
@@ -184,9 +180,8 @@ func (network *LocalNetwork) GetTwoSubnets() (
 	return subnets[0], subnets[1]
 }
 
-func SendExampleCrossChainMessageAndVerify(
+func (network *LocalNetwork) SendExampleCrossChainMessageAndVerify(
 	ctx context.Context,
-	network *LocalNetwork,
 	source interfaces.SubnetTestInfo,
 	sourceExampleMessenger *testmessenger.TestMessenger,
 	destination interfaces.SubnetTestInfo,
@@ -265,9 +260,8 @@ func SendExampleCrossChainMessageAndVerify(
 
 // Deploys a new version of Teleporter and returns its address
 // Does NOT modify the global Teleporter contract address to provide greater testing flexibility.
-func DeployNewTeleporterVersion(
+func (network *LocalNetwork) DeployNewTeleporterVersion(
 	ctx context.Context,
-	network *LocalNetwork,
 	fundedKey *ecdsa.PrivateKey,
 	teleporterByteCodeFile string,
 ) common.Address {

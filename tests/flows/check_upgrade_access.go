@@ -5,21 +5,21 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/teleporter/tests/network"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
 
-func CheckUpgradeAccess(n *network.LocalNetwork) {
-	subnetInfo := n.GetPrimaryNetworkInfo()
-	fundedAddress, fundedKey := n.GetFundedAccountInfo()
+func CheckUpgradeAccess(network *localnetwork.LocalNetwork) {
+	subnetInfo := network.GetPrimaryNetworkInfo()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
 	// Deploy TestMessenger to the subnet
 	//
 	ctx := context.Background()
-	teleporterAddress := n.GetTeleporterContractAddress()
+	teleporterAddress := network.GetTeleporterContractAddress()
 	_, testMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,

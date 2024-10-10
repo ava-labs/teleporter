@@ -6,15 +6,15 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/tests/TestMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
 
-func RetrySuccessfulExecution(n *network.LocalNetwork) {
-	subnetAInfo := n.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := n.GetTwoSubnets()
-	fundedAddress, fundedKey := n.GetFundedAccountInfo()
+func RetrySuccessfulExecution(network *localnetwork.LocalNetwork) {
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := network.GetTwoSubnets()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
 	// Deploy TestMessenger to Subnets A and B
@@ -63,7 +63,7 @@ func RetrySuccessfulExecution(n *network.LocalNetwork) {
 	//
 	// Relay the message to the destination
 	//
-	receipt = n.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 	receiveEvent, err := utils.GetEventFromLogs(
 		receipt.Logs,
 		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage,

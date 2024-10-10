@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/ava-labs/teleporter/tests/flows"
-	"github.com/ava-labs/teleporter/tests/network"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
@@ -27,9 +27,7 @@ const (
 	validatorSetSigLabel     = "ValidatorSetSig"
 )
 
-var (
-	LocalNetworkInstance *network.LocalNetwork
-)
+var LocalNetworkInstance *localnetwork.LocalNetwork
 
 func TestE2E(t *testing.T) {
 	if os.Getenv("RUN_E2E") == "" {
@@ -43,22 +41,25 @@ func TestE2E(t *testing.T) {
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployedBytecode, teleporterDeployerAddress, teleporterContractAddress, err :=
-		deploymentUtils.ConstructKeylessTransaction(
-			teleporterByteCodeFile,
-			false,
-			deploymentUtils.GetDefaultContractCreationGasPrice(),
-		)
+	teleporterDeployerTransaction,
+		teleporterDeployedBytecode,
+		teleporterDeployerAddress,
+		teleporterContractAddress,
+		err := deploymentUtils.ConstructKeylessTransaction(
+		teleporterByteCodeFile,
+		false,
+		deploymentUtils.GetDefaultContractCreationGasPrice(),
+	)
 	Expect(err).Should(BeNil())
 
 	// Create the local network instance
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
-	LocalNetworkInstance = network.NewLocalNetwork(
+	LocalNetworkInstance = localnetwork.NewLocalNetwork(
 		ctx,
 		"teleporter-test-local-network",
 		warpGenesisTemplateFile,
-		[]network.SubnetSpec{
+		[]localnetwork.SubnetSpec{
 			{
 				Name:                       "A",
 				EVMChainID:                 12345,

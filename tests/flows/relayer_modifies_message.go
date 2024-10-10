@@ -13,7 +13,7 @@ import (
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
-	"github.com/ava-labs/teleporter/tests/network"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -23,10 +23,10 @@ import (
 )
 
 // Disallow this test from being run on anything but a local network, since it requires special behavior by the relayer
-func RelayerModifiesMessage(n *network.LocalNetwork) {
-	subnetAInfo := n.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := n.GetTwoSubnets()
-	fundedAddress, fundedKey := n.GetFundedAccountInfo()
+func RelayerModifiesMessage(network *localnetwork.LocalNetwork) {
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := network.GetTwoSubnets()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ctx := context.Background()
@@ -53,7 +53,8 @@ func RelayerModifiesMessage(n *network.LocalNetwork) {
 		receipt,
 		subnetAInfo,
 		subnetBInfo,
-		n)
+		network,
+	)
 
 	// Check Teleporter message was not received on the destination
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
@@ -66,22 +67,22 @@ func relayAlteredMessage(
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
-	n *network.LocalNetwork,
+	network *localnetwork.LocalNetwork,
 ) {
 	// Fetch the Teleporter message from the logs
 	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessage := n.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
+	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
 
 	// Construct the transaction to send the Warp message to the destination chain
-	_, fundedKey := n.GetFundedAccountInfo()
+	_, fundedKey := network.GetFundedAccountInfo()
 	signedTx := createAlteredReceiveCrossChainMessageTransaction(
 		ctx,
 		signedWarpMessage,
 		&sendEvent.Message,
 		sendEvent.Message.RequiredGasLimit,
-		n.GetTeleporterContractAddress(),
+		network.GetTeleporterContractAddress(),
 		fundedKey,
 		destination,
 	)

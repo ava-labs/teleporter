@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/teleporter/tests/network"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
@@ -14,7 +14,7 @@ const (
 	teleporterByteCodeFile = "./out/TeleporterMessenger.sol/TeleporterMessenger.json"
 )
 
-func TeleporterRegistry(n *network.LocalNetwork) {
+func TeleporterRegistry(network *localnetwork.LocalNetwork) {
 	// Deploy dApp on both chains that use Teleporter Registry
 	// Deploy version 2 of Teleporter to both chains
 	// Construct AddProtocolVersion txs for both chains
@@ -26,9 +26,9 @@ func TeleporterRegistry(n *network.LocalNetwork) {
 	// Send tx with new protocol version to other chain, verify events emitted
 	// Retry the previously failed message execution, verify message is now able to be delivered to dApp
 
-	cChainInfo := n.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo := n.GetTwoSubnets()
-	fundedAddress, fundedKey := n.GetFundedAccountInfo()
+	cChainInfo := network.GetPrimaryNetworkInfo()
+	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
@@ -47,8 +47,8 @@ func TeleporterRegistry(n *network.LocalNetwork) {
 	)
 
 	// Deploy the new version of Teleporter to both chains
-	newTeleporterAddress := network.DeployNewTeleporterVersion(ctx, n, fundedKey, teleporterByteCodeFile)
-	networkID := n.GetNetworkID()
+	newTeleporterAddress := network.DeployNewTeleporterVersion(ctx, fundedKey, teleporterByteCodeFile)
+	networkID := network.GetNetworkID()
 	// Create chain config file with off chain message for each chain
 	offchainMessageC, warpEnabledChainConfigC := utils.InitOffChainMessageChainConfig(
 		networkID,
@@ -76,15 +76,14 @@ func TeleporterRegistry(n *network.LocalNetwork) {
 	chainConfigs.Add(subnetAInfo, warpEnabledChainConfigA)
 
 	// Restart nodes with new chain config
-	n.SetChainConfigs(chainConfigs)
+	network.SetChainConfigs(chainConfigs)
 	restartCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-	n.RestartNodes(restartCtx, n.GetAllNodeIDs())
+	network.RestartNodes(restartCtx, network.GetAllNodeIDs())
 
 	// Call addProtocolVersion on subnetB to register the new Teleporter version
 	network.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		n,
 		subnetBInfo,
 		newTeleporterAddress,
 		fundedKey,
@@ -95,7 +94,6 @@ func TeleporterRegistry(n *network.LocalNetwork) {
 	// Message should be received successfully since we haven't updated mininum Teleporter version yet.
 	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		n,
 		cChainInfo,
 		testMessengerC,
 		subnetBInfo,
@@ -132,7 +130,6 @@ func TeleporterRegistry(n *network.LocalNetwork) {
 	// Message should fail since we updated minimum Teleporter version.
 	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		n,
 		cChainInfo,
 		testMessengerC,
 		subnetBInfo,
@@ -144,13 +141,12 @@ func TeleporterRegistry(n *network.LocalNetwork) {
 	)
 
 	// Update the subnets to use new Teleporter messengers
-	n.SetTeleporterContractAddress(newTeleporterAddress)
-	cChainInfo = n.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo = n.GetTwoSubnets()
+	network.SetTeleporterContractAddress(newTeleporterAddress)
+	cChainInfo = network.GetPrimaryNetworkInfo()
+	subnetAInfo, subnetBInfo = network.GetTwoSubnets()
 
 	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		n,
 		subnetBInfo,
 		testMessengerB,
 		cChainInfo,
@@ -164,7 +160,6 @@ func TeleporterRegistry(n *network.LocalNetwork) {
 	// Call addProtocolVersion on subnetA to register the new Teleporter version
 	network.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		n,
 		cChainInfo,
 		newTeleporterAddress,
 		fundedKey,
@@ -175,7 +170,6 @@ func TeleporterRegistry(n *network.LocalNetwork) {
 	// Teleporter versions should match, so message should be received successfully.
 	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		n,
 		subnetBInfo,
 		testMessengerB,
 		cChainInfo,
@@ -190,7 +184,6 @@ func TeleporterRegistry(n *network.LocalNetwork) {
 	// to register the new Teleporter version
 	network.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		n,
 		subnetAInfo,
 		newTeleporterAddress,
 		fundedKey,

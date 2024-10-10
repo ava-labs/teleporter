@@ -6,17 +6,17 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
-func DeliverToWrongChain(n *network.LocalNetwork) {
-	subnetAInfo := n.GetPrimaryNetworkInfo()
-	subnetBInfo, subnetCInfo := n.GetTwoSubnets()
-	fundedAddress, fundedKey := n.GetFundedAccountInfo()
+func DeliverToWrongChain(network *localnetwork.LocalNetwork) {
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, subnetCInfo := network.GetTwoSubnets()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
 	// Get the expected teleporter message ID for Subnet C
@@ -56,7 +56,7 @@ func DeliverToWrongChain(n *network.LocalNetwork) {
 		fundedKey,
 	)
 
-	n.RelayMessage(ctx, receipt, subnetAInfo, subnetCInfo, false)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetCInfo, false)
 
 	//
 	// Check that the message was not received on the Subnet C

@@ -4,21 +4,21 @@ import (
 	"context"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/teleporter/tests/network"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
 
-func PauseTeleporter(n *network.LocalNetwork) {
-	subnetAInfo := n.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := n.GetTwoSubnets()
-	fundedAddress, fundedKey := n.GetFundedAccountInfo()
+func PauseTeleporter(network *localnetwork.LocalNetwork) {
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := network.GetTwoSubnets()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
 	// Deploy TestMessenger to Subnets A and B
 	//
 	ctx := context.Background()
-	teleporterAddress := n.GetTeleporterContractAddress()
+	teleporterAddress := network.GetTeleporterContractAddress()
 	_, testMessengerA := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
@@ -51,7 +51,6 @@ func PauseTeleporter(n *network.LocalNetwork) {
 	// Send a message from subnet A to subnet B, which should fail
 	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		n,
 		subnetAInfo,
 		testMessengerA,
 		subnetBInfo,
@@ -78,7 +77,6 @@ func PauseTeleporter(n *network.LocalNetwork) {
 	// Send a message from subnet A to subnet B again, which should now succeed
 	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		n,
 		subnetAInfo,
 		testMessengerA,
 		subnetBInfo,

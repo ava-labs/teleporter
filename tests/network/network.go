@@ -415,10 +415,6 @@ func (n *LocalNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey
 	return fundedAddress, n.globalFundedKey
 }
 
-func (n *LocalNetwork) IsExternalNetwork() bool {
-	return false
-}
-
 func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
