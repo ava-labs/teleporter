@@ -15,16 +15,17 @@ function printHelp() {
     printUsage
 }
 
+valid_components="teleporter governance validator-manager"
+
 function printUsage() {
     cat << EOF
 Arguments:
-    --component <component>          Component test suite to run. If omitted, runs all tests.
+    --component <component>          Component test suite to run. Valid components are: $valid_components
 Options:
     --help                           Print this help message
 EOF
 }
 
-valid_components="teleporter governance validator-manager"
 component=
 
 while [ $# -gt 0 ]; do
@@ -45,7 +46,6 @@ while [ $# -gt 0 ]; do
 done
 
 # Exit if no component is provided
-# TODONOW: Run all tests if no component is provided
 if [ -z "$component" ]; then
     echo "No component provided" && exit 1
 fi
@@ -53,7 +53,7 @@ fi
 if echo "$valid_components" | grep -q "\b$component\b"; then
     echo "" > /dev/null
 else
-    echo "Invalid component" && exit 1
+    echo "Invalid component" && printHelp && exit 1
 fi
 
 source "$TELEPORTER_PATH"/scripts/constants.sh

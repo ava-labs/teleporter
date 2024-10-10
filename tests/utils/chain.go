@@ -692,7 +692,7 @@ func GetSignedMessage(
 	}
 
 	// Get the aggregate signature for the Warp message
-	// TODONOW: use signature aggregator
+	// TODO: use signature aggregator
 	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
 		ctx,
 		unsignedWarpMessageID,

@@ -70,7 +70,7 @@ type SubnetSpec struct {
 	NodeCount                  int
 }
 
-// TODONOW: Decouple Teleporter from the network interface
+// TODO: Decouple Teleporter from the network interface
 func NewLocalNetwork(
 	ctx context.Context,
 	name string,
@@ -182,8 +182,7 @@ func NewLocalNetwork(
 	Expect(err).Should(BeNil())
 	localNetwork.pChainWallet = wallet.P()
 
-	// TODONOW: Convert all subnets to permissionless validation
-
+	// TODO: Convert all subnets to permissionless validation
 	return localNetwork
 }
 
