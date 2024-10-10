@@ -545,14 +545,6 @@ func InstantiateGenesisTemplate(
 //
 
 func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.SignatureAggregator {
-	logger := logging.NewLogger(
-		"test-debug",
-		logging.NewWrappedCore(
-			logging.Debug,
-			os.Stdout,
-			logging.JSON.ConsoleEncoder(),
-		),
-	)
 	cfg := sigAggConfig.Config{
 		PChainAPI: &relayerConfig.APIConfig{
 			BaseURL: apiUri,
@@ -565,7 +557,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	trackedSubnets.Add(subnets...)
 	registry := prometheus.NewRegistry()
 	appRequestNetwork, err := peers.NewNetwork(
-		logging.Debug,
+		logging.Info,
 		registry,
 		trackedSubnets,
 		&cfg,
@@ -581,7 +573,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	Expect(err).Should(BeNil())
 	agg, err := aggregator.NewSignatureAggregator(
 		appRequestNetwork,
-		logger,
+		logging.NoLog{},
 		1024,
 		metrics.NewSignatureAggregatorMetrics(prometheus.NewRegistry()),
 		messageCreator,
