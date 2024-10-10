@@ -2,7 +2,9 @@ package staking
 
 import (
 	"context"
+	"log"
 	"math/big"
+	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
@@ -43,37 +45,58 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	ctx := context.Background()
 
 	// Deploy the staking manager contract
-	stakingManagerContractAddress, stakingManager := utils.DeployAndInitializeNativeTokenStakingManager(
+	stakingManagerAddress, stakingManager := utils.DeployAndInitializeNativeTokenStakingManager(
 		ctx,
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
 	)
 
-	utils.AddNativeMinterAdmin(ctx, subnetAInfo, fundedKey, stakingManagerContractAddress)
+	utils.AddNativeMinterAdmin(ctx, subnetAInfo, fundedKey, stakingManagerAddress)
 
-	_ = utils.InitializeNativeTokenValidatorSet(
+	nodes := utils.ConvertSubnet(
+		ctx,
+		subnetAInfo,
+		network,
+		stakingManagerAddress,
+		fundedKey,
+	)
+
+	// Initialize the validator set on the subnet
+	log.Println("Initializing validator set")
+	initialValidationIDs := utils.InitializeNativeTokenValidatorSet(
 		ctx,
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
 		stakingManager,
-		stakingManagerContractAddress,
+		stakingManagerAddress,
 		network,
 		signatureAggregator,
-		utils.DefaultMinStakeAmount*10,
+		nodes,
 	)
 
 	//
-	// Register a validator
+	// Delist one initial validator
 	//
-	stakeAmount := new(big.Int).SetUint64(utils.DefaultMinStakeAmount)
-	weight, err := stakingManager.ValueToWeight(
-		&bind.CallOpts{},
-		stakeAmount,
+	utils.InitializeAndCompleteEndInitialNativeValidation(
+		ctx,
+		network,
+		signatureAggregator,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		stakingManager,
+		stakingManagerAddress,
+		initialValidationIDs[0],
+		0,
+		nodes[0].Weight,
 	)
-	Expect(err).Should(BeNil())
-	// Iniatiate validator registration
+
+	//
+	// Register the validator as PoS
+	//
+	expiry := uint64(time.Now().Add(24 * time.Hour).Unix())
 	validationID := utils.InitializeAndCompleteNativeValidatorRegistration(
 		ctx,
 		network,
@@ -82,9 +105,146 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		subnetAInfo,
 		pChainInfo,
 		stakingManager,
-		stakingManagerContractAddress,
-		stakeAmount,
+		stakingManagerAddress,
+		expiry,
+		nodes[0],
 	)
+
+	//
+	// Register a delegator
+	//
+	var delegationID ids.ID
+	{
+		log.Println("Registering delegator")
+		delegatorStake, err := stakingManager.WeightToValue(
+			&bind.CallOpts{},
+			nodes[0].Weight,
+		)
+		Expect(err).Should(BeNil())
+		delegatorStake.Div(delegatorStake, big.NewInt(10))
+		delegatorWeight, err := stakingManager.ValueToWeight(
+			&bind.CallOpts{},
+			delegatorStake,
+		)
+		Expect(err).Should(BeNil())
+		newValidatorWeight := nodes[0].Weight + delegatorWeight
+
+		nonce := uint64(1)
+
+		receipt := utils.InitializeNativeDelegatorRegistration(
+			ctx,
+			fundedKey,
+			subnetAInfo,
+			validationID,
+			delegatorStake,
+			stakingManagerAddress,
+			stakingManager,
+		)
+		initRegistrationEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			stakingManager.ParseDelegatorAdded,
+		)
+		Expect(err).Should(BeNil())
+		delegationID = initRegistrationEvent.DelegationID
+
+		// Gather subnet-evm Warp signatures for the SubnetValidatorWeightUpdateMessage & relay to the P-Chain
+		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+
+		// Issue a tx to update the validator's weight on the P-Chain
+		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
+		utils.PChainProposerVMWorkaround(network)
+		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
+
+		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
+		registrationSignedMessage := utils.ConstructSubnetValidatorWeightUpdateMessage(
+			validationID,
+			nonce,
+			newValidatorWeight,
+			subnetAInfo,
+			pChainInfo,
+			network,
+			signatureAggregator,
+		)
+
+		// Deliver the Warp message to the subnet
+		receipt = utils.CompleteNativeDelegatorRegistration(
+			ctx,
+			fundedKey,
+			delegationID,
+			subnetAInfo,
+			stakingManagerAddress,
+			registrationSignedMessage,
+		)
+		// Check that the validator is registered in the staking contract
+		registrationEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			stakingManager.ParseDelegatorRegistered,
+		)
+		Expect(err).Should(BeNil())
+		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+		Expect(registrationEvent.DelegationID[:]).Should(Equal(delegationID[:]))
+	}
+	//
+	// Delist the delegator
+	//
+	{
+		log.Println("Delisting delegator")
+		nonce := uint64(2)
+		receipt := utils.InitializeEndNativeDelegation(
+			ctx,
+			fundedKey,
+			subnetAInfo,
+			stakingManager,
+			delegationID,
+		)
+		delegatorRemovalEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			stakingManager.ParseDelegatorRemovalInitialized,
+		)
+		Expect(err).Should(BeNil())
+		Expect(delegatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
+		Expect(delegatorRemovalEvent.DelegationID[:]).Should(Equal(delegationID[:]))
+
+		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
+		// (Sending to the P-Chain will be skipped for now)
+		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+		Expect(err).Should(BeNil())
+
+		// Issue a tx to update the validator's weight on the P-Chain
+		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
+		utils.PChainProposerVMWorkaround(network)
+		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
+
+		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
+		signedMessage := utils.ConstructSubnetValidatorWeightUpdateMessage(
+			validationID,
+			nonce,
+			nodes[0].Weight,
+			subnetAInfo,
+			pChainInfo,
+			network,
+			signatureAggregator,
+		)
+
+		// Deliver the Warp message to the subnet
+		receipt = utils.CompleteEndNativeDelegation(
+			ctx,
+			fundedKey,
+			delegationID,
+			subnetAInfo,
+			stakingManagerAddress,
+			signedMessage,
+		)
+
+		// Check that the delegator has been delisted from the staking contract
+		registrationEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			stakingManager.ParseDelegationEnded,
+		)
+		Expect(err).Should(BeNil())
+		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+		Expect(registrationEvent.DelegationID[:]).Should(Equal(delegationID[:]))
+	}
 
 	//
 	// Delist the validator
@@ -97,9 +257,10 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		subnetAInfo,
 		pChainInfo,
 		stakingManager,
-		stakingManagerContractAddress,
+		stakingManagerAddress,
 		validationID,
-		weight,
+		expiry,
+		nodes[0],
 		1,
 	)
 }
