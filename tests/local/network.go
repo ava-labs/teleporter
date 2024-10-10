@@ -182,6 +182,8 @@ func NewLocalNetwork(
 	Expect(err).Should(BeNil())
 	localNetwork.pChainWallet = wallet.P()
 
+	// TODONOW: Convert all subnets to permissionless validation
+
 	return localNetwork
 }
 
