@@ -162,7 +162,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		weights[len(nodes)-1:],
 	)
 
-	// Delisting an initial validator does not work due to the way Warp signatures are requested for inital validators
+	// Delisting an initial validator does not work due to the way Warp signatures are requested for initial validators
 	//
 	// Delist one initial validators
 	//
