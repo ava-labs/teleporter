@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func RelayMessageTwice(network interfaces.Network) {
+func RelayMessageTwice(network interfaces.Network, teleporterInfo utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -41,19 +41,19 @@ func RelayMessageTwice(network interfaces.Network) {
 		"destinationBlockchainID", subnetBInfo.BlockchainID,
 	)
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey,
+		ctx, teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey,
 	)
 
 	//
 	// Relay the message to the destination
 	//
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	teleporterInfo.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
 
 	//
 	// Check Teleporter message received on the destination
 	//
 	log.Info("Checking the message was received on the destination")
-	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
+	delivered, err := teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -63,5 +63,5 @@ func RelayMessageTwice(network interfaces.Network) {
 	// Attempt to send the same message again, should fail
 	//
 	log.Info("Relaying the same Teleporter message again on the destination")
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
+	teleporterInfo.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, fundedKey)
 }

@@ -16,10 +16,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func SendSpecificReceipts(network interfaces.Network) {
+func SendSpecificReceipts(network interfaces.Network, teleporterInfo utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	teleporterContractAddress := network.GetTeleporterContractAddress()
+	teleporterContractAddress := teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessengerAddress
 	_, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
 
@@ -27,7 +27,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 	// This is only done if the test non-external networks because external networks may have
 	// an arbitrarily high number of receipts to be cleared from a given queue from unrelated messages.
 	if !network.IsExternalNetwork() {
-		utils.ClearReceiptQueue(ctx, network, fundedKey, subnetBInfo, subnetAInfo)
+		utils.ClearReceiptQueue(ctx, teleporterInfo, subnetBInfo, subnetAInfo, fundedKey)
 	}
 
 	// Use mock token as the fee token
@@ -61,41 +61,42 @@ func SendSpecificReceipts(network interfaces.Network) {
 
 	// Send first message from Subnet A to Subnet B with fee amount 5
 	sendCrossChainMsgReceipt, messageID1 := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
+		ctx, teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message from SubnetA to SubnetB
-	deliveryReceipt1 := network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
+	deliveryReceipt1 := teleporterInfo.RelayTeleporterMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true, fundedKey)
 	receiveEvent1, err := utils.GetEventFromLogs(
 		deliveryReceipt1.Logs,
-		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+		teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(receiveEvent1.MessageID[:]).Should(Equal(messageID1[:]))
 
 	// Check that the first message was delivered
-	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID1)
+	delivered, err := teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID1)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Send second message from Subnet A to Subnet B with fee amount 5
 	sendCrossChainMsgReceipt, messageID2 := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
+		ctx, teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message from SubnetA to SubnetB
-	deliveryReceipt2 := network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
+	deliveryReceipt2 := teleporterInfo.RelayTeleporterMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true, fundedKey)
 	receiveEvent2, err := utils.GetEventFromLogs(
 		deliveryReceipt2.Logs,
-		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+		teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(receiveEvent2.MessageID[:]).Should(Equal(messageID2[:]))
 
 	// Check that the second message was delivered
-	delivered, err = subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID2)
+	delivered, err = teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID2)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Call send specific receipts to get reward of relaying two messages
 	receipt, messageID := utils.SendSpecifiedReceiptsAndWaitForAcceptance(
 		ctx,
+		teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger,
 		subnetBInfo,
 		subnetAInfo.BlockchainID,
 		[][32]byte{messageID1, messageID2},
@@ -108,21 +109,21 @@ func SendSpecificReceipts(network interfaces.Network) {
 	)
 
 	// Relay message from Subnet B to Subnet A
-	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
+	receipt = teleporterInfo.RelayTeleporterMessage(ctx, receipt, subnetBInfo, subnetAInfo, true, fundedKey)
 
 	// Check that the message back to Subnet A was delivered
-	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
+	delivered, err = teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Check that the expected receipts were received and emitted ReceiptReceived
-	Expect(utils.CheckReceiptReceived(receipt, messageID1, subnetAInfo.TeleporterMessenger)).Should(BeTrue())
-	Expect(utils.CheckReceiptReceived(receipt, messageID2, subnetAInfo.TeleporterMessenger)).Should(BeTrue())
+	Expect(utils.CheckReceiptReceived(receipt, messageID1, teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger)).Should(BeTrue())
+	Expect(utils.CheckReceiptReceived(receipt, messageID2, teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger)).Should(BeTrue())
 
 	// Check the reward amounts.
 	// Even on external networks, the relayer should only have the expected fee amount
 	// for this asset because the asset contract was newly deployed by this test.
-	checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
+	checkExpectedRewardAmounts(teleporterInfo, subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
 
 	// If the network is internal to the test application, send a message from Subnet B to Subnet A to trigger
 	// the "regular" method of delivering receipts. The next message from B->A will contain the same receipts
@@ -144,12 +145,12 @@ func SendSpecificReceipts(network interfaces.Network) {
 
 		// This message will also have the same receipts as the previous message
 		receipt, messageID = utils.SendCrossChainMessageAndWaitForAcceptance(
-			ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedKey)
+			ctx, teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedKey)
 
 		// Relay message from Subnet B to Subnet A
-		receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
+		receipt = teleporterInfo.RelayTeleporterMessage(ctx, receipt, subnetBInfo, subnetAInfo, true, fundedKey)
 		// Check delivered
-		delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(
+		delivered, err = teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger.MessageReceived(
 			&bind.CallOpts{},
 			messageID)
 		Expect(err).Should(BeNil())
@@ -157,12 +158,12 @@ func SendSpecificReceipts(network interfaces.Network) {
 
 		// Check that the expected receipts were included in the message but did not emit ReceiptReceived
 		// because they were previously received
-		Expect(utils.CheckReceiptReceived(receipt, messageID1, subnetAInfo.TeleporterMessenger)).Should(BeFalse())
-		Expect(utils.CheckReceiptReceived(receipt, messageID2, subnetAInfo.TeleporterMessenger)).Should(BeFalse())
+		Expect(utils.CheckReceiptReceived(receipt, messageID1, teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger)).Should(BeFalse())
+		Expect(utils.CheckReceiptReceived(receipt, messageID2, teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger)).Should(BeFalse())
 
 		receiveEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage,
+			teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger.ParseReceiveCrossChainMessage,
 		)
 		Expect(err).Should(BeNil())
 		log.Info("Receipt included", "count", len(receiveEvent.Message.Receipts), "receipts", receiveEvent.Message.Receipts)
@@ -180,7 +181,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 			receiveEvent.Message.Receipts)).Should(BeTrue())
 
 		// Check the reward amount remains the same
-		checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
+		checkExpectedRewardAmounts(teleporterInfo, subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
 	}
 }
 
@@ -212,6 +213,7 @@ func receiptIncluded(
 // assumed that the {tokenAddress} was used as the fee asset for each of the messages,
 // and that each message individually had a fee of {feePerMessage}.
 func checkExpectedRewardAmounts(
+	teleporterInfo utils.TeleporterTestInfo,
 	sourceSubnet interfaces.SubnetTestInfo,
 	receiveEvent1 *teleportermessenger.TeleporterMessengerReceiveCrossChainMessage,
 	receiveEvent2 *teleportermessenger.TeleporterMessengerReceiveCrossChainMessage,
@@ -223,20 +225,20 @@ func checkExpectedRewardAmounts(
 	// it should be able to redeem {feePerMessage}*2. Otherwise,
 	// each distinct reward redeemer should be able to redeem {feePerMessage}.
 	if receiveEvent1.RewardRedeemer == receiveEvent2.RewardRedeemer {
-		amount, err := sourceSubnet.TeleporterMessenger.CheckRelayerRewardAmount(
+		amount, err := teleporterInfo[sourceSubnet.BlockchainID].TeleporterMessenger.CheckRelayerRewardAmount(
 			&bind.CallOpts{},
 			receiveEvent1.RewardRedeemer,
 			tokenAddress)
 		Expect(err).Should(BeNil())
 		Expect(amount).Should(Equal(new(big.Int).Mul(feePerMessage, big.NewInt(2))))
 	} else {
-		amount1, err := sourceSubnet.TeleporterMessenger.CheckRelayerRewardAmount(
+		amount1, err := teleporterInfo[sourceSubnet.BlockchainID].TeleporterMessenger.CheckRelayerRewardAmount(
 			&bind.CallOpts{},
 			receiveEvent1.RewardRedeemer,
 			tokenAddress)
 		Expect(err).Should(BeNil())
 		Expect(amount1).Should(Equal(feePerMessage))
-		amount2, err := sourceSubnet.TeleporterMessenger.CheckRelayerRewardAmount(
+		amount2, err := teleporterInfo[sourceSubnet.BlockchainID].TeleporterMessenger.CheckRelayerRewardAmount(
 			&bind.CallOpts{},
 			receiveEvent2.RewardRedeemer,
 			tokenAddress)

@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func InsufficientGas(network interfaces.Network) {
+func InsufficientGas(network interfaces.Network, teleporterInfo utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -21,6 +21,7 @@ func InsufficientGas(network interfaces.Network) {
 		ctx,
 		fundedKey,
 		fundedAddress,
+		teleporterInfo[subnetAInfo.BlockchainID].TeleporterRegistryAddress,
 		subnetAInfo,
 	)
 	// Deploy TestMessenger to Subnets B
@@ -28,6 +29,7 @@ func InsufficientGas(network interfaces.Network) {
 		ctx,
 		fundedKey,
 		fundedAddress,
+		teleporterInfo[subnetBInfo.BlockchainID].TeleporterRegistryAddress,
 		subnetBInfo,
 	)
 
@@ -44,24 +46,24 @@ func InsufficientGas(network interfaces.Network) {
 	// Wait for the transaction to be mined
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
-	event, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseSendCrossChainMessage)
+	event, err := utils.GetEventFromLogs(receipt.Logs, teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
 	messageID := event.MessageID
 
 	// Relay message from SubnetA to SubnetB
-	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receipt = teleporterInfo.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
 
 	// Check Teleporter message received on the destination
 	delivered, err :=
-		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
+		teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Check message execution failed event
 	failedMessageExecutionEvent, err := utils.GetEventFromLogs(
-		receipt.Logs, subnetBInfo.TeleporterMessenger.ParseMessageExecutionFailed,
+		receipt.Logs, teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.ParseMessageExecutionFailed,
 	)
 	Expect(err).Should(BeNil())
 	Expect(failedMessageExecutionEvent.MessageID[:]).Should(Equal(messageID[:]))
@@ -72,11 +74,12 @@ func InsufficientGas(network interfaces.Network) {
 	receipt = utils.RetryMessageExecutionAndWaitForAcceptance(
 		ctx,
 		subnetAInfo.BlockchainID,
+		teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger,
 		subnetBInfo,
 		failedMessageExecutionEvent.Message,
 		fundedKey,
 	)
-	executedEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseMessageExecuted)
+	executedEvent, err := utils.GetEventFromLogs(receipt.Logs, teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.ParseMessageExecuted)
 	Expect(err).Should(BeNil())
 	Expect(executedEvent.MessageID[:]).Should(Equal(messageID[:]))
 	Expect(executedEvent.SourceBlockchainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))

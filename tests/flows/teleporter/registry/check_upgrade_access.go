@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func CheckUpgradeAccess(network interfaces.Network) {
+func CheckUpgradeAccess(network interfaces.Network, teleporterInfo utils.TeleporterTestInfo) {
 	subnetInfo := network.GetPrimaryNetworkInfo()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
@@ -21,11 +21,12 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	// Deploy TestMessenger to the subnet
 	//
 	ctx := context.Background()
-	teleporterAddress := network.GetTeleporterContractAddress()
+	teleporterAddress := teleporterInfo[subnetInfo.BlockchainID].TeleporterMessengerAddress
 	_, testMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
+		teleporterInfo[subnetInfo.BlockchainID].TeleporterRegistryAddress,
 		subnetInfo,
 	)
 

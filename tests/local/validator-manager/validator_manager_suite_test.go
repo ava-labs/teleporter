@@ -41,7 +41,7 @@ func TestValidatorManager(t *testing.T) {
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeEach(func() {
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployedBytecode, teleporterDeployerAddress, teleporterContractAddress, err :=
+	_, teleporterDeployedBytecode, teleporterDeployerAddress, teleporterContractAddress, err :=
 		deploymentUtils.ConstructKeylessTransaction(
 			teleporterByteCodeFile,
 			false,
@@ -77,22 +77,6 @@ var _ = ginkgo.BeforeEach(func() {
 		2,
 	)
 	log.Info("Started local network")
-
-	// Only need to deploy Teleporter on the C-Chain since it is included in the genesis of the subnet chains.
-	_, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
-	LocalNetworkInstance.DeployTeleporterContractToCChain(
-		teleporterDeployerTransaction,
-		teleporterDeployerAddress,
-		teleporterContractAddress,
-		fundedKey,
-	)
-	LocalNetworkInstance.SetTeleporterContractAddress(teleporterContractAddress)
-	LocalNetworkInstance.InitializeBlockchainIDOnAllChains(fundedKey)
-
-	// Deploy the Teleporter registry contracts to all subnets and the C-Chain.
-	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
-
-	log.Info("Set up ginkgo before suite")
 })
 
 var _ = ginkgo.AfterEach(func() {

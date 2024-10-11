@@ -493,6 +493,7 @@ func GetChainConfigWithOffChainMessages(offChainMessages []avalancheWarp.Unsigne
 // read in the template file, make the substitutions declared at the beginning
 // of the function, write out the instantiation to a temp file, and then return
 // the path to that temp file.
+// TODONOW: Make Teleporter options optional
 func InstantiateGenesisTemplate(
 	templateFileName string,
 	chainID uint64,
@@ -692,7 +693,7 @@ func GetSignedMessage(
 	}
 
 	// Get the aggregate signature for the Warp message
-	// TODO: use signature aggregator
+	// TODONOW: use signature aggregator
 	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
 		ctx,
 		unsignedWarpMessageID,

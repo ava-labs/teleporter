@@ -1,5 +1,5 @@
-// (c) 2024, Ava Labs, Inc. All rights reserved.
-// See the file LICENSE for licensing terms.
+// // (c) 2024, Ava Labs, Inc. All rights reserved.
+// // See the file LICENSE for licensing terms.
 
 package teleporter
 
@@ -9,21 +9,22 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/utils"
 	teleporterutils "github.com/ava-labs/teleporter/utils/teleporter-utils"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )
 
 // Tests Teleporter message ID calculation
-func CalculateMessageID(network interfaces.Network) {
+func CalculateMessageID(network interfaces.Network, teleporterInfo utils.TeleporterTestInfo) {
 	subnetInfo := network.GetPrimaryNetworkInfo()
-	teleporterContractAddress := network.GetTeleporterContractAddress()
+	teleporterContractAddress := teleporterInfo[subnetInfo.BlockchainID].TeleporterMessengerAddress
 
 	sourceBlockchainID := common.HexToHash("0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd")
 	destinationBlockchainID := common.HexToHash("0x1234567812345678123456781234567812345678123456781234567812345678")
 	nonce := big.NewInt(42)
 
-	expectedMessageID, err := subnetInfo.TeleporterMessenger.CalculateMessageID(
+	expectedMessageID, err := teleporterInfo[subnetInfo.BlockchainID].TeleporterMessenger.CalculateMessageID(
 		&bind.CallOpts{},
 		sourceBlockchainID,
 		destinationBlockchainID,
