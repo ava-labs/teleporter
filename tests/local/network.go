@@ -53,14 +53,15 @@ const (
 	timeout      = 120 * time.Second
 )
 
-// TODONOW: Make the Teleporter info optional
 type SubnetSpec struct {
-	Name                       string
-	EVMChainID                 uint64
+	Name       string
+	EVMChainID uint64
+	NodeCount  int
+
+	// Optional fields
 	TeleporterContractAddress  common.Address
 	TeleporterDeployedBytecode string
 	TeleporterDeployerAddress  common.Address
-	NodeCount                  int
 }
 
 func NewLocalNetwork(
