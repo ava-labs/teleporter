@@ -16,15 +16,15 @@ import (
 )
 
 // Tests Teleporter message ID calculation
-func CalculateMessageID(network interfaces.Network, teleporterInfo utils.TeleporterTestInfo) {
+func CalculateMessageID(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
 	subnetInfo := network.GetPrimaryNetworkInfo()
-	teleporterContractAddress := teleporterInfo[subnetInfo.BlockchainID].TeleporterMessengerAddress
+	teleporterContractAddress := teleporter.TeleporterMessengerAddress(subnetInfo)
 
 	sourceBlockchainID := common.HexToHash("0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd")
 	destinationBlockchainID := common.HexToHash("0x1234567812345678123456781234567812345678123456781234567812345678")
 	nonce := big.NewInt(42)
 
-	expectedMessageID, err := teleporterInfo[subnetInfo.BlockchainID].TeleporterMessenger.CalculateMessageID(
+	expectedMessageID, err := teleporter.TeleporterMessenger(subnetInfo).CalculateMessageID(
 		&bind.CallOpts{},
 		sourceBlockchainID,
 		destinationBlockchainID,

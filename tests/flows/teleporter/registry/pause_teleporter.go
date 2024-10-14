@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func PauseTeleporter(network interfaces.Network, teleporterInfo utils.TeleporterTestInfo) {
+func PauseTeleporter(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -18,19 +18,19 @@ func PauseTeleporter(network interfaces.Network, teleporterInfo utils.Teleporter
 	// Deploy TestMessenger to Subnets A and B
 	//
 	ctx := context.Background()
-	teleporterAddress := teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessengerAddress
+	teleporterAddress := teleporter.TeleporterMessengerAddress(subnetAInfo)
 	_, testMessengerA := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
-		teleporterInfo[subnetAInfo.BlockchainID].TeleporterRegistryAddress,
+		teleporter.TeleporterRegistryAddress(subnetAInfo),
 		subnetAInfo,
 	)
 	testMessengerAddressB, testMessengerB := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
-		teleporterInfo[subnetBInfo.BlockchainID].TeleporterRegistryAddress,
+		teleporter.TeleporterRegistryAddress(subnetBInfo),
 		subnetBInfo,
 	)
 
@@ -53,7 +53,7 @@ func PauseTeleporter(network interfaces.Network, teleporterInfo utils.Teleporter
 	// Send a message from subnet A to subnet B, which should fail
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporterInfo,
+		teleporter,
 		subnetAInfo,
 		testMessengerA,
 		subnetBInfo,
@@ -79,7 +79,7 @@ func PauseTeleporter(network interfaces.Network, teleporterInfo utils.Teleporter
 	// Send a message from subnet A to subnet B again, which should now succeed
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporterInfo,
+		teleporter,
 		subnetAInfo,
 		testMessengerA,
 		subnetBInfo,

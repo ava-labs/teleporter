@@ -17,9 +17,9 @@ import (
 
 const newNodeCount = 2
 
-func ValidatorChurn(network interfaces.LocalNetwork, teleporterInfo utils.TeleporterTestInfo) {
+func ValidatorChurn(network interfaces.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
-	teleporterContractAddress := teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessengerAddress
+	teleporterContractAddress := teleporter.TeleporterMessengerAddress(subnetAInfo)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -42,14 +42,14 @@ func ValidatorChurn(network interfaces.LocalNetwork, teleporterInfo utils.Telepo
 
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger,
+		teleporter.TeleporterMessenger(subnetAInfo),
 		subnetAInfo,
 		subnetBInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
 
-	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger.ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	sentTeleporterMessage := sendEvent.Message
 
@@ -95,7 +95,7 @@ func ValidatorChurn(network interfaces.LocalNetwork, teleporterInfo utils.Telepo
 	utils.SendTransactionAndWaitForFailure(ctx, subnetBInfo, signedTx)
 
 	// Verify the message was not delivered
-	delivered, err := teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -107,7 +107,7 @@ func ValidatorChurn(network interfaces.LocalNetwork, teleporterInfo utils.Telepo
 	log.Info("Retrying message sending on source chain")
 	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger.RetrySendCrossChainMessage(
+	tx, err := teleporter.TeleporterMessenger(subnetAInfo).RetrySendCrossChainMessage(
 		optsA, sentTeleporterMessage,
 	)
 	Expect(err).Should(BeNil())
@@ -115,10 +115,10 @@ func ValidatorChurn(network interfaces.LocalNetwork, teleporterInfo utils.Telepo
 	// Wait for the transaction to be mined
 	receipt = utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
-	teleporterInfo.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
+	teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
 
 	// Verify the message was delivered
-	delivered, err = teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.MessageReceived(
+	delivered, err = teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())

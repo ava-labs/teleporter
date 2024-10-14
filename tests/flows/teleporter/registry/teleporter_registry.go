@@ -15,7 +15,7 @@ const (
 	teleporterByteCodeFile = "./out/TeleporterMessenger.sol/TeleporterMessenger.json"
 )
 
-func TeleporterRegistry(network interfaces.LocalNetwork, teleporterInfo utils.TeleporterTestInfo) {
+func TeleporterRegistry(network interfaces.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	// Deploy dApp on both chains that use Teleporter Registry
 	// Deploy version 2 of Teleporter to both chains
 	// Construct AddProtocolVersion txs for both chains
@@ -38,42 +38,42 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporterInfo utils.Te
 		ctx,
 		fundedKey,
 		fundedAddress,
-		teleporterInfo[cChainInfo.BlockchainID].TeleporterRegistryAddress,
+		teleporter.TeleporterRegistryAddress(cChainInfo),
 		cChainInfo,
 	)
 	testMessengerContractB, testMessengerB := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
-		teleporterInfo[subnetBInfo.BlockchainID].TeleporterRegistryAddress,
+		teleporter.TeleporterRegistryAddress(subnetBInfo),
 		subnetBInfo,
 	)
 
 	// Deploy the new version of Teleporter to both chains
 	var newTeleporterAddress common.Address
 	for _, subnet := range network.GetAllSubnetsInfo() {
-		newTeleporterAddress = utils.DeployNewTeleporterVersion(ctx, teleporterInfo, subnet, fundedKey, teleporterByteCodeFile)
+		newTeleporterAddress = utils.DeployNewTeleporterVersion(ctx, teleporter, subnet, fundedKey, teleporterByteCodeFile)
 	}
 	networkID := network.GetNetworkID()
 	// Create chain config file with off chain message for each chain
 	offchainMessageC, warpEnabledChainConfigC := utils.InitOffChainMessageChainConfig(
 		networkID,
 		cChainInfo,
-		teleporterInfo[cChainInfo.BlockchainID].TeleporterRegistryAddress,
+		teleporter.TeleporterRegistryAddress(cChainInfo),
 		newTeleporterAddress,
 		2,
 	)
 	offchainMessageB, warpEnabledChainConfigB := utils.InitOffChainMessageChainConfig(
 		networkID,
 		subnetBInfo,
-		teleporterInfo[subnetBInfo.BlockchainID].TeleporterRegistryAddress,
+		teleporter.TeleporterRegistryAddress(subnetBInfo),
 		newTeleporterAddress,
 		2,
 	)
 	offchainMessageA, warpEnabledChainConfigA := utils.InitOffChainMessageChainConfig(
 		networkID,
 		subnetAInfo,
-		teleporterInfo[subnetAInfo.BlockchainID].TeleporterRegistryAddress,
+		teleporter.TeleporterRegistryAddress(subnetAInfo),
 		newTeleporterAddress,
 		2,
 	)
@@ -93,7 +93,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporterInfo utils.Te
 	// Call addProtocolVersion on subnetB to register the new Teleporter version
 	utils.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		*teleporterInfo[subnetBInfo.BlockchainID],
+		*teleporter[subnetBInfo.BlockchainID],
 		subnetBInfo,
 		newTeleporterAddress,
 		fundedKey,
@@ -104,7 +104,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporterInfo utils.Te
 	// Message should be received successfully since we haven't updated mininum Teleporter version yet.
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporterInfo,
+		teleporter,
 		cChainInfo,
 		testMessengerC,
 		subnetBInfo,
@@ -119,7 +119,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporterInfo utils.Te
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 
-	latestVersionB, err := teleporterInfo[subnetBInfo.BlockchainID].TeleporterRegistry.LatestVersion(&bind.CallOpts{})
+	latestVersionB, err := teleporter.TeleporterRegistry(subnetBInfo).LatestVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	minTeleporterVersion, err := testMessengerB.GetMinTeleporterVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
@@ -141,7 +141,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporterInfo utils.Te
 	// Message should fail since we updated minimum Teleporter version.
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporterInfo,
+		teleporter,
 		cChainInfo,
 		testMessengerC,
 		subnetBInfo,
@@ -152,15 +152,15 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporterInfo utils.Te
 		false,
 	)
 
-	// Update teleporterInfo with the new TeleporterMessengers
+	// Update teleporter with the new TeleporterMessengers
 	for _, subnet := range network.GetAllSubnetsInfo() {
-		teleporterInfo.SetTeleporter(newTeleporterAddress, subnet)
-		teleporterInfo.InitializeBlockchainID(subnet, fundedKey)
+		teleporter.SetTeleporter(newTeleporterAddress, subnet)
+		teleporter.InitializeBlockchainID(subnet, fundedKey)
 	}
 
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporterInfo,
+		teleporter,
 		subnetBInfo,
 		testMessengerB,
 		cChainInfo,
@@ -174,7 +174,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporterInfo utils.Te
 	// Call addProtocolVersion on subnetA to register the new Teleporter version
 	utils.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		*teleporterInfo[cChainInfo.BlockchainID],
+		*teleporter[cChainInfo.BlockchainID],
 		cChainInfo,
 		newTeleporterAddress,
 		fundedKey,
@@ -185,7 +185,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporterInfo utils.Te
 	// Teleporter versions should match, so message should be received successfully.
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporterInfo,
+		teleporter,
 		subnetBInfo,
 		testMessengerB,
 		cChainInfo,
@@ -200,18 +200,18 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporterInfo utils.Te
 	// to register the new Teleporter version
 	utils.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		*teleporterInfo[subnetAInfo.BlockchainID],
+		*teleporter[subnetAInfo.BlockchainID],
 		subnetAInfo,
 		newTeleporterAddress,
 		fundedKey,
 		offchainMessageA,
 	)
 
-	latestVersionA, err := teleporterInfo[subnetAInfo.BlockchainID].TeleporterRegistry.LatestVersion(&bind.CallOpts{})
+	latestVersionA, err := teleporter.TeleporterRegistry(subnetAInfo).LatestVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	Expect(latestVersionA.Cmp(latestVersionB)).Should(Equal(0))
 
-	latestVersionC, err := teleporterInfo[cChainInfo.BlockchainID].TeleporterRegistry.LatestVersion(&bind.CallOpts{})
+	latestVersionC, err := teleporter.TeleporterRegistry(cChainInfo).LatestVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	Expect(latestVersionC.Cmp(latestVersionB)).Should(Equal(0))
 }

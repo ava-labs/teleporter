@@ -13,10 +13,10 @@ import (
 )
 
 // Tests basic one-way send from Subnet A to Subnet B and vice versa
-func BasicSendReceive(network interfaces.Network, teleporterInfo utils.TeleporterTestInfo) {
+func BasicSendReceive(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	teleporterContractAddress := teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessengerAddress
+	teleporterContractAddress := teleporter.TeleporterMessengerAddress(subnetAInfo)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
@@ -26,7 +26,7 @@ func BasicSendReceive(network interfaces.Network, teleporterInfo utils.Teleporte
 	// This is only done if the test non-external networks because external networks may have
 	// an arbitrarily high number of receipts to be cleared from a given queue from unrelated messages.
 	if !network.IsExternalNetwork() {
-		utils.ClearReceiptQueue(ctx, teleporterInfo, subnetBInfo, subnetAInfo, fundedKey)
+		utils.ClearReceiptQueue(ctx, teleporter, subnetBInfo, subnetAInfo, fundedKey)
 	}
 
 	feeAmount := big.NewInt(1)
@@ -59,7 +59,7 @@ func BasicSendReceive(network interfaces.Network, teleporterInfo utils.Teleporte
 
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger,
+		teleporter.TeleporterMessenger(subnetAInfo),
 		subnetAInfo,
 		subnetBInfo,
 		sendCrossChainMessageInput,
@@ -68,14 +68,14 @@ func BasicSendReceive(network interfaces.Network, teleporterInfo utils.Teleporte
 	expectedReceiptID := teleporterMessageID
 
 	// Relay the message to the destination
-	deliveryReceipt := teleporterInfo.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
+	deliveryReceipt := teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
 	receiveEvent, err := utils.GetEventFromLogs(
 		deliveryReceipt.Logs,
-		teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.ParseReceiveCrossChainMessage)
+		teleporter.TeleporterMessenger(subnetBInfo).ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 
 	// Check Teleporter message received on the destination
-	delivered, err := teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger.MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -86,7 +86,7 @@ func BasicSendReceive(network interfaces.Network, teleporterInfo utils.Teleporte
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporterInfo[subnetBInfo.BlockchainID].TeleporterMessenger,
+		teleporter.TeleporterMessenger(subnetBInfo),
 		subnetBInfo,
 		subnetAInfo,
 		sendCrossChainMessageInput,
@@ -94,7 +94,7 @@ func BasicSendReceive(network interfaces.Network, teleporterInfo utils.Teleporte
 	)
 
 	// Relay the message to the destination
-	deliveryReceipt = teleporterInfo.RelayTeleporterMessage(ctx, receipt, subnetBInfo, subnetAInfo, true, fundedKey)
+	deliveryReceipt = teleporter.RelayTeleporterMessage(ctx, receipt, subnetBInfo, subnetAInfo, true, fundedKey)
 
 	// Check that the receipt was received for expected Teleporter message ID
 	// This check is not performed for external networks because the specific receipt for this message
@@ -103,11 +103,11 @@ func BasicSendReceive(network interfaces.Network, teleporterInfo utils.Teleporte
 		Expect(utils.CheckReceiptReceived(
 			deliveryReceipt,
 			expectedReceiptID,
-			teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger)).Should(BeTrue())
+			teleporter.TeleporterMessenger(subnetAInfo))).Should(BeTrue())
 	}
 
 	// Check Teleporter message received on the destination
-	delivered, err = teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger.MessageReceived(
+	delivered, err = teleporter.TeleporterMessenger(subnetAInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -118,7 +118,7 @@ func BasicSendReceive(network interfaces.Network, teleporterInfo utils.Teleporte
 	// networks since the specific receipt may not have been included in the message, as noted above.
 	if !network.IsExternalNetwork() && receiveEvent.RewardRedeemer == fundedAddress {
 		utils.RedeemRelayerRewardsAndConfirm(
-			ctx, teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger, subnetAInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
+			ctx, teleporter.TeleporterMessenger(subnetAInfo), subnetAInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
 		)
 	}
 }

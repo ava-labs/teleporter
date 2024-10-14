@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func DeliverToWrongChain(network interfaces.Network, teleporterInfo utils.TeleporterTestInfo) {
+func DeliverToWrongChain(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, subnetCInfo := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -23,7 +23,7 @@ func DeliverToWrongChain(network interfaces.Network, teleporterInfo utils.Telepo
 	//
 	// Get the expected teleporter message ID for Subnet C
 	//
-	expectedAtoCMessageID, err := teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger.GetNextMessageID(
+	expectedAtoCMessageID, err := teleporter.TeleporterMessenger(subnetAInfo).GetNextMessageID(
 		&bind.CallOpts{},
 		subnetCInfo.BlockchainID,
 	)
@@ -52,7 +52,7 @@ func DeliverToWrongChain(network interfaces.Network, teleporterInfo utils.Telepo
 
 	receipt, _ := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporterInfo[subnetAInfo.BlockchainID].TeleporterMessenger,
+		teleporter.TeleporterMessenger(subnetAInfo),
 		subnetAInfo,
 		subnetBInfo,
 		sendCrossChainMessageInput,
@@ -63,12 +63,12 @@ func DeliverToWrongChain(network interfaces.Network, teleporterInfo utils.Telepo
 		//
 		// Try to relay the message to subnet C, should fail
 		//
-		teleporterInfo.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetCInfo, false, fundedKey)
+		teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetCInfo, false, fundedKey)
 	} else {
 		//
 		// Wait for external relayer to properly deliver the message to subnet B
 		//
-		deliveryReceipt := teleporterInfo.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
+		deliveryReceipt := teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
 		deliveryTx, isPending, err := subnetBInfo.RPCClient.TransactionByHash(ctx, deliveryReceipt.TxHash)
 		Expect(err).Should(BeNil())
 		Expect(isPending).Should(BeFalse())
@@ -84,7 +84,7 @@ func DeliverToWrongChain(network interfaces.Network, teleporterInfo utils.Telepo
 	//
 	// Check that the message was not received on the Subnet C
 	//
-	delivered, err := teleporterInfo[subnetCInfo.BlockchainID].TeleporterMessenger.MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(subnetCInfo).MessageReceived(
 		&bind.CallOpts{}, expectedAtoCMessageID,
 	)
 	Expect(err).Should(BeNil())
