@@ -70,7 +70,10 @@ func relayAlteredMessage(
 	network interfaces.LocalNetwork,
 ) {
 	// Fetch the Teleporter message from the logs
-	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, teleporter.TeleporterMessenger(source).ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(
+		sourceReceipt.Logs,
+		teleporter.TeleporterMessenger(source).ParseSendCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 
 	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)

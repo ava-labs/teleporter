@@ -64,7 +64,14 @@ func SendSpecificReceipts(network interfaces.Network, teleporter utils.Teleporte
 		ctx, teleporter.TeleporterMessenger(subnetAInfo), subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message from SubnetA to SubnetB
-	deliveryReceipt1 := teleporter.RelayTeleporterMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true, fundedKey)
+	deliveryReceipt1 := teleporter.RelayTeleporterMessage(
+		ctx,
+		sendCrossChainMsgReceipt,
+		subnetAInfo,
+		subnetBInfo,
+		true,
+		fundedKey,
+	)
 	receiveEvent1, err := utils.GetEventFromLogs(
 		deliveryReceipt1.Logs,
 		teleporter.TeleporterMessenger(subnetBInfo).ParseReceiveCrossChainMessage)
@@ -81,7 +88,14 @@ func SendSpecificReceipts(network interfaces.Network, teleporter utils.Teleporte
 		ctx, teleporter.TeleporterMessenger(subnetAInfo), subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message from SubnetA to SubnetB
-	deliveryReceipt2 := teleporter.RelayTeleporterMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true, fundedKey)
+	deliveryReceipt2 := teleporter.RelayTeleporterMessage(
+		ctx,
+		sendCrossChainMsgReceipt,
+		subnetAInfo,
+		subnetBInfo,
+		true,
+		fundedKey,
+	)
 	receiveEvent2, err := utils.GetEventFromLogs(
 		deliveryReceipt2.Logs,
 		teleporter.TeleporterMessenger(subnetBInfo).ParseReceiveCrossChainMessage)
@@ -123,7 +137,14 @@ func SendSpecificReceipts(network interfaces.Network, teleporter utils.Teleporte
 	// Check the reward amounts.
 	// Even on external networks, the relayer should only have the expected fee amount
 	// for this asset because the asset contract was newly deployed by this test.
-	checkExpectedRewardAmounts(teleporter, subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
+	checkExpectedRewardAmounts(
+		teleporter,
+		subnetAInfo,
+		receiveEvent1,
+		receiveEvent2,
+		mockTokenAddress,
+		relayerFeePerMessage,
+	)
 
 	// If the network is internal to the test application, send a message from Subnet B to Subnet A to trigger
 	// the "regular" method of delivering receipts. The next message from B->A will contain the same receipts
@@ -181,7 +202,14 @@ func SendSpecificReceipts(network interfaces.Network, teleporter utils.Teleporte
 			receiveEvent.Message.Receipts)).Should(BeTrue())
 
 		// Check the reward amount remains the same
-		checkExpectedRewardAmounts(teleporter, subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
+		checkExpectedRewardAmounts(
+			teleporter,
+			subnetAInfo,
+			receiveEvent1,
+			receiveEvent2,
+			mockTokenAddress,
+			relayerFeePerMessage,
+		)
 	}
 }
 

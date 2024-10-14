@@ -46,7 +46,10 @@ func InsufficientGas(network interfaces.Network, teleporter utils.TeleporterTest
 	// Wait for the transaction to be mined
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
-	event, err := utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage)
+	event, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
@@ -79,7 +82,10 @@ func InsufficientGas(network interfaces.Network, teleporter utils.TeleporterTest
 		failedMessageExecutionEvent.Message,
 		fundedKey,
 	)
-	executedEvent, err := utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(subnetBInfo).ParseMessageExecuted)
+	executedEvent, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		teleporter.TeleporterMessenger(subnetBInfo).ParseMessageExecuted,
+	)
 	Expect(err).Should(BeNil())
 	Expect(executedEvent.MessageID[:]).Should(Equal(messageID[:]))
 	Expect(executedEvent.SourceBlockchainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))

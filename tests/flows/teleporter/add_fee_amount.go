@@ -72,7 +72,14 @@ func AddFeeAmount(network interfaces.Network, teleporter utils.TeleporterTestInf
 	)
 
 	// Relay message from Subnet A to Subnet B
-	deliveryReceipt := teleporter.RelayTeleporterMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true, fundedKey)
+	deliveryReceipt := teleporter.RelayTeleporterMessage(
+		ctx,
+		sendCrossChainMsgReceipt,
+		subnetAInfo,
+		subnetBInfo,
+		true,
+		fundedKey,
+	)
 	receiveEvent, err := utils.GetEventFromLogs(
 		deliveryReceipt.Logs,
 		teleporter.TeleporterMessenger(subnetBInfo).ParseReceiveCrossChainMessage)
@@ -108,7 +115,10 @@ func AddFeeAmount(network interfaces.Network, teleporter utils.TeleporterTestInf
 	teleporter.RelayTeleporterMessage(ctx, sendSpecificReceiptsReceipt, subnetBInfo, subnetAInfo, true, fundedKey)
 
 	// Check message delivered
-	delivered, err = teleporter.TeleporterMessenger(subnetAInfo).MessageReceived(&bind.CallOpts{}, sendSpecificReceiptsMessageID)
+	delivered, err = teleporter.TeleporterMessenger(subnetAInfo).MessageReceived(
+		&bind.CallOpts{},
+		sendSpecificReceiptsMessageID,
+	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 

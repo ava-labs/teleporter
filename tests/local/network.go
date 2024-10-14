@@ -217,7 +217,6 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 	n.primaryNetworkInfo.WSClient = chainWSClient
 	n.primaryNetworkInfo.RPCClient = chainRPCClient
 	n.primaryNetworkInfo.EVMChainID = chainIDInt
-
 }
 
 func (n *LocalNetwork) setSubnetValues(subnet *tmpnet.Subnet) {

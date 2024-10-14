@@ -49,7 +49,10 @@ func ValidatorChurn(network interfaces.LocalNetwork, teleporter utils.Teleporter
 		fundedKey,
 	)
 
-	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	sentTeleporterMessage := sendEvent.Message
 

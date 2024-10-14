@@ -52,7 +52,9 @@ func NewTeleporterTestInfo(subnets []interfaces.SubnetTestInfo) TeleporterTestIn
 	return t
 }
 
-func (t TeleporterTestInfo) TeleporterMessenger(subnet interfaces.SubnetTestInfo) *teleportermessenger.TeleporterMessenger {
+func (t TeleporterTestInfo) TeleporterMessenger(
+	subnet interfaces.SubnetTestInfo,
+) *teleportermessenger.TeleporterMessenger {
 	return t[subnet.BlockchainID].TeleporterMessenger
 }
 
@@ -60,7 +62,9 @@ func (t TeleporterTestInfo) TeleporterMessengerAddress(subnet interfaces.SubnetT
 	return t[subnet.BlockchainID].TeleporterMessengerAddress
 }
 
-func (t TeleporterTestInfo) TeleporterRegistry(subnet interfaces.SubnetTestInfo) *teleporterregistry.TeleporterRegistry {
+func (t TeleporterTestInfo) TeleporterRegistry(
+	subnet interfaces.SubnetTestInfo,
+) *teleporterregistry.TeleporterRegistry {
 	return t[subnet.BlockchainID].TeleporterRegistry
 }
 
@@ -428,12 +432,18 @@ func AddProtocolVersionAndWaitForAcceptance(
 
 	// Wait for tx to be accepted, and verify events emitted
 	receipt := SendTransactionAndWaitForSuccess(ctx, subnet, signedTx)
-	addProtocolVersionEvent, err := GetEventFromLogs(receipt.Logs, sourceTeleporterInfo.TeleporterRegistry.ParseAddProtocolVersion)
+	addProtocolVersionEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		sourceTeleporterInfo.TeleporterRegistry.ParseAddProtocolVersion,
+	)
 	Expect(err).Should(BeNil())
 	Expect(addProtocolVersionEvent.Version.Cmp(expectedLatestVersion)).Should(Equal(0))
 	Expect(addProtocolVersionEvent.ProtocolAddress).Should(Equal(newTeleporterAddress))
 
-	versionUpdatedEvent, err := GetEventFromLogs(receipt.Logs, sourceTeleporterInfo.TeleporterRegistry.ParseLatestVersionUpdated)
+	versionUpdatedEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		sourceTeleporterInfo.TeleporterRegistry.ParseLatestVersionUpdated,
+	)
 	Expect(err).Should(BeNil())
 	Expect(versionUpdatedEvent.OldVersion.Cmp(curLatestVersion)).Should(Equal(0))
 	Expect(versionUpdatedEvent.NewVersion.Cmp(expectedLatestVersion)).Should(Equal(0))
@@ -519,12 +529,18 @@ func ClearReceiptQueue(
 		// Relay message
 		teleporterInfo.RelayTeleporterMessage(ctx, receipt, source, destination, true, fundedKey)
 
-		outstandReceiptCount = GetOutstandingReceiptCount(teleporterInfo.TeleporterMessenger(source), destination.BlockchainID)
+		outstandReceiptCount = GetOutstandingReceiptCount(
+			teleporterInfo.TeleporterMessenger(source),
+			destination.BlockchainID,
+		)
 	}
 	log.Info("Receipt queue emptied")
 }
 
-func GetOutstandingReceiptCount(teleporterMessenger *teleportermessenger.TeleporterMessenger, destinationBlockchainID ids.ID) *big.Int {
+func GetOutstandingReceiptCount(
+	teleporterMessenger *teleportermessenger.TeleporterMessenger,
+	destinationBlockchainID ids.ID,
+) *big.Int {
 	size, err := teleporterMessenger.GetReceiptQueueSize(&bind.CallOpts{}, destinationBlockchainID)
 	Expect(err).Should(BeNil())
 	return size
@@ -581,7 +597,10 @@ func SendExampleCrossChainMessageAndVerify(
 
 	if expectSuccess {
 		// Check that message execution was successful
-		messageExecutedEvent, err := GetEventFromLogs(receipt.Logs, teleporterInfo.TeleporterMessenger(destination).ParseMessageExecuted)
+		messageExecutedEvent, err := GetEventFromLogs(
+			receipt.Logs,
+			teleporterInfo.TeleporterMessenger(destination).ParseMessageExecuted,
+		)
 		Expect(err).Should(BeNil())
 		Expect(messageExecutedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
 	} else {
@@ -764,10 +783,15 @@ func InitOffChainMessageChainConfig(
 	teleporterAddress common.Address,
 	version uint64,
 ) (*avalancheWarp.UnsignedMessage, string) {
-	unsignedMessage := CreateOffChainRegistryMessage(networkID, subnet, registryAddress, teleporterregistry.ProtocolRegistryEntry{
-		Version:         big.NewInt(int64(version)),
-		ProtocolAddress: teleporterAddress,
-	})
+	unsignedMessage := CreateOffChainRegistryMessage(
+		networkID,
+		subnet,
+		registryAddress,
+		teleporterregistry.ProtocolRegistryEntry{
+			Version:         big.NewInt(int64(version)),
+			ProtocolAddress: teleporterAddress,
+		},
+	)
 	log.Info("Adding off-chain message to Warp chain config",
 		"messageID", unsignedMessage.ID(),
 		"blockchainID", subnet.BlockchainID.String(),

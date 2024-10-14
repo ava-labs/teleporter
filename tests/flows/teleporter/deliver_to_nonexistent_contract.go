@@ -75,7 +75,10 @@ func DeliverToNonExistentContract(network interfaces.Network, teleporter utils.T
 	// Wait for the transaction to be mined
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
-	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	Expect(sendEvent.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 

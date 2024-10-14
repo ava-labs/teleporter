@@ -56,7 +56,10 @@ func RetrySuccessfulExecution(network interfaces.Network, teleporter utils.Telep
 	// Wait for the transaction to be mined
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
-	event, err := utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage)
+	event, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
@@ -92,8 +95,11 @@ func RetrySuccessfulExecution(network interfaces.Network, teleporter utils.Telep
 	//
 	optsB, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err =
-		teleporter.TeleporterMessenger(subnetBInfo).RetryMessageExecution(optsB, subnetAInfo.BlockchainID, deliveredTeleporterMessage)
+	tx, err = teleporter.TeleporterMessenger(subnetBInfo).RetryMessageExecution(
+		optsB,
+		subnetAInfo.BlockchainID,
+		deliveredTeleporterMessage,
+	)
 	Expect(err).Should(Not(BeNil()))
 	Expect(tx).Should(BeNil())
 }
