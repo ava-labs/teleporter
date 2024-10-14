@@ -14,7 +14,8 @@ import {
     ValidatorChurnPeriod,
     SubnetConversionData,
     InitialValidator,
-    ValidatorRegistrationInput
+    ValidatorRegistrationInput,
+    PChainOwner
 } from "./interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
@@ -83,6 +84,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     error MaxChurnRateExceeded(uint64 churnAmount);
     error NodeAlreadyRegistered(bytes nodeID);
     error UnexpectedRegistrationStatus(bool validRegistration);
+    error InvalidPChainOwnerThreshold(uint256 threshold, uint256 addressesLength);
+    error PChainOwnerAddressesNotSorted();
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
@@ -208,6 +211,24 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         $._initializedValidatorSet = true;
     }
 
+    function _validatePChainOwner(PChainOwner calldata pChainOwner) internal pure {
+        // If threshold is 0, addresses must be empty.
+        if (pChainOwner.threshold == 0 && pChainOwner.addresses.length != 0) {
+            revert InvalidPChainOwnerThreshold(pChainOwner.threshold, pChainOwner.addresses.length);
+        }
+        // Threshold must be less than or equal to the number of addresses.
+        if (pChainOwner.threshold > pChainOwner.addresses.length) {
+            revert InvalidPChainOwnerThreshold(pChainOwner.threshold, pChainOwner.addresses.length);
+        }
+        // Addresses must be sorted in ascending order
+        for (uint256 i = 1; i < pChainOwner.addresses.length; i++) {
+            // Compare current address with the previous one
+            if (pChainOwner.addresses[i] < pChainOwner.addresses[i - 1]) {
+                revert PChainOwnerAddressesNotSorted();
+            }
+        }
+    }
+
     /**
      * @notice Begins the validator registration process, and sets the initial weight for the validator.
      * This is the only method related to validator registration and removal that needs the initializedValidatorSet
@@ -227,6 +248,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         ) {
             revert InvalidRegistrationExpiry(input.registrationExpiry);
         }
+
+        _validatePChainOwner(input.remainingBalanceOwner);
+        _validatePChainOwner(input.disableOwner);
 
         // Ensure the nodeID is not the zero address, and is not already an active validator.
 
