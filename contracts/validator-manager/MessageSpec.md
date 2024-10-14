@@ -59,7 +59,7 @@ SubnetConversionData
 
 - Signed by: Subnet
 
-Consumed by: P-Chain
+- Consumed by: P-Chain
 
 Specification:
 
