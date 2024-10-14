@@ -175,7 +175,6 @@ func NewLocalNetwork(
 	Expect(err).Should(BeNil())
 	localNetwork.pChainWallet = wallet.P()
 
-	// TODONOW: Convert all subnets to permissionless validation
 	return localNetwork
 }
 
@@ -320,9 +319,6 @@ func (n *LocalNetwork) TearDownNetwork() {
 	Expect(n.tmpnet.Stop(context.Background())).Should(BeNil())
 }
 
-// TODONOW: Rename to AddPermissionedSubnetValidators
-// TODONOW: Move to chain utils
-// TODONOW: Add an AddPermissionlessSubnetValidators function
 func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint) {
 	Expect(count > 0).Should(BeTrue(), "can't add 0 validators")
 	Expect(uint(len(n.extraNodes)) >= count).Should(

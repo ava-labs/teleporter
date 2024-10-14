@@ -54,8 +54,6 @@ const (
 	DefaultPChainAddress           string = "P-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u00z96u"
 )
 
-// TODONOW: Consolidate/generalize all of the repeated methods for ERC20, Native , and POA
-
 //
 // Deployment utils
 //
