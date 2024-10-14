@@ -15,8 +15,6 @@ function printHelp() {
     printUsage
 }
 
-valid_components="teleporter governance validator-manager"
-
 function printUsage() {
     cat << EOF
 Arguments:
@@ -50,10 +48,8 @@ if [ -z "$component" ]; then
     echo "No component provided" && exit 1
 fi
 
-if echo "$valid_components" | grep -q "\b$component\b"; then
-    echo "" > /dev/null
-else
-    echo "Invalid component" && printHelp && exit 1
+if [ ! -d "./tests/local/$component" ]; then
+    echo "Component test suite not found" && exit 1
 fi
 
 source "$TELEPORTER_PATH"/scripts/constants.sh
@@ -89,7 +85,7 @@ ginkgo build ./tests/local/$component
 
 # Run the tests
 echo "Running e2e tests $RUN_E2E"
-RUN_E2E=true ./tests/local//$component/$component.test \
+RUN_E2E=true ./tests/local/$component/$component.test \
   --ginkgo.vv \
   --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""} \
   --ginkgo.focus=${GINKGO_FOCUS:-""} \
