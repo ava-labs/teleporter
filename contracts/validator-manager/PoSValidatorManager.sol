@@ -326,6 +326,9 @@ abstract contract PoSValidatorManager is
             initialSupply: 0,
             endSupply: 0
         });
+        if (reward == 0) {
+            revert ValidatorIneligibleForRewards(validationID);
+        }
         $._posValidatorInfo[validationID].lastClaimUptime = totalUptime;
         $._posValidatorInfo[validationID].lastClaimTime = claimTime;
         _reward($._posValidatorInfo[validationID].owner, reward);
