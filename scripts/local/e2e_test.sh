@@ -18,7 +18,7 @@ function printHelp() {
 function printUsage() {
     cat << EOF
 Arguments:
-    --component <component>          Component test suite to run. Valid components are: $valid_components
+    --component <component>          Component test suite to run. Must be a valid directory in tests/local/
 Options:
     --help                           Print this help message
 EOF
