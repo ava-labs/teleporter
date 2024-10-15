@@ -1115,16 +1115,79 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testClaimValidationReward() public {
         bytes32 validationID = _registerDefaultValidator();
         uint64 uptimePercentage = 80;
-
+        uint64 claimTime = DEFAULT_COMPLETION_TIMESTAMP;
         uint256 expectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
-            stakingEndTime: DEFAULT_COMPLETION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingEndTime: claimTime,
+            uptimeSeconds: claimTime - DEFAULT_REGISTRATION_TIMESTAMP,
             initialSupply: 0,
             endSupply: 0
         });
+
+        bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+            validationID,
+            (claimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+        );
+        _mockGetUptimeWarpMessage(uptimeMsg, true);
+        _mockGetBlockchainID();
+
+       
+        vm.warp(claimTime);
+        _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
+        posValidatorManager.claimValidationRewards(validationID, 0);
+    }
+
+    function testClaimSubsequentValidationReward() public {
+        bytes32 validationID = _registerDefaultValidator();
+        uint64 uptimePercentage = 80;
+        uint64 firstClaimTime = DEFAULT_COMPLETION_TIMESTAMP;
+        uint256 expectedReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingEndTime: firstClaimTime,
+            uptimeSeconds: firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
+
+        bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+            validationID,
+            (firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+        );
+        _mockGetUptimeWarpMessage(uptimeMsg, true);
+        _mockGetBlockchainID();
+        vm.warp(firstClaimTime);
+        _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
+        posValidatorManager.claimValidationRewards(validationID, 0);
+
+        // Claim rewards again
+        uint64 secondClaimTime = firstClaimTime+1000;
+        expectedReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_WEIGHT),
+            validatorStartTime: firstClaimTime,
+            stakingStartTime: firstClaimTime,
+            stakingEndTime: secondClaimTime,
+            uptimeSeconds: secondClaimTime - firstClaimTime,
+            initialSupply: 0,
+            endSupply: 0
+        });
+        uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+            validationID,
+            (secondClaimTime - firstClaimTime) * uptimePercentage / 100
+        );
+        _mockGetUptimeWarpMessage(uptimeMsg, true);
+        _mockGetBlockchainID();
+        vm.warp(secondClaimTime);
+        _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
+        posValidatorManager.claimValidationRewards(validationID, 0);
+    }
+
+    function testClaimValidationRewardInsufficientUptime() public {
+        bytes32 validationID = _registerDefaultValidator();
+        uint64 uptimePercentage = 79;
 
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
             validationID,
@@ -1135,15 +1198,148 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
        
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
-        _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.ValidatorIneligibleForRewards.selector, validationID
+            )
+        );
         posValidatorManager.claimValidationRewards(validationID, 0);
     }
 
-    function testClaimValidationRewardInsufficientUptime() public view {}
+    function testClaimValidationRewardWithDelegation() public {
+        bytes32 validationID = _registerDefaultValidator();
+        bytes32 delegationID = _registerDefaultDelegator(validationID);
 
-    function testClaimValidationRewardWithDelegation() public view {}
+        // Claim validator rewards
+        uint64 uptimePercentage = 80;
+        uint64 claimTime = DEFAULT_COMPLETION_TIMESTAMP;
+        uint256 expectedReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingEndTime: claimTime,
+            uptimeSeconds: claimTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
 
-    function testEndValidationPreviouslyClaimedReward() public view {}
+        bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+            validationID,
+            (claimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+        );
+        _mockGetUptimeWarpMessage(uptimeMsg, true);
+        _mockGetBlockchainID();
+
+       
+        vm.warp(claimTime);
+        _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
+        posValidatorManager.claimValidationRewards(validationID, 0);
+
+        // End the delegation and claim rewards
+        _initializeEndDelegationValidatorActiveWithChecks({
+            validationID: validationID,
+            delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
+            delegationID: delegationID,
+            startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
+            endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+            expectedValidatorWeight: DEFAULT_WEIGHT,
+            expectedNonce: 2,
+            includeUptime: true,
+            force: false
+        });
+
+        uint256 expectedTotalReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
+
+        _completeEndDelegationWithChecks({
+            validationID: validationID,
+            delegationID: delegationID,
+            delegator: DEFAULT_DELEGATOR_ADDRESS,
+            delegatorWeight: DEFAULT_DELEGATOR_WEIGHT,
+            expectedTotalReward: expectedTotalReward,
+            delegationFeeBips: DEFAULT_DELEGATION_FEE_BIPS,
+            validatorWeight: DEFAULT_WEIGHT,
+            expectedValidatorWeight: DEFAULT_WEIGHT,
+            expectedNonce: 2
+        });
+    }
+
+    function testEndValidationPreviouslyClaimedReward() public {
+        bytes32 validationID = _registerDefaultValidator();
+        uint64 uptimePercentage = 80;
+        uint64 firstClaimTime = DEFAULT_COMPLETION_TIMESTAMP;
+        uint256 expectedReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingEndTime: firstClaimTime,
+            uptimeSeconds: firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
+
+        bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+            validationID,
+            (firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+        );
+        _mockGetUptimeWarpMessage(uptimeMsg, true);
+        _mockGetBlockchainID();
+        vm.warp(firstClaimTime);
+        _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
+        posValidatorManager.claimValidationRewards(validationID, 0);
+
+        // End the validation and claim rewards again
+        uint64 secondClaimTime = firstClaimTime+1000;
+        _initializeEndValidation({
+            validationID: validationID,
+            registrationTimestamp: firstClaimTime,
+            completionTimestamp: secondClaimTime,
+            expectedNonce: 1,
+            includeUptime: true,
+            force: false
+        });
+
+        uint256 secondExpectedReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_WEIGHT),
+            validatorStartTime: firstClaimTime,
+            stakingStartTime: firstClaimTime,
+            stakingEndTime: secondClaimTime,
+            uptimeSeconds: secondClaimTime - firstClaimTime,
+            initialSupply: 0,
+            endSupply: 0
+        });
+
+        _completeEndValidationWithChecks({
+            validationID: validationID,
+            validatorOwner: address(this),
+            expectedReward: secondExpectedReward,
+            validatorWeight: DEFAULT_WEIGHT
+        });
+
+        // Confirm the pro-rated rewards match the total expected reward
+        uint256 totalExpectedReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingEndTime: secondClaimTime,
+            uptimeSeconds: secondClaimTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
+        // Off-by one errors are possible due to integer rounding
+        if (totalExpectedReward > expectedReward + secondExpectedReward) {
+            assertTrue(totalExpectedReward - (expectedReward + secondExpectedReward) <= 1);
+        } else {
+            assertTrue((expectedReward + secondExpectedReward) - totalExpectedReward <= 1);
+        }
+    }
 
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory registrationInput,
