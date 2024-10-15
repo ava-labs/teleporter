@@ -1,7 +1,4 @@
-// Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
-// See the file LICENSE for licensing terms.
-
-package local
+package teleporter_test
 
 import (
 	"context"
@@ -9,10 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ava-labs/teleporter/tests/flows/governance"
-	"github.com/ava-labs/teleporter/tests/flows/teleporter"
-	"github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
-	validatorManager "github.com/ava-labs/teleporter/tests/flows/validator-manager"
+	teleporterFlows "github.com/ava-labs/teleporter/tests/flows/teleporter"
+	registryFlows "github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
+	"github.com/ava-labs/teleporter/tests/local"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
@@ -31,10 +27,10 @@ const (
 )
 
 var (
-	LocalNetworkInstance *LocalNetwork
+	LocalNetworkInstance *local.LocalNetwork
 )
 
-func TestE2E(t *testing.T) {
+func TestTeleporter(t *testing.T) {
 	if os.Getenv("RUN_E2E") == "" {
 		t.Skip("Environment variable RUN_E2E not set; skipping E2E tests")
 	}
@@ -57,11 +53,11 @@ var _ = ginkgo.BeforeSuite(func() {
 	// Create the local network instance
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
-	LocalNetworkInstance = NewLocalNetwork(
+	LocalNetworkInstance = local.NewLocalNetwork(
 		ctx,
 		"teleporter-test-local-network",
 		warpGenesisTemplateFile,
-		[]SubnetSpec{
+		[]local.SubnetSpec{
 			{
 				Name:                       "A",
 				EVMChainID:                 12345,
@@ -92,21 +88,17 @@ var _ = ginkgo.BeforeSuite(func() {
 		fundedKey,
 	)
 	LocalNetworkInstance.SetTeleporterContractAddress(teleporterContractAddress)
+	LocalNetworkInstance.InitializeBlockchainIDOnAllChains(fundedKey)
 
 	// Deploy the Teleporter registry contracts to all subnets and the C-Chain.
 	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
-
-	ginkgo.AddReportEntry(
-		"network directory with node logs & configs; useful in the case of failures",
-		LocalNetworkInstance.tmpnet.Dir,
-		ginkgo.ReportEntryVisibilityFailureOrVerbose,
-	)
 
 	log.Info("Set up ginkgo before suite")
 })
 
 var _ = ginkgo.AfterSuite(func() {
 	LocalNetworkInstance.TearDownNetwork()
+	LocalNetworkInstance = nil
 })
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
@@ -114,122 +106,83 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.BasicSendReceive(LocalNetworkInstance)
+			teleporterFlows.BasicSendReceive(LocalNetworkInstance)
 		})
 	ginkgo.It("Deliver to the wrong chain",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.DeliverToWrongChain(LocalNetworkInstance)
+			teleporterFlows.DeliverToWrongChain(LocalNetworkInstance)
 		})
 	ginkgo.It("Deliver to non-existent contract",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.DeliverToNonExistentContract(LocalNetworkInstance)
+			teleporterFlows.DeliverToNonExistentContract(LocalNetworkInstance)
 		})
 	ginkgo.It("Retry successful execution",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.RetrySuccessfulExecution(LocalNetworkInstance)
+			teleporterFlows.RetrySuccessfulExecution(LocalNetworkInstance)
 		})
 	ginkgo.It("Unallowed relayer",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.UnallowedRelayer(LocalNetworkInstance)
+			teleporterFlows.UnallowedRelayer(LocalNetworkInstance)
 		})
 	ginkgo.It("Relay message twice",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.RelayMessageTwice(LocalNetworkInstance)
+			teleporterFlows.RelayMessageTwice(LocalNetworkInstance)
 		})
 	ginkgo.It("Add additional fee amount",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.AddFeeAmount(LocalNetworkInstance)
+			teleporterFlows.AddFeeAmount(LocalNetworkInstance)
 		})
 	ginkgo.It("Send specific receipts",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.SendSpecificReceipts(LocalNetworkInstance)
+			teleporterFlows.SendSpecificReceipts(LocalNetworkInstance)
 		})
 	ginkgo.It("Insufficient gas",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.InsufficientGas(LocalNetworkInstance)
+			teleporterFlows.InsufficientGas(LocalNetworkInstance)
 		})
 	ginkgo.It("Resubmit altered message",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.ResubmitAlteredMessage(LocalNetworkInstance)
+			teleporterFlows.ResubmitAlteredMessage(LocalNetworkInstance)
 		})
 	ginkgo.It("Calculate Teleporter message IDs",
 		ginkgo.Label(utilsLabel),
 		func() {
-			teleporter.CalculateMessageID(LocalNetworkInstance)
+			teleporterFlows.CalculateMessageID(LocalNetworkInstance)
 		})
 	ginkgo.It("Relayer modifies message",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.RelayerModifiesMessage(LocalNetworkInstance)
+			teleporterFlows.RelayerModifiesMessage(LocalNetworkInstance)
 		})
 	ginkgo.It("Validator churn",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
-			teleporter.ValidatorChurn(LocalNetworkInstance)
+			teleporterFlows.ValidatorChurn(LocalNetworkInstance)
 		})
 
 	// Teleporter Registry tests
 	ginkgo.It("Teleporter registry",
 		ginkgo.Label(upgradabilityLabel),
 		func() {
-			registry.TeleporterRegistry(LocalNetworkInstance)
+			registryFlows.TeleporterRegistry(LocalNetworkInstance)
 		})
 	ginkgo.It("Check upgrade access",
 		ginkgo.Label(upgradabilityLabel),
 		func() {
-			registry.CheckUpgradeAccess(LocalNetworkInstance)
+			registryFlows.CheckUpgradeAccess(LocalNetworkInstance)
 		})
 	ginkgo.It("Pause and Unpause Teleporter",
 		ginkgo.Label(upgradabilityLabel),
 		func() {
-			registry.PauseTeleporter(LocalNetworkInstance)
-		})
-
-	// Governance tests
-	ginkgo.It("Deliver ValidatorSetSig signed message",
-		ginkgo.Label(validatorSetSigLabel),
-		func() {
-			governance.ValidatorSetSig(LocalNetworkInstance)
-		})
-
-	// Validator Manager tests
-	ginkgo.It("Native token staking manager",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManager.NativeTokenStakingManager(LocalNetworkInstance)
-		})
-	ginkgo.It("ERC20 token staking manager",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManager.ERC20TokenStakingManager(LocalNetworkInstance)
-		})
-	ginkgo.It("PoA validator manager",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManager.PoAValidatorManager(LocalNetworkInstance)
-		})
-	ginkgo.It("ERC20 delegation",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManager.ERC20Delegation(LocalNetworkInstance)
-		})
-	ginkgo.It("Native token delegation",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManager.NativeDelegation(LocalNetworkInstance)
-		})
-	ginkgo.It("PoA migration to PoS",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManager.PoAMigrationToPoS(LocalNetworkInstance)
+			registryFlows.PauseTeleporter(LocalNetworkInstance)
 		})
 })

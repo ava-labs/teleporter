@@ -73,8 +73,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testDelegationFeeBipsTooLow() public {
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+            remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+            disableOwner: DEFAULT_P_CHAIN_OWNER
         });
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -93,8 +95,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testDelegationFeeBipsTooHigh() public {
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+            remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+            disableOwner: DEFAULT_P_CHAIN_OWNER
         });
         uint16 delegationFeeBips = posValidatorManager.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
         vm.expectRevert(
@@ -114,8 +118,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testInvalidMinStakeDuration() public {
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+            remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+            disableOwner: DEFAULT_P_CHAIN_OWNER
         });
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -134,8 +140,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testStakeAmountTooLow() public {
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+            remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+            disableOwner: DEFAULT_P_CHAIN_OWNER
         });
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -153,8 +161,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testStakeAmountTooHigh() public {
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+            remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+            disableOwner: DEFAULT_P_CHAIN_OWNER
         });
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -283,8 +293,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
             expectedNonce: 1
         });
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
             validationID, 1, DEFAULT_WEIGHT + DEFAULT_DELEGATOR_WEIGHT
         );
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
@@ -324,8 +333,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         // Complete registration of delegator2 with delegator1's nonce
         // Note that registering delegator1 with delegator2's nonce is valid
         uint64 nonce = 1;
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSubnetValidatorWeightUpdateMessage(
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
             validationID, nonce, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
@@ -459,7 +467,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             force: false
         });
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 2, DEFAULT_WEIGHT);
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 2, DEFAULT_WEIGHT);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         posValidatorManager.resendUpdateDelegation(delegationID);
     }
@@ -476,7 +484,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
 
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         validatorManager.resendEndValidatorMessage(validationID);
     }
@@ -836,8 +844,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         // Complete ending delegator2 with delegator1's nonce
         // Note that ending delegator1 with delegator2's nonce is valid
         uint64 nonce = 3;
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSubnetValidatorWeightUpdateMessage(
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
             validationID, nonce, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
@@ -966,7 +973,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
 
         // Submit an uptime proof via submitUptime
@@ -1006,7 +1013,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
 
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
@@ -1026,11 +1033,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     }
 
     function testInitializeEndValidationPoAValidator() public {
-        bytes32 defaultInitialValidationID = sha256(abi.encodePacked(bytes32(0), uint32(1)));
+        bytes32 defaultInitialValidationID = sha256(abi.encodePacked(DEFAULT_SUBNET_ID, uint32(1)));
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(defaultInitialValidationID, 1, 0);
+            ValidatorMessages.packSubnetValidatorWeightMessage(defaultInitialValidationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidatorRemovalInitialized(
@@ -1058,7 +1065,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
 
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
@@ -1141,8 +1148,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 expectedValidatorWeight,
         uint64 expectedNonce
     ) internal returns (bytes32) {
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, expectedNonce, expectedValidatorWeight);
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, expectedNonce, expectedValidatorWeight
+        );
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         vm.warp(registrationTimestamp);
 
@@ -1169,8 +1177,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 expectedValidatorWeight,
         uint64 expectedNonce
     ) internal {
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSubnetValidatorWeightUpdateMessage(
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
             validationID, expectedNonce, expectedValidatorWeight
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
@@ -1316,8 +1323,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bool includeUptime,
         bool force
     ) internal {
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, expectedNonce, expectedValidatorWeight);
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, expectedNonce, expectedValidatorWeight
+        );
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
             validationID, endDelegationTimestamp - startDelegationTimestamp
@@ -1460,7 +1468,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 validatorWeight,
         uint64 expectedNonce
     ) internal {
-        bytes memory weightUpdateMessage = ValidatorMessages.packSubnetValidatorWeightUpdateMessage(
+        bytes memory weightUpdateMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
             validationID, expectedNonce, validatorWeight
         );
         _mockGetPChainWarpMessage(weightUpdateMessage, true);

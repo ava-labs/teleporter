@@ -143,7 +143,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	network.SetChainConfigs(chainConfigs)
 	restartCtx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
-	network.RestartNodes(restartCtx, network.GetAllNodeIDs())
+	network.RestartNodes(restartCtx, nil)
 
 	// ************************************************************************************************
 	// Test Case 1: validatorChain (subnetB) != targetChain (subnetA)

@@ -14,7 +14,8 @@ import {
     ValidatorChurnPeriod,
     SubnetConversionData,
     InitialValidator,
-    ValidatorRegistrationInput
+    ValidatorRegistrationInput,
+    PChainOwner
 } from "./interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
@@ -49,7 +50,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         /// @notice Maps the validationID to the validator information.
         mapping(bytes32 => Validator) _validationPeriods;
         /// @notice Maps the nodeID to the validationID for validation periods that have not ended.
-        mapping(bytes32 => bytes32) _registeredValidators;
+        mapping(bytes => bytes32) _registeredValidators;
         /// @notice Boolean that indicates if the initial validator set has been set.
         bool _initializedValidatorSet;
     }
@@ -73,7 +74,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     error InvalidInitializationStatus();
     error InvalidMaximumChurnPercentage(uint8 maximumChurnPercentage);
     error InvalidBLSKeyLength(uint256 length);
-    error InvalidNodeID(bytes32 nodeID);
+    error InvalidNodeID(bytes nodeID);
     error InvalidSubnetConversionID(
         bytes32 encodedSubnetConversionID, bytes32 expectedSubnetConversionID
     );
@@ -81,8 +82,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     error InvalidValidatorStatus(ValidatorStatus status);
     error InvalidWarpMessage();
     error MaxChurnRateExceeded(uint64 churnAmount);
-    error NodeAlreadyRegistered(bytes32 nodeID);
+    error NodeAlreadyRegistered(bytes nodeID);
     error UnexpectedRegistrationStatus(bool validRegistration);
+    error InvalidPChainOwnerThreshold(uint256 threshold, uint256 addressesLength);
+    error PChainOwnerAddressesNotSorted();
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
@@ -166,20 +169,17 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         uint256 totalWeight;
         for (uint32 i; i < numInitialValidators; ++i) {
             InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
-            bytes32 nodeID = initialValidator.nodeID;
-
-            if ($._registeredValidators[nodeID] != bytes32(0)) {
-                revert NodeAlreadyRegistered(nodeID);
+            if ($._registeredValidators[initialValidator.nodeID] != bytes32(0)) {
+                revert NodeAlreadyRegistered(initialValidator.nodeID);
             }
 
             // Validation ID of the initial validators is the sha256 hash of the
             // convert Subnet tx ID and the index of the initial validator.
-            bytes32 validationID =
-                sha256(abi.encodePacked(subnetConversionData.convertSubnetTxID, i));
+            bytes32 validationID = sha256(abi.encodePacked(subnetConversionData.subnetID, i));
 
             // Save the initial validator as an active validator.
 
-            $._registeredValidators[nodeID] = validationID;
+            $._registeredValidators[initialValidator.nodeID] = validationID;
             $._validationPeriods[validationID] = Validator({
                 status: ValidatorStatus.Active,
                 nodeID: initialValidator.nodeID,
@@ -211,6 +211,24 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         $._initializedValidatorSet = true;
     }
 
+    function _validatePChainOwner(PChainOwner calldata pChainOwner) internal pure {
+        // If threshold is 0, addresses must be empty.
+        if (pChainOwner.threshold == 0 && pChainOwner.addresses.length != 0) {
+            revert InvalidPChainOwnerThreshold(pChainOwner.threshold, pChainOwner.addresses.length);
+        }
+        // Threshold must be less than or equal to the number of addresses.
+        if (pChainOwner.threshold > pChainOwner.addresses.length) {
+            revert InvalidPChainOwnerThreshold(pChainOwner.threshold, pChainOwner.addresses.length);
+        }
+        // Addresses must be sorted in ascending order
+        for (uint256 i = 1; i < pChainOwner.addresses.length; i++) {
+            // Compare current address with the previous one
+            if (pChainOwner.addresses[i] < pChainOwner.addresses[i - 1]) {
+                revert PChainOwnerAddressesNotSorted();
+            }
+        }
+    }
+
     /**
      * @notice Begins the validator registration process, and sets the initial weight for the validator.
      * This is the only method related to validator registration and removal that needs the initializedValidatorSet
@@ -231,12 +249,15 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             revert InvalidRegistrationExpiry(input.registrationExpiry);
         }
 
+        _validatePChainOwner(input.remainingBalanceOwner);
+        _validatePChainOwner(input.disableOwner);
+
         // Ensure the nodeID is not the zero address, and is not already an active validator.
 
         if (input.blsPublicKey.length != BLS_PUBLIC_KEY_LENGTH) {
             revert InvalidBLSKeyLength(input.blsPublicKey.length);
         }
-        if (input.nodeID == bytes32(0)) {
+        if (input.nodeID.length == 0) {
             revert InvalidNodeID(input.nodeID);
         }
         if ($._registeredValidators[input.nodeID] != bytes32(0)) {
@@ -251,9 +272,11 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             ValidatorMessages.ValidationPeriod({
                 subnetID: $._subnetID,
                 nodeID: input.nodeID,
-                weight: weight,
                 blsPublicKey: input.blsPublicKey,
-                registrationExpiry: input.registrationExpiry
+                remainingBalanceOwner: input.remainingBalanceOwner,
+                disableOwner: input.disableOwner,
+                registrationExpiry: input.registrationExpiry,
+                weight: weight
             })
         );
         $._pendingRegisterValidationMessages[validationID] = registerSubnetValidatorMessage;
@@ -325,7 +348,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         );
     }
 
-    function registeredValidators(bytes32 nodeID) public view returns (bytes32) {
+    function registeredValidators(bytes calldata nodeID) public view returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         return $._registeredValidators[nodeID];
     }
@@ -390,7 +413,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         }
 
         WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(
+            ValidatorMessages.packSubnetValidatorWeightMessage(
                 validationID, validator.messageNonce, 0
             )
         );
@@ -496,7 +519,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, nonce, newWeight)
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, nonce, newWeight)
         );
 
         emit ValidatorWeightUpdate({
