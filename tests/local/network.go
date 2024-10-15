@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"math/big"
 	"os"
 	"slices"
 	"sort"
@@ -23,17 +22,11 @@ import (
 	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
 	pwallet "github.com/ava-labs/avalanchego/wallet/chain/p/wallet"
 	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
-	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
-	"github.com/ava-labs/subnet-evm/rpc"
 	subnetEvmTestUtils "github.com/ava-labs/subnet-evm/tests/utils"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/registry/TeleporterRegistry"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
@@ -43,9 +36,8 @@ var _ interfaces.LocalNetwork = &LocalNetwork{}
 
 // Implements Network, pointing to the network setup in local_network_setup.go
 type LocalNetwork struct {
-	teleporterContractAddress common.Address
-	primaryNetworkInfo        *interfaces.SubnetTestInfo
-	subnetsInfo               map[ids.ID]*interfaces.SubnetTestInfo
+	primaryNetworkInfo *interfaces.SubnetTestInfo
+	subnetsInfo        map[ids.ID]*interfaces.SubnetTestInfo
 
 	extraNodes []*tmpnet.Node // to add as more subnet validators in the tests
 
@@ -62,15 +54,16 @@ const (
 )
 
 type SubnetSpec struct {
-	Name                       string
-	EVMChainID                 uint64
+	Name       string
+	EVMChainID uint64
+	NodeCount  int
+
+	// Optional fields
 	TeleporterContractAddress  common.Address
 	TeleporterDeployedBytecode string
 	TeleporterDeployerAddress  common.Address
-	NodeCount                  int
 }
 
-// TODO: Decouple Teleporter from the network interface
 func NewLocalNetwork(
 	ctx context.Context,
 	name string,
@@ -182,7 +175,6 @@ func NewLocalNetwork(
 	Expect(err).Should(BeNil())
 	localNetwork.pChainWallet = wallet.P()
 
-	// TODO: Convert all subnets to permissionless validation
 	return localNetwork
 }
 
@@ -225,9 +217,6 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 	n.primaryNetworkInfo.WSClient = chainWSClient
 	n.primaryNetworkInfo.RPCClient = chainRPCClient
 	n.primaryNetworkInfo.EVMChainID = chainIDInt
-
-	// TeleporterMessenger is set in SetTeleporterContractAddress
-	// TeleporterRegistryAddress is set in DeployTeleporterRegistryContracts
 }
 
 func (n *LocalNetwork) setSubnetValues(subnet *tmpnet.Subnet) {
@@ -270,143 +259,6 @@ func (n *LocalNetwork) setSubnetValues(subnet *tmpnet.Subnet) {
 	n.subnetsInfo[subnetID].WSClient = chainWSClient
 	n.subnetsInfo[subnetID].RPCClient = chainRPCClient
 	n.subnetsInfo[subnetID].EVMChainID = chainIDInt
-
-	// TeleporterMessenger is set in SetTeleporterContractAddress
-	// TeleporterRegistryAddress is set in DeployTeleporterRegistryContracts
-}
-
-func (n *LocalNetwork) deployTeleporterToChain(
-	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
-	transactionBytes []byte,
-	deployerAddress common.Address,
-	contractAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
-) {
-	// Fund the deployer address
-	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(11)) // 11 AVAX
-	fundDeployerTx := utils.CreateNativeTransferTransaction(
-		ctx, subnetInfo, fundedKey, deployerAddress, fundAmount,
-	)
-	utils.SendTransactionAndWaitForSuccess(ctx, subnetInfo, fundDeployerTx)
-
-	log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
-
-	// Deploy Teleporter contract
-	rpcClient, err := rpc.DialContext(
-		ctx,
-		utils.HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String()),
-	)
-	Expect(err).Should(BeNil())
-	defer rpcClient.Close()
-
-	txHash := common.Hash{}
-	err = rpcClient.CallContext(ctx, &txHash, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
-	Expect(err).Should(BeNil())
-	utils.WaitForTransactionSuccess(ctx, subnetInfo, txHash)
-
-	teleporterCode, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
-	Expect(err).Should(BeNil())
-	Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-
-	log.Info("Finished deploying Teleporter contract", "blockchainID", subnetInfo.BlockchainID.Hex())
-}
-
-// DeployTeleporterContractToCChain deploys the Teleporter contract to the C-Chain.
-// The caller is responsible for generating the deployment transaction information
-func (n *LocalNetwork) DeployTeleporterContractToCChain(
-	transactionBytes []byte,
-	deployerAddress common.Address,
-	contractAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
-) {
-	log.Info("Deploying Teleporter contract to C-Chain", "contractAddress", contractAddress.String())
-
-	ctx := context.Background()
-	n.deployTeleporterToChain(
-		ctx,
-		n.GetPrimaryNetworkInfo(),
-		transactionBytes,
-		deployerAddress,
-		contractAddress,
-		fundedKey,
-	)
-
-	log.Info("Deployed Teleporter contracts to C-Chain")
-}
-
-// DeployTeleporterContractToAllChains deploys the Teleporter contract to the C-Chain and all subnets.
-// The caller is responsible for generating the deployment transaction information
-func (n *LocalNetwork) DeployTeleporterContractToAllChains(
-	transactionBytes []byte,
-	deployerAddress common.Address,
-	contractAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
-) {
-	log.Info("Deploying Teleporter contract to C-Chain and all subnets", "contractAddress", contractAddress.String())
-
-	ctx := context.Background()
-	for _, subnetInfo := range n.GetAllSubnetsInfo() {
-		n.deployTeleporterToChain(ctx, subnetInfo, transactionBytes, deployerAddress, contractAddress, fundedKey)
-	}
-
-	log.Info("Deployed Teleporter contracts to C-Chain and all subnets")
-}
-
-func (n *LocalNetwork) InitializeBlockchainIDOnAllChains(
-	fundedKey *ecdsa.PrivateKey,
-) {
-	log.Info("Initializing blockchainID on C-Chain and all subnets")
-	ctx := context.Background()
-	for _, subnetInfo := range n.GetAllSubnetsInfo() {
-		opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetInfo.EVMChainID)
-		Expect(err).Should(BeNil())
-		tx, err := subnetInfo.TeleporterMessenger.InitializeBlockchainID(opts)
-		Expect(err).Should(BeNil())
-		utils.WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
-	}
-}
-
-func (n *LocalNetwork) DeployTeleporterRegistryContracts(
-	teleporterAddress common.Address,
-	deployerKey *ecdsa.PrivateKey,
-) {
-	log.Info("Deploying TeleporterRegistry contract to subnets")
-	ctx := context.Background()
-
-	entries := []teleporterregistry.ProtocolRegistryEntry{
-		{
-			Version:         big.NewInt(1),
-			ProtocolAddress: teleporterAddress,
-		},
-	}
-
-	subnets := n.GetAllSubnetsInfo()
-	for _, subnetInfo := range subnets {
-		opts, err := bind.NewKeyedTransactorWithChainID(deployerKey, subnetInfo.EVMChainID)
-		Expect(err).Should(BeNil())
-		teleporterRegistryAddress, tx, teleporterRegistry, err := teleporterregistry.DeployTeleporterRegistry(
-			opts, subnetInfo.RPCClient, entries,
-		)
-		Expect(err).Should(BeNil())
-		// Wait for the transaction to be mined
-		utils.WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
-
-		if subnetInfo.SubnetID == constants.PrimaryNetworkID {
-			n.primaryNetworkInfo.TeleporterRegistryAddress = teleporterRegistryAddress
-			n.primaryNetworkInfo.TeleporterRegistry = teleporterRegistry
-		} else {
-			n.subnetsInfo[subnetInfo.SubnetID].TeleporterRegistryAddress = teleporterRegistryAddress
-			n.subnetsInfo[subnetInfo.SubnetID].TeleporterRegistry = teleporterRegistry
-		}
-
-		log.Info("Deployed TeleporterRegistry contract",
-			"subnet", subnetInfo.SubnetID.Hex(),
-			"address", teleporterRegistryAddress.Hex(),
-		)
-	}
-
-	log.Info("Deployed TeleporterRegistry contracts to all subnets")
 }
 
 // Returns all subnet info sorted in lexicographic order of SubnetName.
@@ -431,26 +283,6 @@ func (n *LocalNetwork) GetAllSubnetsInfo() []interfaces.SubnetTestInfo {
 	return append(subnets, n.GetPrimaryNetworkInfo())
 }
 
-func (n *LocalNetwork) GetTeleporterContractAddress() common.Address {
-	return n.teleporterContractAddress
-}
-
-func (n *LocalNetwork) SetTeleporterContractAddress(newTeleporterAddress common.Address) {
-	n.teleporterContractAddress = newTeleporterAddress
-	subnets := n.GetAllSubnetsInfo()
-	for _, subnetInfo := range subnets {
-		teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-			n.teleporterContractAddress, subnetInfo.RPCClient,
-		)
-		Expect(err).Should(BeNil())
-		if subnetInfo.SubnetID == constants.PrimaryNetworkID {
-			n.primaryNetworkInfo.TeleporterMessenger = teleporterMessenger
-		} else {
-			n.subnetsInfo[subnetInfo.SubnetID].TeleporterMessenger = teleporterMessenger
-		}
-	}
-}
-
 func (n *LocalNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
 	fundedAddress := crypto.PubkeyToAddress(n.globalFundedKey.PublicKey)
 	return fundedAddress, n.globalFundedKey
@@ -464,45 +296,6 @@ func (n *LocalNetwork) SupportsIndependentRelaying() bool {
 	// Messages can be relayed by the test application for local
 	// networks with connections to each node.
 	return true
-}
-
-func (n *LocalNetwork) RelayMessage(ctx context.Context,
-	sourceReceipt *types.Receipt,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-	expectSuccess bool,
-) *types.Receipt {
-	// Fetch the Teleporter message from the logs
-	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
-	Expect(err).Should(BeNil())
-
-	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
-
-	// Construct the transaction to send the Warp message to the destination chain
-	signedTx := utils.CreateReceiveCrossChainMessageTransaction(
-		ctx,
-		signedWarpMessage,
-		sendEvent.Message.RequiredGasLimit,
-		n.teleporterContractAddress,
-		n.globalFundedKey,
-		destination,
-	)
-
-	log.Info("Sending transaction to destination chain")
-	if !expectSuccess {
-		return utils.SendTransactionAndWaitForFailure(ctx, destination, signedTx)
-	}
-
-	receipt := utils.SendTransactionAndWaitForSuccess(ctx, destination, signedTx)
-
-	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
-	receiveEvent, err := utils.GetEventFromLogs(
-		receipt.Logs,
-		destination.TeleporterMessenger.ParseReceiveCrossChainMessage,
-	)
-	Expect(err).Should(BeNil())
-	Expect(receiveEvent.SourceBlockchainID[:]).Should(Equal(source.BlockchainID[:]))
-	return receipt
 }
 
 func (n *LocalNetwork) setAllSubnetValues() {

@@ -500,6 +500,16 @@ func InstantiateGenesisTemplate(
 	teleporterDeployedBytecode string,
 	teleporterDeployerAddress common.Address,
 ) string {
+	if teleporterContractAddress.Big().Cmp(big.NewInt(0)) == 0 {
+		teleporterContractAddress = common.HexToAddress("0xffffffffffffffffffffffffffffffffffffffff")
+	}
+	if teleporterDeployerAddress.Big().Cmp(big.NewInt(0)) == 0 {
+		teleporterDeployerAddress = common.HexToAddress("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	}
+	if teleporterDeployedBytecode == "" {
+		teleporterDeployedBytecode = "0x00"
+	}
+
 	substitutions := []struct {
 		Target string
 		Value  string
@@ -692,7 +702,6 @@ func GetSignedMessage(
 	}
 
 	// Get the aggregate signature for the Warp message
-	// TODO: use signature aggregator
 	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
 		ctx,
 		unsignedWarpMessageID,

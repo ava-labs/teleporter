@@ -8,7 +8,6 @@ import (
 
 	governanceFlows "github.com/ava-labs/teleporter/tests/flows/governance"
 	"github.com/ava-labs/teleporter/tests/local"
-	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -40,15 +39,6 @@ func TestGovernance(t *testing.T) {
 
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
-	// Generate the Teleporter deployment values
-	_, teleporterDeployedBytecode, teleporterDeployerAddress, teleporterContractAddress, err :=
-		deploymentUtils.ConstructKeylessTransaction(
-			teleporterByteCodeFile,
-			false,
-			deploymentUtils.GetDefaultContractCreationGasPrice(),
-		)
-	Expect(err).Should(BeNil())
-
 	// Create the local network instance
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
@@ -58,20 +48,14 @@ var _ = ginkgo.BeforeSuite(func() {
 		warpGenesisTemplateFile,
 		[]local.SubnetSpec{
 			{
-				Name:                       "A",
-				EVMChainID:                 12345,
-				TeleporterContractAddress:  teleporterContractAddress,
-				TeleporterDeployedBytecode: teleporterDeployedBytecode,
-				TeleporterDeployerAddress:  teleporterDeployerAddress,
-				NodeCount:                  2,
+				Name:       "A",
+				EVMChainID: 12345,
+				NodeCount:  2,
 			},
 			{
-				Name:                       "B",
-				EVMChainID:                 54321,
-				TeleporterContractAddress:  teleporterContractAddress,
-				TeleporterDeployedBytecode: teleporterDeployedBytecode,
-				TeleporterDeployerAddress:  teleporterDeployerAddress,
-				NodeCount:                  2,
+				Name:       "B",
+				EVMChainID: 54321,
+				NodeCount:  2,
 			},
 		},
 		2,
