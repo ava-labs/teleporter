@@ -71,7 +71,7 @@ func relayAlteredMessage(
 	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
+	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
 
 	// Construct the transaction to send the Warp message to the destination chain
 	_, fundedKey := network.GetFundedAccountInfo()
