@@ -491,9 +491,19 @@ abstract contract PoSValidatorManager is
         if (delegator.status != DelegatorStatus.Active) {
             revert InvalidDelegatorStatus(delegator.status);
         }
-        // Only the delegation owner can end the delegation.
+        // Only the delegation owner or parent validator can end the delegation.
         if (delegator.owner != _msgSender()) {
-            revert UnauthorizedOwner(_msgSender());
+            // Validators can only remove delegations after the minimum stake duration has passed.
+            if ($._posValidatorInfo[validationID].owner == _msgSender()) {
+                if (
+                    block.timestamp
+                        < validator.startedAt + $._posValidatorInfo[validationID].minStakeDuration
+                ) {
+                    revert MinStakeDurationNotPassed(uint64(block.timestamp));
+                }
+            } else {
+                revert UnauthorizedOwner(_msgSender());
+            }
         }
 
         if (validator.status == ValidatorStatus.Active) {
