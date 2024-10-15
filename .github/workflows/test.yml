@@ -67,7 +67,7 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
-          ./scripts/local/e2e_test.sh --component teleporter
+          ./scripts/local/e2e_test.sh --components teleporter
 
   governance_e2e:
     name: governance-e2e-tests
@@ -91,7 +91,7 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
-          ./scripts/local/e2e_test.sh --component governance
+          ./scripts/local/e2e_test.sh --components governance
 
   validator_manager_e2e:
     name: validator-manager-e2e-tests
@@ -115,4 +115,4 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
-          ./scripts/local/e2e_test.sh --component validator-manager
+          ./scripts/local/e2e_test.sh --components validator-manager
