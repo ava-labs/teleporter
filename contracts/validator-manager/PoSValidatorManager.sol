@@ -228,19 +228,26 @@ abstract contract PoSValidatorManager is
         }
 
         // Uptime proofs include the absolute number of seconds the validator has been active.
-        uint64 uptimeSeconds;
+        uint64 totalUptime;
         if (includeUptimeProof) {
-            uptimeSeconds = _updateUptime(validationID, messageIndex);
+            totalUptime = _updateUptime(validationID, messageIndex);
         } else {
-            uptimeSeconds = $._posValidatorInfo[validationID].uptimeSeconds;
+            totalUptime = $._posValidatorInfo[validationID].uptimeSeconds;
+        }
+        uint64 uptime = totalUptime - $._posValidatorInfo[validationID].lastClaimUptime;
+        uptime += $._posValidatorInfo[validationID].lastClaimTime; // offset by last claim time
+
+        uint64 lastClaimTime = $._posValidatorInfo[validationID].lastClaimTime;
+        if (lastClaimTime == 0) {
+            lastClaimTime = validator.startedAt;
         }
 
         uint256 reward = $._rewardCalculator.calculateReward({
             stakeAmount: weightToValue(validator.startingWeight),
-            validatorStartTime: validator.startedAt,
-            stakingStartTime: validator.startedAt,
+            validatorStartTime: lastClaimTime,
+            stakingStartTime: lastClaimTime,
             stakingEndTime: validator.endedAt,
-            uptimeSeconds: uptimeSeconds,
+            uptimeSeconds: uptime,
             initialSupply: 0,
             endSupply: 0
         });
@@ -265,10 +272,65 @@ abstract contract PoSValidatorManager is
             uint256 rewards = $._redeemableValidatorRewards[validationID];
             delete $._redeemableValidatorRewards[validationID];
             _reward(owner, rewards);
+
+            emit ValidationRewardsClaimed(validationID, rewards);
         }
 
         // We unlock the stake whether the validation period is completed or invalidated.
         _unlock(owner, weightToValue(validator.startingWeight));
+    }
+
+    function claimValidationRewards(bytes32 validationID, uint32 messageIndex) external nonReentrant {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        Validator memory validator = getValidator(validationID);
+        if (validator.status != ValidatorStatus.Active) {
+            revert InvalidValidatorStatus(validator.status);
+        }
+
+        // Non-PoS validators are required to boostrap the network, but are not eligible for rewards.
+        if (!_isPoSValidator(validationID)) {
+            revert ValidatorNotPoS(validationID);
+        }
+
+        // Rewards can only be claimed by the validator owner.
+        if ($._posValidatorInfo[validationID].owner != _msgSender()) {
+            revert UnauthorizedOwner(_msgSender());
+        }
+
+        // Check that minimum stake duration has passed.
+        uint64 claimTime = uint64(block.timestamp);
+        if (
+            claimTime
+                < validator.startedAt + $._posValidatorInfo[validationID].minStakeDuration
+        ) {
+            revert MinStakeDurationNotPassed(claimTime);
+        }
+
+        // Uptime proofs include the absolute number of seconds the validator has been active.
+        uint64 totalUptime = _updateUptime(validationID, messageIndex);
+        uint64 uptime = totalUptime - $._posValidatorInfo[validationID].lastClaimUptime;
+        uptime += $._posValidatorInfo[validationID].lastClaimTime; // offset by last claim time
+
+        uint64 lastClaimTime = $._posValidatorInfo[validationID].lastClaimTime;
+        if (lastClaimTime == 0) {
+            lastClaimTime = validator.startedAt;
+        }
+
+        uint256 reward = $._rewardCalculator.calculateReward({
+            stakeAmount: weightToValue(validator.startingWeight),
+            validatorStartTime: lastClaimTime,
+            stakingStartTime: lastClaimTime,
+            stakingEndTime: claimTime,
+            uptimeSeconds: uptime,
+            initialSupply: 0,
+            endSupply: 0
+        });
+        $._posValidatorInfo[validationID].lastClaimUptime = totalUptime;
+        $._posValidatorInfo[validationID].lastClaimTime = claimTime;
+        _reward($._posValidatorInfo[validationID].owner, reward);
+
+        emit ValidationRewardsClaimed(validationID, reward);
     }
 
     // Helper function that extracts the uptime from a ValidationUptimeMessage Warp message
@@ -338,7 +400,9 @@ abstract contract PoSValidatorManager is
             owner: _msgSender(),
             delegationFeeBips: delegationFeeBips,
             minStakeDuration: minStakeDuration,
-            uptimeSeconds: 0
+            uptimeSeconds: 0,
+            lastClaimUptime: 0,
+            lastClaimTime: 0 // TODONOW: This should be initialized to validator.startedAt
         });
         return validationID;
     }

@@ -52,6 +52,8 @@ struct PoSValidatorInfo {
     uint16 delegationFeeBips;
     uint64 minStakeDuration;
     uint64 uptimeSeconds;
+    uint64 lastClaimUptime;
+    uint64 lastClaimTime;
 }
 
 /**
@@ -112,6 +114,8 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param uptime The updated uptime of the validator
      */
     event UptimeUpdated(bytes32 indexed validationID, uint64 uptime);
+
+    event ValidationRewardsClaimed(bytes32 indexed validationID, uint256 indexed reward);
 
     /**
      * @notice Updates the uptime of the validationID if the submitted proof is greated than the stored uptime.
@@ -233,4 +237,7 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param validationID The ID of the validation being ended.
      */
     function claimDelegationFees(bytes32 validationID) external;
+
+    // TODONOW: Consistent placement of messageIndex across interfaces
+    function claimValidationRewards(bytes32 validationID, uint32 messageIndex) external;
 }

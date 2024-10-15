@@ -70,6 +70,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     event UptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
+    event ValidationRewardsClaimed(bytes32 indexed validationID, uint256 indexed reward);
+
     function testDelegationFeeBipsTooLow() public {
         ValidatorRegistrationInput memory registrationInput = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,
@@ -1110,6 +1112,39 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
     }
 
+    function testClaimValidationReward() public {
+        bytes32 validationID = _registerDefaultValidator();
+        uint64 uptimePercentage = 80;
+
+        uint256 expectedReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_WEIGHT),
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingEndTime: DEFAULT_COMPLETION_TIMESTAMP,
+            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            initialSupply: 0,
+            endSupply: 0
+        });
+
+        bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+            validationID,
+            (DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+        );
+        _mockGetUptimeWarpMessage(uptimeMsg, true);
+        _mockGetBlockchainID();
+
+       
+        vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
+        _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
+        posValidatorManager.claimValidationRewards(validationID, 0);
+    }
+
+    function testClaimValidationRewardInsufficientUptime() public view {}
+
+    function testClaimValidationRewardWithDelegation() public view {}
+
+    function testEndValidationPreviouslyClaimedReward() public view {}
+
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory registrationInput,
         uint16 delegationFeeBips,
@@ -1401,6 +1436,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
     }
 
+    function _expectValidationRewardsIssuance(bytes32 validationID, address account, uint256 amount) internal {
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit ValidationRewardsClaimed(validationID, amount);
+        _expectRewardIssuance(account, amount);
+    }
+
     function _completeEndValidationWithChecks(
         bytes32 validationID,
         address validatorOwner,
@@ -1412,7 +1453,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint256 balanceBefore = _getStakeAssetBalance(validatorOwner);
 
         _expectStakeUnlock(validatorOwner, _weightToValue(validatorWeight));
-        _expectRewardIssuance(validatorOwner, expectedReward);
+        _expectValidationRewardsIssuance(validationID, validatorOwner, expectedReward);
 
         _completeEndValidation(validationID);
 
