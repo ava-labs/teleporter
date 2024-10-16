@@ -159,6 +159,16 @@ interface IPoSValidatorManager is IValidatorManager {
     ) external;
 
     /**
+     * @notice Withdraws pro-rated rewards for an active validation to the owner of the validator.
+     * Uses the uptime proof provided in the Warp message to determine rewards eligibility. Reverts if the uptime is not eligible for rewards.
+     * Rewards are calculated from the last time this function was called, or the beginning of the
+     * validation, whichever is later.
+     * @param validationID The ID of the validation being claimed.
+     * @param messageIndex The index of the Warp message to be received providing the uptime proof.
+     */
+    function claimValidationRewards(bytes32 validationID, uint32 messageIndex) external;
+
+    /**
      * @notice Completes the delegator registration process by returning an acknowledgement of the registration of a
      * validationID from the P-Chain. After this function is called, the validator's weight is updated in the contract state.
      * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize registration of the
@@ -237,14 +247,4 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param validationID The ID of the validation being ended.
      */
     function claimDelegationFees(bytes32 validationID) external;
-
-    /** 
-     * @notice Withdraws pro-rated rewards for an active validation to the owner of the validator.
-     * Uses the uptime proof provided in the Warp message to determine rewards eligibility. Reverts if the uptime is not eligible for rewards.
-     * Rewards are calculated from the last time this function was called, or the beginning of the 
-     * validation, whichever is later.
-     * @param validationID The ID of the validation being claimed.
-     * @param messageIndex The index of the Warp message to be received providing the uptime proof.
-     */
-    function claimValidationRewards(bytes32 validationID, uint32 messageIndex) external;
 }

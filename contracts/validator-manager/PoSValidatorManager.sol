@@ -283,22 +283,6 @@ abstract contract PoSValidatorManager is
         _unlock(owner, weightToValue(validator.startingWeight));
     }
 
-    function _validateSufficientUptime(
-        uint64 uptimeSeconds,
-        uint64 periodStartTime,
-        uint64 periodEndTime
-    ) internal pure returns (bool) {
-        // Equivalent to uptimeSeconds/(periodEndTime - periodStartTime) < UPTIME_REWARDS_THRESHOLD_PERCENTAGE/100
-        // Rearranged to prevent integer division truncation.
-        if (
-            uptimeSeconds * 100
-                < (periodEndTime - periodStartTime) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE
-        ) {
-            return false;
-        }
-        return true;
-    }
-
     /**
      * @notice Claim pro-rated validation rewards. Rewards are calculated from the last time rewards were claimed,
      * or the beginning of the validation period, whichever is later. Reward eligibility is determined by the
@@ -367,6 +351,22 @@ abstract contract PoSValidatorManager is
         _reward($._posValidatorInfo[validationID].owner, reward);
 
         emit ValidationRewardsClaimed(validationID, reward);
+    }
+
+    function _validateSufficientUptime(
+        uint64 uptimeSeconds,
+        uint64 periodStartTime,
+        uint64 periodEndTime
+    ) internal pure returns (bool) {
+        // Equivalent to uptimeSeconds/(periodEndTime - periodStartTime) < UPTIME_REWARDS_THRESHOLD_PERCENTAGE/100
+        // Rearranged to prevent integer division truncation.
+        if (
+            uptimeSeconds * 100
+                < (periodEndTime - periodStartTime) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE
+        ) {
+            return false;
+        }
+        return true;
     }
 
     // Helper function that extracts the uptime from a ValidationUptimeMessage Warp message
