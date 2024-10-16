@@ -1244,7 +1244,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         // Claim rewards again
         uint64 secondClaimTime = firstClaimTime + 5 hours;
         uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
-            validationID, (secondClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+            validationID,
+            (secondClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
         );
         uint256 secondExpectedReward = _claimRewards({
             validationID: validationID,
@@ -1309,10 +1310,17 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             endSupply: 0
         });
         // Off-by one errors are possible due to integer rounding
-        if (totalExpectedReward > firstExpectedReward + secondExpectedReward + thirdExpectedReward) {
-            assertTrue(totalExpectedReward - (firstExpectedReward + secondExpectedReward + thirdExpectedReward) <= 1);
+        if (totalExpectedReward > firstExpectedReward + secondExpectedReward + thirdExpectedReward)
+        {
+            assertTrue(
+                totalExpectedReward
+                    - (firstExpectedReward + secondExpectedReward + thirdExpectedReward) <= 1
+            );
         } else {
-            assertTrue((firstExpectedReward + secondExpectedReward + thirdExpectedReward) - totalExpectedReward <= 1);
+            assertTrue(
+                (firstExpectedReward + secondExpectedReward + thirdExpectedReward)
+                    - totalExpectedReward <= 1
+            );
         }
     }
 
