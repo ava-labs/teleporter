@@ -299,10 +299,10 @@ abstract contract PoSValidatorManager is
         return true;
     }
 
-    /** 
+    /**
      * @notice Claim pro-rated validation rewards. Rewards are calculated from the last time rewards were claimed,
-     * or the beginning of the validation period, whichever is later. Reward eligibility is determined by the 
-     * submitted uptime proof. 
+     * or the beginning of the validation period, whichever is later. Reward eligibility is determined by the
+     * submitted uptime proof.
      *
      *
      * @dev See {IPoSValidatorManager-claimValidationRewards}.
@@ -361,7 +361,8 @@ abstract contract PoSValidatorManager is
             endSupply: 0
         });
 
-        $._posValidatorInfo[validationID].lastClaimMinUptime = (claimTime - lastClaimTime) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE / 100;
+        $._posValidatorInfo[validationID].lastClaimMinUptime =
+            (claimTime - lastClaimTime) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE / 100;
         $._posValidatorInfo[validationID].lastClaimTime = claimTime;
         _reward($._posValidatorInfo[validationID].owner, reward);
 
@@ -437,7 +438,7 @@ abstract contract PoSValidatorManager is
             minStakeDuration: minStakeDuration,
             uptimeSeconds: 0,
             lastClaimMinUptime: 0,
-            lastClaimTime: 0 // TODONOW: This should be initialized to validator.startedAt
+            lastClaimTime: 0
         });
         return validationID;
     }
