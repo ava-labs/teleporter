@@ -342,7 +342,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.warp(DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP);
         vm.expectRevert(abi.encodeWithSelector(PoSValidatorManager.InvalidNonce.selector, nonce));
-        posValidatorManager.completeDelegatorRegistration(0, delegationID2);
+        posValidatorManager.completeDelegatorRegistration(delegationID2, 0);
     }
 
     function testCompleteDelegatorRegistrationImplicitNonce() public {
@@ -662,7 +662,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         // warp to right after validator ended
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP + 1);
-        posValidatorManager.completeDelegatorRegistration(0, delegationID);
+        posValidatorManager.completeDelegatorRegistration(delegationID, 0);
 
         assertEq(
             _getStakeAssetBalance(DEFAULT_DELEGATOR_ADDRESS),
@@ -753,7 +753,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _expectStakeUnlock(DEFAULT_DELEGATOR_ADDRESS, _weightToValue(DEFAULT_DELEGATOR_WEIGHT));
         _expectRewardIssuance(DEFAULT_DELEGATOR_ADDRESS, expectedDelegatorReward);
 
-        posValidatorManager.completeEndDelegation(0, delegationID);
+        posValidatorManager.completeEndDelegation(delegationID, 0);
 
         assertEq(
             _getStakeAssetBalance(DEFAULT_DELEGATOR_ADDRESS),
@@ -819,7 +819,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
         vm.expectRevert(abi.encodeWithSelector(PoSValidatorManager.InvalidNonce.selector, nonce));
-        posValidatorManager.completeEndDelegation(0, delegationID2);
+        posValidatorManager.completeEndDelegation(delegationID2, 0);
     }
 
     function testCompleteEndDelegationImplicitNonce() public {
@@ -1366,7 +1366,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
         vm.warp(completeRegistrationTimestamp);
-        posValidatorManager.completeDelegatorRegistration(0, delegationID);
+        posValidatorManager.completeDelegatorRegistration(delegationID, 0);
     }
 
     function _setUpCompleteDelegatorRegistrationWithChecks(
@@ -1666,7 +1666,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
         _mockGetPChainWarpMessage(weightUpdateMessage, true);
 
-        posValidatorManager.completeEndDelegation(0, delegationID);
+        posValidatorManager.completeEndDelegation(delegationID, 0);
     }
 
     function _initializeAndCompleteEndDelegationWithChecks(
