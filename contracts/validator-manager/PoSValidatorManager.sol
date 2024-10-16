@@ -235,7 +235,6 @@ abstract contract PoSValidatorManager is
             totalUptime = $._posValidatorInfo[validationID].uptimeSeconds;
         }
         uint64 uptime = totalUptime - $._posValidatorInfo[validationID].lastClaimUptime;
-        uptime += $._posValidatorInfo[validationID].lastClaimTime; // offset by last claim time
 
         uint64 lastClaimTime = $._posValidatorInfo[validationID].lastClaimTime;
         if (lastClaimTime == 0) {
@@ -310,7 +309,6 @@ abstract contract PoSValidatorManager is
         // Uptime proofs include the absolute number of seconds the validator has been active.
         uint64 totalUptime = _updateUptime(validationID, messageIndex);
         uint64 uptime = totalUptime - $._posValidatorInfo[validationID].lastClaimUptime;
-        uptime += $._posValidatorInfo[validationID].lastClaimTime; // offset by last claim time
 
         uint64 lastClaimTime = $._posValidatorInfo[validationID].lastClaimTime;
         if (lastClaimTime == 0) {
@@ -329,7 +327,7 @@ abstract contract PoSValidatorManager is
         if (reward == 0) {
             revert ValidatorIneligibleForRewards(validationID);
         }
-        $._posValidatorInfo[validationID].lastClaimUptime = totalUptime;
+        $._posValidatorInfo[validationID].lastClaimUptime = (claimTime-lastClaimTime) * 80 / 100; // TODONOW: placeholder
         $._posValidatorInfo[validationID].lastClaimTime = claimTime;
         _reward($._posValidatorInfo[validationID].owner, reward);
 

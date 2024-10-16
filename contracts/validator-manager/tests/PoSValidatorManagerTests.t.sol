@@ -1139,6 +1139,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         posValidatorManager.claimValidationRewards(validationID, 0);
     }
 
+    // TODONOW: consolidate these tests into helpers
     function testClaimSubsequentValidationReward() public {
         bytes32 validationID = _registerDefaultValidator();
         uint64 uptimePercentage = 80;
@@ -1170,18 +1171,68 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: firstClaimTime,
             stakingStartTime: firstClaimTime,
             stakingEndTime: secondClaimTime,
-            uptimeSeconds: secondClaimTime - firstClaimTime,
+            uptimeSeconds: secondClaimTime - DEFAULT_REGISTRATION_TIMESTAMP,
             initialSupply: 0,
             endSupply: 0
         });
         uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
             validationID,
-            (secondClaimTime - firstClaimTime) * uptimePercentage / 100
+            (secondClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
         );
         _mockGetUptimeWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID();
         vm.warp(secondClaimTime);
         _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
+        posValidatorManager.claimValidationRewards(validationID, 0);
+    }
+
+    function testClaimValidationRewardStaleUptime() public {
+        uint64 validationStartTime = 0;
+        bytes32 validationID = _registerValidator({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: validationStartTime
+        });
+        uint64 uptimePercentage = 80;
+        
+        uint64 firstClaimTime = DEFAULT_MINIMUM_VALIDATION_DURATION+1; // 24 hours
+        uint256 expectedReward = rewardCalculator.calculateReward({
+            stakeAmount: _weightToValue(DEFAULT_WEIGHT),
+            validatorStartTime: validationStartTime,
+            stakingStartTime: validationStartTime,
+            stakingEndTime: firstClaimTime,
+            uptimeSeconds: firstClaimTime - validationStartTime,
+            initialSupply: 0,
+            endSupply: 0
+        });
+
+        // uptime = 24 hours * 80% = 19.2 hours
+        bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+            validationID,
+            ((firstClaimTime - validationStartTime) * uptimePercentage / 100) + 1
+        );
+        _mockGetUptimeWarpMessage(uptimeMsg, true);
+        _mockGetBlockchainID();
+        vm.warp(firstClaimTime);
+        _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
+        posValidatorManager.claimValidationRewards(validationID, 0);
+
+        // Attempt to claim rewards again, but by submitting the same uptime
+        // Total validation time = 24 + 30 hours = 54 hours
+        // Collection period time = 30 hours
+        // Required uptime = 24*80% + 30*80% = 43.2 hours
+        uint64 secondClaimTime = firstClaimTime+5 hours;  
+        _mockGetUptimeWarpMessage(uptimeMsg, true);
+        _mockGetBlockchainID();
+        vm.warp(secondClaimTime);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.ValidatorIneligibleForRewards.selector, validationID
+            )
+        );
         posValidatorManager.claimValidationRewards(validationID, 0);
     }
 
@@ -1236,6 +1287,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         posValidatorManager.claimValidationRewards(validationID, 0);
 
         // End the delegation and claim rewards
+        // TODONOW: add a delegation helper
         _initializeEndDelegationValidatorActiveWithChecks({
             validationID: validationID,
             delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
@@ -1295,11 +1347,26 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
         posValidatorManager.claimValidationRewards(validationID, 0);
 
-        // End the validation and claim rewards again
-        uint64 secondClaimTime = firstClaimTime+1000;
+        // Try to end the validation with a stale uptime
+        uint64 secondClaimTime = firstClaimTime+5 hours;
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.ValidatorIneligibleForRewards.selector, validationID
+            )
+        );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: firstClaimTime,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: secondClaimTime,
+            expectedNonce: 1,
+            includeUptime: false,
+            force: false
+        });
+
+        // Try again with the correct uptime
+        _initializeEndValidation({
+            validationID: validationID,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: secondClaimTime,
             expectedNonce: 1,
             includeUptime: true,
