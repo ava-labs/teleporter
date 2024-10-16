@@ -34,17 +34,4 @@ contract ExampleRewardCalculatorTest is Test {
         });
         assertEq(output, 42e8);
     }
-
-    function testInsufficientUptime() public view {
-        uint256 output = exampleRewardCalculator.calculateReward({
-            stakeAmount: DEFAULT_STAKE_AMOUNT,
-            validatorStartTime: DEFAULT_START_TIME,
-            stakingStartTime: DEFAULT_START_TIME,
-            stakingEndTime: DEFAULT_END_TIME,
-            uptimeSeconds: DEFAULT_UPTIME - 1,
-            initialSupply: 0,
-            endSupply: 0
-        });
-        assertEq(output, 0);
-    }
 }

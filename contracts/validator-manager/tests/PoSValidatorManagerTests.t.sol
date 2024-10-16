@@ -1085,33 +1085,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _forceInitializeEndValidation(validationID, true);
     }
 
-    function testValueToWeight() public view {
-        uint64 w1 = posValidatorManager.valueToWeight(1e12);
-        uint64 w2 = posValidatorManager.valueToWeight(1e18);
-        uint64 w3 = posValidatorManager.valueToWeight(1e27);
-
-        assertEq(w1, 1);
-        assertEq(w2, 1e6);
-        assertEq(w3, 1e15);
-    }
-
-    function testWeightToValue() public view {
-        uint256 v1 = posValidatorManager.weightToValue(1);
-        uint256 v2 = posValidatorManager.weightToValue(1e6);
-        uint256 v3 = posValidatorManager.weightToValue(1e15);
-
-        assertEq(v1, 1e12);
-        assertEq(v2, 1e18);
-        assertEq(v3, 1e27);
-    }
-
-    function testPoSValidatorManagerStorageSlot() public view {
-        assertEq(
-            _erc7201StorageSlot("PoSValidatorManager"),
-            posValidatorManager.POS_VALIDATOR_MANAGER_STORAGE_LOCATION()
-        );
-    }
-
     function testClaimValidationReward() public {
         bytes32 validationID = _registerDefaultValidator();
         uint64 uptimePercentage = 80;
@@ -1127,13 +1100,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
 
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
-            validationID,
-            (claimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+            validationID, (claimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
         );
         _mockGetUptimeWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID();
 
-       
         vm.warp(claimTime);
         _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
         posValidatorManager.claimValidationRewards(validationID, 0);
@@ -1155,8 +1126,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
 
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
-            validationID,
-            (firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+            validationID, (firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
         );
         _mockGetUptimeWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID();
@@ -1165,7 +1135,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         posValidatorManager.claimValidationRewards(validationID, 0);
 
         // Claim rewards again
-        uint64 secondClaimTime = firstClaimTime+1000;
+        uint64 secondClaimTime = firstClaimTime + 1000;
         expectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
             validatorStartTime: firstClaimTime,
@@ -1197,8 +1167,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             registrationTimestamp: validationStartTime
         });
         uint64 uptimePercentage = 80;
-        
-        uint64 firstClaimTime = DEFAULT_MINIMUM_VALIDATION_DURATION+1; // 24 hours
+
+        uint64 firstClaimTime = DEFAULT_MINIMUM_VALIDATION_DURATION + 1; // 24 hours
         uint256 expectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
             validatorStartTime: validationStartTime,
@@ -1209,10 +1179,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             endSupply: 0
         });
 
-        // uptime = 24 hours * 80% = 19.2 hours
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
-            validationID,
-            ((firstClaimTime - validationStartTime) * uptimePercentage / 100) + 1
+            validationID, ((firstClaimTime - validationStartTime) * uptimePercentage / 100) + 1
         );
         _mockGetUptimeWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID();
@@ -1221,10 +1189,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         posValidatorManager.claimValidationRewards(validationID, 0);
 
         // Attempt to claim rewards again, but by submitting the same uptime
-        // Total validation time = 24 + 30 hours = 54 hours
-        // Collection period time = 30 hours
-        // Required uptime = 24*80% + 30*80% = 43.2 hours
-        uint64 secondClaimTime = firstClaimTime+5 hours;  
+        uint64 secondClaimTime = firstClaimTime + 5 hours;
         _mockGetUptimeWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID();
         vm.warp(secondClaimTime);
@@ -1247,7 +1212,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetUptimeWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID();
 
-       
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -1275,13 +1239,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
 
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
-            validationID,
-            (claimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+            validationID, (claimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
         );
         _mockGetUptimeWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID();
 
-       
         vm.warp(claimTime);
         _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
         posValidatorManager.claimValidationRewards(validationID, 0);
@@ -1338,8 +1300,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
 
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
-            validationID,
-            (firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+            validationID, (firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
         );
         _mockGetUptimeWarpMessage(uptimeMsg, true);
         _mockGetBlockchainID();
@@ -1348,7 +1309,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         posValidatorManager.claimValidationRewards(validationID, 0);
 
         // Try to end the validation with a stale uptime
-        uint64 secondClaimTime = firstClaimTime+5 hours;
+        uint64 secondClaimTime = firstClaimTime + 5 hours;
         vm.expectRevert(
             abi.encodeWithSelector(
                 PoSValidatorManager.ValidatorIneligibleForRewards.selector, validationID
@@ -1406,6 +1367,33 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         } else {
             assertTrue((expectedReward + secondExpectedReward) - totalExpectedReward <= 1);
         }
+    }
+
+    function testValueToWeight() public view {
+        uint64 w1 = posValidatorManager.valueToWeight(1e12);
+        uint64 w2 = posValidatorManager.valueToWeight(1e18);
+        uint64 w3 = posValidatorManager.valueToWeight(1e27);
+
+        assertEq(w1, 1);
+        assertEq(w2, 1e6);
+        assertEq(w3, 1e15);
+    }
+
+    function testWeightToValue() public view {
+        uint256 v1 = posValidatorManager.weightToValue(1);
+        uint256 v2 = posValidatorManager.weightToValue(1e6);
+        uint256 v3 = posValidatorManager.weightToValue(1e15);
+
+        assertEq(v1, 1e12);
+        assertEq(v2, 1e18);
+        assertEq(v3, 1e27);
+    }
+
+    function testPoSValidatorManagerStorageSlot() public view {
+        assertEq(
+            _erc7201StorageSlot("PoSValidatorManager"),
+            posValidatorManager.POS_VALIDATOR_MANAGER_STORAGE_LOCATION()
+        );
     }
 
     function _initializeValidatorRegistration(
@@ -1699,7 +1687,11 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
     }
 
-    function _expectValidationRewardsIssuance(bytes32 validationID, address account, uint256 amount) internal {
+    function _expectValidationRewardsIssuance(
+        bytes32 validationID,
+        address account,
+        uint256 amount
+    ) internal {
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidationRewardsClaimed(validationID, amount);
         _expectRewardIssuance(account, amount);

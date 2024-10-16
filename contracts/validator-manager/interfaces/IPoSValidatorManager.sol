@@ -52,7 +52,7 @@ struct PoSValidatorInfo {
     uint16 delegationFeeBips;
     uint64 minStakeDuration;
     uint64 uptimeSeconds;
-    uint64 lastClaimUptime;
+    uint64 lastClaimMinUptime;
     uint64 lastClaimTime;
 }
 
@@ -238,6 +238,13 @@ interface IPoSValidatorManager is IValidatorManager {
      */
     function claimDelegationFees(bytes32 validationID) external;
 
-    // TODONOW: Consistent placement of messageIndex across interfaces
+    /** 
+     * @notice Withdraws pro-rated rewards for an active validation to the owner of the validator.
+     * Uses the uptime proof provided in the Warp message to determine rewards eligibility. Reverts if the uptime is not eligible for rewards.
+     * Rewards are calculated from the last time this function was called, or the beginning of the 
+     * validation, whichever is later.
+     * @param validationID The ID of the validation being claimed.
+     * @param messageIndex The index of the Warp message to be received providing the uptime proof.
+     */
     function claimValidationRewards(bytes32 validationID, uint32 messageIndex) external;
 }

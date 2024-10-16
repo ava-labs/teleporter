@@ -50,7 +50,8 @@ abstract contract ValidatorManagerTest is Test {
     uint64 public constant DEFAULT_REGISTRATION_TIMESTAMP = 1000;
     uint256 public constant DEFAULT_STARTING_TOTAL_WEIGHT = 1e10 + DEFAULT_WEIGHT;
     uint64 public constant DEFAULT_MINIMUM_VALIDATION_DURATION = 24 hours;
-    uint64 public constant DEFAULT_COMPLETION_TIMESTAMP = DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_VALIDATION_DURATION;
+    uint64 public constant DEFAULT_COMPLETION_TIMESTAMP =
+        DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_VALIDATION_DURATION;
     // solhint-disable-next-line var-name-mixedcase
     PChainOwner public DEFAULT_P_CHAIN_OWNER;
 
