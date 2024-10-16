@@ -509,10 +509,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 expectedTotalReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -641,10 +641,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 expectedTotalReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: validationEndTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -713,10 +713,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 expectedTotalReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_COMPLETION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -766,10 +766,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 expectedTotalReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -907,10 +907,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 expectedTotalReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -942,10 +942,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 expectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_COMPLETION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -1091,10 +1091,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 claimTime = DEFAULT_COMPLETION_TIMESTAMP;
         uint256 expectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingEndTime: claimTime,
-            uptimeSeconds: claimTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -1117,10 +1117,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 firstClaimTime = DEFAULT_COMPLETION_TIMESTAMP;
         uint256 expectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingEndTime: firstClaimTime,
-            uptimeSeconds: firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -1138,10 +1138,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 secondClaimTime = firstClaimTime + 1000;
         expectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
-            validatorStartTime: firstClaimTime,
+            validatorStartTime: 0,
             stakingStartTime: firstClaimTime,
             stakingEndTime: secondClaimTime,
-            uptimeSeconds: secondClaimTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -1171,10 +1171,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 firstClaimTime = DEFAULT_MINIMUM_VALIDATION_DURATION + 1; // 24 hours
         uint256 expectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
-            validatorStartTime: validationStartTime,
+            validatorStartTime: 0,
             stakingStartTime: validationStartTime,
             stakingEndTime: firstClaimTime,
-            uptimeSeconds: firstClaimTime - validationStartTime,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -1230,10 +1230,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 claimTime = DEFAULT_COMPLETION_TIMESTAMP;
         uint256 expectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingEndTime: claimTime,
-            uptimeSeconds: claimTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -1264,10 +1264,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 expectedTotalReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_DELEGATOR_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -1291,10 +1291,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 firstClaimTime = DEFAULT_COMPLETION_TIMESTAMP;
         uint256 expectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingEndTime: firstClaimTime,
-            uptimeSeconds: firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -1336,10 +1336,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 secondExpectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
-            validatorStartTime: firstClaimTime,
+            validatorStartTime: 0,
             stakingStartTime: firstClaimTime,
             stakingEndTime: secondClaimTime,
-            uptimeSeconds: secondClaimTime - firstClaimTime,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -1354,10 +1354,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         // Confirm the pro-rated rewards match the total expected reward
         uint256 totalExpectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
-            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            validatorStartTime: 0,
             stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingEndTime: secondClaimTime,
-            uptimeSeconds: secondClaimTime - DEFAULT_REGISTRATION_TIMESTAMP,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
@@ -1671,10 +1671,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 expectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(validatorWeight),
-            validatorStartTime: completeRegistrationTimestamp,
+            validatorStartTime: 0,
             stakingStartTime: completeRegistrationTimestamp,
             stakingEndTime: completionTimestamp,
-            uptimeSeconds: completionTimestamp - completeRegistrationTimestamp,
+            uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
