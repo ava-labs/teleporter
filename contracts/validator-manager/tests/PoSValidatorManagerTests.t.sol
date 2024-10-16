@@ -1196,7 +1196,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
             validationID, (firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
         );
-        uint256 expectedReward = _claimRewards({
+        uint256 firstExpectedReward = _claimRewards({
             validationID: validationID,
             uptimeMsg: uptimeMsg,
             validationStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
@@ -1205,8 +1205,22 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             success: true
         });
 
-        // Try to end the validation with a stale uptime
+        // Claim rewards again
         uint64 secondClaimTime = firstClaimTime + 5 hours;
+        uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+            validationID, (secondClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
+        );
+        uint256 secondExpectedReward = _claimRewards({
+            validationID: validationID,
+            uptimeMsg: uptimeMsg,
+            validationStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            claimTime: secondClaimTime,
+            lastClaimTime: firstClaimTime,
+            success: true
+        });
+
+        // Try to end the validation with a stale uptime
+        uint64 thirdClaimTime = secondClaimTime + 5 hours;
         vm.expectRevert(
             abi.encodeWithSelector(
                 PoSValidatorManager.ValidatorIneligibleForRewards.selector, validationID
@@ -1215,7 +1229,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _initializeEndValidation({
             validationID: validationID,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: secondClaimTime,
+            completionTimestamp: thirdClaimTime,
             expectedNonce: 1,
             includeUptime: false,
             force: false
@@ -1225,17 +1239,17 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _initializeEndValidation({
             validationID: validationID,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: secondClaimTime,
+            completionTimestamp: thirdClaimTime,
             expectedNonce: 1,
             includeUptime: true,
             force: false
         });
 
-        uint256 secondExpectedReward = rewardCalculator.calculateReward({
+        uint256 thirdExpectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
             validatorStartTime: 0,
-            stakingStartTime: firstClaimTime,
-            stakingEndTime: secondClaimTime,
+            stakingStartTime: secondClaimTime,
+            stakingEndTime: thirdClaimTime,
             uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
@@ -1244,7 +1258,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _completeEndValidationWithChecks({
             validationID: validationID,
             validatorOwner: address(this),
-            expectedReward: secondExpectedReward,
+            expectedReward: thirdExpectedReward,
             validatorWeight: DEFAULT_WEIGHT
         });
 
@@ -1253,16 +1267,16 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
             validatorStartTime: 0,
             stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
-            stakingEndTime: secondClaimTime,
+            stakingEndTime: thirdClaimTime,
             uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
         // Off-by one errors are possible due to integer rounding
-        if (totalExpectedReward > expectedReward + secondExpectedReward) {
-            assertTrue(totalExpectedReward - (expectedReward + secondExpectedReward) <= 1);
+        if (totalExpectedReward > firstExpectedReward + secondExpectedReward + thirdExpectedReward) {
+            assertTrue(totalExpectedReward - (firstExpectedReward + secondExpectedReward + thirdExpectedReward) <= 1);
         } else {
-            assertTrue((expectedReward + secondExpectedReward) - totalExpectedReward <= 1);
+            assertTrue((firstExpectedReward + secondExpectedReward + thirdExpectedReward) - totalExpectedReward <= 1);
         }
     }
 

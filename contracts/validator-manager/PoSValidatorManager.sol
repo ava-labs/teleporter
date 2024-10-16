@@ -346,7 +346,7 @@ abstract contract PoSValidatorManager is
         });
 
         $._posValidatorInfo[validationID].lastClaimMinUptime =
-            (claimTime - lastClaimTime) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE / 100;
+            (claimTime - validator.startedAt) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE / 100;
         $._posValidatorInfo[validationID].lastClaimTime = claimTime;
         _reward($._posValidatorInfo[validationID].owner, reward);
 
