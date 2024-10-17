@@ -88,7 +88,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     error UnexpectedRegistrationStatus(bool validRegistration);
     error InvalidPChainOwnerThreshold(uint256 threshold, uint256 addressesLength);
     error PChainOwnerAddressesNotSorted();
-    error InvalidCodec(address codec);
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
@@ -134,9 +133,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
         $._churnPeriodSeconds = settings.churnPeriodSeconds;
-        if (settings.codec == Codec(address(0))) {
-            revert InvalidCodec(address(settings.codec));
-        }
         $._codec = settings.codec;
     }
 
