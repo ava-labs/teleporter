@@ -66,11 +66,9 @@ library ValidatorMessages {
      * @param subnetConversionID The subnet conversion ID to pack into the message.
      * @return The packed message.
      */
-    function packSubnetConversionMessage(bytes32 subnetConversionID)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function packSubnetConversionMessage(
+        bytes32 subnetConversionID
+    ) internal pure returns (bytes memory) {
         return abi.encodePacked(CODEC_ID, SUBNET_CONVERSION_MESSAGE_TYPE_ID, subnetConversionID);
     }
 
@@ -81,7 +79,9 @@ library ValidatorMessages {
      * @param input The byte array to unpack.
      * @return the unpacked subnetConversionID.
      */
-    function unpackSubnetConversionMessage(bytes memory input) internal pure returns (bytes32) {
+    function unpackSubnetConversionMessage(
+        bytes memory input
+    ) internal pure returns (bytes32) {
         if (input.length != 38) {
             revert InvalidMessageLength(uint32(input.length), 38);
         }
@@ -148,11 +148,9 @@ library ValidatorMessages {
      * @param subnetConversionData The struct representing data to pack into the message.
      * @return The packed message.
      */
-    function packSubnetConversionData(SubnetConversionData calldata subnetConversionData)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function packSubnetConversionData(
+        SubnetConversionData calldata subnetConversionData
+    ) internal pure returns (bytes memory) {
         // Hardcoded 20 is for length of the managerAddress on EVM chains
         // solhint-disable-next-line func-named-parameters
         bytes memory res = abi.encodePacked(
@@ -217,11 +215,9 @@ library ValidatorMessages {
      * @param validationPeriod The information to pack into the message.
      * @return The validationID and the packed message.
      */
-    function packRegisterSubnetValidatorMessage(ValidationPeriod memory validationPeriod)
-        internal
-        pure
-        returns (bytes32, bytes memory)
-    {
+    function packRegisterSubnetValidatorMessage(
+        ValidationPeriod memory validationPeriod
+    ) internal pure returns (bytes32, bytes memory) {
         if (validationPeriod.blsPublicKey.length != 48) {
             revert InvalidBLSPublicKey();
         }
@@ -261,11 +257,9 @@ library ValidatorMessages {
      * @param input The byte array to unpack.
      * @return the unpacked ValidationPeriod.
      */
-    function unpackRegisterSubnetValidatorMessage(bytes memory input)
-        internal
-        pure
-        returns (ValidationPeriod memory)
-    {
+    function unpackRegisterSubnetValidatorMessage(
+        bytes memory input
+    ) internal pure returns (ValidationPeriod memory) {
         uint32 index = 0;
         ValidationPeriod memory validation;
 
@@ -469,11 +463,9 @@ library ValidatorMessages {
      * @return The validationID and whether the validation period was registered
      * or is not a validator and never will be a validator to do the expiry time passing.
      */
-    function unpackSubnetValidatorRegistrationMessage(bytes memory input)
-        internal
-        pure
-        returns (bytes32, bool)
-    {
+    function unpackSubnetValidatorRegistrationMessage(
+        bytes memory input
+    ) internal pure returns (bytes32, bool) {
         if (input.length != 39) {
             revert InvalidMessageLength(uint32(input.length), 39);
         }
@@ -546,11 +538,9 @@ library ValidatorMessages {
      * @param input The byte array to unpack.
      * @return The validationID, nonce, and weight.
      */
-    function unpackSubnetValidatorWeightMessage(bytes memory input)
-        internal
-        pure
-        returns (bytes32, uint64, uint64)
-    {
+    function unpackSubnetValidatorWeightMessage(
+        bytes memory input
+    ) internal pure returns (bytes32, uint64, uint64) {
         if (input.length != 54) {
             revert InvalidMessageLength(uint32(input.length), 54);
         }
@@ -627,11 +617,9 @@ library ValidatorMessages {
      * @param input The byte array to unpack.
      * @return The validationID and uptime.
      */
-    function unpackValidationUptimeMessage(bytes memory input)
-        internal
-        pure
-        returns (bytes32, uint64)
-    {
+    function unpackValidationUptimeMessage(
+        bytes memory input
+    ) internal pure returns (bytes32, uint64) {
         if (input.length != 46) {
             revert InvalidMessageLength(uint32(input.length), 46);
         }

@@ -32,11 +32,11 @@ import (
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
+	codec "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/Codec"
 	erc20tokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20TokenStakingManager"
 	examplerewardcalculator "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ExampleRewardCalculator"
 	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
 	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
-	contractCodec "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/codec"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/protobuf/proto"
@@ -269,10 +269,10 @@ func DeployCodec(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
-) (common.Address, *contractCodec.Codec) {
+) (common.Address, *codec.Codec) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	address, tx, codec, err := contractCodec.DeployCodec(
+	address, tx, codec, err := codec.DeployCodec(
 		opts,
 		subnet.RPCClient,
 	)

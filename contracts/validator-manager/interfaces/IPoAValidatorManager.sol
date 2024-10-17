@@ -27,5 +27,7 @@ interface IPoAValidatorManager is IValidatorManager {
      * Any rewards for this validation period will stop accruing when this function is called.
      * @param validationID The ID of the validation being ended.
      */
-    function initializeEndValidation(bytes32 validationID) external;
+    function initializeEndValidation(
+        bytes32 validationID
+    ) external;
 }

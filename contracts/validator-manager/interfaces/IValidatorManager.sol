@@ -187,21 +187,27 @@ interface IValidatorManager {
      * Only necessary if the original message can't be delivered due to validator churn.
      * @param validationID The ID of the validation period being registered.
      */
-    function resendRegisterValidatorMessage(bytes32 validationID) external;
+    function resendRegisterValidatorMessage(
+        bytes32 validationID
+    ) external;
 
     /**
      * @notice Completes the validator registration process by returning an acknowledgement of the registration of a
      * validationID from the P-Chain.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      */
-    function completeValidatorRegistration(uint32 messageIndex) external;
+    function completeValidatorRegistration(
+        uint32 messageIndex
+    ) external;
 
     /**
      * @notice Resubmits a validator end message to be sent to the P-Chain.
      * Only necessary if the original message can't be delivered due to validator churn.
      * @param validationID The ID of the validation period being ended.
      */
-    function resendEndValidatorMessage(bytes32 validationID) external;
+    function resendEndValidatorMessage(
+        bytes32 validationID
+    ) external;
 
     /**
      * @notice Completes the process of ending a validation period by receiving an acknowledgement from the P-Chain
@@ -212,5 +218,7 @@ interface IValidatorManager {
      * @param messageIndex The index of the Warp message to be received providing the proof the validation is not active
      * and never will be active on the P-Chain.
      */
-    function completeEndValidation(uint32 messageIndex) external;
+    function completeEndValidation(
+        uint32 messageIndex
+    ) external;
 }
