@@ -25,9 +25,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
     bytes32 public latestMessageSenderSubnetID;
     address public latestMessageSenderAddress;
 
-    constructor(
-        address teleporterContractAddress
-    ) {
+    constructor(address teleporterContractAddress) {
         teleporterContract = teleporterContractAddress;
     }
 

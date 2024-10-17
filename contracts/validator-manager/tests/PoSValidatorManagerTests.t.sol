@@ -1449,9 +1449,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
     }
 
-    function _registerDefaultDelegator(
-        bytes32 validationID
-    ) internal returns (bytes32 delegationID) {
+    function _registerDefaultDelegator(bytes32 validationID)
+        internal
+        returns (bytes32 delegationID)
+    {
         return _registerDelegator({
             validationID: validationID,
             delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
@@ -1463,9 +1464,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
     }
 
-    function _initializeDefaultDelegatorRegistration(
-        bytes32 validationID
-    ) internal returns (bytes32) {
+    function _initializeDefaultDelegatorRegistration(bytes32 validationID)
+        internal
+        returns (bytes32)
+    {
         return _setUpInitializeDelegatorRegistration({
             validationID: validationID,
             delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
@@ -1669,9 +1671,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
     }
 
-    function _completeEndValidation(
-        bytes32 validationID
-    ) internal {
+    function _completeEndValidation(bytes32 validationID) internal {
         bytes memory subnetValidatorRegistrationMessage =
             ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
         _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
@@ -1799,9 +1799,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         return expectedReward;
     }
 
-    function _getStakeAssetBalance(
-        address account
-    ) internal virtual returns (uint256);
+    function _getStakeAssetBalance(address account) internal virtual returns (uint256);
     function _expectStakeUnlock(address account, uint256 amount) internal virtual;
     function _expectRewardIssuance(address account, uint256 amount) internal virtual;
 }

@@ -323,9 +323,11 @@ contract TeleporterRegistryTest is Test {
         });
     }
 
-    function _formatRegistryErrorMessage(
-        bytes memory errorMessage
-    ) internal pure returns (bytes memory) {
+    function _formatRegistryErrorMessage(bytes memory errorMessage)
+        internal
+        pure
+        returns (bytes memory)
+    {
         return abi.encodePacked("TeleporterRegistry: ", errorMessage);
     }
 }

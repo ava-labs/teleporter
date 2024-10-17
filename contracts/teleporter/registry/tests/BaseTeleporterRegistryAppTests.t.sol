@@ -20,15 +20,11 @@ contract ExampleRegistryAppUpgradeable is TeleporterRegistryAppUpgradeable {
         __TeleporterRegistryApp_init(teleporterRegistryAddress, minTeleporterVersion);
     }
 
-    function setMinTeleporterVersion(
-        uint256 version
-    ) public {
+    function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
     }
 
-    function sendTeleporterMessage(
-        TeleporterMessageInput calldata messageInput
-    ) public {
+    function sendTeleporterMessage(TeleporterMessageInput calldata messageInput) public {
         _sendTeleporterMessage(messageInput);
     }
 
@@ -52,15 +48,11 @@ contract ExampleRegistryApp is TeleporterRegistryApp {
         uint256 minTeleporterVersion
     ) TeleporterRegistryApp(teleporterRegistryAddress, minTeleporterVersion) {}
 
-    function setMinTeleporterVersion(
-        uint256 version
-    ) public {
+    function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
     }
 
-    function sendTeleporterMessage(
-        TeleporterMessageInput calldata messageInput
-    ) public {
+    function sendTeleporterMessage(TeleporterMessageInput calldata messageInput) public {
         _sendTeleporterMessage(messageInput);
     }
 
@@ -187,9 +179,7 @@ abstract contract BaseTeleporterRegistryAppTest is TeleporterRegistryTest {
         app_.unpauseTeleporterAddress(teleporterAddress_);
     }
 
-    function _formatErrorMessage(
-        bytes memory errorMessage
-    ) internal pure returns (bytes memory) {
+    function _formatErrorMessage(bytes memory errorMessage) internal pure returns (bytes memory) {
         return abi.encodePacked("TeleporterRegistryApp: ", errorMessage);
     }
 }

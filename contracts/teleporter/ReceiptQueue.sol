@@ -47,9 +47,10 @@ library ReceiptQueue {
      * Requirements:
      * - The queue must be non-empty.
      */
-    function dequeue(
-        TeleporterMessageReceiptQueue storage queue
-    ) internal returns (TeleporterMessageReceipt memory) {
+    function dequeue(TeleporterMessageReceiptQueue storage queue)
+        internal
+        returns (TeleporterMessageReceipt memory)
+    {
         uint256 first_ = queue.first;
         require(queue.last != first_, "ReceiptQueue: empty queue");
         TeleporterMessageReceipt memory receipt = queue.data[first_];
@@ -61,9 +62,10 @@ library ReceiptQueue {
     /**
      * @dev Returns the outstanding receipts for the given chain ID that should be included in the next message sent.
      */
-    function getOutstandingReceiptsToSend(
-        TeleporterMessageReceiptQueue storage queue
-    ) internal returns (TeleporterMessageReceipt[] memory) {
+    function getOutstandingReceiptsToSend(TeleporterMessageReceiptQueue storage queue)
+        internal
+        returns (TeleporterMessageReceipt[] memory)
+    {
         // Calculate the result size as the minimum of the number of receipts and maximum batch size.
         uint256 resultSize = Math.min(_MAXIMUM_RECEIPT_COUNT, size(queue));
         if (resultSize == 0) {
@@ -80,9 +82,7 @@ library ReceiptQueue {
     /**
      * @dev Returns the number of outstanding receipts in the queue.
      */
-    function size(
-        TeleporterMessageReceiptQueue storage queue
-    ) internal view returns (uint256) {
+    function size(TeleporterMessageReceiptQueue storage queue) internal view returns (uint256) {
         return queue.last - queue.first;
     }
 

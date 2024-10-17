@@ -26,9 +26,7 @@ contract NonReentrantUpgradeableApp is TeleporterRegistryAppUpgradeable {
         __TeleporterRegistryApp_init(teleporterRegistryAddress, minTeleporterVersion);
     }
 
-    function setMinTeleporterVersion(
-        uint256 version
-    ) public {
+    function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
     }
 

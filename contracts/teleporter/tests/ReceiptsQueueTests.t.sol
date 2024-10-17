@@ -115,9 +115,11 @@ contract ReceiptQueueTest is Test {
         assertEq(result.relayerRewardAddress, address(0));
     }
 
-    function _formatReceiptQueueErrorMessage(
-        bytes memory errorMessage
-    ) private pure returns (bytes memory) {
+    function _formatReceiptQueueErrorMessage(bytes memory errorMessage)
+        private
+        pure
+        returns (bytes memory)
+    {
         return abi.encodePacked("ReceiptQueue: ", errorMessage);
     }
 }

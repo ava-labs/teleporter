@@ -226,9 +226,7 @@ interface IPoSValidatorManager is IValidatorManager {
      * Only necessary if the original message can't be delivered due to validator churn.
      * @param delegationID The ID of the delegation.
      */
-    function resendUpdateDelegation(
-        bytes32 delegationID
-    ) external;
+    function resendUpdateDelegation(bytes32 delegationID) external;
 
     /**
      * @notice Completes the process of ending a delegation by receiving an acknowledgement from the P-Chain.
@@ -248,7 +246,5 @@ interface IPoSValidatorManager is IValidatorManager {
      * Can currently only be called once the validator has completed its validation period.
      * @param validationID The ID of the validation being ended.
      */
-    function claimDelegationFees(
-        bytes32 validationID
-    ) external;
+    function claimDelegationFees(bytes32 validationID) external;
 }

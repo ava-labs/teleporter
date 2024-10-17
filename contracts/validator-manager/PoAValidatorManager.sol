@@ -21,9 +21,7 @@ import {ValidatorManager} from "./ValidatorManager.sol";
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableUpgradeable {
-    constructor(
-        ICMInitializable init
-    ) {
+    constructor(ICMInitializable init) {
         if (init == ICMInitializable.Disallowed) {
             _disableInitializers();
         }
@@ -58,15 +56,11 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
     }
 
     // solhint-enable ordering
-    function initializeEndValidation(
-        bytes32 validationID
-    ) external override onlyOwner {
+    function initializeEndValidation(bytes32 validationID) external override onlyOwner {
         _initializeEndValidation(validationID);
     }
 
-    function completeEndValidation(
-        uint32 messageIndex
-    ) external {
+    function completeEndValidation(uint32 messageIndex) external {
         _completeEndValidation(messageIndex);
     }
 }

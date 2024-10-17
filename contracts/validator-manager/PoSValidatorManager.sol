@@ -103,9 +103,10 @@ abstract contract PoSValidatorManager is
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __POS_Validator_Manager_init(
-        PoSValidatorManagerSettings calldata settings
-    ) internal onlyInitializing {
+    function __POS_Validator_Manager_init(PoSValidatorManagerSettings calldata settings)
+        internal
+        onlyInitializing
+    {
         __ValidatorManager_init(settings.baseSettings);
         __ReentrancyGuard_init();
         __POS_Validator_Manager_init_unchained({
@@ -161,9 +162,7 @@ abstract contract PoSValidatorManager is
         _updateUptime(validationID, messageIndex);
     }
 
-    function claimDelegationFees(
-        bytes32 validationID
-    ) external {
+    function claimDelegationFees(bytes32 validationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         ValidatorStatus status = getValidator(validationID).status;
@@ -258,9 +257,7 @@ abstract contract PoSValidatorManager is
         $._redeemableValidatorRewards[validationID] += reward;
     }
 
-    function completeEndValidation(
-        uint32 messageIndex
-    ) external nonReentrant {
+    function completeEndValidation(uint32 messageIndex) external nonReentrant {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         (bytes32 validationID, Validator memory validator) = _completeEndValidation(messageIndex);
@@ -445,21 +442,15 @@ abstract contract PoSValidatorManager is
         return validationID;
     }
 
-    function valueToWeight(
-        uint256 value
-    ) public pure returns (uint64) {
+    function valueToWeight(uint256 value) public pure returns (uint64) {
         return uint64(value / 1e12);
     }
 
-    function weightToValue(
-        uint64 weight
-    ) public pure returns (uint256) {
+    function weightToValue(uint64 weight) public pure returns (uint256) {
         return uint256(weight) * 1e12;
     }
 
-    function _lock(
-        uint256 value
-    ) internal virtual returns (uint256);
+    function _lock(uint256 value) internal virtual returns (uint256);
     function _unlock(address to, uint256 value) internal virtual;
 
     function _initializeDelegatorRegistration(
@@ -648,9 +639,11 @@ abstract contract PoSValidatorManager is
     }
 
     /// @dev Calculates the reward owed to the delegator based on the state of the delegator and its corresponding validator.
-    function _calculateDelegationReward(
-        Delegator memory delegator
-    ) private view returns (uint256) {
+    function _calculateDelegationReward(Delegator memory delegator)
+        private
+        view
+        returns (uint256)
+    {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         Validator memory validator = getValidator(delegator.validationID);
@@ -697,9 +690,7 @@ abstract contract PoSValidatorManager is
      * @dev Resending the latest validator weight with the latest nonce is safe because all weight changes are
      * cumulative, so the latest weight change will always include the weight change for any added delegators.
      */
-    function resendUpdateDelegation(
-        bytes32 delegationID
-    ) external {
+    function resendUpdateDelegation(bytes32 delegationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         Delegator memory delegator = $._delegatorStakes[delegationID];
         if (
@@ -758,9 +749,7 @@ abstract contract PoSValidatorManager is
         _completeEndDelegation(delegationID);
     }
 
-    function _completeEndDelegation(
-        bytes32 delegationID
-    ) internal {
+    function _completeEndDelegation(bytes32 delegationID) internal {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
@@ -800,9 +789,7 @@ abstract contract PoSValidatorManager is
      * @dev Return true if this is a PoS validator with locked stake. Returns false if this was originally a PoA
      * validator that was later migrated to this PoS manager, or the validator was part of the initial validator set.
      */
-    function _isPoSValidator(
-        bytes32 validationID
-    ) internal view returns (bool) {
+    function _isPoSValidator(bytes32 validationID) internal view returns (bool) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         return $._posValidatorInfo[validationID].owner != address(0);
     }

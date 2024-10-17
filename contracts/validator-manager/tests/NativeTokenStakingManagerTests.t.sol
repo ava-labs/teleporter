@@ -237,9 +237,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         vm.deal(account, account.balance + amount);
     }
 
-    function _getStakeAssetBalance(
-        address account
-    ) internal view override returns (uint256) {
+    function _getStakeAssetBalance(address account) internal view override returns (uint256) {
         return account.balance;
     }
 }

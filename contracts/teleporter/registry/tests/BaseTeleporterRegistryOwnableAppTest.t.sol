@@ -25,15 +25,11 @@ contract ExampleRegistryOwnableAppUpgradeable is TeleporterRegistryOwnableAppUpg
         );
     }
 
-    function setMinTeleporterVersion(
-        uint256 version
-    ) public {
+    function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
     }
 
-    function sendTeleporterMessage(
-        TeleporterMessageInput calldata messageInput
-    ) public {
+    function sendTeleporterMessage(TeleporterMessageInput calldata messageInput) public {
         _sendTeleporterMessage(messageInput);
     }
 
@@ -59,15 +55,11 @@ contract ExampleRegistryOwnableApp is TeleporterRegistryOwnableApp {
         uint256 minTeleporterVersion
     ) TeleporterRegistryOwnableApp(teleporterRegistryAddress, initialOwner, minTeleporterVersion) {}
 
-    function setMinTeleporterVersion(
-        uint256 version
-    ) public {
+    function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
     }
 
-    function sendTeleporterMessage(
-        TeleporterMessageInput calldata messageInput
-    ) public {
+    function sendTeleporterMessage(TeleporterMessageInput calldata messageInput) public {
         _sendTeleporterMessage(messageInput);
     }
 

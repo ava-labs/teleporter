@@ -12,9 +12,7 @@ contract ExampleRewardCalculator is IRewardCalculator {
 
     uint64 public immutable rewardBasisPoints;
 
-    constructor(
-        uint64 rewardBasisPoints_
-    ) {
+    constructor(uint64 rewardBasisPoints_) {
         rewardBasisPoints = rewardBasisPoints_;
     }
 
