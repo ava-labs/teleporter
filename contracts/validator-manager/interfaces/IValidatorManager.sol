@@ -5,6 +5,8 @@
 
 pragma solidity 0.8.25;
 
+import {Codec} from "../Codec.sol";
+
 /**
  * @dev Validator status
  */
@@ -56,6 +58,7 @@ struct ValidatorManagerSettings {
     bytes32 subnetID;
     uint64 churnPeriodSeconds;
     uint8 maximumChurnPercentage;
+    Codec codec;
 }
 
 /**
