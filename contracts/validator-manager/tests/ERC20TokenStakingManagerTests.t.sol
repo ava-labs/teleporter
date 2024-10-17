@@ -21,6 +21,7 @@ import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {IERC20Mintable} from "../interfaces/IERC20Mintable.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
+import {Codec} from "../Codec.sol";
 
 contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     using SafeERC20 for IERC20Mintable;
@@ -35,12 +36,14 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         token = new ExampleERC20();
         rewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_RATE);
+        codec = new Codec();
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: codec
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
@@ -68,7 +71,8 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: Codec(address(0))
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
@@ -94,7 +98,8 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: Codec(address(0))
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
@@ -119,7 +124,8 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: Codec(address(0))
                 }),
                 minimumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
@@ -142,7 +148,8 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: Codec(address(0))
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
@@ -168,7 +175,8 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: Codec(address(0))
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,

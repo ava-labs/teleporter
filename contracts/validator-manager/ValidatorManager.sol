@@ -21,6 +21,7 @@ import {
     WarpMessage,
     IWarpMessenger
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
+import {Codec} from "./Codec.sol";
 import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
@@ -53,6 +54,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         mapping(bytes => bytes32) _registeredValidators;
         /// @notice Boolean that indicates if the initial validator set has been set.
         bool _initializedValidatorSet;
+        Codec _codec;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -131,6 +133,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
         $._churnPeriodSeconds = settings.churnPeriodSeconds;
+        $._codec = settings.codec;
     }
 
     modifier initializedValidatorSet() {
@@ -198,11 +201,11 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         $._churnTracker.totalWeight = totalWeight;
 
         // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
-        bytes32 subnetConversionID = ValidatorMessages.unpackSubnetConversionMessage(
+        bytes32 subnetConversionID = $._codec.unpackSubnetConversionMessage(
             _getPChainWarpMessage(messageIndex).payload
         );
         bytes memory encodedConversion =
-            ValidatorMessages.packSubnetConversionData(subnetConversionData);
+            $._codec.packSubnetConversionData(subnetConversionData);
         bytes32 encodedSubnetConversionID = sha256(encodedConversion);
         if (encodedSubnetConversionID != subnetConversionID) {
             revert InvalidSubnetConversionID(encodedSubnetConversionID, subnetConversionID);
@@ -267,7 +270,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Check that adding this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTracker(weight, 0);
 
-        (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
+        (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = $._codec
             .packRegisterSubnetValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 subnetID: $._subnetID,
@@ -326,7 +329,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
      */
     function completeValidatorRegistration(uint32 messageIndex) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        (bytes32 validationID, bool validRegistration) = ValidatorMessages
+        (bytes32 validationID, bool validRegistration) = $._codec
             .unpackSubnetValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
 
         if (!validRegistration) {
@@ -356,6 +359,11 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     function getValidator(bytes32 validationID) public view returns (Validator memory) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         return $._validationPeriods[validationID];
+    }
+
+    function _getCodec() internal view returns (Codec) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        return $._codec;
     }
 
     /**
@@ -413,7 +421,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         }
 
         WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSubnetValidatorWeightMessage(
+            $._codec.packSubnetValidatorWeightMessage(
                 validationID, validator.messageNonce, 0
             )
         );
@@ -434,7 +442,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Get the Warp message.
-        (bytes32 validationID, bool validRegistration) = ValidatorMessages
+        (bytes32 validationID, bool validRegistration) = $._codec
             .unpackSubnetValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
         if (validRegistration) {
             revert UnexpectedRegistrationStatus(validRegistration);
@@ -519,7 +527,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, nonce, newWeight)
+            $._codec.packSubnetValidatorWeightMessage(validationID, nonce, newWeight)
         );
 
         emit ValidatorWeightUpdate({

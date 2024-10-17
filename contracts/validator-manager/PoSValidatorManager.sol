@@ -20,7 +20,7 @@ import {
 } from "./interfaces/IValidatorManager.sol";
 import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {ValidatorMessages} from "./ValidatorMessages.sol";
+import {Codec} from "./Codec.sol";
 import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 import {ReentrancyGuardUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
@@ -386,7 +386,7 @@ abstract contract PoSValidatorManager is
         }
 
         (bytes32 uptimeValidationID, uint64 uptime) =
-            ValidatorMessages.unpackValidationUptimeMessage(warpMessage.payload);
+            _getCodec().unpackValidationUptimeMessage(warpMessage.payload);
         if (validationID != uptimeValidationID) {
             revert InvalidValidationID(validationID);
         }
@@ -528,7 +528,7 @@ abstract contract PoSValidatorManager is
         }
 
         // Unpack the Warp message
-        (bytes32 messageValidationID, uint64 nonce,) = ValidatorMessages
+        (bytes32 messageValidationID, uint64 nonce,) = _getCodec()
             .unpackSubnetValidatorWeightMessage(_getPChainWarpMessage(messageIndex).payload);
 
         if (validationID != messageValidationID) {
@@ -708,7 +708,7 @@ abstract contract PoSValidatorManager is
 
         // Submit the message to the Warp precompile.
         WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSubnetValidatorWeightMessage(
+            _getCodec().packSubnetValidatorWeightMessage(
                 delegator.validationID, validator.messageNonce, validator.weight
             )
         );
@@ -732,7 +732,7 @@ abstract contract PoSValidatorManager is
             // Unpack the Warp message
             WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
             (bytes32 validationID, uint64 nonce,) =
-                ValidatorMessages.unpackSubnetValidatorWeightMessage(warpMessage.payload);
+                _getCodec().unpackSubnetValidatorWeightMessage(warpMessage.payload);
 
             if (delegator.validationID != validationID) {
                 revert InvalidValidationID(validationID);

@@ -36,6 +36,7 @@ import (
 	examplerewardcalculator "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ExampleRewardCalculator"
 	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
 	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
+	contractCodec "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/codec"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/protobuf/proto"
@@ -95,6 +96,7 @@ func DeployAndInitializeNativeTokenStakingManager(
 		subnet,
 		uint64(10),
 	)
+	codecAddress, _ := DeployCodec(ctx, senderKey, subnet)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.Initialize(
@@ -104,6 +106,7 @@ func DeployAndInitializeNativeTokenStakingManager(
 				SubnetID:               subnet.SubnetID,
 				ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
 				MaximumChurnPercentage: DefaultMaxChurnPercentage,
+				Codec:                  codecAddress,
 			},
 			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
@@ -163,6 +166,7 @@ func DeployAndInitializeERC20TokenStakingManager(
 		subnet,
 		uint64(10),
 	)
+	codecAddress, _ := DeployCodec(ctx, senderKey, subnet)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.Initialize(
@@ -172,6 +176,7 @@ func DeployAndInitializeERC20TokenStakingManager(
 				SubnetID:               subnet.SubnetID,
 				ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
 				MaximumChurnPercentage: DefaultMaxChurnPercentage,
+				Codec:                  codecAddress,
 			},
 			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
@@ -220,6 +225,7 @@ func DeployAndInitializePoAValidatorManager(
 		senderKey,
 		subnet,
 	)
+	codecAddress, _ := DeployCodec(ctx, senderKey, subnet)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := validatorManager.Initialize(
@@ -228,6 +234,7 @@ func DeployAndInitializePoAValidatorManager(
 			SubnetID:               subnet.SubnetID,
 			ChurnPeriodSeconds:     uint64(0),
 			MaximumChurnPercentage: uint8(20),
+			Codec:                  codecAddress,
 		},
 		ownerAddress,
 	)
@@ -256,6 +263,25 @@ func DeployExampleRewardCalculator(
 	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	return address, calculator
+}
+
+func DeployCodec(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+) (common.Address, *contractCodec.Codec) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	address, tx, codec, err := contractCodec.DeployCodec(
+		opts,
+		subnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	return address, codec
 }
 
 //
@@ -1173,7 +1199,7 @@ func CompleteERC20DelegatorRegistration(
 ) *types.Receipt {
 	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeDelegatorRegistration", uint32(0), delegationID)
+	callData, err := abi.Pack("completeDelegatorRegistration", delegationID, uint32(0))
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		ctx,
@@ -1215,7 +1241,7 @@ func CompleteEndERC20Delegation(
 ) *types.Receipt {
 	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeEndDelegation", uint32(0), delegationID)
+	callData, err := abi.Pack("completeEndDelegation", delegationID, uint32(0))
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		ctx,
@@ -1264,7 +1290,7 @@ func CompleteNativeDelegatorRegistration(
 ) *types.Receipt {
 	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeDelegatorRegistration", uint32(0), delegationID)
+	callData, err := abi.Pack("completeDelegatorRegistration", delegationID, uint32(0))
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		ctx,
@@ -1306,7 +1332,7 @@ func CompleteEndNativeDelegation(
 ) *types.Receipt {
 	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeEndDelegation", uint32(0), delegationID)
+	callData, err := abi.Pack("completeEndDelegation", delegationID, uint32(0))
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		ctx,

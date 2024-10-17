@@ -15,6 +15,7 @@ import {
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
+import {Codec} from "../Codec.sol";
 
 contract PoAValidatorManagerTest is ValidatorManagerTest {
     PoAValidatorManager public app;
@@ -25,11 +26,13 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
         ValidatorManagerTest.setUp();
 
         app = new PoAValidatorManager(ICMInitializable.Allowed);
+        codec = new Codec();
         app.initialize(
             ValidatorManagerSettings({
                 subnetID: DEFAULT_SUBNET_ID,
                 churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                codec: codec
             }),
             address(this)
         );

@@ -17,6 +17,7 @@ import {
     WarpMessage,
     IWarpMessenger
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
+import {Codec} from "../Codec.sol";
 
 // TODO: Remove this once all unit tests implemented
 // solhint-disable no-empty-blocks
@@ -56,6 +57,7 @@ abstract contract ValidatorManagerTest is Test {
     PChainOwner public DEFAULT_P_CHAIN_OWNER;
 
     ValidatorManager public validatorManager;
+    Codec public codec;
 
     // Used to create unique validator IDs in {_newNodeID}
     uint64 public nodeIDCounter = 0;
