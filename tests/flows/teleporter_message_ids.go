@@ -8,14 +8,14 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	teleporterutils "github.com/ava-labs/teleporter/utils/teleporter-utils"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )
 
 // Tests Teleporter message ID calculation
-func CalculateMessageID(network interfaces.Network) {
+func CalculateMessageID(network *localnetwork.LocalNetwork) {
 	subnetInfo := network.GetPrimaryNetworkInfo()
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 

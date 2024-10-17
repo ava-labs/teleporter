@@ -13,6 +13,7 @@ import (
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -22,9 +23,9 @@ import (
 )
 
 // Disallow this test from being run on anything but a local network, since it requires special behavior by the relayer
-func RelayerModifiesMessage(network interfaces.LocalNetwork) {
+func RelayerModifiesMessage(network *localnetwork.LocalNetwork) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := utils.GetTwoSubnets(network)
+	subnetBInfo, _ := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
@@ -52,7 +53,8 @@ func RelayerModifiesMessage(network interfaces.LocalNetwork) {
 		receipt,
 		subnetAInfo,
 		subnetBInfo,
-		network)
+		network,
+	)
 
 	// Check Teleporter message was not received on the destination
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
@@ -65,7 +67,7 @@ func relayAlteredMessage(
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
-	network interfaces.LocalNetwork,
+	network *localnetwork.LocalNetwork,
 ) {
 	// Fetch the Teleporter message from the logs
 	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)

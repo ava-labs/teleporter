@@ -1,4 +1,4 @@
-package local
+package network
 
 import (
 	"context"
