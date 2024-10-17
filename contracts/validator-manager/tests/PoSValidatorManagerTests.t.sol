@@ -13,7 +13,7 @@ import {
     WarpMessage,
     IWarpMessenger
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {ValidatorMessages} from "../ValidatorMessages.sol";
+import {ValidatorMessages} from "./utils/ValidatorMessagesInternal.sol";
 import {ValidatorRegistrationInput, ValidatorStatus} from "../interfaces/IValidatorManager.sol";
 
 abstract contract PoSValidatorManagerTest is ValidatorManagerTest {

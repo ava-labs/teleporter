@@ -7,7 +7,7 @@ pragma solidity 0.8.25;
 
 import {Test} from "@forge-std/Test.sol";
 import {ValidatorManager, SubnetConversionData, InitialValidator} from "../ValidatorManager.sol";
-import {ValidatorMessages} from "../ValidatorMessages.sol";
+import {ValidatorMessages} from "./utils/ValidatorMessagesInternal.sol";
 import {
     ValidatorStatus,
     ValidatorRegistrationInput,
