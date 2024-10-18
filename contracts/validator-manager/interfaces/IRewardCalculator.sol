@@ -16,16 +16,12 @@ interface IRewardCalculator {
      * @param stakingStartTime The time the staker started staking
      * @param stakingEndTime The time the staker stopped staking
      * @param uptimeSeconds The total time the validator was validating
-     * @param initialSupply The total token supply at the start of the staking period
-     * @param endSupply The total token supply at the end of the staking period
      */
     function calculateReward(
         uint256 stakeAmount,
         uint64 validatorStartTime,
         uint64 stakingStartTime,
         uint64 stakingEndTime,
-        uint64 uptimeSeconds,
-        uint256 initialSupply,
-        uint256 endSupply
+        uint64 uptimeSeconds
     ) external view returns (uint256);
 }

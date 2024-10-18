@@ -240,9 +240,7 @@ abstract contract PoSValidatorManager is
             validatorStartTime: validator.startedAt,
             stakingStartTime: validator.startedAt,
             stakingEndTime: validator.endedAt,
-            uptimeSeconds: uptimeSeconds,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: uptimeSeconds
         });
         $._redeemableValidatorRewards[validationID] += reward;
         return (reward > 0);
@@ -572,9 +570,7 @@ abstract contract PoSValidatorManager is
             validatorStartTime: validator.startedAt,
             stakingStartTime: delegator.startedAt,
             stakingEndTime: delegationEndTime,
-            uptimeSeconds: $._posValidatorInfo[delegator.validationID].uptimeSeconds,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: $._posValidatorInfo[delegator.validationID].uptimeSeconds
         });
     }
 
