@@ -29,7 +29,7 @@ interface IERC20TokenStakingManager is IPoSValidatorManager {
     /**
      * @notice Begins the delegator registration process. Locks the specified ERC20 tokens in the contract as the stake.
      * @param validationID The ID of the validator to stake to.
-     * @param stakeAmount The amount of tokens of stake.
+     * @param stakeAmount The amount of tokens to stake.
      */
     function initializeDelegatorRegistration(
         bytes32 validationID,
