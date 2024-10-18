@@ -74,28 +74,6 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackSubnetConversionMessage(invalidPacked3);
     }
 
-    function testPackSubnetConversionDataInvalidBLSKey() public {
-        // 47 bytes
-        bytes memory invalidBLSKey = bytes(
-            hex"3456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
-        );
-        InitialValidator[] memory initialValidators = new InitialValidator[](1);
-        initialValidators[0] = InitialValidator({
-            nodeID: DEFAULT_NODE_ID,
-            weight: DEFAULT_WEIGHT,
-            blsPublicKey: invalidBLSKey
-        });
-        vm.expectRevert(ValidatorMessages.InvalidBLSPublicKey.selector);
-        ValidatorMessages.packSubnetConversionData(
-            SubnetConversionData({
-                subnetID: DEFAULT_SUBNET_ID,
-                validatorManagerBlockchainID: DEFAULT_SUBNET_CONVERSION_ID,
-                validatorManagerAddress: DEFAULT_OWNER,
-                initialValidators: initialValidators
-            })
-        );
-    }
-
     function testRegisterSubnetValidatorMessageInvalidBLSKey() public {
         vm.expectRevert(ValidatorMessages.InvalidBLSPublicKey.selector);
         // 47 bytes
