@@ -68,6 +68,17 @@ type ValidatorManagerSettings struct {
 	MaximumChurnPercentage uint8
 }
 
+// ValidatorMessagesValidationPeriod is an auto generated low-level Go binding around an user-defined struct.
+type ValidatorMessagesValidationPeriod struct {
+	SubnetID              [32]byte
+	NodeID                []byte
+	BlsPublicKey          []byte
+	RegistrationExpiry    uint64
+	RemainingBalanceOwner PChainOwner
+	DisableOwner          PChainOwner
+	Weight                uint64
+}
+
 // ValidatorRegistrationInput is an auto generated low-level Go binding around an user-defined struct.
 type ValidatorRegistrationInput struct {
 	NodeID                []byte
@@ -77,10 +88,3959 @@ type ValidatorRegistrationInput struct {
 	DisableOwner          PChainOwner
 }
 
+// WarpBlockHash is an auto generated low-level Go binding around an user-defined struct.
+type WarpBlockHash struct {
+	SourceChainID [32]byte
+	BlockHash     [32]byte
+}
+
+// WarpMessage is an auto generated low-level Go binding around an user-defined struct.
+type WarpMessage struct {
+	SourceChainID       [32]byte
+	OriginSenderAddress common.Address
+	Payload             []byte
+}
+
+// ContextUpgradeableMetaData contains all meta data concerning the ContextUpgradeable contract.
+var ContextUpgradeableMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"}]",
+}
+
+// ContextUpgradeableABI is the input ABI used to generate the binding from.
+// Deprecated: Use ContextUpgradeableMetaData.ABI instead.
+var ContextUpgradeableABI = ContextUpgradeableMetaData.ABI
+
+// ContextUpgradeable is an auto generated Go binding around an Ethereum contract.
+type ContextUpgradeable struct {
+	ContextUpgradeableCaller     // Read-only binding to the contract
+	ContextUpgradeableTransactor // Write-only binding to the contract
+	ContextUpgradeableFilterer   // Log filterer for contract events
+}
+
+// ContextUpgradeableCaller is an auto generated read-only Go binding around an Ethereum contract.
+type ContextUpgradeableCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ContextUpgradeableTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type ContextUpgradeableTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ContextUpgradeableFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type ContextUpgradeableFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ContextUpgradeableSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type ContextUpgradeableSession struct {
+	Contract     *ContextUpgradeable // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts       // Call options to use throughout this session
+	TransactOpts bind.TransactOpts   // Transaction auth options to use throughout this session
+}
+
+// ContextUpgradeableCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type ContextUpgradeableCallerSession struct {
+	Contract *ContextUpgradeableCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts             // Call options to use throughout this session
+}
+
+// ContextUpgradeableTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type ContextUpgradeableTransactorSession struct {
+	Contract     *ContextUpgradeableTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts             // Transaction auth options to use throughout this session
+}
+
+// ContextUpgradeableRaw is an auto generated low-level Go binding around an Ethereum contract.
+type ContextUpgradeableRaw struct {
+	Contract *ContextUpgradeable // Generic contract binding to access the raw methods on
+}
+
+// ContextUpgradeableCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type ContextUpgradeableCallerRaw struct {
+	Contract *ContextUpgradeableCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// ContextUpgradeableTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type ContextUpgradeableTransactorRaw struct {
+	Contract *ContextUpgradeableTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewContextUpgradeable creates a new instance of ContextUpgradeable, bound to a specific deployed contract.
+func NewContextUpgradeable(address common.Address, backend bind.ContractBackend) (*ContextUpgradeable, error) {
+	contract, err := bindContextUpgradeable(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &ContextUpgradeable{ContextUpgradeableCaller: ContextUpgradeableCaller{contract: contract}, ContextUpgradeableTransactor: ContextUpgradeableTransactor{contract: contract}, ContextUpgradeableFilterer: ContextUpgradeableFilterer{contract: contract}}, nil
+}
+
+// NewContextUpgradeableCaller creates a new read-only instance of ContextUpgradeable, bound to a specific deployed contract.
+func NewContextUpgradeableCaller(address common.Address, caller bind.ContractCaller) (*ContextUpgradeableCaller, error) {
+	contract, err := bindContextUpgradeable(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &ContextUpgradeableCaller{contract: contract}, nil
+}
+
+// NewContextUpgradeableTransactor creates a new write-only instance of ContextUpgradeable, bound to a specific deployed contract.
+func NewContextUpgradeableTransactor(address common.Address, transactor bind.ContractTransactor) (*ContextUpgradeableTransactor, error) {
+	contract, err := bindContextUpgradeable(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &ContextUpgradeableTransactor{contract: contract}, nil
+}
+
+// NewContextUpgradeableFilterer creates a new log filterer instance of ContextUpgradeable, bound to a specific deployed contract.
+func NewContextUpgradeableFilterer(address common.Address, filterer bind.ContractFilterer) (*ContextUpgradeableFilterer, error) {
+	contract, err := bindContextUpgradeable(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &ContextUpgradeableFilterer{contract: contract}, nil
+}
+
+// bindContextUpgradeable binds a generic wrapper to an already deployed contract.
+func bindContextUpgradeable(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := ContextUpgradeableMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ContextUpgradeable *ContextUpgradeableRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ContextUpgradeable.Contract.ContextUpgradeableCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ContextUpgradeable *ContextUpgradeableRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ContextUpgradeable.Contract.ContextUpgradeableTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ContextUpgradeable *ContextUpgradeableRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ContextUpgradeable.Contract.ContextUpgradeableTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ContextUpgradeable *ContextUpgradeableCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ContextUpgradeable.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ContextUpgradeable *ContextUpgradeableTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ContextUpgradeable.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ContextUpgradeable *ContextUpgradeableTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ContextUpgradeable.Contract.contract.Transact(opts, method, params...)
+}
+
+// ContextUpgradeableInitializedIterator is returned from FilterInitialized and is used to iterate over the raw logs and unpacked data for Initialized events raised by the ContextUpgradeable contract.
+type ContextUpgradeableInitializedIterator struct {
+	Event *ContextUpgradeableInitialized // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ContextUpgradeableInitializedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ContextUpgradeableInitialized)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ContextUpgradeableInitialized)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ContextUpgradeableInitializedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ContextUpgradeableInitializedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ContextUpgradeableInitialized represents a Initialized event raised by the ContextUpgradeable contract.
+type ContextUpgradeableInitialized struct {
+	Version uint64
+	Raw     types.Log // Blockchain specific contextual infos
+}
+
+// FilterInitialized is a free log retrieval operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_ContextUpgradeable *ContextUpgradeableFilterer) FilterInitialized(opts *bind.FilterOpts) (*ContextUpgradeableInitializedIterator, error) {
+
+	logs, sub, err := _ContextUpgradeable.contract.FilterLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return &ContextUpgradeableInitializedIterator{contract: _ContextUpgradeable.contract, event: "Initialized", logs: logs, sub: sub}, nil
+}
+
+// WatchInitialized is a free log subscription operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_ContextUpgradeable *ContextUpgradeableFilterer) WatchInitialized(opts *bind.WatchOpts, sink chan<- *ContextUpgradeableInitialized) (event.Subscription, error) {
+
+	logs, sub, err := _ContextUpgradeable.contract.WatchLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ContextUpgradeableInitialized)
+				if err := _ContextUpgradeable.contract.UnpackLog(event, "Initialized", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseInitialized is a log parse operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_ContextUpgradeable *ContextUpgradeableFilterer) ParseInitialized(log types.Log) (*ContextUpgradeableInitialized, error) {
+	event := new(ContextUpgradeableInitialized)
+	if err := _ContextUpgradeable.contract.UnpackLog(event, "Initialized", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IPoAValidatorManagerMetaData contains all meta data concerning the IPoAValidatorManager contract.
+var IPoAValidatorManagerMetaData = &bind.MetaData{
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"}],\"name\":\"InitialValidatorCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"registerValidationMessageID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"}],\"name\":\"ValidationPeriodCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"enumValidatorStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"ValidationPeriodEnded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"ValidationPeriodRegistered\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"setWeightMessageID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\"}],\"name\":\"ValidatorRemovalInitialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"nonce\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"validatorWeight\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"setWeightMessageID\",\"type\":\"bytes32\"}],\"name\":\"ValidatorWeightUpdate\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeValidatorRegistration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"initializeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"remainingBalanceOwner\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"disableOwner\",\"type\":\"tuple\"}],\"internalType\":\"structValidatorRegistrationInput\",\"name\":\"registrationInput\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"initializeValidatorRegistration\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"validatorManagerBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"validatorManagerAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structInitialValidator[]\",\"name\":\"initialValidators\",\"type\":\"tuple[]\"}],\"internalType\":\"structSubnetConversionData\",\"name\":\"subnetConversionData\",\"type\":\"tuple\"},{\"internalType\":\"uint32\",\"name\":\"messsageIndex\",\"type\":\"uint32\"}],\"name\":\"initializeValidatorSet\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"resendEndValidatorMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"resendRegisterValidatorMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+}
+
+// IPoAValidatorManagerABI is the input ABI used to generate the binding from.
+// Deprecated: Use IPoAValidatorManagerMetaData.ABI instead.
+var IPoAValidatorManagerABI = IPoAValidatorManagerMetaData.ABI
+
+// IPoAValidatorManager is an auto generated Go binding around an Ethereum contract.
+type IPoAValidatorManager struct {
+	IPoAValidatorManagerCaller     // Read-only binding to the contract
+	IPoAValidatorManagerTransactor // Write-only binding to the contract
+	IPoAValidatorManagerFilterer   // Log filterer for contract events
+}
+
+// IPoAValidatorManagerCaller is an auto generated read-only Go binding around an Ethereum contract.
+type IPoAValidatorManagerCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IPoAValidatorManagerTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type IPoAValidatorManagerTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IPoAValidatorManagerFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type IPoAValidatorManagerFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IPoAValidatorManagerSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type IPoAValidatorManagerSession struct {
+	Contract     *IPoAValidatorManager // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts         // Call options to use throughout this session
+	TransactOpts bind.TransactOpts     // Transaction auth options to use throughout this session
+}
+
+// IPoAValidatorManagerCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type IPoAValidatorManagerCallerSession struct {
+	Contract *IPoAValidatorManagerCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts               // Call options to use throughout this session
+}
+
+// IPoAValidatorManagerTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type IPoAValidatorManagerTransactorSession struct {
+	Contract     *IPoAValidatorManagerTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts               // Transaction auth options to use throughout this session
+}
+
+// IPoAValidatorManagerRaw is an auto generated low-level Go binding around an Ethereum contract.
+type IPoAValidatorManagerRaw struct {
+	Contract *IPoAValidatorManager // Generic contract binding to access the raw methods on
+}
+
+// IPoAValidatorManagerCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type IPoAValidatorManagerCallerRaw struct {
+	Contract *IPoAValidatorManagerCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// IPoAValidatorManagerTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type IPoAValidatorManagerTransactorRaw struct {
+	Contract *IPoAValidatorManagerTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewIPoAValidatorManager creates a new instance of IPoAValidatorManager, bound to a specific deployed contract.
+func NewIPoAValidatorManager(address common.Address, backend bind.ContractBackend) (*IPoAValidatorManager, error) {
+	contract, err := bindIPoAValidatorManager(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &IPoAValidatorManager{IPoAValidatorManagerCaller: IPoAValidatorManagerCaller{contract: contract}, IPoAValidatorManagerTransactor: IPoAValidatorManagerTransactor{contract: contract}, IPoAValidatorManagerFilterer: IPoAValidatorManagerFilterer{contract: contract}}, nil
+}
+
+// NewIPoAValidatorManagerCaller creates a new read-only instance of IPoAValidatorManager, bound to a specific deployed contract.
+func NewIPoAValidatorManagerCaller(address common.Address, caller bind.ContractCaller) (*IPoAValidatorManagerCaller, error) {
+	contract, err := bindIPoAValidatorManager(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &IPoAValidatorManagerCaller{contract: contract}, nil
+}
+
+// NewIPoAValidatorManagerTransactor creates a new write-only instance of IPoAValidatorManager, bound to a specific deployed contract.
+func NewIPoAValidatorManagerTransactor(address common.Address, transactor bind.ContractTransactor) (*IPoAValidatorManagerTransactor, error) {
+	contract, err := bindIPoAValidatorManager(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &IPoAValidatorManagerTransactor{contract: contract}, nil
+}
+
+// NewIPoAValidatorManagerFilterer creates a new log filterer instance of IPoAValidatorManager, bound to a specific deployed contract.
+func NewIPoAValidatorManagerFilterer(address common.Address, filterer bind.ContractFilterer) (*IPoAValidatorManagerFilterer, error) {
+	contract, err := bindIPoAValidatorManager(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &IPoAValidatorManagerFilterer{contract: contract}, nil
+}
+
+// bindIPoAValidatorManager binds a generic wrapper to an already deployed contract.
+func bindIPoAValidatorManager(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := IPoAValidatorManagerMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_IPoAValidatorManager *IPoAValidatorManagerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _IPoAValidatorManager.Contract.IPoAValidatorManagerCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_IPoAValidatorManager *IPoAValidatorManagerRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.IPoAValidatorManagerTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_IPoAValidatorManager *IPoAValidatorManagerRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.IPoAValidatorManagerTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_IPoAValidatorManager *IPoAValidatorManagerCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _IPoAValidatorManager.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.contract.Transact(opts, method, params...)
+}
+
+// CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
+//
+// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactor) CompleteEndValidation(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
+	return _IPoAValidatorManager.contract.Transact(opts, "completeEndValidation", messageIndex)
+}
+
+// CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
+//
+// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.CompleteEndValidation(&_IPoAValidatorManager.TransactOpts, messageIndex)
+}
+
+// CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
+//
+// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactorSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.CompleteEndValidation(&_IPoAValidatorManager.TransactOpts, messageIndex)
+}
+
+// CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
+//
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactor) CompleteValidatorRegistration(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
+	return _IPoAValidatorManager.contract.Transact(opts, "completeValidatorRegistration", messageIndex)
+}
+
+// CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
+//
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.CompleteValidatorRegistration(&_IPoAValidatorManager.TransactOpts, messageIndex)
+}
+
+// CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
+//
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactorSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.CompleteValidatorRegistration(&_IPoAValidatorManager.TransactOpts, messageIndex)
+}
+
+// InitializeEndValidation is a paid mutator transaction binding the contract method 0x97fb70d4.
+//
+// Solidity: function initializeEndValidation(bytes32 validationID) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactor) InitializeEndValidation(opts *bind.TransactOpts, validationID [32]byte) (*types.Transaction, error) {
+	return _IPoAValidatorManager.contract.Transact(opts, "initializeEndValidation", validationID)
+}
+
+// InitializeEndValidation is a paid mutator transaction binding the contract method 0x97fb70d4.
+//
+// Solidity: function initializeEndValidation(bytes32 validationID) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerSession) InitializeEndValidation(validationID [32]byte) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.InitializeEndValidation(&_IPoAValidatorManager.TransactOpts, validationID)
+}
+
+// InitializeEndValidation is a paid mutator transaction binding the contract method 0x97fb70d4.
+//
+// Solidity: function initializeEndValidation(bytes32 validationID) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactorSession) InitializeEndValidation(validationID [32]byte) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.InitializeEndValidation(&_IPoAValidatorManager.TransactOpts, validationID)
+}
+
+// InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x9ba96b86.
+//
+// Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) registrationInput, uint64 weight) returns(bytes32 validationID)
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactor) InitializeValidatorRegistration(opts *bind.TransactOpts, registrationInput ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
+	return _IPoAValidatorManager.contract.Transact(opts, "initializeValidatorRegistration", registrationInput, weight)
+}
+
+// InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x9ba96b86.
+//
+// Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) registrationInput, uint64 weight) returns(bytes32 validationID)
+func (_IPoAValidatorManager *IPoAValidatorManagerSession) InitializeValidatorRegistration(registrationInput ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.InitializeValidatorRegistration(&_IPoAValidatorManager.TransactOpts, registrationInput, weight)
+}
+
+// InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x9ba96b86.
+//
+// Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) registrationInput, uint64 weight) returns(bytes32 validationID)
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactorSession) InitializeValidatorRegistration(registrationInput ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.InitializeValidatorRegistration(&_IPoAValidatorManager.TransactOpts, registrationInput, weight)
+}
+
+// InitializeValidatorSet is a paid mutator transaction binding the contract method 0x20d91b7a.
+//
+// Solidity: function initializeValidatorSet((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData, uint32 messsageIndex) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactor) InitializeValidatorSet(opts *bind.TransactOpts, subnetConversionData SubnetConversionData, messsageIndex uint32) (*types.Transaction, error) {
+	return _IPoAValidatorManager.contract.Transact(opts, "initializeValidatorSet", subnetConversionData, messsageIndex)
+}
+
+// InitializeValidatorSet is a paid mutator transaction binding the contract method 0x20d91b7a.
+//
+// Solidity: function initializeValidatorSet((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData, uint32 messsageIndex) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerSession) InitializeValidatorSet(subnetConversionData SubnetConversionData, messsageIndex uint32) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.InitializeValidatorSet(&_IPoAValidatorManager.TransactOpts, subnetConversionData, messsageIndex)
+}
+
+// InitializeValidatorSet is a paid mutator transaction binding the contract method 0x20d91b7a.
+//
+// Solidity: function initializeValidatorSet((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData, uint32 messsageIndex) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactorSession) InitializeValidatorSet(subnetConversionData SubnetConversionData, messsageIndex uint32) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.InitializeValidatorSet(&_IPoAValidatorManager.TransactOpts, subnetConversionData, messsageIndex)
+}
+
+// ResendEndValidatorMessage is a paid mutator transaction binding the contract method 0x0322ed98.
+//
+// Solidity: function resendEndValidatorMessage(bytes32 validationID) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactor) ResendEndValidatorMessage(opts *bind.TransactOpts, validationID [32]byte) (*types.Transaction, error) {
+	return _IPoAValidatorManager.contract.Transact(opts, "resendEndValidatorMessage", validationID)
+}
+
+// ResendEndValidatorMessage is a paid mutator transaction binding the contract method 0x0322ed98.
+//
+// Solidity: function resendEndValidatorMessage(bytes32 validationID) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerSession) ResendEndValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.ResendEndValidatorMessage(&_IPoAValidatorManager.TransactOpts, validationID)
+}
+
+// ResendEndValidatorMessage is a paid mutator transaction binding the contract method 0x0322ed98.
+//
+// Solidity: function resendEndValidatorMessage(bytes32 validationID) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactorSession) ResendEndValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.ResendEndValidatorMessage(&_IPoAValidatorManager.TransactOpts, validationID)
+}
+
+// ResendRegisterValidatorMessage is a paid mutator transaction binding the contract method 0xbee0a03f.
+//
+// Solidity: function resendRegisterValidatorMessage(bytes32 validationID) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactor) ResendRegisterValidatorMessage(opts *bind.TransactOpts, validationID [32]byte) (*types.Transaction, error) {
+	return _IPoAValidatorManager.contract.Transact(opts, "resendRegisterValidatorMessage", validationID)
+}
+
+// ResendRegisterValidatorMessage is a paid mutator transaction binding the contract method 0xbee0a03f.
+//
+// Solidity: function resendRegisterValidatorMessage(bytes32 validationID) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerSession) ResendRegisterValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.ResendRegisterValidatorMessage(&_IPoAValidatorManager.TransactOpts, validationID)
+}
+
+// ResendRegisterValidatorMessage is a paid mutator transaction binding the contract method 0xbee0a03f.
+//
+// Solidity: function resendRegisterValidatorMessage(bytes32 validationID) returns()
+func (_IPoAValidatorManager *IPoAValidatorManagerTransactorSession) ResendRegisterValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _IPoAValidatorManager.Contract.ResendRegisterValidatorMessage(&_IPoAValidatorManager.TransactOpts, validationID)
+}
+
+// IPoAValidatorManagerInitialValidatorCreatedIterator is returned from FilterInitialValidatorCreated and is used to iterate over the raw logs and unpacked data for InitialValidatorCreated events raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerInitialValidatorCreatedIterator struct {
+	Event *IPoAValidatorManagerInitialValidatorCreated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IPoAValidatorManagerInitialValidatorCreatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IPoAValidatorManagerInitialValidatorCreated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IPoAValidatorManagerInitialValidatorCreated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IPoAValidatorManagerInitialValidatorCreatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IPoAValidatorManagerInitialValidatorCreatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IPoAValidatorManagerInitialValidatorCreated represents a InitialValidatorCreated event raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerInitialValidatorCreated struct {
+	ValidationID [32]byte
+	NodeID       common.Hash
+	Weight       *big.Int
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterInitialValidatorCreated is a free log retrieval operation binding the contract event 0x9d47fef9da077661546e646d61830bfcbda90506c2e5eed38195e82c4eb1cbdf.
+//
+// Solidity: event InitialValidatorCreated(bytes32 indexed validationID, bytes indexed nodeID, uint256 weight)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) FilterInitialValidatorCreated(opts *bind.FilterOpts, validationID [][32]byte, nodeID [][]byte) (*IPoAValidatorManagerInitialValidatorCreatedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.FilterLogs(opts, "InitialValidatorCreated", validationIDRule, nodeIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IPoAValidatorManagerInitialValidatorCreatedIterator{contract: _IPoAValidatorManager.contract, event: "InitialValidatorCreated", logs: logs, sub: sub}, nil
+}
+
+// WatchInitialValidatorCreated is a free log subscription operation binding the contract event 0x9d47fef9da077661546e646d61830bfcbda90506c2e5eed38195e82c4eb1cbdf.
+//
+// Solidity: event InitialValidatorCreated(bytes32 indexed validationID, bytes indexed nodeID, uint256 weight)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) WatchInitialValidatorCreated(opts *bind.WatchOpts, sink chan<- *IPoAValidatorManagerInitialValidatorCreated, validationID [][32]byte, nodeID [][]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.WatchLogs(opts, "InitialValidatorCreated", validationIDRule, nodeIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IPoAValidatorManagerInitialValidatorCreated)
+				if err := _IPoAValidatorManager.contract.UnpackLog(event, "InitialValidatorCreated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseInitialValidatorCreated is a log parse operation binding the contract event 0x9d47fef9da077661546e646d61830bfcbda90506c2e5eed38195e82c4eb1cbdf.
+//
+// Solidity: event InitialValidatorCreated(bytes32 indexed validationID, bytes indexed nodeID, uint256 weight)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) ParseInitialValidatorCreated(log types.Log) (*IPoAValidatorManagerInitialValidatorCreated, error) {
+	event := new(IPoAValidatorManagerInitialValidatorCreated)
+	if err := _IPoAValidatorManager.contract.UnpackLog(event, "InitialValidatorCreated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IPoAValidatorManagerValidationPeriodCreatedIterator is returned from FilterValidationPeriodCreated and is used to iterate over the raw logs and unpacked data for ValidationPeriodCreated events raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerValidationPeriodCreatedIterator struct {
+	Event *IPoAValidatorManagerValidationPeriodCreated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IPoAValidatorManagerValidationPeriodCreatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IPoAValidatorManagerValidationPeriodCreated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IPoAValidatorManagerValidationPeriodCreated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IPoAValidatorManagerValidationPeriodCreatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IPoAValidatorManagerValidationPeriodCreatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IPoAValidatorManagerValidationPeriodCreated represents a ValidationPeriodCreated event raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerValidationPeriodCreated struct {
+	ValidationID                [32]byte
+	NodeID                      common.Hash
+	RegisterValidationMessageID [32]byte
+	Weight                      *big.Int
+	RegistrationExpiry          uint64
+	Raw                         types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidationPeriodCreated is a free log retrieval operation binding the contract event 0xb77297e3befc691bfc864a81e241f83e2ef722b6e7becaa2ecec250c6d52b430.
+//
+// Solidity: event ValidationPeriodCreated(bytes32 indexed validationID, bytes indexed nodeID, bytes32 indexed registerValidationMessageID, uint256 weight, uint64 registrationExpiry)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) FilterValidationPeriodCreated(opts *bind.FilterOpts, validationID [][32]byte, nodeID [][]byte, registerValidationMessageID [][32]byte) (*IPoAValidatorManagerValidationPeriodCreatedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+	var registerValidationMessageIDRule []interface{}
+	for _, registerValidationMessageIDItem := range registerValidationMessageID {
+		registerValidationMessageIDRule = append(registerValidationMessageIDRule, registerValidationMessageIDItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.FilterLogs(opts, "ValidationPeriodCreated", validationIDRule, nodeIDRule, registerValidationMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IPoAValidatorManagerValidationPeriodCreatedIterator{contract: _IPoAValidatorManager.contract, event: "ValidationPeriodCreated", logs: logs, sub: sub}, nil
+}
+
+// WatchValidationPeriodCreated is a free log subscription operation binding the contract event 0xb77297e3befc691bfc864a81e241f83e2ef722b6e7becaa2ecec250c6d52b430.
+//
+// Solidity: event ValidationPeriodCreated(bytes32 indexed validationID, bytes indexed nodeID, bytes32 indexed registerValidationMessageID, uint256 weight, uint64 registrationExpiry)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) WatchValidationPeriodCreated(opts *bind.WatchOpts, sink chan<- *IPoAValidatorManagerValidationPeriodCreated, validationID [][32]byte, nodeID [][]byte, registerValidationMessageID [][32]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+	var registerValidationMessageIDRule []interface{}
+	for _, registerValidationMessageIDItem := range registerValidationMessageID {
+		registerValidationMessageIDRule = append(registerValidationMessageIDRule, registerValidationMessageIDItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.WatchLogs(opts, "ValidationPeriodCreated", validationIDRule, nodeIDRule, registerValidationMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IPoAValidatorManagerValidationPeriodCreated)
+				if err := _IPoAValidatorManager.contract.UnpackLog(event, "ValidationPeriodCreated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidationPeriodCreated is a log parse operation binding the contract event 0xb77297e3befc691bfc864a81e241f83e2ef722b6e7becaa2ecec250c6d52b430.
+//
+// Solidity: event ValidationPeriodCreated(bytes32 indexed validationID, bytes indexed nodeID, bytes32 indexed registerValidationMessageID, uint256 weight, uint64 registrationExpiry)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) ParseValidationPeriodCreated(log types.Log) (*IPoAValidatorManagerValidationPeriodCreated, error) {
+	event := new(IPoAValidatorManagerValidationPeriodCreated)
+	if err := _IPoAValidatorManager.contract.UnpackLog(event, "ValidationPeriodCreated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IPoAValidatorManagerValidationPeriodEndedIterator is returned from FilterValidationPeriodEnded and is used to iterate over the raw logs and unpacked data for ValidationPeriodEnded events raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerValidationPeriodEndedIterator struct {
+	Event *IPoAValidatorManagerValidationPeriodEnded // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IPoAValidatorManagerValidationPeriodEndedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IPoAValidatorManagerValidationPeriodEnded)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IPoAValidatorManagerValidationPeriodEnded)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IPoAValidatorManagerValidationPeriodEndedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IPoAValidatorManagerValidationPeriodEndedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IPoAValidatorManagerValidationPeriodEnded represents a ValidationPeriodEnded event raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerValidationPeriodEnded struct {
+	ValidationID [32]byte
+	Status       uint8
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidationPeriodEnded is a free log retrieval operation binding the contract event 0x1c08e59656f1a18dc2da76826cdc52805c43e897a17c50faefb8ab3c1526cc16.
+//
+// Solidity: event ValidationPeriodEnded(bytes32 indexed validationID, uint8 indexed status)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) FilterValidationPeriodEnded(opts *bind.FilterOpts, validationID [][32]byte, status []uint8) (*IPoAValidatorManagerValidationPeriodEndedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var statusRule []interface{}
+	for _, statusItem := range status {
+		statusRule = append(statusRule, statusItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.FilterLogs(opts, "ValidationPeriodEnded", validationIDRule, statusRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IPoAValidatorManagerValidationPeriodEndedIterator{contract: _IPoAValidatorManager.contract, event: "ValidationPeriodEnded", logs: logs, sub: sub}, nil
+}
+
+// WatchValidationPeriodEnded is a free log subscription operation binding the contract event 0x1c08e59656f1a18dc2da76826cdc52805c43e897a17c50faefb8ab3c1526cc16.
+//
+// Solidity: event ValidationPeriodEnded(bytes32 indexed validationID, uint8 indexed status)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) WatchValidationPeriodEnded(opts *bind.WatchOpts, sink chan<- *IPoAValidatorManagerValidationPeriodEnded, validationID [][32]byte, status []uint8) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var statusRule []interface{}
+	for _, statusItem := range status {
+		statusRule = append(statusRule, statusItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.WatchLogs(opts, "ValidationPeriodEnded", validationIDRule, statusRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IPoAValidatorManagerValidationPeriodEnded)
+				if err := _IPoAValidatorManager.contract.UnpackLog(event, "ValidationPeriodEnded", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidationPeriodEnded is a log parse operation binding the contract event 0x1c08e59656f1a18dc2da76826cdc52805c43e897a17c50faefb8ab3c1526cc16.
+//
+// Solidity: event ValidationPeriodEnded(bytes32 indexed validationID, uint8 indexed status)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) ParseValidationPeriodEnded(log types.Log) (*IPoAValidatorManagerValidationPeriodEnded, error) {
+	event := new(IPoAValidatorManagerValidationPeriodEnded)
+	if err := _IPoAValidatorManager.contract.UnpackLog(event, "ValidationPeriodEnded", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IPoAValidatorManagerValidationPeriodRegisteredIterator is returned from FilterValidationPeriodRegistered and is used to iterate over the raw logs and unpacked data for ValidationPeriodRegistered events raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerValidationPeriodRegisteredIterator struct {
+	Event *IPoAValidatorManagerValidationPeriodRegistered // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IPoAValidatorManagerValidationPeriodRegisteredIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IPoAValidatorManagerValidationPeriodRegistered)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IPoAValidatorManagerValidationPeriodRegistered)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IPoAValidatorManagerValidationPeriodRegisteredIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IPoAValidatorManagerValidationPeriodRegisteredIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IPoAValidatorManagerValidationPeriodRegistered represents a ValidationPeriodRegistered event raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerValidationPeriodRegistered struct {
+	ValidationID [32]byte
+	Weight       *big.Int
+	Timestamp    *big.Int
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidationPeriodRegistered is a free log retrieval operation binding the contract event 0xf8fd1c90fb9cfa2ca2358fdf5806b086ad43315d92b221c929efc7f105ce7568.
+//
+// Solidity: event ValidationPeriodRegistered(bytes32 indexed validationID, uint256 weight, uint256 timestamp)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) FilterValidationPeriodRegistered(opts *bind.FilterOpts, validationID [][32]byte) (*IPoAValidatorManagerValidationPeriodRegisteredIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.FilterLogs(opts, "ValidationPeriodRegistered", validationIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IPoAValidatorManagerValidationPeriodRegisteredIterator{contract: _IPoAValidatorManager.contract, event: "ValidationPeriodRegistered", logs: logs, sub: sub}, nil
+}
+
+// WatchValidationPeriodRegistered is a free log subscription operation binding the contract event 0xf8fd1c90fb9cfa2ca2358fdf5806b086ad43315d92b221c929efc7f105ce7568.
+//
+// Solidity: event ValidationPeriodRegistered(bytes32 indexed validationID, uint256 weight, uint256 timestamp)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) WatchValidationPeriodRegistered(opts *bind.WatchOpts, sink chan<- *IPoAValidatorManagerValidationPeriodRegistered, validationID [][32]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.WatchLogs(opts, "ValidationPeriodRegistered", validationIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IPoAValidatorManagerValidationPeriodRegistered)
+				if err := _IPoAValidatorManager.contract.UnpackLog(event, "ValidationPeriodRegistered", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidationPeriodRegistered is a log parse operation binding the contract event 0xf8fd1c90fb9cfa2ca2358fdf5806b086ad43315d92b221c929efc7f105ce7568.
+//
+// Solidity: event ValidationPeriodRegistered(bytes32 indexed validationID, uint256 weight, uint256 timestamp)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) ParseValidationPeriodRegistered(log types.Log) (*IPoAValidatorManagerValidationPeriodRegistered, error) {
+	event := new(IPoAValidatorManagerValidationPeriodRegistered)
+	if err := _IPoAValidatorManager.contract.UnpackLog(event, "ValidationPeriodRegistered", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IPoAValidatorManagerValidatorRemovalInitializedIterator is returned from FilterValidatorRemovalInitialized and is used to iterate over the raw logs and unpacked data for ValidatorRemovalInitialized events raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerValidatorRemovalInitializedIterator struct {
+	Event *IPoAValidatorManagerValidatorRemovalInitialized // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IPoAValidatorManagerValidatorRemovalInitializedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IPoAValidatorManagerValidatorRemovalInitialized)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IPoAValidatorManagerValidatorRemovalInitialized)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IPoAValidatorManagerValidatorRemovalInitializedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IPoAValidatorManagerValidatorRemovalInitializedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IPoAValidatorManagerValidatorRemovalInitialized represents a ValidatorRemovalInitialized event raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerValidatorRemovalInitialized struct {
+	ValidationID       [32]byte
+	SetWeightMessageID [32]byte
+	Weight             *big.Int
+	EndTime            *big.Int
+	Raw                types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidatorRemovalInitialized is a free log retrieval operation binding the contract event 0x13d58394cf269d48bcf927959a29a5ffee7c9924dafff8927ecdf3c48ffa7c67.
+//
+// Solidity: event ValidatorRemovalInitialized(bytes32 indexed validationID, bytes32 indexed setWeightMessageID, uint256 weight, uint256 endTime)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) FilterValidatorRemovalInitialized(opts *bind.FilterOpts, validationID [][32]byte, setWeightMessageID [][32]byte) (*IPoAValidatorManagerValidatorRemovalInitializedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var setWeightMessageIDRule []interface{}
+	for _, setWeightMessageIDItem := range setWeightMessageID {
+		setWeightMessageIDRule = append(setWeightMessageIDRule, setWeightMessageIDItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.FilterLogs(opts, "ValidatorRemovalInitialized", validationIDRule, setWeightMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IPoAValidatorManagerValidatorRemovalInitializedIterator{contract: _IPoAValidatorManager.contract, event: "ValidatorRemovalInitialized", logs: logs, sub: sub}, nil
+}
+
+// WatchValidatorRemovalInitialized is a free log subscription operation binding the contract event 0x13d58394cf269d48bcf927959a29a5ffee7c9924dafff8927ecdf3c48ffa7c67.
+//
+// Solidity: event ValidatorRemovalInitialized(bytes32 indexed validationID, bytes32 indexed setWeightMessageID, uint256 weight, uint256 endTime)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) WatchValidatorRemovalInitialized(opts *bind.WatchOpts, sink chan<- *IPoAValidatorManagerValidatorRemovalInitialized, validationID [][32]byte, setWeightMessageID [][32]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var setWeightMessageIDRule []interface{}
+	for _, setWeightMessageIDItem := range setWeightMessageID {
+		setWeightMessageIDRule = append(setWeightMessageIDRule, setWeightMessageIDItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.WatchLogs(opts, "ValidatorRemovalInitialized", validationIDRule, setWeightMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IPoAValidatorManagerValidatorRemovalInitialized)
+				if err := _IPoAValidatorManager.contract.UnpackLog(event, "ValidatorRemovalInitialized", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidatorRemovalInitialized is a log parse operation binding the contract event 0x13d58394cf269d48bcf927959a29a5ffee7c9924dafff8927ecdf3c48ffa7c67.
+//
+// Solidity: event ValidatorRemovalInitialized(bytes32 indexed validationID, bytes32 indexed setWeightMessageID, uint256 weight, uint256 endTime)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) ParseValidatorRemovalInitialized(log types.Log) (*IPoAValidatorManagerValidatorRemovalInitialized, error) {
+	event := new(IPoAValidatorManagerValidatorRemovalInitialized)
+	if err := _IPoAValidatorManager.contract.UnpackLog(event, "ValidatorRemovalInitialized", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IPoAValidatorManagerValidatorWeightUpdateIterator is returned from FilterValidatorWeightUpdate and is used to iterate over the raw logs and unpacked data for ValidatorWeightUpdate events raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerValidatorWeightUpdateIterator struct {
+	Event *IPoAValidatorManagerValidatorWeightUpdate // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IPoAValidatorManagerValidatorWeightUpdateIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IPoAValidatorManagerValidatorWeightUpdate)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IPoAValidatorManagerValidatorWeightUpdate)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IPoAValidatorManagerValidatorWeightUpdateIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IPoAValidatorManagerValidatorWeightUpdateIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IPoAValidatorManagerValidatorWeightUpdate represents a ValidatorWeightUpdate event raised by the IPoAValidatorManager contract.
+type IPoAValidatorManagerValidatorWeightUpdate struct {
+	ValidationID       [32]byte
+	Nonce              uint64
+	ValidatorWeight    uint64
+	SetWeightMessageID [32]byte
+	Raw                types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidatorWeightUpdate is a free log retrieval operation binding the contract event 0x07de5ff35a674a8005e661f3333c907ca6333462808762d19dc7b3abb1a8c1df.
+//
+// Solidity: event ValidatorWeightUpdate(bytes32 indexed validationID, uint64 indexed nonce, uint64 validatorWeight, bytes32 setWeightMessageID)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) FilterValidatorWeightUpdate(opts *bind.FilterOpts, validationID [][32]byte, nonce []uint64) (*IPoAValidatorManagerValidatorWeightUpdateIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nonceRule []interface{}
+	for _, nonceItem := range nonce {
+		nonceRule = append(nonceRule, nonceItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.FilterLogs(opts, "ValidatorWeightUpdate", validationIDRule, nonceRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IPoAValidatorManagerValidatorWeightUpdateIterator{contract: _IPoAValidatorManager.contract, event: "ValidatorWeightUpdate", logs: logs, sub: sub}, nil
+}
+
+// WatchValidatorWeightUpdate is a free log subscription operation binding the contract event 0x07de5ff35a674a8005e661f3333c907ca6333462808762d19dc7b3abb1a8c1df.
+//
+// Solidity: event ValidatorWeightUpdate(bytes32 indexed validationID, uint64 indexed nonce, uint64 validatorWeight, bytes32 setWeightMessageID)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) WatchValidatorWeightUpdate(opts *bind.WatchOpts, sink chan<- *IPoAValidatorManagerValidatorWeightUpdate, validationID [][32]byte, nonce []uint64) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nonceRule []interface{}
+	for _, nonceItem := range nonce {
+		nonceRule = append(nonceRule, nonceItem)
+	}
+
+	logs, sub, err := _IPoAValidatorManager.contract.WatchLogs(opts, "ValidatorWeightUpdate", validationIDRule, nonceRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IPoAValidatorManagerValidatorWeightUpdate)
+				if err := _IPoAValidatorManager.contract.UnpackLog(event, "ValidatorWeightUpdate", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidatorWeightUpdate is a log parse operation binding the contract event 0x07de5ff35a674a8005e661f3333c907ca6333462808762d19dc7b3abb1a8c1df.
+//
+// Solidity: event ValidatorWeightUpdate(bytes32 indexed validationID, uint64 indexed nonce, uint64 validatorWeight, bytes32 setWeightMessageID)
+func (_IPoAValidatorManager *IPoAValidatorManagerFilterer) ParseValidatorWeightUpdate(log types.Log) (*IPoAValidatorManagerValidatorWeightUpdate, error) {
+	event := new(IPoAValidatorManagerValidatorWeightUpdate)
+	if err := _IPoAValidatorManager.contract.UnpackLog(event, "ValidatorWeightUpdate", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IValidatorManagerMetaData contains all meta data concerning the IValidatorManager contract.
+var IValidatorManagerMetaData = &bind.MetaData{
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"}],\"name\":\"InitialValidatorCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"registerValidationMessageID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"}],\"name\":\"ValidationPeriodCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"enumValidatorStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"ValidationPeriodEnded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"ValidationPeriodRegistered\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"setWeightMessageID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\"}],\"name\":\"ValidatorRemovalInitialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"nonce\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"validatorWeight\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"setWeightMessageID\",\"type\":\"bytes32\"}],\"name\":\"ValidatorWeightUpdate\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeValidatorRegistration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"validatorManagerBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"validatorManagerAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structInitialValidator[]\",\"name\":\"initialValidators\",\"type\":\"tuple[]\"}],\"internalType\":\"structSubnetConversionData\",\"name\":\"subnetConversionData\",\"type\":\"tuple\"},{\"internalType\":\"uint32\",\"name\":\"messsageIndex\",\"type\":\"uint32\"}],\"name\":\"initializeValidatorSet\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"resendEndValidatorMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"resendRegisterValidatorMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+}
+
+// IValidatorManagerABI is the input ABI used to generate the binding from.
+// Deprecated: Use IValidatorManagerMetaData.ABI instead.
+var IValidatorManagerABI = IValidatorManagerMetaData.ABI
+
+// IValidatorManager is an auto generated Go binding around an Ethereum contract.
+type IValidatorManager struct {
+	IValidatorManagerCaller     // Read-only binding to the contract
+	IValidatorManagerTransactor // Write-only binding to the contract
+	IValidatorManagerFilterer   // Log filterer for contract events
+}
+
+// IValidatorManagerCaller is an auto generated read-only Go binding around an Ethereum contract.
+type IValidatorManagerCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IValidatorManagerTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type IValidatorManagerTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IValidatorManagerFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type IValidatorManagerFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IValidatorManagerSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type IValidatorManagerSession struct {
+	Contract     *IValidatorManager // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts      // Call options to use throughout this session
+	TransactOpts bind.TransactOpts  // Transaction auth options to use throughout this session
+}
+
+// IValidatorManagerCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type IValidatorManagerCallerSession struct {
+	Contract *IValidatorManagerCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts            // Call options to use throughout this session
+}
+
+// IValidatorManagerTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type IValidatorManagerTransactorSession struct {
+	Contract     *IValidatorManagerTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts            // Transaction auth options to use throughout this session
+}
+
+// IValidatorManagerRaw is an auto generated low-level Go binding around an Ethereum contract.
+type IValidatorManagerRaw struct {
+	Contract *IValidatorManager // Generic contract binding to access the raw methods on
+}
+
+// IValidatorManagerCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type IValidatorManagerCallerRaw struct {
+	Contract *IValidatorManagerCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// IValidatorManagerTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type IValidatorManagerTransactorRaw struct {
+	Contract *IValidatorManagerTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewIValidatorManager creates a new instance of IValidatorManager, bound to a specific deployed contract.
+func NewIValidatorManager(address common.Address, backend bind.ContractBackend) (*IValidatorManager, error) {
+	contract, err := bindIValidatorManager(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &IValidatorManager{IValidatorManagerCaller: IValidatorManagerCaller{contract: contract}, IValidatorManagerTransactor: IValidatorManagerTransactor{contract: contract}, IValidatorManagerFilterer: IValidatorManagerFilterer{contract: contract}}, nil
+}
+
+// NewIValidatorManagerCaller creates a new read-only instance of IValidatorManager, bound to a specific deployed contract.
+func NewIValidatorManagerCaller(address common.Address, caller bind.ContractCaller) (*IValidatorManagerCaller, error) {
+	contract, err := bindIValidatorManager(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &IValidatorManagerCaller{contract: contract}, nil
+}
+
+// NewIValidatorManagerTransactor creates a new write-only instance of IValidatorManager, bound to a specific deployed contract.
+func NewIValidatorManagerTransactor(address common.Address, transactor bind.ContractTransactor) (*IValidatorManagerTransactor, error) {
+	contract, err := bindIValidatorManager(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &IValidatorManagerTransactor{contract: contract}, nil
+}
+
+// NewIValidatorManagerFilterer creates a new log filterer instance of IValidatorManager, bound to a specific deployed contract.
+func NewIValidatorManagerFilterer(address common.Address, filterer bind.ContractFilterer) (*IValidatorManagerFilterer, error) {
+	contract, err := bindIValidatorManager(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &IValidatorManagerFilterer{contract: contract}, nil
+}
+
+// bindIValidatorManager binds a generic wrapper to an already deployed contract.
+func bindIValidatorManager(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := IValidatorManagerMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_IValidatorManager *IValidatorManagerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _IValidatorManager.Contract.IValidatorManagerCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_IValidatorManager *IValidatorManagerRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.IValidatorManagerTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_IValidatorManager *IValidatorManagerRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.IValidatorManagerTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_IValidatorManager *IValidatorManagerCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _IValidatorManager.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_IValidatorManager *IValidatorManagerTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_IValidatorManager *IValidatorManagerTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.contract.Transact(opts, method, params...)
+}
+
+// CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
+//
+// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+func (_IValidatorManager *IValidatorManagerTransactor) CompleteEndValidation(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
+	return _IValidatorManager.contract.Transact(opts, "completeEndValidation", messageIndex)
+}
+
+// CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
+//
+// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+func (_IValidatorManager *IValidatorManagerSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.CompleteEndValidation(&_IValidatorManager.TransactOpts, messageIndex)
+}
+
+// CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
+//
+// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+func (_IValidatorManager *IValidatorManagerTransactorSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.CompleteEndValidation(&_IValidatorManager.TransactOpts, messageIndex)
+}
+
+// CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
+//
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+func (_IValidatorManager *IValidatorManagerTransactor) CompleteValidatorRegistration(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
+	return _IValidatorManager.contract.Transact(opts, "completeValidatorRegistration", messageIndex)
+}
+
+// CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
+//
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+func (_IValidatorManager *IValidatorManagerSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.CompleteValidatorRegistration(&_IValidatorManager.TransactOpts, messageIndex)
+}
+
+// CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
+//
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+func (_IValidatorManager *IValidatorManagerTransactorSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.CompleteValidatorRegistration(&_IValidatorManager.TransactOpts, messageIndex)
+}
+
+// InitializeValidatorSet is a paid mutator transaction binding the contract method 0x20d91b7a.
+//
+// Solidity: function initializeValidatorSet((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData, uint32 messsageIndex) returns()
+func (_IValidatorManager *IValidatorManagerTransactor) InitializeValidatorSet(opts *bind.TransactOpts, subnetConversionData SubnetConversionData, messsageIndex uint32) (*types.Transaction, error) {
+	return _IValidatorManager.contract.Transact(opts, "initializeValidatorSet", subnetConversionData, messsageIndex)
+}
+
+// InitializeValidatorSet is a paid mutator transaction binding the contract method 0x20d91b7a.
+//
+// Solidity: function initializeValidatorSet((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData, uint32 messsageIndex) returns()
+func (_IValidatorManager *IValidatorManagerSession) InitializeValidatorSet(subnetConversionData SubnetConversionData, messsageIndex uint32) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.InitializeValidatorSet(&_IValidatorManager.TransactOpts, subnetConversionData, messsageIndex)
+}
+
+// InitializeValidatorSet is a paid mutator transaction binding the contract method 0x20d91b7a.
+//
+// Solidity: function initializeValidatorSet((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData, uint32 messsageIndex) returns()
+func (_IValidatorManager *IValidatorManagerTransactorSession) InitializeValidatorSet(subnetConversionData SubnetConversionData, messsageIndex uint32) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.InitializeValidatorSet(&_IValidatorManager.TransactOpts, subnetConversionData, messsageIndex)
+}
+
+// ResendEndValidatorMessage is a paid mutator transaction binding the contract method 0x0322ed98.
+//
+// Solidity: function resendEndValidatorMessage(bytes32 validationID) returns()
+func (_IValidatorManager *IValidatorManagerTransactor) ResendEndValidatorMessage(opts *bind.TransactOpts, validationID [32]byte) (*types.Transaction, error) {
+	return _IValidatorManager.contract.Transact(opts, "resendEndValidatorMessage", validationID)
+}
+
+// ResendEndValidatorMessage is a paid mutator transaction binding the contract method 0x0322ed98.
+//
+// Solidity: function resendEndValidatorMessage(bytes32 validationID) returns()
+func (_IValidatorManager *IValidatorManagerSession) ResendEndValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.ResendEndValidatorMessage(&_IValidatorManager.TransactOpts, validationID)
+}
+
+// ResendEndValidatorMessage is a paid mutator transaction binding the contract method 0x0322ed98.
+//
+// Solidity: function resendEndValidatorMessage(bytes32 validationID) returns()
+func (_IValidatorManager *IValidatorManagerTransactorSession) ResendEndValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.ResendEndValidatorMessage(&_IValidatorManager.TransactOpts, validationID)
+}
+
+// ResendRegisterValidatorMessage is a paid mutator transaction binding the contract method 0xbee0a03f.
+//
+// Solidity: function resendRegisterValidatorMessage(bytes32 validationID) returns()
+func (_IValidatorManager *IValidatorManagerTransactor) ResendRegisterValidatorMessage(opts *bind.TransactOpts, validationID [32]byte) (*types.Transaction, error) {
+	return _IValidatorManager.contract.Transact(opts, "resendRegisterValidatorMessage", validationID)
+}
+
+// ResendRegisterValidatorMessage is a paid mutator transaction binding the contract method 0xbee0a03f.
+//
+// Solidity: function resendRegisterValidatorMessage(bytes32 validationID) returns()
+func (_IValidatorManager *IValidatorManagerSession) ResendRegisterValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.ResendRegisterValidatorMessage(&_IValidatorManager.TransactOpts, validationID)
+}
+
+// ResendRegisterValidatorMessage is a paid mutator transaction binding the contract method 0xbee0a03f.
+//
+// Solidity: function resendRegisterValidatorMessage(bytes32 validationID) returns()
+func (_IValidatorManager *IValidatorManagerTransactorSession) ResendRegisterValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _IValidatorManager.Contract.ResendRegisterValidatorMessage(&_IValidatorManager.TransactOpts, validationID)
+}
+
+// IValidatorManagerInitialValidatorCreatedIterator is returned from FilterInitialValidatorCreated and is used to iterate over the raw logs and unpacked data for InitialValidatorCreated events raised by the IValidatorManager contract.
+type IValidatorManagerInitialValidatorCreatedIterator struct {
+	Event *IValidatorManagerInitialValidatorCreated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IValidatorManagerInitialValidatorCreatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IValidatorManagerInitialValidatorCreated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IValidatorManagerInitialValidatorCreated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IValidatorManagerInitialValidatorCreatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IValidatorManagerInitialValidatorCreatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IValidatorManagerInitialValidatorCreated represents a InitialValidatorCreated event raised by the IValidatorManager contract.
+type IValidatorManagerInitialValidatorCreated struct {
+	ValidationID [32]byte
+	NodeID       common.Hash
+	Weight       *big.Int
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterInitialValidatorCreated is a free log retrieval operation binding the contract event 0x9d47fef9da077661546e646d61830bfcbda90506c2e5eed38195e82c4eb1cbdf.
+//
+// Solidity: event InitialValidatorCreated(bytes32 indexed validationID, bytes indexed nodeID, uint256 weight)
+func (_IValidatorManager *IValidatorManagerFilterer) FilterInitialValidatorCreated(opts *bind.FilterOpts, validationID [][32]byte, nodeID [][]byte) (*IValidatorManagerInitialValidatorCreatedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.FilterLogs(opts, "InitialValidatorCreated", validationIDRule, nodeIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IValidatorManagerInitialValidatorCreatedIterator{contract: _IValidatorManager.contract, event: "InitialValidatorCreated", logs: logs, sub: sub}, nil
+}
+
+// WatchInitialValidatorCreated is a free log subscription operation binding the contract event 0x9d47fef9da077661546e646d61830bfcbda90506c2e5eed38195e82c4eb1cbdf.
+//
+// Solidity: event InitialValidatorCreated(bytes32 indexed validationID, bytes indexed nodeID, uint256 weight)
+func (_IValidatorManager *IValidatorManagerFilterer) WatchInitialValidatorCreated(opts *bind.WatchOpts, sink chan<- *IValidatorManagerInitialValidatorCreated, validationID [][32]byte, nodeID [][]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.WatchLogs(opts, "InitialValidatorCreated", validationIDRule, nodeIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IValidatorManagerInitialValidatorCreated)
+				if err := _IValidatorManager.contract.UnpackLog(event, "InitialValidatorCreated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseInitialValidatorCreated is a log parse operation binding the contract event 0x9d47fef9da077661546e646d61830bfcbda90506c2e5eed38195e82c4eb1cbdf.
+//
+// Solidity: event InitialValidatorCreated(bytes32 indexed validationID, bytes indexed nodeID, uint256 weight)
+func (_IValidatorManager *IValidatorManagerFilterer) ParseInitialValidatorCreated(log types.Log) (*IValidatorManagerInitialValidatorCreated, error) {
+	event := new(IValidatorManagerInitialValidatorCreated)
+	if err := _IValidatorManager.contract.UnpackLog(event, "InitialValidatorCreated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IValidatorManagerValidationPeriodCreatedIterator is returned from FilterValidationPeriodCreated and is used to iterate over the raw logs and unpacked data for ValidationPeriodCreated events raised by the IValidatorManager contract.
+type IValidatorManagerValidationPeriodCreatedIterator struct {
+	Event *IValidatorManagerValidationPeriodCreated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IValidatorManagerValidationPeriodCreatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IValidatorManagerValidationPeriodCreated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IValidatorManagerValidationPeriodCreated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IValidatorManagerValidationPeriodCreatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IValidatorManagerValidationPeriodCreatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IValidatorManagerValidationPeriodCreated represents a ValidationPeriodCreated event raised by the IValidatorManager contract.
+type IValidatorManagerValidationPeriodCreated struct {
+	ValidationID                [32]byte
+	NodeID                      common.Hash
+	RegisterValidationMessageID [32]byte
+	Weight                      *big.Int
+	RegistrationExpiry          uint64
+	Raw                         types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidationPeriodCreated is a free log retrieval operation binding the contract event 0xb77297e3befc691bfc864a81e241f83e2ef722b6e7becaa2ecec250c6d52b430.
+//
+// Solidity: event ValidationPeriodCreated(bytes32 indexed validationID, bytes indexed nodeID, bytes32 indexed registerValidationMessageID, uint256 weight, uint64 registrationExpiry)
+func (_IValidatorManager *IValidatorManagerFilterer) FilterValidationPeriodCreated(opts *bind.FilterOpts, validationID [][32]byte, nodeID [][]byte, registerValidationMessageID [][32]byte) (*IValidatorManagerValidationPeriodCreatedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+	var registerValidationMessageIDRule []interface{}
+	for _, registerValidationMessageIDItem := range registerValidationMessageID {
+		registerValidationMessageIDRule = append(registerValidationMessageIDRule, registerValidationMessageIDItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.FilterLogs(opts, "ValidationPeriodCreated", validationIDRule, nodeIDRule, registerValidationMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IValidatorManagerValidationPeriodCreatedIterator{contract: _IValidatorManager.contract, event: "ValidationPeriodCreated", logs: logs, sub: sub}, nil
+}
+
+// WatchValidationPeriodCreated is a free log subscription operation binding the contract event 0xb77297e3befc691bfc864a81e241f83e2ef722b6e7becaa2ecec250c6d52b430.
+//
+// Solidity: event ValidationPeriodCreated(bytes32 indexed validationID, bytes indexed nodeID, bytes32 indexed registerValidationMessageID, uint256 weight, uint64 registrationExpiry)
+func (_IValidatorManager *IValidatorManagerFilterer) WatchValidationPeriodCreated(opts *bind.WatchOpts, sink chan<- *IValidatorManagerValidationPeriodCreated, validationID [][32]byte, nodeID [][]byte, registerValidationMessageID [][32]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+	var registerValidationMessageIDRule []interface{}
+	for _, registerValidationMessageIDItem := range registerValidationMessageID {
+		registerValidationMessageIDRule = append(registerValidationMessageIDRule, registerValidationMessageIDItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.WatchLogs(opts, "ValidationPeriodCreated", validationIDRule, nodeIDRule, registerValidationMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IValidatorManagerValidationPeriodCreated)
+				if err := _IValidatorManager.contract.UnpackLog(event, "ValidationPeriodCreated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidationPeriodCreated is a log parse operation binding the contract event 0xb77297e3befc691bfc864a81e241f83e2ef722b6e7becaa2ecec250c6d52b430.
+//
+// Solidity: event ValidationPeriodCreated(bytes32 indexed validationID, bytes indexed nodeID, bytes32 indexed registerValidationMessageID, uint256 weight, uint64 registrationExpiry)
+func (_IValidatorManager *IValidatorManagerFilterer) ParseValidationPeriodCreated(log types.Log) (*IValidatorManagerValidationPeriodCreated, error) {
+	event := new(IValidatorManagerValidationPeriodCreated)
+	if err := _IValidatorManager.contract.UnpackLog(event, "ValidationPeriodCreated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IValidatorManagerValidationPeriodEndedIterator is returned from FilterValidationPeriodEnded and is used to iterate over the raw logs and unpacked data for ValidationPeriodEnded events raised by the IValidatorManager contract.
+type IValidatorManagerValidationPeriodEndedIterator struct {
+	Event *IValidatorManagerValidationPeriodEnded // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IValidatorManagerValidationPeriodEndedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IValidatorManagerValidationPeriodEnded)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IValidatorManagerValidationPeriodEnded)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IValidatorManagerValidationPeriodEndedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IValidatorManagerValidationPeriodEndedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IValidatorManagerValidationPeriodEnded represents a ValidationPeriodEnded event raised by the IValidatorManager contract.
+type IValidatorManagerValidationPeriodEnded struct {
+	ValidationID [32]byte
+	Status       uint8
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidationPeriodEnded is a free log retrieval operation binding the contract event 0x1c08e59656f1a18dc2da76826cdc52805c43e897a17c50faefb8ab3c1526cc16.
+//
+// Solidity: event ValidationPeriodEnded(bytes32 indexed validationID, uint8 indexed status)
+func (_IValidatorManager *IValidatorManagerFilterer) FilterValidationPeriodEnded(opts *bind.FilterOpts, validationID [][32]byte, status []uint8) (*IValidatorManagerValidationPeriodEndedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var statusRule []interface{}
+	for _, statusItem := range status {
+		statusRule = append(statusRule, statusItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.FilterLogs(opts, "ValidationPeriodEnded", validationIDRule, statusRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IValidatorManagerValidationPeriodEndedIterator{contract: _IValidatorManager.contract, event: "ValidationPeriodEnded", logs: logs, sub: sub}, nil
+}
+
+// WatchValidationPeriodEnded is a free log subscription operation binding the contract event 0x1c08e59656f1a18dc2da76826cdc52805c43e897a17c50faefb8ab3c1526cc16.
+//
+// Solidity: event ValidationPeriodEnded(bytes32 indexed validationID, uint8 indexed status)
+func (_IValidatorManager *IValidatorManagerFilterer) WatchValidationPeriodEnded(opts *bind.WatchOpts, sink chan<- *IValidatorManagerValidationPeriodEnded, validationID [][32]byte, status []uint8) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var statusRule []interface{}
+	for _, statusItem := range status {
+		statusRule = append(statusRule, statusItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.WatchLogs(opts, "ValidationPeriodEnded", validationIDRule, statusRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IValidatorManagerValidationPeriodEnded)
+				if err := _IValidatorManager.contract.UnpackLog(event, "ValidationPeriodEnded", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidationPeriodEnded is a log parse operation binding the contract event 0x1c08e59656f1a18dc2da76826cdc52805c43e897a17c50faefb8ab3c1526cc16.
+//
+// Solidity: event ValidationPeriodEnded(bytes32 indexed validationID, uint8 indexed status)
+func (_IValidatorManager *IValidatorManagerFilterer) ParseValidationPeriodEnded(log types.Log) (*IValidatorManagerValidationPeriodEnded, error) {
+	event := new(IValidatorManagerValidationPeriodEnded)
+	if err := _IValidatorManager.contract.UnpackLog(event, "ValidationPeriodEnded", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IValidatorManagerValidationPeriodRegisteredIterator is returned from FilterValidationPeriodRegistered and is used to iterate over the raw logs and unpacked data for ValidationPeriodRegistered events raised by the IValidatorManager contract.
+type IValidatorManagerValidationPeriodRegisteredIterator struct {
+	Event *IValidatorManagerValidationPeriodRegistered // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IValidatorManagerValidationPeriodRegisteredIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IValidatorManagerValidationPeriodRegistered)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IValidatorManagerValidationPeriodRegistered)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IValidatorManagerValidationPeriodRegisteredIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IValidatorManagerValidationPeriodRegisteredIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IValidatorManagerValidationPeriodRegistered represents a ValidationPeriodRegistered event raised by the IValidatorManager contract.
+type IValidatorManagerValidationPeriodRegistered struct {
+	ValidationID [32]byte
+	Weight       *big.Int
+	Timestamp    *big.Int
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidationPeriodRegistered is a free log retrieval operation binding the contract event 0xf8fd1c90fb9cfa2ca2358fdf5806b086ad43315d92b221c929efc7f105ce7568.
+//
+// Solidity: event ValidationPeriodRegistered(bytes32 indexed validationID, uint256 weight, uint256 timestamp)
+func (_IValidatorManager *IValidatorManagerFilterer) FilterValidationPeriodRegistered(opts *bind.FilterOpts, validationID [][32]byte) (*IValidatorManagerValidationPeriodRegisteredIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.FilterLogs(opts, "ValidationPeriodRegistered", validationIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IValidatorManagerValidationPeriodRegisteredIterator{contract: _IValidatorManager.contract, event: "ValidationPeriodRegistered", logs: logs, sub: sub}, nil
+}
+
+// WatchValidationPeriodRegistered is a free log subscription operation binding the contract event 0xf8fd1c90fb9cfa2ca2358fdf5806b086ad43315d92b221c929efc7f105ce7568.
+//
+// Solidity: event ValidationPeriodRegistered(bytes32 indexed validationID, uint256 weight, uint256 timestamp)
+func (_IValidatorManager *IValidatorManagerFilterer) WatchValidationPeriodRegistered(opts *bind.WatchOpts, sink chan<- *IValidatorManagerValidationPeriodRegistered, validationID [][32]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.WatchLogs(opts, "ValidationPeriodRegistered", validationIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IValidatorManagerValidationPeriodRegistered)
+				if err := _IValidatorManager.contract.UnpackLog(event, "ValidationPeriodRegistered", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidationPeriodRegistered is a log parse operation binding the contract event 0xf8fd1c90fb9cfa2ca2358fdf5806b086ad43315d92b221c929efc7f105ce7568.
+//
+// Solidity: event ValidationPeriodRegistered(bytes32 indexed validationID, uint256 weight, uint256 timestamp)
+func (_IValidatorManager *IValidatorManagerFilterer) ParseValidationPeriodRegistered(log types.Log) (*IValidatorManagerValidationPeriodRegistered, error) {
+	event := new(IValidatorManagerValidationPeriodRegistered)
+	if err := _IValidatorManager.contract.UnpackLog(event, "ValidationPeriodRegistered", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IValidatorManagerValidatorRemovalInitializedIterator is returned from FilterValidatorRemovalInitialized and is used to iterate over the raw logs and unpacked data for ValidatorRemovalInitialized events raised by the IValidatorManager contract.
+type IValidatorManagerValidatorRemovalInitializedIterator struct {
+	Event *IValidatorManagerValidatorRemovalInitialized // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IValidatorManagerValidatorRemovalInitializedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IValidatorManagerValidatorRemovalInitialized)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IValidatorManagerValidatorRemovalInitialized)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IValidatorManagerValidatorRemovalInitializedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IValidatorManagerValidatorRemovalInitializedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IValidatorManagerValidatorRemovalInitialized represents a ValidatorRemovalInitialized event raised by the IValidatorManager contract.
+type IValidatorManagerValidatorRemovalInitialized struct {
+	ValidationID       [32]byte
+	SetWeightMessageID [32]byte
+	Weight             *big.Int
+	EndTime            *big.Int
+	Raw                types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidatorRemovalInitialized is a free log retrieval operation binding the contract event 0x13d58394cf269d48bcf927959a29a5ffee7c9924dafff8927ecdf3c48ffa7c67.
+//
+// Solidity: event ValidatorRemovalInitialized(bytes32 indexed validationID, bytes32 indexed setWeightMessageID, uint256 weight, uint256 endTime)
+func (_IValidatorManager *IValidatorManagerFilterer) FilterValidatorRemovalInitialized(opts *bind.FilterOpts, validationID [][32]byte, setWeightMessageID [][32]byte) (*IValidatorManagerValidatorRemovalInitializedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var setWeightMessageIDRule []interface{}
+	for _, setWeightMessageIDItem := range setWeightMessageID {
+		setWeightMessageIDRule = append(setWeightMessageIDRule, setWeightMessageIDItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.FilterLogs(opts, "ValidatorRemovalInitialized", validationIDRule, setWeightMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IValidatorManagerValidatorRemovalInitializedIterator{contract: _IValidatorManager.contract, event: "ValidatorRemovalInitialized", logs: logs, sub: sub}, nil
+}
+
+// WatchValidatorRemovalInitialized is a free log subscription operation binding the contract event 0x13d58394cf269d48bcf927959a29a5ffee7c9924dafff8927ecdf3c48ffa7c67.
+//
+// Solidity: event ValidatorRemovalInitialized(bytes32 indexed validationID, bytes32 indexed setWeightMessageID, uint256 weight, uint256 endTime)
+func (_IValidatorManager *IValidatorManagerFilterer) WatchValidatorRemovalInitialized(opts *bind.WatchOpts, sink chan<- *IValidatorManagerValidatorRemovalInitialized, validationID [][32]byte, setWeightMessageID [][32]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var setWeightMessageIDRule []interface{}
+	for _, setWeightMessageIDItem := range setWeightMessageID {
+		setWeightMessageIDRule = append(setWeightMessageIDRule, setWeightMessageIDItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.WatchLogs(opts, "ValidatorRemovalInitialized", validationIDRule, setWeightMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IValidatorManagerValidatorRemovalInitialized)
+				if err := _IValidatorManager.contract.UnpackLog(event, "ValidatorRemovalInitialized", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidatorRemovalInitialized is a log parse operation binding the contract event 0x13d58394cf269d48bcf927959a29a5ffee7c9924dafff8927ecdf3c48ffa7c67.
+//
+// Solidity: event ValidatorRemovalInitialized(bytes32 indexed validationID, bytes32 indexed setWeightMessageID, uint256 weight, uint256 endTime)
+func (_IValidatorManager *IValidatorManagerFilterer) ParseValidatorRemovalInitialized(log types.Log) (*IValidatorManagerValidatorRemovalInitialized, error) {
+	event := new(IValidatorManagerValidatorRemovalInitialized)
+	if err := _IValidatorManager.contract.UnpackLog(event, "ValidatorRemovalInitialized", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IValidatorManagerValidatorWeightUpdateIterator is returned from FilterValidatorWeightUpdate and is used to iterate over the raw logs and unpacked data for ValidatorWeightUpdate events raised by the IValidatorManager contract.
+type IValidatorManagerValidatorWeightUpdateIterator struct {
+	Event *IValidatorManagerValidatorWeightUpdate // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IValidatorManagerValidatorWeightUpdateIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IValidatorManagerValidatorWeightUpdate)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IValidatorManagerValidatorWeightUpdate)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IValidatorManagerValidatorWeightUpdateIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IValidatorManagerValidatorWeightUpdateIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IValidatorManagerValidatorWeightUpdate represents a ValidatorWeightUpdate event raised by the IValidatorManager contract.
+type IValidatorManagerValidatorWeightUpdate struct {
+	ValidationID       [32]byte
+	Nonce              uint64
+	ValidatorWeight    uint64
+	SetWeightMessageID [32]byte
+	Raw                types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidatorWeightUpdate is a free log retrieval operation binding the contract event 0x07de5ff35a674a8005e661f3333c907ca6333462808762d19dc7b3abb1a8c1df.
+//
+// Solidity: event ValidatorWeightUpdate(bytes32 indexed validationID, uint64 indexed nonce, uint64 validatorWeight, bytes32 setWeightMessageID)
+func (_IValidatorManager *IValidatorManagerFilterer) FilterValidatorWeightUpdate(opts *bind.FilterOpts, validationID [][32]byte, nonce []uint64) (*IValidatorManagerValidatorWeightUpdateIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nonceRule []interface{}
+	for _, nonceItem := range nonce {
+		nonceRule = append(nonceRule, nonceItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.FilterLogs(opts, "ValidatorWeightUpdate", validationIDRule, nonceRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IValidatorManagerValidatorWeightUpdateIterator{contract: _IValidatorManager.contract, event: "ValidatorWeightUpdate", logs: logs, sub: sub}, nil
+}
+
+// WatchValidatorWeightUpdate is a free log subscription operation binding the contract event 0x07de5ff35a674a8005e661f3333c907ca6333462808762d19dc7b3abb1a8c1df.
+//
+// Solidity: event ValidatorWeightUpdate(bytes32 indexed validationID, uint64 indexed nonce, uint64 validatorWeight, bytes32 setWeightMessageID)
+func (_IValidatorManager *IValidatorManagerFilterer) WatchValidatorWeightUpdate(opts *bind.WatchOpts, sink chan<- *IValidatorManagerValidatorWeightUpdate, validationID [][32]byte, nonce []uint64) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nonceRule []interface{}
+	for _, nonceItem := range nonce {
+		nonceRule = append(nonceRule, nonceItem)
+	}
+
+	logs, sub, err := _IValidatorManager.contract.WatchLogs(opts, "ValidatorWeightUpdate", validationIDRule, nonceRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IValidatorManagerValidatorWeightUpdate)
+				if err := _IValidatorManager.contract.UnpackLog(event, "ValidatorWeightUpdate", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidatorWeightUpdate is a log parse operation binding the contract event 0x07de5ff35a674a8005e661f3333c907ca6333462808762d19dc7b3abb1a8c1df.
+//
+// Solidity: event ValidatorWeightUpdate(bytes32 indexed validationID, uint64 indexed nonce, uint64 validatorWeight, bytes32 setWeightMessageID)
+func (_IValidatorManager *IValidatorManagerFilterer) ParseValidatorWeightUpdate(log types.Log) (*IValidatorManagerValidatorWeightUpdate, error) {
+	event := new(IValidatorManagerValidatorWeightUpdate)
+	if err := _IValidatorManager.contract.UnpackLog(event, "ValidatorWeightUpdate", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IWarpMessengerMetaData contains all meta data concerning the IWarpMessenger contract.
+var IWarpMessengerMetaData = &bind.MetaData{
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"messageID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"SendWarpMessage\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"getBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"blockchainID\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"}],\"name\":\"getVerifiedWarpBlockHash\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"sourceChainID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"internalType\":\"structWarpBlockHash\",\"name\":\"warpBlockHash\",\"type\":\"tuple\"},{\"internalType\":\"bool\",\"name\":\"valid\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"}],\"name\":\"getVerifiedWarpMessage\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"sourceChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"payload\",\"type\":\"bytes\"}],\"internalType\":\"structWarpMessage\",\"name\":\"message\",\"type\":\"tuple\"},{\"internalType\":\"bool\",\"name\":\"valid\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"payload\",\"type\":\"bytes\"}],\"name\":\"sendWarpMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageID\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+}
+
+// IWarpMessengerABI is the input ABI used to generate the binding from.
+// Deprecated: Use IWarpMessengerMetaData.ABI instead.
+var IWarpMessengerABI = IWarpMessengerMetaData.ABI
+
+// IWarpMessenger is an auto generated Go binding around an Ethereum contract.
+type IWarpMessenger struct {
+	IWarpMessengerCaller     // Read-only binding to the contract
+	IWarpMessengerTransactor // Write-only binding to the contract
+	IWarpMessengerFilterer   // Log filterer for contract events
+}
+
+// IWarpMessengerCaller is an auto generated read-only Go binding around an Ethereum contract.
+type IWarpMessengerCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IWarpMessengerTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type IWarpMessengerTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IWarpMessengerFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type IWarpMessengerFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IWarpMessengerSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type IWarpMessengerSession struct {
+	Contract     *IWarpMessenger   // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
+}
+
+// IWarpMessengerCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type IWarpMessengerCallerSession struct {
+	Contract *IWarpMessengerCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts         // Call options to use throughout this session
+}
+
+// IWarpMessengerTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type IWarpMessengerTransactorSession struct {
+	Contract     *IWarpMessengerTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts         // Transaction auth options to use throughout this session
+}
+
+// IWarpMessengerRaw is an auto generated low-level Go binding around an Ethereum contract.
+type IWarpMessengerRaw struct {
+	Contract *IWarpMessenger // Generic contract binding to access the raw methods on
+}
+
+// IWarpMessengerCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type IWarpMessengerCallerRaw struct {
+	Contract *IWarpMessengerCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// IWarpMessengerTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type IWarpMessengerTransactorRaw struct {
+	Contract *IWarpMessengerTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewIWarpMessenger creates a new instance of IWarpMessenger, bound to a specific deployed contract.
+func NewIWarpMessenger(address common.Address, backend bind.ContractBackend) (*IWarpMessenger, error) {
+	contract, err := bindIWarpMessenger(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &IWarpMessenger{IWarpMessengerCaller: IWarpMessengerCaller{contract: contract}, IWarpMessengerTransactor: IWarpMessengerTransactor{contract: contract}, IWarpMessengerFilterer: IWarpMessengerFilterer{contract: contract}}, nil
+}
+
+// NewIWarpMessengerCaller creates a new read-only instance of IWarpMessenger, bound to a specific deployed contract.
+func NewIWarpMessengerCaller(address common.Address, caller bind.ContractCaller) (*IWarpMessengerCaller, error) {
+	contract, err := bindIWarpMessenger(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &IWarpMessengerCaller{contract: contract}, nil
+}
+
+// NewIWarpMessengerTransactor creates a new write-only instance of IWarpMessenger, bound to a specific deployed contract.
+func NewIWarpMessengerTransactor(address common.Address, transactor bind.ContractTransactor) (*IWarpMessengerTransactor, error) {
+	contract, err := bindIWarpMessenger(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &IWarpMessengerTransactor{contract: contract}, nil
+}
+
+// NewIWarpMessengerFilterer creates a new log filterer instance of IWarpMessenger, bound to a specific deployed contract.
+func NewIWarpMessengerFilterer(address common.Address, filterer bind.ContractFilterer) (*IWarpMessengerFilterer, error) {
+	contract, err := bindIWarpMessenger(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &IWarpMessengerFilterer{contract: contract}, nil
+}
+
+// bindIWarpMessenger binds a generic wrapper to an already deployed contract.
+func bindIWarpMessenger(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := IWarpMessengerMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_IWarpMessenger *IWarpMessengerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _IWarpMessenger.Contract.IWarpMessengerCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_IWarpMessenger *IWarpMessengerRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _IWarpMessenger.Contract.IWarpMessengerTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_IWarpMessenger *IWarpMessengerRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _IWarpMessenger.Contract.IWarpMessengerTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_IWarpMessenger *IWarpMessengerCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _IWarpMessenger.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_IWarpMessenger *IWarpMessengerTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _IWarpMessenger.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_IWarpMessenger *IWarpMessengerTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _IWarpMessenger.Contract.contract.Transact(opts, method, params...)
+}
+
+// GetBlockchainID is a free data retrieval call binding the contract method 0x4213cf78.
+//
+// Solidity: function getBlockchainID() view returns(bytes32 blockchainID)
+func (_IWarpMessenger *IWarpMessengerCaller) GetBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
+	var out []interface{}
+	err := _IWarpMessenger.contract.Call(opts, &out, "getBlockchainID")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// GetBlockchainID is a free data retrieval call binding the contract method 0x4213cf78.
+//
+// Solidity: function getBlockchainID() view returns(bytes32 blockchainID)
+func (_IWarpMessenger *IWarpMessengerSession) GetBlockchainID() ([32]byte, error) {
+	return _IWarpMessenger.Contract.GetBlockchainID(&_IWarpMessenger.CallOpts)
+}
+
+// GetBlockchainID is a free data retrieval call binding the contract method 0x4213cf78.
+//
+// Solidity: function getBlockchainID() view returns(bytes32 blockchainID)
+func (_IWarpMessenger *IWarpMessengerCallerSession) GetBlockchainID() ([32]byte, error) {
+	return _IWarpMessenger.Contract.GetBlockchainID(&_IWarpMessenger.CallOpts)
+}
+
+// GetVerifiedWarpBlockHash is a free data retrieval call binding the contract method 0xce7f5929.
+//
+// Solidity: function getVerifiedWarpBlockHash(uint32 index) view returns((bytes32,bytes32) warpBlockHash, bool valid)
+func (_IWarpMessenger *IWarpMessengerCaller) GetVerifiedWarpBlockHash(opts *bind.CallOpts, index uint32) (struct {
+	WarpBlockHash WarpBlockHash
+	Valid         bool
+}, error) {
+	var out []interface{}
+	err := _IWarpMessenger.contract.Call(opts, &out, "getVerifiedWarpBlockHash", index)
+
+	outstruct := new(struct {
+		WarpBlockHash WarpBlockHash
+		Valid         bool
+	})
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.WarpBlockHash = *abi.ConvertType(out[0], new(WarpBlockHash)).(*WarpBlockHash)
+	outstruct.Valid = *abi.ConvertType(out[1], new(bool)).(*bool)
+
+	return *outstruct, err
+
+}
+
+// GetVerifiedWarpBlockHash is a free data retrieval call binding the contract method 0xce7f5929.
+//
+// Solidity: function getVerifiedWarpBlockHash(uint32 index) view returns((bytes32,bytes32) warpBlockHash, bool valid)
+func (_IWarpMessenger *IWarpMessengerSession) GetVerifiedWarpBlockHash(index uint32) (struct {
+	WarpBlockHash WarpBlockHash
+	Valid         bool
+}, error) {
+	return _IWarpMessenger.Contract.GetVerifiedWarpBlockHash(&_IWarpMessenger.CallOpts, index)
+}
+
+// GetVerifiedWarpBlockHash is a free data retrieval call binding the contract method 0xce7f5929.
+//
+// Solidity: function getVerifiedWarpBlockHash(uint32 index) view returns((bytes32,bytes32) warpBlockHash, bool valid)
+func (_IWarpMessenger *IWarpMessengerCallerSession) GetVerifiedWarpBlockHash(index uint32) (struct {
+	WarpBlockHash WarpBlockHash
+	Valid         bool
+}, error) {
+	return _IWarpMessenger.Contract.GetVerifiedWarpBlockHash(&_IWarpMessenger.CallOpts, index)
+}
+
+// GetVerifiedWarpMessage is a free data retrieval call binding the contract method 0x6f825350.
+//
+// Solidity: function getVerifiedWarpMessage(uint32 index) view returns((bytes32,address,bytes) message, bool valid)
+func (_IWarpMessenger *IWarpMessengerCaller) GetVerifiedWarpMessage(opts *bind.CallOpts, index uint32) (struct {
+	Message WarpMessage
+	Valid   bool
+}, error) {
+	var out []interface{}
+	err := _IWarpMessenger.contract.Call(opts, &out, "getVerifiedWarpMessage", index)
+
+	outstruct := new(struct {
+		Message WarpMessage
+		Valid   bool
+	})
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.Message = *abi.ConvertType(out[0], new(WarpMessage)).(*WarpMessage)
+	outstruct.Valid = *abi.ConvertType(out[1], new(bool)).(*bool)
+
+	return *outstruct, err
+
+}
+
+// GetVerifiedWarpMessage is a free data retrieval call binding the contract method 0x6f825350.
+//
+// Solidity: function getVerifiedWarpMessage(uint32 index) view returns((bytes32,address,bytes) message, bool valid)
+func (_IWarpMessenger *IWarpMessengerSession) GetVerifiedWarpMessage(index uint32) (struct {
+	Message WarpMessage
+	Valid   bool
+}, error) {
+	return _IWarpMessenger.Contract.GetVerifiedWarpMessage(&_IWarpMessenger.CallOpts, index)
+}
+
+// GetVerifiedWarpMessage is a free data retrieval call binding the contract method 0x6f825350.
+//
+// Solidity: function getVerifiedWarpMessage(uint32 index) view returns((bytes32,address,bytes) message, bool valid)
+func (_IWarpMessenger *IWarpMessengerCallerSession) GetVerifiedWarpMessage(index uint32) (struct {
+	Message WarpMessage
+	Valid   bool
+}, error) {
+	return _IWarpMessenger.Contract.GetVerifiedWarpMessage(&_IWarpMessenger.CallOpts, index)
+}
+
+// SendWarpMessage is a paid mutator transaction binding the contract method 0xee5b48eb.
+//
+// Solidity: function sendWarpMessage(bytes payload) returns(bytes32 messageID)
+func (_IWarpMessenger *IWarpMessengerTransactor) SendWarpMessage(opts *bind.TransactOpts, payload []byte) (*types.Transaction, error) {
+	return _IWarpMessenger.contract.Transact(opts, "sendWarpMessage", payload)
+}
+
+// SendWarpMessage is a paid mutator transaction binding the contract method 0xee5b48eb.
+//
+// Solidity: function sendWarpMessage(bytes payload) returns(bytes32 messageID)
+func (_IWarpMessenger *IWarpMessengerSession) SendWarpMessage(payload []byte) (*types.Transaction, error) {
+	return _IWarpMessenger.Contract.SendWarpMessage(&_IWarpMessenger.TransactOpts, payload)
+}
+
+// SendWarpMessage is a paid mutator transaction binding the contract method 0xee5b48eb.
+//
+// Solidity: function sendWarpMessage(bytes payload) returns(bytes32 messageID)
+func (_IWarpMessenger *IWarpMessengerTransactorSession) SendWarpMessage(payload []byte) (*types.Transaction, error) {
+	return _IWarpMessenger.Contract.SendWarpMessage(&_IWarpMessenger.TransactOpts, payload)
+}
+
+// IWarpMessengerSendWarpMessageIterator is returned from FilterSendWarpMessage and is used to iterate over the raw logs and unpacked data for SendWarpMessage events raised by the IWarpMessenger contract.
+type IWarpMessengerSendWarpMessageIterator struct {
+	Event *IWarpMessengerSendWarpMessage // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IWarpMessengerSendWarpMessageIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IWarpMessengerSendWarpMessage)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IWarpMessengerSendWarpMessage)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IWarpMessengerSendWarpMessageIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IWarpMessengerSendWarpMessageIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IWarpMessengerSendWarpMessage represents a SendWarpMessage event raised by the IWarpMessenger contract.
+type IWarpMessengerSendWarpMessage struct {
+	Sender    common.Address
+	MessageID [32]byte
+	Message   []byte
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+// FilterSendWarpMessage is a free log retrieval operation binding the contract event 0x56600c567728a800c0aa927500f831cb451df66a7af570eb4df4dfbf4674887d.
+//
+// Solidity: event SendWarpMessage(address indexed sender, bytes32 indexed messageID, bytes message)
+func (_IWarpMessenger *IWarpMessengerFilterer) FilterSendWarpMessage(opts *bind.FilterOpts, sender []common.Address, messageID [][32]byte) (*IWarpMessengerSendWarpMessageIterator, error) {
+
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
+	}
+	var messageIDRule []interface{}
+	for _, messageIDItem := range messageID {
+		messageIDRule = append(messageIDRule, messageIDItem)
+	}
+
+	logs, sub, err := _IWarpMessenger.contract.FilterLogs(opts, "SendWarpMessage", senderRule, messageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IWarpMessengerSendWarpMessageIterator{contract: _IWarpMessenger.contract, event: "SendWarpMessage", logs: logs, sub: sub}, nil
+}
+
+// WatchSendWarpMessage is a free log subscription operation binding the contract event 0x56600c567728a800c0aa927500f831cb451df66a7af570eb4df4dfbf4674887d.
+//
+// Solidity: event SendWarpMessage(address indexed sender, bytes32 indexed messageID, bytes message)
+func (_IWarpMessenger *IWarpMessengerFilterer) WatchSendWarpMessage(opts *bind.WatchOpts, sink chan<- *IWarpMessengerSendWarpMessage, sender []common.Address, messageID [][32]byte) (event.Subscription, error) {
+
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
+	}
+	var messageIDRule []interface{}
+	for _, messageIDItem := range messageID {
+		messageIDRule = append(messageIDRule, messageIDItem)
+	}
+
+	logs, sub, err := _IWarpMessenger.contract.WatchLogs(opts, "SendWarpMessage", senderRule, messageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IWarpMessengerSendWarpMessage)
+				if err := _IWarpMessenger.contract.UnpackLog(event, "SendWarpMessage", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSendWarpMessage is a log parse operation binding the contract event 0x56600c567728a800c0aa927500f831cb451df66a7af570eb4df4dfbf4674887d.
+//
+// Solidity: event SendWarpMessage(address indexed sender, bytes32 indexed messageID, bytes message)
+func (_IWarpMessenger *IWarpMessengerFilterer) ParseSendWarpMessage(log types.Log) (*IWarpMessengerSendWarpMessage, error) {
+	event := new(IWarpMessengerSendWarpMessage)
+	if err := _IWarpMessenger.contract.UnpackLog(event, "SendWarpMessage", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// InitializableMetaData contains all meta data concerning the Initializable contract.
+var InitializableMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"}]",
+}
+
+// InitializableABI is the input ABI used to generate the binding from.
+// Deprecated: Use InitializableMetaData.ABI instead.
+var InitializableABI = InitializableMetaData.ABI
+
+// Initializable is an auto generated Go binding around an Ethereum contract.
+type Initializable struct {
+	InitializableCaller     // Read-only binding to the contract
+	InitializableTransactor // Write-only binding to the contract
+	InitializableFilterer   // Log filterer for contract events
+}
+
+// InitializableCaller is an auto generated read-only Go binding around an Ethereum contract.
+type InitializableCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// InitializableTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type InitializableTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// InitializableFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type InitializableFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// InitializableSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type InitializableSession struct {
+	Contract     *Initializable    // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
+}
+
+// InitializableCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type InitializableCallerSession struct {
+	Contract *InitializableCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts        // Call options to use throughout this session
+}
+
+// InitializableTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type InitializableTransactorSession struct {
+	Contract     *InitializableTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts        // Transaction auth options to use throughout this session
+}
+
+// InitializableRaw is an auto generated low-level Go binding around an Ethereum contract.
+type InitializableRaw struct {
+	Contract *Initializable // Generic contract binding to access the raw methods on
+}
+
+// InitializableCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type InitializableCallerRaw struct {
+	Contract *InitializableCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// InitializableTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type InitializableTransactorRaw struct {
+	Contract *InitializableTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewInitializable creates a new instance of Initializable, bound to a specific deployed contract.
+func NewInitializable(address common.Address, backend bind.ContractBackend) (*Initializable, error) {
+	contract, err := bindInitializable(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &Initializable{InitializableCaller: InitializableCaller{contract: contract}, InitializableTransactor: InitializableTransactor{contract: contract}, InitializableFilterer: InitializableFilterer{contract: contract}}, nil
+}
+
+// NewInitializableCaller creates a new read-only instance of Initializable, bound to a specific deployed contract.
+func NewInitializableCaller(address common.Address, caller bind.ContractCaller) (*InitializableCaller, error) {
+	contract, err := bindInitializable(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &InitializableCaller{contract: contract}, nil
+}
+
+// NewInitializableTransactor creates a new write-only instance of Initializable, bound to a specific deployed contract.
+func NewInitializableTransactor(address common.Address, transactor bind.ContractTransactor) (*InitializableTransactor, error) {
+	contract, err := bindInitializable(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &InitializableTransactor{contract: contract}, nil
+}
+
+// NewInitializableFilterer creates a new log filterer instance of Initializable, bound to a specific deployed contract.
+func NewInitializableFilterer(address common.Address, filterer bind.ContractFilterer) (*InitializableFilterer, error) {
+	contract, err := bindInitializable(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &InitializableFilterer{contract: contract}, nil
+}
+
+// bindInitializable binds a generic wrapper to an already deployed contract.
+func bindInitializable(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := InitializableMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_Initializable *InitializableRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _Initializable.Contract.InitializableCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_Initializable *InitializableRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Initializable.Contract.InitializableTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_Initializable *InitializableRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _Initializable.Contract.InitializableTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_Initializable *InitializableCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _Initializable.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_Initializable *InitializableTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Initializable.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_Initializable *InitializableTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _Initializable.Contract.contract.Transact(opts, method, params...)
+}
+
+// InitializableInitializedIterator is returned from FilterInitialized and is used to iterate over the raw logs and unpacked data for Initialized events raised by the Initializable contract.
+type InitializableInitializedIterator struct {
+	Event *InitializableInitialized // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *InitializableInitializedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(InitializableInitialized)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(InitializableInitialized)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *InitializableInitializedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *InitializableInitializedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// InitializableInitialized represents a Initialized event raised by the Initializable contract.
+type InitializableInitialized struct {
+	Version uint64
+	Raw     types.Log // Blockchain specific contextual infos
+}
+
+// FilterInitialized is a free log retrieval operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_Initializable *InitializableFilterer) FilterInitialized(opts *bind.FilterOpts) (*InitializableInitializedIterator, error) {
+
+	logs, sub, err := _Initializable.contract.FilterLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return &InitializableInitializedIterator{contract: _Initializable.contract, event: "Initialized", logs: logs, sub: sub}, nil
+}
+
+// WatchInitialized is a free log subscription operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_Initializable *InitializableFilterer) WatchInitialized(opts *bind.WatchOpts, sink chan<- *InitializableInitialized) (event.Subscription, error) {
+
+	logs, sub, err := _Initializable.contract.WatchLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(InitializableInitialized)
+				if err := _Initializable.contract.UnpackLog(event, "Initialized", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseInitialized is a log parse operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_Initializable *InitializableFilterer) ParseInitialized(log types.Log) (*InitializableInitialized, error) {
+	event := new(InitializableInitialized)
+	if err := _Initializable.contract.UnpackLog(event, "Initialized", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// OwnableUpgradeableMetaData contains all meta data concerning the OwnableUpgradeable contract.
+var OwnableUpgradeableMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+}
+
+// OwnableUpgradeableABI is the input ABI used to generate the binding from.
+// Deprecated: Use OwnableUpgradeableMetaData.ABI instead.
+var OwnableUpgradeableABI = OwnableUpgradeableMetaData.ABI
+
+// OwnableUpgradeable is an auto generated Go binding around an Ethereum contract.
+type OwnableUpgradeable struct {
+	OwnableUpgradeableCaller     // Read-only binding to the contract
+	OwnableUpgradeableTransactor // Write-only binding to the contract
+	OwnableUpgradeableFilterer   // Log filterer for contract events
+}
+
+// OwnableUpgradeableCaller is an auto generated read-only Go binding around an Ethereum contract.
+type OwnableUpgradeableCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// OwnableUpgradeableTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type OwnableUpgradeableTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// OwnableUpgradeableFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type OwnableUpgradeableFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// OwnableUpgradeableSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type OwnableUpgradeableSession struct {
+	Contract     *OwnableUpgradeable // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts       // Call options to use throughout this session
+	TransactOpts bind.TransactOpts   // Transaction auth options to use throughout this session
+}
+
+// OwnableUpgradeableCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type OwnableUpgradeableCallerSession struct {
+	Contract *OwnableUpgradeableCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts             // Call options to use throughout this session
+}
+
+// OwnableUpgradeableTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type OwnableUpgradeableTransactorSession struct {
+	Contract     *OwnableUpgradeableTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts             // Transaction auth options to use throughout this session
+}
+
+// OwnableUpgradeableRaw is an auto generated low-level Go binding around an Ethereum contract.
+type OwnableUpgradeableRaw struct {
+	Contract *OwnableUpgradeable // Generic contract binding to access the raw methods on
+}
+
+// OwnableUpgradeableCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type OwnableUpgradeableCallerRaw struct {
+	Contract *OwnableUpgradeableCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// OwnableUpgradeableTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type OwnableUpgradeableTransactorRaw struct {
+	Contract *OwnableUpgradeableTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewOwnableUpgradeable creates a new instance of OwnableUpgradeable, bound to a specific deployed contract.
+func NewOwnableUpgradeable(address common.Address, backend bind.ContractBackend) (*OwnableUpgradeable, error) {
+	contract, err := bindOwnableUpgradeable(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &OwnableUpgradeable{OwnableUpgradeableCaller: OwnableUpgradeableCaller{contract: contract}, OwnableUpgradeableTransactor: OwnableUpgradeableTransactor{contract: contract}, OwnableUpgradeableFilterer: OwnableUpgradeableFilterer{contract: contract}}, nil
+}
+
+// NewOwnableUpgradeableCaller creates a new read-only instance of OwnableUpgradeable, bound to a specific deployed contract.
+func NewOwnableUpgradeableCaller(address common.Address, caller bind.ContractCaller) (*OwnableUpgradeableCaller, error) {
+	contract, err := bindOwnableUpgradeable(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &OwnableUpgradeableCaller{contract: contract}, nil
+}
+
+// NewOwnableUpgradeableTransactor creates a new write-only instance of OwnableUpgradeable, bound to a specific deployed contract.
+func NewOwnableUpgradeableTransactor(address common.Address, transactor bind.ContractTransactor) (*OwnableUpgradeableTransactor, error) {
+	contract, err := bindOwnableUpgradeable(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &OwnableUpgradeableTransactor{contract: contract}, nil
+}
+
+// NewOwnableUpgradeableFilterer creates a new log filterer instance of OwnableUpgradeable, bound to a specific deployed contract.
+func NewOwnableUpgradeableFilterer(address common.Address, filterer bind.ContractFilterer) (*OwnableUpgradeableFilterer, error) {
+	contract, err := bindOwnableUpgradeable(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &OwnableUpgradeableFilterer{contract: contract}, nil
+}
+
+// bindOwnableUpgradeable binds a generic wrapper to an already deployed contract.
+func bindOwnableUpgradeable(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := OwnableUpgradeableMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_OwnableUpgradeable *OwnableUpgradeableRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _OwnableUpgradeable.Contract.OwnableUpgradeableCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_OwnableUpgradeable *OwnableUpgradeableRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _OwnableUpgradeable.Contract.OwnableUpgradeableTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_OwnableUpgradeable *OwnableUpgradeableRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _OwnableUpgradeable.Contract.OwnableUpgradeableTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_OwnableUpgradeable *OwnableUpgradeableCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _OwnableUpgradeable.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_OwnableUpgradeable *OwnableUpgradeableTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _OwnableUpgradeable.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_OwnableUpgradeable *OwnableUpgradeableTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _OwnableUpgradeable.Contract.contract.Transact(opts, method, params...)
+}
+
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
+//
+// Solidity: function owner() view returns(address)
+func (_OwnableUpgradeable *OwnableUpgradeableCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _OwnableUpgradeable.contract.Call(opts, &out, "owner")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
+//
+// Solidity: function owner() view returns(address)
+func (_OwnableUpgradeable *OwnableUpgradeableSession) Owner() (common.Address, error) {
+	return _OwnableUpgradeable.Contract.Owner(&_OwnableUpgradeable.CallOpts)
+}
+
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
+//
+// Solidity: function owner() view returns(address)
+func (_OwnableUpgradeable *OwnableUpgradeableCallerSession) Owner() (common.Address, error) {
+	return _OwnableUpgradeable.Contract.Owner(&_OwnableUpgradeable.CallOpts)
+}
+
+// RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
+//
+// Solidity: function renounceOwnership() returns()
+func (_OwnableUpgradeable *OwnableUpgradeableTransactor) RenounceOwnership(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _OwnableUpgradeable.contract.Transact(opts, "renounceOwnership")
+}
+
+// RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
+//
+// Solidity: function renounceOwnership() returns()
+func (_OwnableUpgradeable *OwnableUpgradeableSession) RenounceOwnership() (*types.Transaction, error) {
+	return _OwnableUpgradeable.Contract.RenounceOwnership(&_OwnableUpgradeable.TransactOpts)
+}
+
+// RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
+//
+// Solidity: function renounceOwnership() returns()
+func (_OwnableUpgradeable *OwnableUpgradeableTransactorSession) RenounceOwnership() (*types.Transaction, error) {
+	return _OwnableUpgradeable.Contract.RenounceOwnership(&_OwnableUpgradeable.TransactOpts)
+}
+
+// TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
+//
+// Solidity: function transferOwnership(address newOwner) returns()
+func (_OwnableUpgradeable *OwnableUpgradeableTransactor) TransferOwnership(opts *bind.TransactOpts, newOwner common.Address) (*types.Transaction, error) {
+	return _OwnableUpgradeable.contract.Transact(opts, "transferOwnership", newOwner)
+}
+
+// TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
+//
+// Solidity: function transferOwnership(address newOwner) returns()
+func (_OwnableUpgradeable *OwnableUpgradeableSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
+	return _OwnableUpgradeable.Contract.TransferOwnership(&_OwnableUpgradeable.TransactOpts, newOwner)
+}
+
+// TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
+//
+// Solidity: function transferOwnership(address newOwner) returns()
+func (_OwnableUpgradeable *OwnableUpgradeableTransactorSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
+	return _OwnableUpgradeable.Contract.TransferOwnership(&_OwnableUpgradeable.TransactOpts, newOwner)
+}
+
+// OwnableUpgradeableInitializedIterator is returned from FilterInitialized and is used to iterate over the raw logs and unpacked data for Initialized events raised by the OwnableUpgradeable contract.
+type OwnableUpgradeableInitializedIterator struct {
+	Event *OwnableUpgradeableInitialized // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *OwnableUpgradeableInitializedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(OwnableUpgradeableInitialized)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(OwnableUpgradeableInitialized)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *OwnableUpgradeableInitializedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *OwnableUpgradeableInitializedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// OwnableUpgradeableInitialized represents a Initialized event raised by the OwnableUpgradeable contract.
+type OwnableUpgradeableInitialized struct {
+	Version uint64
+	Raw     types.Log // Blockchain specific contextual infos
+}
+
+// FilterInitialized is a free log retrieval operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_OwnableUpgradeable *OwnableUpgradeableFilterer) FilterInitialized(opts *bind.FilterOpts) (*OwnableUpgradeableInitializedIterator, error) {
+
+	logs, sub, err := _OwnableUpgradeable.contract.FilterLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return &OwnableUpgradeableInitializedIterator{contract: _OwnableUpgradeable.contract, event: "Initialized", logs: logs, sub: sub}, nil
+}
+
+// WatchInitialized is a free log subscription operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_OwnableUpgradeable *OwnableUpgradeableFilterer) WatchInitialized(opts *bind.WatchOpts, sink chan<- *OwnableUpgradeableInitialized) (event.Subscription, error) {
+
+	logs, sub, err := _OwnableUpgradeable.contract.WatchLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(OwnableUpgradeableInitialized)
+				if err := _OwnableUpgradeable.contract.UnpackLog(event, "Initialized", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseInitialized is a log parse operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_OwnableUpgradeable *OwnableUpgradeableFilterer) ParseInitialized(log types.Log) (*OwnableUpgradeableInitialized, error) {
+	event := new(OwnableUpgradeableInitialized)
+	if err := _OwnableUpgradeable.contract.UnpackLog(event, "Initialized", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// OwnableUpgradeableOwnershipTransferredIterator is returned from FilterOwnershipTransferred and is used to iterate over the raw logs and unpacked data for OwnershipTransferred events raised by the OwnableUpgradeable contract.
+type OwnableUpgradeableOwnershipTransferredIterator struct {
+	Event *OwnableUpgradeableOwnershipTransferred // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *OwnableUpgradeableOwnershipTransferredIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(OwnableUpgradeableOwnershipTransferred)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(OwnableUpgradeableOwnershipTransferred)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *OwnableUpgradeableOwnershipTransferredIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *OwnableUpgradeableOwnershipTransferredIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// OwnableUpgradeableOwnershipTransferred represents a OwnershipTransferred event raised by the OwnableUpgradeable contract.
+type OwnableUpgradeableOwnershipTransferred struct {
+	PreviousOwner common.Address
+	NewOwner      common.Address
+	Raw           types.Log // Blockchain specific contextual infos
+}
+
+// FilterOwnershipTransferred is a free log retrieval operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
+//
+// Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
+func (_OwnableUpgradeable *OwnableUpgradeableFilterer) FilterOwnershipTransferred(opts *bind.FilterOpts, previousOwner []common.Address, newOwner []common.Address) (*OwnableUpgradeableOwnershipTransferredIterator, error) {
+
+	var previousOwnerRule []interface{}
+	for _, previousOwnerItem := range previousOwner {
+		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
+	}
+	var newOwnerRule []interface{}
+	for _, newOwnerItem := range newOwner {
+		newOwnerRule = append(newOwnerRule, newOwnerItem)
+	}
+
+	logs, sub, err := _OwnableUpgradeable.contract.FilterLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
+	if err != nil {
+		return nil, err
+	}
+	return &OwnableUpgradeableOwnershipTransferredIterator{contract: _OwnableUpgradeable.contract, event: "OwnershipTransferred", logs: logs, sub: sub}, nil
+}
+
+// WatchOwnershipTransferred is a free log subscription operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
+//
+// Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
+func (_OwnableUpgradeable *OwnableUpgradeableFilterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sink chan<- *OwnableUpgradeableOwnershipTransferred, previousOwner []common.Address, newOwner []common.Address) (event.Subscription, error) {
+
+	var previousOwnerRule []interface{}
+	for _, previousOwnerItem := range previousOwner {
+		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
+	}
+	var newOwnerRule []interface{}
+	for _, newOwnerItem := range newOwner {
+		newOwnerRule = append(newOwnerRule, newOwnerItem)
+	}
+
+	logs, sub, err := _OwnableUpgradeable.contract.WatchLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(OwnableUpgradeableOwnershipTransferred)
+				if err := _OwnableUpgradeable.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseOwnershipTransferred is a log parse operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
+//
+// Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
+func (_OwnableUpgradeable *OwnableUpgradeableFilterer) ParseOwnershipTransferred(log types.Log) (*OwnableUpgradeableOwnershipTransferred, error) {
+	event := new(OwnableUpgradeableOwnershipTransferred)
+	if err := _OwnableUpgradeable.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
 // PoAValidatorManagerMetaData contains all meta data concerning the PoAValidatorManager contract.
 var PoAValidatorManagerMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"init\",\"type\":\"uint8\",\"internalType\":\"enumICMInitializable\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"ADDRESS_LENGTH\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint32\",\"internalType\":\"uint32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"BLS_PUBLIC_KEY_LENGTH\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"uint8\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MAXIMUM_CHURN_PERCENTAGE_LIMIT\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"uint8\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MAXIMUM_REGISTRATION_EXPIRY_LENGTH\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"P_CHAIN_BLOCKCHAIN_ID\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"VALIDATOR_MANAGER_STORAGE_LOCATION\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"WARP_MESSENGER\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"contractIWarpMessenger\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"completeEndValidation\",\"inputs\":[{\"name\":\"messageIndex\",\"type\":\"uint32\",\"internalType\":\"uint32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"completeValidatorRegistration\",\"inputs\":[{\"name\":\"messageIndex\",\"type\":\"uint32\",\"internalType\":\"uint32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"getValidator\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[{\"name\":\"\",\"type\":\"tuple\",\"internalType\":\"structValidator\",\"components\":[{\"name\":\"status\",\"type\":\"uint8\",\"internalType\":\"enumValidatorStatus\"},{\"name\":\"nodeID\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"startingWeight\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"messageNonce\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"weight\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"startedAt\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"endedAt\",\"type\":\"uint64\",\"internalType\":\"uint64\"}]}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getWeight\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"initialize\",\"inputs\":[{\"name\":\"settings\",\"type\":\"tuple\",\"internalType\":\"structValidatorManagerSettings\",\"components\":[{\"name\":\"subnetID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"churnPeriodSeconds\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"maximumChurnPercentage\",\"type\":\"uint8\",\"internalType\":\"uint8\"}]},{\"name\":\"initialOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"initializeEndValidation\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"initializeValidatorRegistration\",\"inputs\":[{\"name\":\"registrationInput\",\"type\":\"tuple\",\"internalType\":\"structValidatorRegistrationInput\",\"components\":[{\"name\":\"nodeID\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"blsPublicKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"registrationExpiry\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"remainingBalanceOwner\",\"type\":\"tuple\",\"internalType\":\"structPChainOwner\",\"components\":[{\"name\":\"threshold\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"addresses\",\"type\":\"address[]\",\"internalType\":\"address[]\"}]},{\"name\":\"disableOwner\",\"type\":\"tuple\",\"internalType\":\"structPChainOwner\",\"components\":[{\"name\":\"threshold\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"addresses\",\"type\":\"address[]\",\"internalType\":\"address[]\"}]}]},{\"name\":\"weight\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"initializeValidatorSet\",\"inputs\":[{\"name\":\"subnetConversionData\",\"type\":\"tuple\",\"internalType\":\"structSubnetConversionData\",\"components\":[{\"name\":\"subnetID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"validatorManagerBlockchainID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"validatorManagerAddress\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"initialValidators\",\"type\":\"tuple[]\",\"internalType\":\"structInitialValidator[]\",\"components\":[{\"name\":\"nodeID\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"blsPublicKey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"weight\",\"type\":\"uint64\",\"internalType\":\"uint64\"}]}]},{\"name\":\"messageIndex\",\"type\":\"uint32\",\"internalType\":\"uint32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"registeredValidators\",\"inputs\":[{\"name\":\"nodeID\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"renounceOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"resendEndValidatorMessage\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"resendRegisterValidatorMessage\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"InitialValidatorCreated\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"nodeID\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"weight\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Initialized\",\"inputs\":[{\"name\":\"version\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"previousOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ValidationPeriodCreated\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"nodeID\",\"type\":\"bytes\",\"indexed\":true,\"internalType\":\"bytes\"},{\"name\":\"registerValidationMessageID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"weight\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"registrationExpiry\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ValidationPeriodEnded\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"status\",\"type\":\"uint8\",\"indexed\":true,\"internalType\":\"enumValidatorStatus\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ValidationPeriodRegistered\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"weight\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"timestamp\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ValidatorRemovalInitialized\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"setWeightMessageID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"weight\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"endTime\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ValidatorWeightUpdate\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"nonce\",\"type\":\"uint64\",\"indexed\":true,\"internalType\":\"uint64\"},{\"name\":\"validatorWeight\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"setWeightMessageID\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"InvalidBLSKeyLength\",\"inputs\":[{\"name\":\"length\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"type\":\"error\",\"name\":\"InvalidInitialization\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidInitializationStatus\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidMaximumChurnPercentage\",\"inputs\":[{\"name\":\"maximumChurnPercentage\",\"type\":\"uint8\",\"internalType\":\"uint8\"}]},{\"type\":\"error\",\"name\":\"InvalidNodeID\",\"inputs\":[{\"name\":\"nodeID\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]},{\"type\":\"error\",\"name\":\"InvalidPChainOwnerThreshold\",\"inputs\":[{\"name\":\"threshold\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"addressesLength\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"type\":\"error\",\"name\":\"InvalidRegistrationExpiry\",\"inputs\":[{\"name\":\"registrationExpiry\",\"type\":\"uint64\",\"internalType\":\"uint64\"}]},{\"type\":\"error\",\"name\":\"InvalidSubnetConversionID\",\"inputs\":[{\"name\":\"encodedSubnetConversionID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"expectedSubnetConversionID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"type\":\"error\",\"name\":\"InvalidTotalWeight\",\"inputs\":[{\"name\":\"weight\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"type\":\"error\",\"name\":\"InvalidValidationID\",\"inputs\":[{\"name\":\"validationID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"type\":\"error\",\"name\":\"InvalidValidatorManagerAddress\",\"inputs\":[{\"name\":\"validatorManagerAddress\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"InvalidValidatorManagerBlockchainID\",\"inputs\":[{\"name\":\"blockchainID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"type\":\"error\",\"name\":\"InvalidValidatorStatus\",\"inputs\":[{\"name\":\"status\",\"type\":\"uint8\",\"internalType\":\"enumValidatorStatus\"}]},{\"type\":\"error\",\"name\":\"InvalidWarpMessage\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidWarpOriginSenderAddress\",\"inputs\":[{\"name\":\"senderAddress\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"InvalidWarpSourceChainID\",\"inputs\":[{\"name\":\"sourceChainID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"type\":\"error\",\"name\":\"MaxChurnRateExceeded\",\"inputs\":[{\"name\":\"churnAmount\",\"type\":\"uint64\",\"internalType\":\"uint64\"}]},{\"type\":\"error\",\"name\":\"NodeAlreadyRegistered\",\"inputs\":[{\"name\":\"nodeID\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]},{\"type\":\"error\",\"name\":\"NotInitializing\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OwnableInvalidOwner\",\"inputs\":[{\"name\":\"owner\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"OwnableUnauthorizedAccount\",\"inputs\":[{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"PChainOwnerAddressesNotSorted\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"UnexpectedRegistrationStatus\",\"inputs\":[{\"name\":\"validRegistration\",\"type\":\"bool\",\"internalType\":\"bool\"}]}]",
-	Bin: "0x363038303630343035323334383031353631303030663537356638306664356235303630343035313631333662353338303338303631333662353833333938313031363034303831393035323631303032653931363130313037353635623630303138313630303138313131313536313030343235373631303034323631303132633536356230333631303034663537363130303466363130303535353635623530363130313430353635623766663063353765313638343064663034306631353038386463326638316665333931633339323362656337336532336139363632656663396332323963366130303830353436383031303030303030303030303030303030303930303436306666313631353631303061353537363034303531363366393265653861393630653031623831353236303034303136303430353138303931303339306664356238303534363030313630303136303430316230333930383131363134363130313034353738303534363030313630303136303430316230333139313636303031363030313630343031623033393038313137383235353630343035313930383135323766633766353035623266333731616532313735656534393133663434393965316632363333613762353933363332316565643163646165623631313531383164323930363032303031363034303531383039313033393061313562353035363562356636303230383238343033313231353631303131373537356638306664356238313531363030323831313036313031323535373566383066643562393339323530353035303536356236333465343837623731363065303162356635323630323136303034353236303234356666643562363133353638383036313031346435663339356666336665363038303630343035323334383031353631303030663537356638306664356235303630303433363130363130313332353735663335363065303163383036333962613936623836313136313030623435373830363363393734643162363131363130303739353738303633633937346431623631343631303238623537383036336435383863313866313436313032393335373830363364356632306666363134363130326136353738303633646639336438646531343631303263363537383036336632666465333862313436313032643035373830363366643761633565373134363130326533353735663830666435623830363339626139366238363134363130323164353738303633613361363565343831343631303233303537383036336237373162336263313436313032343335373830363362633566626665633134363130323531353738303633626565306130336631343631303237383537356638306664356238303633373135303138613631313631303066613537383036333731353031386136313436313031626535373830363337333232313466383134363130316336353738303633383238306132356131343631303164623537383036333864613563623562313436313031663535373830363339376662373064343134363130323061353735663830666435623830363330333232656439383134363130313336353738303633323064393162376131343631303134623537383036333436376566303666313436313031356535373830363336303330356436323134363130313731353738303633363634333561626631343631303139333537356235663830666435623631303134393631303134343336363030343631323761653536356236313032663635363562303035623631303134393631303135393336363030343631323764643536356236313035376235363562363130313439363130313663333636303034363132383262353635623631306235353536356236313031373936303134383135363562363034303531363366666666666666663930393131363831353236303230303135623630343035313830393130333930663335623631303161363631303161313336363030343631323761653536356236313062363335363562363034303531363030313630303136303430316230333930393131363831353236303230303136313031386135363562363130313439363130623737353635623631303163643566383135363562363034303531393038313532363032303031363130313861353635623631303165333630333038313536356236303430353136306666393039313136383135323630323030313631303138613536356236313031666436313062386135363562363034303531363130313861393139303631323834343536356236313031343936313032313833363630303436313237616535363562363130626238353635623631303163643631303232623336363030343631323836653536356236313062636435363562363130313439363130323365333636303034363132383262353635623631306265393536356236313031666436303035363030313630393931623031383135363562363130316364376665393235343664363938393530646464333839313064326531356564316439323363643061376233646465396532613661336633383035363535353963623030383135363562363130313439363130323836333636303034363132376165353635623631306464623536356236313031653336303134383135363562363130313439363130326131333636303034363132386337353635623631306566383536356236313032623936313032623433363630303436313237616535363562363131303035353635623630343035313631303138613931393036313239383435363562363130316136363230326133303038313536356236313031343936313032646533363630303436313261303435363562363131313437353635623631303163643631303266313336363030343631326132363536356236313131383435363562356636313032666636313131626335363562356638333831353236303037383230313630323035323630343038303832323038313531363065303831303139303932353238303534393339343530393139323930393139303832393036306666313636303035383131313135363130333338353736313033333836313239303335363562363030353831313131353631303334393537363130333439363132393033353635623831353236303230303136303031383230313830353436313033356439303631326139313536356238303630316630313630323038303931303430323630323030313630343035313930383130313630343035323830393239313930383138313532363032303031383238303534363130333839393036313261393135363562383031353631303364343537383036303166313036313033616235373631303130303830383335343034303238333532393136303230303139313631303364343536356238323031393139303566353236303230356632303930356238313534383135323930363030313031393036303230303138303833313136313033623735373832393030333630316631363832303139313562353035303530393138333532353035303630303238323031353436303031363030313630343031623033383038323136363032303834303135323630303136303430316238323034383131363630343038343031353236303031363038303162383230343831313636303630383430313532363030313630633031623930393130343831313636303830383330313532363030333932383330313534313636306130393039313031353239303931353038313531363030353831313131353631303433663537363130343366363132393033353635623134363130343762353735663833383135323630303738333031363032303532363034303930383139303230353439303531363331373063633933333630653231623831353236313034373239313630666631363930363030343031363132616339353635623630343035313830393130333930666435623630363038313031353136303430353136333432613265306235363065313162383135323630303438313031383539303532363030313630303136303430316230333930393131363630323438323031353235663630343438323031353236303035363030313630393931623031393036336565356234386562393037335f5f2466643063313437623430333165656636303739623034393863626166613836356630245f5f3930363338353435633136613930363036343031356636303430353138303833303338313836356166343135383031353631303466323537336435663830336533643566666435623530353035303530363034303531336435663832336536303166336439303831303136303166313931363832303136303430353236313035313939313930383130313930363132626461353635623630343035313832363366666666666666663136363065303162383135323630303430313631303533353931393036313263306235363562363032303630343035313830383330333831356638373561663131353830313536313035353135373364356638303365336435666664356235303530353035303630343035313364363031663139363031663832303131363832303138303630343035323530383130313930363130353735393139303631326331643536356235303530353035303536356235663631303538343631313162633536356236303039383130313534393039313530363066663136313536313035616435373630343035313633376661623831653536306530316238313532363030343031363034303531383039313033393066643562363030353630303136303939316230313630303136303031363061303162303331363633343231336366373836303430353138313633666666666666666631363630653031623831353236303034303136303230363034303531383038333033383138363561666131353830313536313035663035373364356638303365336435666664356235303530353035303630343035313364363031663139363031663832303131363832303138303630343035323530383130313930363130363134393139303631326331643536356238333630323030313335313436313036336435373630343035313633373262306137653736306531316238313532363032303834303133353630303438323031353236303234303136313034373235363562333036313036346536303630383530313630343038363031363132613034353635623630303136303031363061303162303331363134363130363836353736313036366336303630383430313630343038353031363132613034353635623630343035313633326638383132306436306532316238313532363030343031363130343732393139303631323834343536356235663631303639343630363038353031383536313263333435363562393035303930353035663830356238323831363366666666666666663136313031353631303937623537356636313036623736303630383830313838363132633334353635623833363366666666666666663136383138313130363130366364353736313036636436313263373935363562393035303630323030323831303139303631303664663931393036313263386435363562363130366538393036313263663835363562383035313630343035313931393235303566393136303038383830313931363130373030393136313264373135363562393038313532363032303031363034303531383039313033393032303534313436313037333035373830353136303430353136336134316637373266363065303162383135323631303437323931393036303034303136313263306235363562356636303032383835663031333538343630343035313630323030313631303735663932393139303931383235323630653031623630303136303031363065303162303331393136363032303832303135323630323430313930353635623630343038303531363031663139383138343033303138313532393038323930353236313037373939313631326437313536356236303230363034303531383038333033383138353561666131353830313536313037393435373364356638303365336435666664356235303530353036303430353133643630316631393630316638323031313638323031383036303430353235303831303139303631303762373931393036313263316435363562393035303830383636303038303138333566303135313630343035313631303763663931393036313264373135363562393038313532363034303830353136303230393238313930303338333031383132303933393039333535363065303833303138313532363030323833353238343531383238343031353238343831303138303531363030313630303136303430316230333930383131363835383430313532356636303630383630313831393035323931353138313136363038303836303135323432313636306130383530313532363063303834303138313930353238343831353236303037386130313930393235323930323038313531383135343832393036306666313931363630303138333630303538313131313536313038353135373631303835313631323930333536356230323137393035353530363032303832303135313630303138323031393036313038366139303832363132646364353635623530363034303832383130313531363030323833303138303534363036303836303135313630383038373031353136306130383830313531363030313630303136303430316230333935383631363630303136303031363038303162303331393930393431363933393039333137363030313630343031623932383631363932393039323032393139303931313736303031363030313630383031623033313636303031363038303162393138353136393139303931303236303031363030313630633031623033313631373630303136306330316239313834313639313930393130323137393035353630633039303933303135313630303339303932303138303534363030313630303136303430316230333139313639323834313639323930393231373930393135353833303135313631303930653931313638353631326561303536356238323531363034303531393139353530363130393166393136313264373135363562363034303830353139313832393030333832323039303834303135313630303136303031363034303162303331363832353239303832393037663964343766656639646130373736363135343665363436643631383330626663626461393035303663326535656564333831393565383263346562316362646639303630323030313630343035313830393130333930613335303530383036313039373439303631326562333536356239303530363130363962353635623530363030343833303138313930353536303031383330313534363036343930363130393966393036303031363034303162393030343630666631363833363132656435353635623130313536313039633135373630343035313633353934333331376636306530316238313532363030343831303138323930353236303234303136313034373235363562356637335f5f2466643063313437623430333165656636303739623034393863626166613836356630245f5f363331653664393738393631303965353837363131316530353635623630343030313531363034303531383236336666666666666666313636306530316238313532363030343031363130613035393139303631326330623536356236303230363034303531383038333033383138363561663431353830313536313061323035373364356638303365336435666664356235303530353035303630343035313364363031663139363031663832303131363832303138303630343035323530383130313930363130613434393139303631326331643536356239303530356637335f5f2466643063313437623430333165656636303739623034393863626166613836356630245f5f3633383632626661363338383630343035313832363366666666666666663136363065303162383135323630303430313631306137653931393036313330306635363562356636303430353138303833303338313836356166343135383031353631306139383537336435663830336533643566666435623530353035303530363034303531336435663832336536303166336439303831303136303166313931363832303136303430353236313061626639313930383130313930363132626461353635623930353035663630303238323630343035313631306164323931393036313264373135363562363032303630343035313830383330333831383535616661313538303135363130616564353733643566383033653364356666643562353035303530363034303531336436303166313936303166383230313136383230313830363034303532353038313031393036313062313039313930363132633164353635623930353038323831313436313062336335373630343035313633313837326663386436306530316238313532363030343831303138323930353236303234383130313834393035323630343430313631303437323536356235303530353036303039393039323031383035343630666631393136363030313137393035353530353035303530353635623631306235653831363131326562353635623530353035303536356235663631306236643832363131303035353635623630383030313531393239313530353035363562363130623766363131363961353635623631306238383566363131366363353635623536356237663930313664303964373264343066646165326664386365616336623632333463373730363231346664333963316364316536303961303532386331393933303035343630303136303031363061303162303331363930353635623631306263303631313639613536356236313062633938313631313733633536356235303530353635623566363130626436363131363961353635623631306265303833383336313161313435363562393035303562393239313530353035363562356636313062663236313131626335363562393035303566383037335f5f2466643063313437623430333165656636303739623034393863626166613836356630245f5f36333265343363656235363130633139383636313131653035363562363034303031353136303430353138323633666666666666666631363630653031623831353236303034303136313063333939313930363132633062353635623630343038303531383038333033383138363561663431353830313536313063353335373364356638303365336435666664356235303530353035303630343035313364363031663139363031663832303131363832303138303630343035323530383130313930363130633737393139303631333062323536356239313530393135303830363130633964353736303430353136333264303731333533363065303162383135323831313531353630303438323031353236303234303136313034373235363562356638323831353236303036383430313630323035323630343039303230383035343631306362373930363132613931353635623930353035663033363130636462353736303430353136333038393933386233363065313162383135323630303438313031383339303532363032343031363130343732353635623630303135663833383135323630303738353031363032303532363034303930323035343630666631363630303538313131313536313064303135373631306430313631323930333536356231343631306433343537356638323831353236303037383430313630323035323630343039303831393032303534393035313633313730636339333336306532316238313532363130343732393136306666313639303630303430313631326163393536356235663832383135323630303638343031363032303532363034303831323036313064346339313631323732323536356235663832383135323630303738343031363032303930383135323630343039313832393032303830353436306666313931363630303239303831313738323535303138303534363030313630303136303430316230333432383138313136363030313630633031623032363030313630303136306330316230333930393331363932393039323137393238333930353538343531363030313630383031623930393330343136383235323931383130313931393039313532383339313766663866643163393066623963666132636132333538666466353830366230383661643433333135643932623232316339323965666337663130356365373536383931303136303430353138303931303339306132353035303530353035363562356636313064653436313131626335363562356638333831353236303036383230313630323035323630343039303230383035343931393235303930363130653032393036313261393135363562393035303566303336313065323635373630343035313633303839393338623336306531316238313532363030343831303138333930353236303234303136313034373235363562363030313566383338313532363030373833303136303230353236303430393032303534363066663136363030353831313131353631306534633537363130653463363132393033353635623134363130653766353735663832383135323630303738323031363032303532363034303930383139303230353439303531363331373063633933333630653231623831353236313034373239313630666631363930363030343031363132616339353635623566383238313532363030363832303136303230353236303430393038313930323039303531363365653562343865623630653031623831353236303035363030313630393931623031393136336565356234386562393136313065623839313930363030343031363133306433353635623630323036303430353138303833303338313566383735616631313538303135363130656434353733643566383033653364356666643562353035303530353036303430353133643630316631393630316638323031313638323031383036303430353235303831303139303631306235653931393036313263316435363562376666306335376531363834306466303430663135303838646332663831666533393163333932336265633733653233613936363265666339633232396336613030383035343630303136303430316238313034363066663136313539303630303136303031363034303162303331363566383131353830313536313066336335373530383235623930353035663832363030313630303136303430316230333136363030313134383031353631306635373537353033303362313535623930353038313135383031353631306636353537353038303135356231353631306638333537363034303531363366393265653861393630653031623831353236303034303136303430353138303931303339306664356238343534363030313630303136303430316230333139313636303031313738353535383331353631306661633537383435343630666636303430316231393136363030313630343031623137383535353562363130666236383738373631316665313536356238333135363130666663353738343534363066663630343031623139313638353535363034303531363030313831353237666337663530356232663337316165323137356565343931336634343939653166323633336137623539333633323165656431636461656236313135313831643239303630323030313630343035313830393130333930613135623530353035303530353035303530353635623631313030643631323735393536356235663631313031363631313162633536356235663834383135323630303738323031363032303532363034303930383139303230383135313630653038313031393039323532383035343932393335303930393138323930363066663136363030353831313131353631313034643537363131303464363132393033353635623630303538313131313536313130356535373631313035653631323930333536356238313532363032303031363030313832303138303534363131303732393036313261393135363562383036303166303136303230383039313034303236303230303136303430353139303831303136303430353238303932393139303831383135323630323030313832383035343631313039653930363132613931353635623830313536313130653935373830363031663130363131306330353736313031303038303833353430343032383335323931363032303031393136313130653935363562383230313931393035663532363032303566323039303562383135343831353239303630303130313930363032303031383038333131363131306363353738323930303336303166313638323031393135623530353035303931383335323530353036303032383230313534363030313630303136303430316230333830383231363630323038343031353236303031363034303162383230343831313636303430383430313532363030313630383031623832303438313136363036303834303135323630303136306330316239303931303438313136363038303833303135323630303339303932303135343930393131363630613039303931303135323933393235303530353035363562363131313466363131363961353635623630303136303031363061303162303338313136363131313738353735663630343035313633316534666264663736306530316238313532363030343031363130343732393139303631323834343536356236313131383138313631313663633536356235303536356235663830363131313865363131316263353635623930353038303630303830313834383436303430353136313131613439323931393036313331356435363562393038313532363032303031363034303531383039313033393032303534393135303530393239313530353035363562376665393235343664363938393530646464333839313064326531356564316439323363643061376233646465396532613661336633383035363535353963623030393035363562363034303830353136303630383038323031383335323566383038333532363032303833303135323931383130313931393039313532363034303531363330366638323533353630653431623831353236336666666666666666383331363630303438323031353235663930383139303630303536303031363039393162303139303633366638323533353039303630323430313566363034303531383038333033383138363561666131353830313536313132343435373364356638303365336435666664356235303530353035303630343035313364356638323365363031663364393038313031363031663139313638323031363034303532363131323662393139303831303139303631333136633536356239313530393135303830363131323864353736303430353136333662326631396539363065303162383135323630303430313630343035313830393130333930666435623831353131353631313262333537383135313630343035313633366261353839613536306530316238313532363030343831303139313930393135323630323430313631303437323536356236303230383230313531363030313630303136306130316230333136313536313132653435373831363032303031353136303430353136323464653735643630653331623831353236303034303136313034373239313930363132383434353635623530393239313530353035363562356636313132663436313237353935363562356636313132666436313131626335363562393035303566383037335f5f2466643063313437623430333165656636303739623034393863626166613836356630245f5f363332653433636562353631313332343838363131316530353635623630343030313531363034303531383236336666666666666666313636306530316238313532363030343031363131333434393139303631326330623536356236303430383035313830383330333831383635616634313538303135363131333565353733643566383033653364356666643562353035303530353036303430353133643630316631393630316638323031313638323031383036303430353235303831303139303631313338323931393036313330623235363562393135303931353038303135363131336139353736303430353136333264303731333533363065303162383135323831313531353630303438323031353236303234303136313034373235363562356638323831353236303037383430313630323035323630343038303832323038313531363065303831303139303932353238303534383239303630666631363630303538313131313536313133646135373631313364613631323930333536356236303035383131313135363131336562353736313133656236313239303335363562383135323630323030313630303138323031383035343631313366663930363132613931353635623830363031663031363032303830393130343032363032303031363034303531393038313031363034303532383039323931393038313831353236303230303138323830353436313134326239303631326139313536356238303135363131343736353738303630316631303631313434643537363130313030383038333534303430323833353239313630323030313931363131343736353635623832303139313930356635323630323035663230393035623831353438313532393036303031303139303630323030313830383331313631313435393537383239303033363031663136383230313931356235303530353039313833353235303530363030323832303135343630303136303031363034303162303338303832313636303230383430313532363030313630343031623832303438313136363034303834303135323630303136303830316238323034383131363630363038343031353236303031363063303162393039313034383131363630383038333031353236303033393238333031353431363630613039303931303135323930393135303831353136303035383131313135363131346531353736313134653136313239303335363562313431353830313536313135303235373530363030313831353136303035383131313135363131346666353736313134666636313239303335363562313431353562313536313135323335373830353136303430353136333137306363393333363065323162383135323631303437323931393036303034303136313261633935363562363030333831353136303035383131313135363131353338353736313135333836313239303335363562303336313135343635373630303438313532363131353462353635623630303538313532356238333630303830313831363032303031353136303430353136313135363139313930363132643731353635623930383135323630343038303531363032303932383139303033383330313930323035663930383139303535383538313532363030373837303139303932353239303230383135313831353438333932393139303832393036306666313931363630303138333630303538313131313536313135613535373631313561353631323930333536356230323137393035353530363032303832303135313630303138323031393036313135626539303832363132646364353635623530363034303832303135313630303238323031383035343630363038353031353136303830383630313531363061303837303135313630303136303031363034303162303339353836313636303031363030313630383031623033313939303934313639333930393331373630303136303430316239323836313639323930393230323931393039313137363030313630303136303830316230333136363030313630383031623931383531363931393039313032363030313630303136306330316230333136313736303031363063303162393138343136393139303931303231373930353536306330393039323031353136303033393039313031383035343630303136303031363034303162303331393136393139303932313631373930353538303531363030353831313131353631313636333537363131363633363132393033353635623630343035313834393037663163303865353936353666316131386463326461373638323663646335323830356334336538393761313763353066616566623861623363313532366363313639303566393061333931393639313935353039303933353035303530353035363562333336313136613336313062386135363562363030313630303136306130316230333136313436313062383835373333363034303531363331313863646161373630653031623831353236303034303136313034373239313930363132383434353635623766393031366430396437326434306664616532666438636561633662363233346337373036323134666433396331636431653630396130353238633139393330303830353436303031363030313630613031623033313938313136363030313630303136306130316230333834383131363931383231373834353536303430353139323136393138323930376638626530303739633533313635393134313334346364316664306134663238343139343937663937323261336461616665336234313836663662363435376530393035663930613335303530353035363562363131373434363132373539353635623566363131373464363131316263353635623566383438313532363030373832303136303230353236303430383038323230383135313630653038313031393039323532383035343933393435303931393239303931393038323930363066663136363030353831313131353631313738363537363131373836363132393033353635623630303538313131313536313137393735373631313739373631323930333536356238313532363032303031363030313832303138303534363131376162393036313261393135363562383036303166303136303230383039313034303236303230303136303430353139303831303136303430353238303932393139303831383135323630323030313832383035343631313764373930363132613931353635623830313536313138323235373830363031663130363131376639353736313031303038303833353430343032383335323931363032303031393136313138323235363562383230313931393035663532363032303566323039303562383135343831353239303630303130313930363032303031383038333131363131383035353738323930303336303166313638323031393135623530353035303931383335323530353036303032383238313031353436303031363030313630343031623033383038323136363032303835303135323630303136303430316238323034383131363630343038353031353236303031363038303162383230343831313636303630383530313532363030313630633031623930393130343831313636303830383430313532363030333930393330313534393039323136363061303930393130313532393039313530383135313630303538313131313536313138393035373631313839303631323930333536356231343631313863333537356638343831353236303037383330313630323035323630343039303831393032303534393035313633313730636339333336306532316238313532363130343732393136306666313639303630303430313631326163393536356236303033383135323432363030313630303136303430316230333136363063303832303135323566383438313532363030373833303136303230353236303430393032303831353138313534383339323931393038323930363066663139313636303031383336303035383131313135363131393037353736313139303736313239303335363562303231373930353535303630323038323031353136303031383230313930363131393230393038323631326463643536356235303630343038323031353136303032383230313830353436303630383530313531363038303836303135313630613038373031353136303031363030313630343031623033393538363136363030313630303136303830316230333139393039343136393339303933313736303031363034303162393238363136393239303932303239313930393131373630303136303031363038303162303331363630303136303830316239313835313639313930393130323630303136303031363063303162303331363137363030313630633031623931383431363931393039313032313739303535363063303930393230313531363030333930393130313830353436303031363030313630343031623033313931363931393039323136313739303535356636313139626438353832363131666662353635623630383038343031353136303430383035313630303136303031363034303162303339303932313638323532343236303230383330313532393139333530383339323530383739313766313364353833393463663236396434386263663932373935396132396135666665653763393932346461666666383932376563646633633438666661376336373931303136303430353138303931303339306133353039333932353035303530353635623566363131613164363131316263353635623630303930313534363066663136363131613431353736303430353136333766616238316535363065303162383135323630303430313630343035313830393130333930666435623566363131613461363131316263353635623930353034323631316135643630363038363031363034303837303136313331663935363562363030313630303136303430316230333136313131353830363131613937353735303631316137623632303261333030343236313265613035363562363131613862363036303836303136303430383730313631333166393536356236303031363030313630343031623033313631303135356231353631316164313537363131616163363036303835303136303430383630313631333166393536356236303430353136333538373964613133363065313162383135323630303136303031363034303162303339303931313636303034383230313532363032343031363130343732353635623631316165363631316165313630363038363031383636313332313235363562363132316335353635623631316166363631316165313630383038363031383636313332313235363562363033303631316230353630323038363031383636313332323635363562393035303134363131623337353736313162313936303230383530313835363133323236353635623630343035313633323634373562326636306531316238313532363130343732393235303630303430313930383135323630323030313930353635623631316234313834383036313332323635363562393035303566303336313162366535373631316235333834383036313332323635363562363034303531363333653038613132353630653131623831353236303034303136313034373239323931393036313332363835363562356636303038383230313631316237643836383036313332323635363562363034303531363131623862393239313930363133313564353635623930383135323630323030313630343035313830393130333930323035343134363131626334353736313162613938343830363133323236353635623630343035313633613431663737326636306530316238313532363030343031363130343732393239313930363133323638353635623631316263653833356636313233326535363562363034303830353136306530383130313930393135323831353438313532356639303831393037335f5f2466643063313437623430333165656636303739623034393863626166613836356630245f5f393036336530343762323833393036303230383130313631316330623861383036313332323635363562383038303630316630313630323038303931303430323630323030313630343035313930383130313630343035323830393339323931393038313831353236303230303138333833383038323834333735663932303139313930393135323530353035303930383235323530363032303930383130313930363131633533393038623031386236313332323635363562383038303630316630313630323038303931303430323630323030313630343035313930383130313630343035323830393339323931393038313831353236303230303138333833383038323834333735663932303139313930393135323530353035303930383235323530363032303031363131633963363036303862303136303430386330313631333166393536356236303031363030313630343031623033313638313532363032303031363131636237363036303862303138623631333231323536356236313163633039303631333237623536356238313532363032303031363131636432363038303862303138623631333231323536356236313163646239303631333237623536356238313532363032303031383836303031363030313630343031623033313638313532353036303430353138323633666666666666666631363630653031623831353236303034303136313164303939313930363133336138353635623566363034303531383038333033383138363561663431353830313536313164323335373364356638303365336435666664356235303530353035303630343035313364356638323365363031663364393038313031363031663139313638323031363034303532363131643461393139303831303139303631333435663536356235663832383135323630303638363031363032303532363034303930323039313933353039313530363131643638383238323631326463643536356235303831363030383834303136313164373838383830363133323236353635623630343035313631316438363932393139303631333135643536356239303831353236303430353139303831393030333630323030313831323039313930393135353633656535623438656236306530316238313532356639303630303536303031363039393162303139303633656535623438656239303631316463323930383539303630303430313631326330623536356236303230363034303531383038333033383135663837356166313135383031353631316464653537336435663830336533643566666435623530353035303530363034303531336436303166313936303166383230313136383230313830363034303532353038313031393036313165303239313930363132633164353635623630343038303531363065303831303139303931353239303931353038303630303138313532363032303031363131653232383938303631333232363536356238303830363031663031363032303830393130343032363032303031363034303531393038313031363034303532383039333932393139303831383135323630323030313833383338303832383433373566393230313832393035323530393338353532353035303530363030313630303136303430316230333839313636303230383038343031383239303532363034303830383530313834393035323630363038353031393239303932353236303830383430313833393035323630613039303933303138323930353238363832353236303037383830313930393235323230383135313831353438323930363066663139313636303031383336303035383131313135363131656231353736313165623136313239303335363562303231373930353535303630323038323031353136303031383230313930363131656361393038323631326463643536356235303630343038323031353136303032383230313830353436303630383530313531363038303836303135313630613038373031353136303031363030313630343031623033393538363136363030313630303136303830316230333139393039343136393339303933313736303031363034303162393238363136393239303932303239313930393131373630303136303031363038303162303331363630303136303830316239313835313639313930393130323630303136303031363063303162303331363137363030313630633031623931383431363931393039313032313739303535363063303930393230313531363030333930393130313830353436303031363030313630343031623033313931363931393039323136313739303535383036313166363738383830363133323236353635623630343035313631316637353932393139303631333135643536356236303430353138303931303339303230383437666237373239376533626566633639316266633836346138316532343166383365326566373232623665376265636161326563656332353063366435326234333038393862363034303031363032303831303139303631316662333931393036313331663935363562363034303830353136303031363030313630343031623033393338343136383135323932393039313136363032303833303135323031363034303531383039313033393061343530393039353934353035303530353035303536356236313166653936313235353335363562363131666632383236313235396335363562363130626339383136313235623535363562356638303566363132303036363131316263353635623566383638313532363030373832303136303230353236303430393032303630303230313534393039313530363030313630383031623930303436303031363030313630343031623033313636313230333638353832363132333265353635623566363132303430383736313235633635363562356638383831353236303037383530313630323035323630343038303832323036303032303138303534363766666666666666666666666666666666363038303162313931363630303136303830316236303031363030313630343031623033386338313136393138323032393239303932313739303932353539313531363334326132653062353630653131623831353236303034383130313863393035323931383431363630323438333031353236303434383230313532393139323530393036303035363030313630393931623031393036336565356234386562393037335f5f2466643063313437623430333165656636303739623034393863626166613836356630245f5f39303633383534356331366139303630363430313566363034303531383038333033383138363561663431353830313536313230653935373364356638303365336435666664356235303530353035303630343035313364356638323365363031663364393038313031363031663139313638323031363034303532363132313130393139303831303139303631326264613536356236303430353138323633666666666666666631363630653031623831353236303034303136313231326339313930363132633062353635623630323036303430353138303833303338313566383735616631313538303135363132313438353733643566383033653364356666643562353035303530353036303430353133643630316631393630316638323031313638323031383036303430353235303831303139303631323136633931393036313263316435363562363034303830353136303031363030313630343031623033386138313136383235323630323038323031383439303532383235313933393435303835313639323862393237663037646535666633356136373461383030356536363166333333336339303763613633333334363238303837363264313964633762336162623161386331646639323832393030333031393061333930393435303932353035303530356239323530393239303530353635623631323164323630323038323031383236313238326235363562363366666666666666663136313538303135363132316632353735303631323165643630323038323031383236313263333435363562313531353930353035623135363132323339353736313232303436303230383230313832363132383262353635623631323231313630323038333031383336313263333435363562363034303531363363303861306631643630653031623831353236336666666666666666393039333136363030343834303135323630323438333031353235303630343430313631303437323536356236313232343636303230383230313832363132633334353635623930353036313232353536303230383330313833363132383262353635623633666666666666666631363131313536313232366535373631323230343630323038323031383236313238326235363562363030313562363132323765363032303833303138333631326333343536356239303530383131303135363130626339353736313232393436303230383330313833363132633334353635623631323239663630303138343631333461323536356238313831313036313232616535373631323261653631326337393536356239303530363032303032303136303230383130313930363132326333393139303631326130343536356236303031363030313630613031623033313636313232643936303230383430313834363132633334353635623833383138313130363132326539353736313232653936313263373935363562393035303630323030323031363032303831303139303631323266653931393036313261303435363562363030313630303136306130316230333136313031353631323332363537363034303531363330646263386435663630653331623831353236303034303136303430353138303931303339306664356236303031303136313232373135363562356636313233333736313131626335363562393035303566383236303031363030313630343031623033313638343630303136303031363034303162303331363131313536313233363535373631323335653833383536313334623535363562393035303631323337323536356236313233366638343834363133346235353635623930353035623630343038303531363038303831303138323532363030323834303135343830383235323630303338353031353436303230383330313532363030343835303135343932383230313932393039323532363030353834303135343630303136303031363034303162303331363630363038323031353234323931313538303631323364343537353036303031383430313534383135313631323364303931363030313630303136303430316230333136393036313265613035363562383231303135356231353631323366613537363030313630303136303430316230333833313636303630383230313532383138313532363034303831303135313630323038323031353236313234313935363562383238313630363030313831383135313631323430633931393036313334643535363562363030313630303136303430316230333136393035323530356236303630383130313531363132343239393036303634363133346635353635623630323038323031353136303031383630313534363030313630303136303430316230333932393039323136393136313234353439313930363030313630343031623930303436306666313636313265643535363562313031353631323438343537363036303831303135313630343035313633646661653838303136306530316238313532363030313630303136303430316230333930393131363630303438323031353236303234303136313034373235363562383536303031363030313630343031623033313638313630343030313831383135313631323439663931393036313265613035363562393035323530363034303831303138303531363030313630303136303430316230333837313639313930363132346266393038333930363133346132353635623930353235303630303138343031353436303430383230313531363036343931363132346534393136303031363034303162393039313034363066663136393036313265643535363562313031353631323530623537383036303430303135313630343035313633353934333331376636306530316238313532363030343031363130343732393138313532363032303031393035363562383035313630303238353031353536303230383130313531363030333835303135353630343038313031353136303034383530313535363036303031353136303035393039333031383035343630303136303031363034303162303331393136363030313630303136303430316230333930393431363933393039333137393039323535353035303530353035363562376666306335376531363834306466303430663135303838646332663831666533393163333932336265633733653233613936363265666339633232396336613030353436303031363034303162393030343630666631363631306238383537363034303531363331616663643739663630653331623831353236303034303136303430353138303931303339306664356236313235613436313235353335363562363132356163363132363266353635623631313138313831363132363337353635623631323562643631323535333536356236313131383138313631323731613536356235663830363132356430363131316263353635623566383438313532363030373832303136303230353236303430393032303630303230313830353439313932353039303630303839303631323630343930363030313630343031623930303436303031363030313630343031623033313636313335323035363562393139303631303130303061383135343831363030313630303136303430316230333032313931363930383336303031363030313630343031623033313630323137393035353931353035303931393035303536356236313062383836313235353335363562363132363366363132353533353635623566363132363438363131316263353635623832333538313535393035303630313436313236363036303630383430313630343038353031363133353362353635623630666631363131383036313236376635373530363132363761363036303833303136303430383430313631333533623536356236306666313631353562313536313236623335373631323639343630363038333031363034303834303136313335336235363562363034303531363334613539626266663630653131623831353236306666393039313136363030343832303135323630323430313631303437323536356236313236633336303630383330313630343038343031363133353362353635623630303138323031383035343630666639323930393231363630303136303430316230323630666636303430316231393930393231363931393039313137393035353631323666343630343038333031363032303834303136313331663935363562363030313931393039313031383035343630303136303031363034303162303331393136363030313630303136303430316230333930393231363931393039313137393035353530353635623631313134663631323535333536356235303830353436313237326539303631326139313536356235663832353538303630316631303631323733643537353035303536356236303166303136303230393030343930356635323630323035663230393038313031393036313131383139313930363132373936353635623630343038303531363065303831303139303931353238303566383135323630363036303230383230313831393035323566363034303833303138313930353239303832303138313930353236303830383230313831393035323630613038323031383139303532363063303930393130313532393035363562356238303832313131353631323761613537356638313535363030313031363132373937353635623530393035363562356636303230383238343033313231353631323762653537356638306664356235303335393139303530353635623830333536336666666666666666383131363831313436313237643835373566383066643562393139303530353635623566383036303430383338353033313231353631323765653537356638306664356238323335363030313630303136303430316230333831313131353631323830333537356638306664356238333031363038303831383630333132313536313238313435373566383066643562393135303631323832323630323038343031363132376335353635623930353039323530393239303530353635623566363032303832383430333132313536313238336235373566383066643562363130626530383236313237633535363562363030313630303136306130316230333931393039313136383135323630323030313930353635623830333536303031363030313630343031623033383131363831313436313237643835373566383066643562356638303630343038333835303331323135363132383766353735663830666435623832333536303031363030313630343031623033383131313135363132383934353735663830666435623833303136306130383138363033313231353631323861353537356638306664356239313530363132383232363032303834303136313238353835363562363030313630303136306130316230333831313638313134363131313831353735663830666435623566383038323834303336303830383131323135363132386439353735663830666435623630363038313132313536313238653635373566383066643562353038323931353036303630383330313335363132386638383136313238623335363562383039313530353039323530393239303530353635623633346534383762373136306530316235663532363032313630303435323630323435666664356236303036383131303631323933333537363334653438376237313630653031623566353236303231363030343532363032343566666435623930353235363562356635623833383131303135363132393531353738313831303135313833383230313532363032303031363132393339353635623530353035663931303135323536356235663831353138303834353236313239373038313630323038363031363032303836303136313239333735363562363031663031363031663139313639323930393230313630323030313932393135303530353635623630323038313532363132393936363032303832303138333531363132393137353635623566363032303833303135313630653036303430383430313532363132396231363130313030383430313832363132393539353635623930353036303430383430313531363030313630303136303430316230333830383231363630363038363031353238303630363038373031353131363630383038363031353238303630383038373031353131363630613038363031353238303630613038373031353131363630633038363031353238303630633038373031353131363630653038363031353235303530383039313530353039323931353035303536356235663630323038323834303331323135363132613134353735663830666435623831333536313261316638313631323862333536356239333932353035303530353635623566383036303230383338353033313231353631326133373537356638306664356238323335363030313630303136303430316230333830383231313135363132613464353735663830666435623831383530313931353038353630316638333031313236313261363035373566383066643562383133353831383131313135363132613665353735663830666435623836363032303832383530313031313131353631326137663537356638306664356236303230393239303932303139363931393535303930393335303530353035303536356236303031383138313163393038323136383036313261613535373630376638323136393135303562363032303832313038313033363132616333353736333465343837623731363065303162356635323630323236303034353236303234356666643562353039313930353035363562363032303831303136313062653338323834363132393137353635623633346534383762373136306530316235663532363034313630303435323630323435666664356236303430353136303630383130313630303136303031363034303162303338313131383238323130313731353631326230643537363132623064363132616437353635623630343035323930353635623630343038303531393038313031363030313630303136303430316230333831313138323832313031373135363132623064353736313262306436313261643735363562363034303531363031663832303136303166313931363831303136303031363030313630343031623033383131313832383231303137313536313262356435373631326235643631326164373536356236303430353239313930353035363562356636303031363030313630343031623033383231313135363132623764353736313262376436313261643735363562353036303166303136303166313931363630323030313930353635623566383236303166383330313132363132623961353735663830666435623831353136313262616436313262613838323631326236353536356236313262333535363562383138313532383436303230383338363031303131313135363132626331353735663830666435623631326264323832363032303833303136303230383730313631323933373536356239343933353035303530353035363562356636303230383238343033313231353631326265613537356638306664356238313531363030313630303136303430316230333831313131353631326266663537356638306664356236313262643238343832383530313631326238623536356236303230383135323566363130626530363032303833303138343631323935393536356235663630323038323834303331323135363132633264353735663830666435623530353139313930353035363562356638303833333536303165313938343336303330313831313236313263343935373566383066643562383330313830333539313530363030313630303136303430316230333832313131353631326336323537356638306664356236303230303139313530363030353831393031623336303338323133313536313231626535373566383066643562363334653438376237313630653031623566353236303332363030343532363032343566666435623566383233353630356531393833333630333031383131323631326361313537356638306664356239313930393130313932393135303530353635623566383236303166383330313132363132636261353735663830666435623831333536313263633836313262613838323631326236353536356238313831353238343630323038333836303130313131313536313263646335373566383066643562383136303230383530313630323038333031333735663931383130313630323030313931393039313532393339323530353035303536356235663630363038323336303331323135363132643038353735663830666435623631326431303631326165623536356238323335363030313630303136303430316230333830383231313135363132643236353735663830666435623631326433323336383338373031363132636162353635623833353236303230383530313335393135303830383231313135363132643437353735663830666435623530363132643534333638323836303136313263616235363562363032303833303135323530363132643636363034303834303136313238353835363562363034303832303135323932393135303530353635623566383235313631326361313831383436303230383730313631323933373536356236303166383231313135363130623565353738303566353236303230356632303630316638343031363030353163383130313630323038353130313536313264613735373530383035623630316638343031363030353163383230313931353035623831383131303135363132646336353735663831353536303031303136313264623335363562353035303530353035303536356238313531363030313630303136303430316230333831313131353631326465363537363132646536363132616437353635623631326466613831363132646634383435343631326139313536356238343631326438323536356236303230383036303166383331313630303138313134363132653264353735663834313536313265313635373530383538333031353135623566313936303033383639303162316331393136363030313835393031623137383535353631326538343536356235663835383135323630323038313230363031663139383631363931356238323831313031353631326535623537383838363031353138323535393438343031393436303031393039313031393038343031363132653363353635623530383538323130313536313265373835373837383530313531356631393630303338383930316236306638313631633139313638313535356235303530363030313834363030313162303138353535356235303530353035303530353035363562363334653438376237313630653031623566353236303131363030343532363032343566666435623830383230313830383231313135363130626533353736313062653336313265386335363562356636336666666666666666383038333136383138313033363132656362353736313265636236313265386335363562363030313031393339323530353035303536356238303832303238313135383238323034383431343137363130626533353736313062653336313265386335363562356638303833333536303165313938343336303330313831313236313266303135373566383066643562383330313630323038313031393235303335393035303630303136303031363034303162303338313131313536313266316635373566383066643562383033363033383231333135363132316265353735663830666435623831383335323831383136303230383530313337353035663832383230313630323039303831303139313930393135323630316639303931303136303166313931363930393130313031393035363562356638333833383535323630323038303836303139353530383038353630303531623833303130313834356635623837383131303135363133303032353738343833303336303166313930313839353238313335333638383930303336303565313930313831313236313266393135373566383066643562383730313630363036313266396638323830363132656563353635623832383735323631326661663833383830313832383436313266326435363562393235303530353036313266626638363833303138333631326565633536356238363833303338383838303135323631326664313833383238343631326632643536356239323530353035303630343036303031363030313630343031623033363132666561383238353031363132383538353635623136393530313934393039343532353039373833303139373930383330313930363030313031363132663663353635623530393039373936353035303530353035303530353035363562363032303831353238313335363032303832303135323630323038323031333536303430383230313532356636303430383330313335363133303333383136313238623335363562363030313630303136306130316230333136363036303833383130313931393039313532383330313335333638343930303336303165313930313831313236313330356135373566383066643562383330313630323038313031393033353630303136303031363034303162303338313131313536313330373535373566383066643562383036303035316233363033383231333135363133303836353735663830666435623630383038303835303135323631333039613630613038353031383238343631326635353536356239353934353035303530353035303536356238303531383031353135383131343631323764383537356638306664356235663830363034303833383530333132313536313330633335373566383066643562383235313931353036313238323236303230383430313631333061333536356235663630323038303833353235663834353436313330653538313631326139313536356238303630323038373031353236303430363030313830383431363566383131343631333130363537363030313831313436313331323235373631333134663536356236306666313938353136363034303861303135323630343038343135313536303035316238613031303139353530363133313466353635623839356635323630323035663230356635623835383131303135363133313436353738313534386238323031383630313532393038333031393038383031363133313262353635623861303136303430303139363530353035623530393339383937353035303530353035303530353035303536356238313833383233373566393130313930383135323931393035303536356235663830363034303833383530333132313536313331376435373566383066643562383235313630303136303031363034303162303338303832313131353631333139333537356638306664356239303834303139303630363038323837303331323135363133316136353735663830666435623631333161653631326165623536356238323531383135323630323038333031353136313331633038313631323862333536356236303230383230313532363034303833303135313832383131313135363133316436353735663830666435623631333165323838383238363031363132623862353635623630343038333031353235303933353036313238323239313530353036303230383430313631333061333536356235663630323038323834303331323135363133323039353735663830666435623631306265303832363132383538353635623566383233353630336531393833333630333031383131323631326361313537356638306664356235663830383333353630316531393834333630333031383131323631333233623537356638306664356238333031383033353931353036303031363030313630343031623033383231313135363133323534353735663830666435623630323030313931353033363831393030333832313331353631323162653537356638306664356236303230383135323566363132626432363032303833303138343836363132663264353635623566363034303832333630333132313536313332386235373566383066643562363133323933363132623133353635623631333239633833363132376335353635623831353236303230383038343031333536303031363030313630343031623033383038323131313536313332623835373566383066643562393038353031393033363630316638333031313236313332636135373566383066643562383133353831383131313135363133326463353736313332646336313261643735363562383036303035316239313530363133326564383438333031363132623335353635623831383135323931383330313834303139313834383130313930333638343131313536313333303635373566383066643562393338353031393335623833383531303135363133333330353738343335393235303631333332303833363132386233353635623832383235323933383530313933393038353031393036313333306235363562393438363031393439303934353235303932393539343530353035303530353035363562356636303430383330313633666666666666666638333531313638343532363032303830383430313531363034303630323038373031353238323831353138303835353236303630383830313931353036303230383330313934353035663932353035623830383331303135363133333964353738343531363030313630303136306130316230333136383235323933383330313933363030313932393039323031393139303833303139303631333337343536356235303936393535303530353035303530353035363562363032303831353238313531363032303832303135323566363032303833303135313630653036303430383430313532363133336365363130313030383430313832363132393539353635623930353036303430383430313531363031663139383038353834303330313630363038363031353236313333656338333833363132393539353635623932353036303031363030313630343031623033363036303837303135313136363038303836303135323630383038363031353139313530383038353834303330313630613038363031353236313334316338333833363133333432353635623932353036306130383630313531393135303830383538343033303136306330383630313532353036313334336138323832363133333432353635623931353035303630633038343031353136313334353736306530383530313832363030313630303136303430316230333136393035323536356235303933393235303530353035363562356638303630343038333835303331323135363133343730353735663830666435623832353139313530363032303833303135313630303136303031363034303162303338313131313536313334386335373566383066643562363133343938383538323836303136313262386235363562393135303530393235303932393035303536356238313831303338313831313131353631306265333537363130626533363132653863353635623630303136303031363034303162303338323831313638323832313630333930383038323131313536313132653435373631313265343631326538633536356236303031363030313630343031623033383138313136383338323136303139303830383231313135363131326534353736313132653436313265386335363562363030313630303136303430316230333831383131363833383231363032383038323136393139303832383131343631333531383537363133353138363132653863353635623530353039323931353035303536356235663630303136303031363034303162303338303833313638313831303336313265636235373631326563623631326538633536356235663630323038323834303331323135363133353462353735663830666435623831333536306666383131363831313436313261316635373566383066646665613136343733366636633633343330303038313930303061",
+	ABI: "[{\"inputs\":[{\"internalType\":\"enumICMInitializable\",\"name\":\"init\",\"type\":\"uint8\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"length\",\"type\":\"uint256\"}],\"name\":\"InvalidBLSKeyLength\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidInitializationStatus\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"maximumChurnPercentage\",\"type\":\"uint8\"}],\"name\":\"InvalidMaximumChurnPercentage\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"}],\"name\":\"InvalidNodeID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"threshold\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"addressesLength\",\"type\":\"uint256\"}],\"name\":\"InvalidPChainOwnerThreshold\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"}],\"name\":\"InvalidRegistrationExpiry\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"encodedSubnetConversionID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"expectedSubnetConversionID\",\"type\":\"bytes32\"}],\"name\":\"InvalidSubnetConversionID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"}],\"name\":\"InvalidTotalWeight\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"InvalidValidationID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"validatorManagerAddress\",\"type\":\"address\"}],\"name\":\"InvalidValidatorManagerAddress\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"blockchainID\",\"type\":\"bytes32\"}],\"name\":\"InvalidValidatorManagerBlockchainID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"enumValidatorStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"InvalidValidatorStatus\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidWarpMessage\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"}],\"name\":\"InvalidWarpOriginSenderAddress\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"sourceChainID\",\"type\":\"bytes32\"}],\"name\":\"InvalidWarpSourceChainID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"churnAmount\",\"type\":\"uint64\"}],\"name\":\"MaxChurnRateExceeded\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"}],\"name\":\"NodeAlreadyRegistered\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"PChainOwnerAddressesNotSorted\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"validRegistration\",\"type\":\"bool\"}],\"name\":\"UnexpectedRegistrationStatus\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"}],\"name\":\"InitialValidatorCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"registerValidationMessageID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"}],\"name\":\"ValidationPeriodCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"enumValidatorStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"ValidationPeriodEnded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"ValidationPeriodRegistered\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"setWeightMessageID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\"}],\"name\":\"ValidatorRemovalInitialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"nonce\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"validatorWeight\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"setWeightMessageID\",\"type\":\"bytes32\"}],\"name\":\"ValidatorWeightUpdate\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"ADDRESS_LENGTH\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"BLS_PUBLIC_KEY_LENGTH\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAXIMUM_CHURN_PERCENTAGE_LIMIT\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAXIMUM_REGISTRATION_EXPIRY_LENGTH\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"P_CHAIN_BLOCKCHAIN_ID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"VALIDATOR_MANAGER_STORAGE_LOCATION\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractIWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeValidatorRegistration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"getValidator\",\"outputs\":[{\"components\":[{\"internalType\":\"enumValidatorStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"startingWeight\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"messageNonce\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"startedAt\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"endedAt\",\"type\":\"uint64\"}],\"internalType\":\"structValidator\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"getWeight\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"churnPeriodSeconds\",\"type\":\"uint64\"},{\"internalType\":\"uint8\",\"name\":\"maximumChurnPercentage\",\"type\":\"uint8\"}],\"internalType\":\"structValidatorManagerSettings\",\"name\":\"settings\",\"type\":\"tuple\"},{\"internalType\":\"address\",\"name\":\"initialOwner\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"initializeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"remainingBalanceOwner\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"disableOwner\",\"type\":\"tuple\"}],\"internalType\":\"structValidatorRegistrationInput\",\"name\":\"registrationInput\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"initializeValidatorRegistration\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"validatorManagerBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"validatorManagerAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structInitialValidator[]\",\"name\":\"initialValidators\",\"type\":\"tuple[]\"}],\"internalType\":\"structSubnetConversionData\",\"name\":\"subnetConversionData\",\"type\":\"tuple\"},{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"initializeValidatorSet\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"}],\"name\":\"registeredValidators\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"resendEndValidatorMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"resendRegisterValidatorMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x608060405234801561000f575f80fd5b506040516137cb3803806137cb83398101604081905261002e91610107565b60018160018111156100425761004261012c565b0361004f5761004f610055565b50610140565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00805468010000000000000000900460ff16156100a55760405163f92ee8a960e01b815260040160405180910390fd5b80546001600160401b03908116146101045780546001600160401b0319166001600160401b0390811782556040519081527fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d29060200160405180910390a15b50565b5f60208284031215610117575f80fd5b815160028110610125575f80fd5b9392505050565b634e487b7160e01b5f52602160045260245ffd5b61367e8061014d5f395ff3fe608060405234801561000f575f80fd5b5060043610610132575f3560e01c80639ba96b86116100b4578063c974d1b611610079578063c974d1b6146102a7578063d588c18f146102af578063d5f20ff6146102c2578063df93d8de146102e2578063f2fde38b146102ec578063fd7ac5e7146102ff575f80fd5b80639ba96b861461024c578063a3a65e481461025f578063b771b3bc14610272578063bc5fbfec14610280578063bee0a03f14610294575f80fd5b8063715018a6116100fa578063715018a6146101be578063732214f8146101c65780638280a25a146101db5780638da5cb5b146101f557806397fb70d414610239575f80fd5b80630322ed981461013657806320d91b7a1461014b578063467ef06f1461015e57806360305d621461017157806366435abf14610193575b5f80fd5b61014961014436600461287e565b610312565b005b6101496101593660046128ad565b6105a2565b61014961016c3660046128fb565b610ba8565b610179601481565b60405163ffffffff90911681526020015b60405180910390f35b6101a66101a136600461287e565b610bb6565b6040516001600160401b03909116815260200161018a565b610149610bca565b6101cd5f81565b60405190815260200161018a565b6101e3603081565b60405160ff909116815260200161018a565b7f9016d09d72d40fdae2fd8ceac6b6234c7706214fd39c1cd1e609a0528c199300546001600160a01b03165b6040516001600160a01b03909116815260200161018a565b61014961024736600461287e565b610bdd565b6101cd61025a36600461292a565b610bf2565b61014961026d3660046128fb565b610c0e565b6102216005600160991b0181565b6101cd5f8051602061360983398151915281565b6101496102a236600461287e565b610e03565b6101e3601481565b6101496102bd366004612983565b610f40565b6102d56102d036600461287e565b61104e565b60405161018a9190612a21565b6101a66202a30081565b6101496102fa366004612aa1565b61119d565b6101cd61030d366004612ac3565b6111da565b5f8181525f805160206136298339815191526020526040808220815160e0810190925280545f8051602061360983398151915293929190829060ff16600581111561035f5761035f6129bf565b6005811115610370576103706129bf565b815260200160018201805461038490612b2e565b80601f01602080910402602001604051908101604052809291908181526020018280546103b090612b2e565b80156103fb5780601f106103d2576101008083540402835291602001916103fb565b820191905f5260205f20905b8154815290600101906020018083116103de57829003601f168201915b505050918352505060028201546001600160401b038082166020840152600160401b820481166040840152600160801b820481166060840152600160c01b909104811660808301526003928301541660a09091015290915081516005811115610466576104666129bf565b146104a2575f8381526007830160205260409081902054905163170cc93360e21b81526104999160ff1690600401612b66565b60405180910390fd5b60608101516040516342a2e0b560e11b8152600481018590526001600160401b0390911660248201525f60448201526005600160991b019063ee5b48eb9073__$fd0c147b4031eef6079b0498cbafa865f0$__90638545c16a906064015f60405180830381865af4158015610519573d5f803e3d5ffd5b505050506040513d5f823e601f3d908101601f191682016040526105409190810190612c7a565b6040518263ffffffff1660e01b815260040161055c9190612cb3565b6020604051808303815f875af1158015610578573d5f803e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061059c9190612cc5565b50505050565b7fe92546d698950ddd38910d2e15ed1d923cd0a7b3dde9e2a6a3f380565559cb09545f805160206136098339815191529060ff16156105f457604051637fab81e560e01b815260040160405180910390fd5b6005600160991b016001600160a01b0316634213cf786040518163ffffffff1660e01b8152600401602060405180830381865afa158015610637573d5f803e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061065b9190612cc5565b836020013514610684576040516372b0a7e760e11b815260208401356004820152602401610499565b306106956060850160408601612aa1565b6001600160a01b0316146106d8576106b36060840160408501612aa1565b604051632f88120d60e21b81526001600160a01b039091166004820152602401610499565b5f6106e66060850185612cdc565b905090505f805b828163ffffffff1610156109ce575f6107096060880188612cdc565b8363ffffffff1681811061071f5761071f612d21565b90506020028101906107319190612d35565b61073a90612da0565b80516040519192505f91600888019161075291612e19565b9081526020016040518091039020541461078257805160405163a41f772f60e01b81526104999190600401612cb3565b5f6002885f0135846040516020016107b192919091825260e01b6001600160e01b031916602082015260240190565b60408051601f19818403018152908290526107cb91612e19565b602060405180830381855afa1580156107e6573d5f803e3d5ffd5b5050506040513d601f19601f820116820180604052508101906108099190612cc5565b90508086600801835f01516040516108219190612e19565b90815260408051602092819003830181209390935560e0830181526002835284518284015284810180516001600160401b03908116858401525f60608601819052915181166080860152421660a085015260c0840181905284815260078a01909252902081518154829060ff191660018360058111156108a3576108a36129bf565b0217905550602082015160018201906108bc9082612e7a565b506040828101516002830180546060860151608087015160a08801516001600160401b039586166001600160801b031990941693909317600160401b92861692909202919091176001600160801b0316600160801b918516919091026001600160c01b031617600160c01b9184169190910217905560c0909301516003909201805467ffffffffffffffff191692841692909217909155830151610961911685612f4d565b825160405191955061097291612e19565b60408051918290038220908401516001600160401b031682529082907f9d47fef9da077661546e646d61830bfcbda90506c2e5eed38195e82c4eb1cbdf9060200160405180910390a35050806109c790612f60565b90506106ed565b506004830181905560018301546064906109f290600160401b900460ff1683612f82565b1015610a1457604051635943317f60e01b815260048101829052602401610499565b5f73__$fd0c147b4031eef6079b0498cbafa865f0$__631e6d9789610a3887611235565b604001516040518263ffffffff1660e01b8152600401610a589190612cb3565b602060405180830381865af4158015610a73573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610a979190612cc5565b90505f73__$fd0c147b4031eef6079b0498cbafa865f0$__63862bfa63886040518263ffffffff1660e01b8152600401610ad191906130bc565b5f60405180830381865af4158015610aeb573d5f803e3d5ffd5b505050506040513d5f823e601f3d908101601f19168201604052610b129190810190612c7a565b90505f600282604051610b259190612e19565b602060405180830381855afa158015610b40573d5f803e3d5ffd5b5050506040513d601f19601f82011682018060405250810190610b639190612cc5565b9050828114610b8f57604051631872fc8d60e01b81526004810182905260248101849052604401610499565b5050506009909201805460ff1916600117905550505050565b610bb18161134b565b505050565b5f610bc08261104e565b6080015192915050565b610bd26116fe565b610bdb5f611759565b565b610be56116fe565b610bee816117c9565b5050565b5f610bfb6116fe565b610c058383611aad565b90505b92915050565b5f805160206136098339815191525f8073__$fd0c147b4031eef6079b0498cbafa865f0$__632e43ceb5610c4186611235565b604001516040518263ffffffff1660e01b8152600401610c619190612cb3565b6040805180830381865af4158015610c7b573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610c9f919061315f565b9150915080610cc557604051632d07135360e01b81528115156004820152602401610499565b5f82815260068401602052604090208054610cdf90612b2e565b90505f03610d035760405163089938b360e11b815260048101839052602401610499565b60015f83815260078501602052604090205460ff166005811115610d2957610d296129bf565b14610d5c575f8281526007840160205260409081902054905163170cc93360e21b81526104999160ff1690600401612b66565b5f8281526006840160205260408120610d74916127f2565b5f828152600784016020908152604091829020805460ff1916600290811782550180546001600160401b0342818116600160c01b026001600160c01b0390931692909217928390558451600160801b9093041682529181019190915283917ff8fd1c90fb9cfa2ca2358fdf5806b086ad43315d92b221c929efc7f105ce7568910160405180910390a250505050565b5f8181527fe92546d698950ddd38910d2e15ed1d923cd0a7b3dde9e2a6a3f380565559cb066020526040902080545f805160206136098339815191529190610e4a90612b2e565b90505f03610e6e5760405163089938b360e11b815260048101839052602401610499565b60015f83815260078301602052604090205460ff166005811115610e9457610e946129bf565b14610ec7575f8281526007820160205260409081902054905163170cc93360e21b81526104999160ff1690600401612b66565b5f82815260068201602052604090819020905163ee5b48eb60e01b81526005600160991b019163ee5b48eb91610f009190600401613180565b6020604051808303815f875af1158015610f1c573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610bb19190612cc5565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a008054600160401b810460ff1615906001600160401b03165f81158015610f845750825b90505f826001600160401b03166001148015610f9f5750303b155b905081158015610fad575080155b15610fcb5760405163f92ee8a960e01b815260040160405180910390fd5b845467ffffffffffffffff191660011785558315610ff557845460ff60401b1916600160401b1785555b610fff8787612095565b831561104557845460ff60401b19168555604051600181527fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d29060200160405180910390a15b50505050505050565b611056612829565b5f8281525f80516020613629833981519152602052604090819020815160e0810190925280545f80516020613609833981519152929190829060ff1660058111156110a3576110a36129bf565b60058111156110b4576110b46129bf565b81526020016001820180546110c890612b2e565b80601f01602080910402602001604051908101604052809291908181526020018280546110f490612b2e565b801561113f5780601f106111165761010080835404028352916020019161113f565b820191905f5260205f20905b81548152906001019060200180831161112257829003601f168201915b505050918352505060028201546001600160401b038082166020840152600160401b820481166040840152600160801b820481166060840152600160c01b9091048116608083015260039092015490911660a0909101529392505050565b6111a56116fe565b6001600160a01b0381166111ce57604051631e4fbdf760e01b81525f6004820152602401610499565b6111d781611759565b50565b6040515f905f80516020613609833981519152907fe92546d698950ddd38910d2e15ed1d923cd0a7b3dde9e2a6a3f380565559cb089061121d908690869061320a565b90815260200160405180910390205491505092915050565b60408051606080820183525f8083526020830152918101919091526040516306f8253560e41b815263ffffffff831660048201525f9081906005600160991b0190636f825350906024015f60405180830381865afa158015611299573d5f803e3d5ffd5b505050506040513d5f823e601f3d908101601f191682016040526112c09190810190613219565b91509150806112e257604051636b2f19e960e01b815260040160405180910390fd5b815115611308578151604051636ba589a560e01b81526004810191909152602401610499565b60208201516001600160a01b031615611344576020820151604051624de75d60e31b81526001600160a01b039091166004820152602401610499565b5092915050565b5f611354612829565b5f805160206136098339815191525f8073__$fd0c147b4031eef6079b0498cbafa865f0$__632e43ceb561138788611235565b604001516040518263ffffffff1660e01b81526004016113a79190612cb3565b6040805180830381865af41580156113c1573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906113e5919061315f565b91509150801561140c57604051632d07135360e01b81528115156004820152602401610499565b5f828152600784016020526040808220815160e081019092528054829060ff16600581111561143d5761143d6129bf565b600581111561144e5761144e6129bf565b815260200160018201805461146290612b2e565b80601f016020809104026020016040519081016040528092919081815260200182805461148e90612b2e565b80156114d95780601f106114b0576101008083540402835291602001916114d9565b820191905f5260205f20905b8154815290600101906020018083116114bc57829003601f168201915b505050918352505060028201546001600160401b038082166020840152600160401b820481166040840152600160801b820481166060840152600160c01b909104811660808301526003928301541660a09091015290915081516005811115611544576115446129bf565b141580156115655750600181516005811115611562576115626129bf565b14155b1561158657805160405163170cc93360e21b81526104999190600401612b66565b60038151600581111561159b5761159b6129bf565b036115a957600481526115ae565b600581525b8360080181602001516040516115c49190612e19565b90815260408051602092819003830190205f908190558581526007870190925290208151815483929190829060ff19166001836005811115611608576116086129bf565b0217905550602082015160018201906116219082612e7a565b5060408201516002820180546060850151608086015160a08701516001600160401b039586166001600160801b031990941693909317600160401b92861692909202919091176001600160801b0316600160801b918516919091026001600160c01b031617600160c01b9184169190910217905560c0909201516003909101805467ffffffffffffffff191691909216179055805160058111156116c7576116c76129bf565b60405184907f1c08e59656f1a18dc2da76826cdc52805c43e897a17c50faefb8ab3c1526cc16905f90a39196919550909350505050565b336117307f9016d09d72d40fdae2fd8ceac6b6234c7706214fd39c1cd1e609a0528c199300546001600160a01b031690565b6001600160a01b031614610bdb5760405163118cdaa760e01b8152336004820152602401610499565b7f9016d09d72d40fdae2fd8ceac6b6234c7706214fd39c1cd1e609a0528c19930080546001600160a01b031981166001600160a01b03848116918217845560405192169182907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0905f90a3505050565b6117d1612829565b5f8281525f805160206136298339815191526020526040808220815160e0810190925280545f8051602061360983398151915293929190829060ff16600581111561181e5761181e6129bf565b600581111561182f5761182f6129bf565b815260200160018201805461184390612b2e565b80601f016020809104026020016040519081016040528092919081815260200182805461186f90612b2e565b80156118ba5780601f10611891576101008083540402835291602001916118ba565b820191905f5260205f20905b81548152906001019060200180831161189d57829003601f168201915b50505091835250506002828101546001600160401b038082166020850152600160401b820481166040850152600160801b820481166060850152600160c01b9091048116608084015260039093015490921660a09091015290915081516005811115611928576119286129bf565b1461195b575f8481526007830160205260409081902054905163170cc93360e21b81526104999160ff1690600401612b66565b60038152426001600160401b031660c08201525f84815260078301602052604090208151815483929190829060ff1916600183600581111561199f5761199f6129bf565b0217905550602082015160018201906119b89082612e7a565b5060408201516002820180546060850151608086015160a08701516001600160401b039586166001600160801b031990941693909317600160401b92861692909202919091176001600160801b0316600160801b918516919091026001600160c01b031617600160c01b9184169190910217905560c0909201516003909101805467ffffffffffffffff1916919092161790555f611a5685826120af565b6080840151604080516001600160401b03909216825242602083015291935083925087917f13d58394cf269d48bcf927959a29a5ffee7c9924dafff8927ecdf3c48ffa7c67910160405180910390a3509392505050565b7fe92546d698950ddd38910d2e15ed1d923cd0a7b3dde9e2a6a3f380565559cb09545f9060ff16611af157604051637fab81e560e01b815260040160405180910390fd5b5f8051602061360983398151915242611b1060608601604087016132a6565b6001600160401b0316111580611b4a5750611b2e6202a30042612f4d565b611b3e60608601604087016132a6565b6001600160401b031610155b15611b8457611b5f60608501604086016132a6565b604051635879da1360e11b81526001600160401b039091166004820152602401610499565b611b99611b9460608601866132bf565b612286565b611ba9611b9460808601866132bf565b6030611bb860208601866132d3565b905014611bea57611bcc60208501856132d3565b6040516326475b2f60e11b8152610499925060040190815260200190565b611bf484806132d3565b90505f03611c2157611c0684806132d3565b604051633e08a12560e11b8152600401610499929190613315565b5f60088201611c3086806132d3565b604051611c3e92919061320a565b90815260200160405180910390205414611c7757611c5c84806132d3565b60405163a41f772f60e01b8152600401610499929190613315565b611c81835f6123ef565b6040805160e08101909152815481525f90819073__$fd0c147b4031eef6079b0498cbafa865f0$__9063e047b2839060208101611cbe8a806132d3565b8080601f0160208091040260200160405190810160405280939291908181526020018383808284375f92019190915250505090825250602090810190611d06908b018b6132d3565b8080601f0160208091040260200160405190810160405280939291908181526020018383808284375f92019190915250505090825250602001611d4f60608b0160408c016132a6565b6001600160401b03168152602001611d6a60608b018b6132bf565b611d7390613328565b8152602001611d8560808b018b6132bf565b611d8e90613328565b8152602001886001600160401b03168152506040518263ffffffff1660e01b8152600401611dbc9190613455565b5f60405180830381865af4158015611dd6573d5f803e3d5ffd5b505050506040513d5f823e601f3d908101601f19168201604052611dfd919081019061350c565b5f82815260068601602052604090209193509150611e1b8282612e7a565b508160088401611e2b88806132d3565b604051611e3992919061320a565b9081526040519081900360200181209190915563ee5b48eb60e01b81525f906005600160991b019063ee5b48eb90611e75908590600401612cb3565b6020604051808303815f875af1158015611e91573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190611eb59190612cc5565b6040805160e081019091529091508060018152602001611ed589806132d3565b8080601f0160208091040260200160405190810160405280939291908181526020018383808284375f9201829052509385525050506001600160401b0389166020808401829052604080850184905260608501929092526080840183905260a0909301829052868252600788019092522081518154829060ff19166001836005811115611f6457611f646129bf565b021790555060208201516001820190611f7d9082612e7a565b5060408201516002820180546060850151608086015160a08701516001600160401b039586166001600160801b031990941693909317600160401b92861692909202919091176001600160801b0316600160801b918516919091026001600160c01b031617600160c01b9184169190910217905560c0909201516003909101805467ffffffffffffffff1916919092161790558061201b88806132d3565b60405161202992919061320a565b6040518091039020847fb77297e3befc691bfc864a81e241f83e2ef722b6e7becaa2ecec250c6d52b430898b604001602081019061206791906132a6565b604080516001600160401b0393841681529290911660208301520160405180910390a4509095945050505050565b61209d612612565b6120a68261265b565b610bee81612674565b5f8281525f80516020613629833981519152602052604081206002015481905f8051602061360983398151915290600160801b90046001600160401b03166120f785826123ef565b5f61210187612685565b5f888152600785016020526040808220600201805467ffffffffffffffff60801b1916600160801b6001600160401b038c81169182029290921790925591516342a2e0b560e11b8152600481018c905291841660248301526044820152919250906005600160991b019063ee5b48eb9073__$fd0c147b4031eef6079b0498cbafa865f0$__90638545c16a906064015f60405180830381865af41580156121aa573d5f803e3d5ffd5b505050506040513d5f823e601f3d908101601f191682016040526121d19190810190612c7a565b6040518263ffffffff1660e01b81526004016121ed9190612cb3565b6020604051808303815f875af1158015612209573d5f803e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061222d9190612cc5565b604080516001600160401b038a811682526020820184905282519394508516928b927f07de5ff35a674a8005e661f3333c907ca6333462808762d19dc7b3abb1a8c1df928290030190a3909450925050505b9250929050565b61229360208201826128fb565b63ffffffff161580156122b357506122ae6020820182612cdc565b151590505b156122fa576122c560208201826128fb565b6122d26020830183612cdc565b60405163c08a0f1d60e01b815263ffffffff9093166004840152602483015250604401610499565b6123076020820182612cdc565b905061231660208301836128fb565b63ffffffff16111561232f576122c560208201826128fb565b60015b61233f6020830183612cdc565b9050811015610bee576123556020830183612cdc565b61236060018461354f565b81811061236f5761236f612d21565b90506020020160208101906123849190612aa1565b6001600160a01b031661239a6020840184612cdc565b838181106123aa576123aa612d21565b90506020020160208101906123bf9190612aa1565b6001600160a01b031610156123e757604051630dbc8d5f60e31b815260040160405180910390fd5b600101612332565b5f805160206136098339815191525f6001600160401b0380841690851611156124235761241c8385613562565b9050612430565b61242d8484613562565b90505b6040805160808101825260028401548082526003850154602083015260048501549282019290925260058401546001600160401b031660608201524291158061249257506001840154815161248e916001600160401b031690612f4d565b8210155b156124b8576001600160401b0383166060820152818152604081015160208201526124d7565b82816060018181516124ca9190613582565b6001600160401b03169052505b60608101516124e79060646135a2565b602082015160018601546001600160401b0392909216916125129190600160401b900460ff16612f82565b101561254257606081015160405163dfae880160e01b81526001600160401b039091166004820152602401610499565b856001600160401b03168160400181815161255d9190612f4d565b9052506040810180516001600160401b038716919061257d90839061354f565b905250600184015460408201516064916125a291600160401b90910460ff1690612f82565b10156125c9578060400151604051635943317f60e01b815260040161049991815260200190565b805160028501556020810151600385015560408101516004850155606001516005909301805467ffffffffffffffff19166001600160401b039094169390931790925550505050565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a0054600160401b900460ff16610bdb57604051631afcd79f60e31b815260040160405180910390fd5b612663612612565b61266b6126fa565b6111d781612702565b61267c612612565b6111d7816127ea565b5f8181525f805160206136298339815191526020526040812060020180545f8051602061360983398151915291906008906126cf90600160401b90046001600160401b03166135cd565b91906101000a8154816001600160401b0302191690836001600160401b031602179055915050919050565b610bdb612612565b61270a612612565b80355f80516020613609833981519152908155601461272f60608401604085016135e8565b60ff16118061274e575061274960608301604084016135e8565b60ff16155b156127825761276360608301604084016135e8565b604051634a59bbff60e11b815260ff9091166004820152602401610499565b61279260608301604084016135e8565b60018201805460ff92909216600160401b0260ff60401b199092169190911790556127c360408301602084016132a6565b600191909101805467ffffffffffffffff19166001600160401b0390921691909117905550565b6111a5612612565b5080546127fe90612b2e565b5f825580601f1061280d575050565b601f0160209004905f5260205f20908101906111d79190612866565b6040805160e08101909152805f81526060602082018190525f604083018190529082018190526080820181905260a0820181905260c09091015290565b5b8082111561287a575f8155600101612867565b5090565b5f6020828403121561288e575f80fd5b5035919050565b803563ffffffff811681146128a8575f80fd5b919050565b5f80604083850312156128be575f80fd5b82356001600160401b038111156128d3575f80fd5b8301608081860312156128e4575f80fd5b91506128f260208401612895565b90509250929050565b5f6020828403121561290b575f80fd5b610c0582612895565b80356001600160401b03811681146128a8575f80fd5b5f806040838503121561293b575f80fd5b82356001600160401b03811115612950575f80fd5b830160a08186031215612961575f80fd5b91506128f260208401612914565b6001600160a01b03811681146111d7575f80fd5b5f808284036080811215612995575f80fd5b60608112156129a2575f80fd5b5082915060608301356129b48161296f565b809150509250929050565b634e487b7160e01b5f52602160045260245ffd5b600681106129ef57634e487b7160e01b5f52602160045260245ffd5b9052565b5f81518084528060208401602086015e5f602082860101526020601f19601f83011685010191505092915050565b60208152612a336020820183516129d3565b5f602083015160e06040840152612a4e6101008401826129f3565b905060408401516001600160401b0380821660608601528060608701511660808601528060808701511660a08601528060a08701511660c08601528060c08701511660e086015250508091505092915050565b5f60208284031215612ab1575f80fd5b8135612abc8161296f565b9392505050565b5f8060208385031215612ad4575f80fd5b82356001600160401b0380821115612aea575f80fd5b818501915085601f830112612afd575f80fd5b813581811115612b0b575f80fd5b866020828501011115612b1c575f80fd5b60209290920196919550909350505050565b600181811c90821680612b4257607f821691505b602082108103612b6057634e487b7160e01b5f52602260045260245ffd5b50919050565b60208101610c0882846129d3565b634e487b7160e01b5f52604160045260245ffd5b604051606081016001600160401b0381118282101715612baa57612baa612b74565b60405290565b604080519081016001600160401b0381118282101715612baa57612baa612b74565b604051601f8201601f191681016001600160401b0381118282101715612bfa57612bfa612b74565b604052919050565b5f6001600160401b03821115612c1a57612c1a612b74565b50601f01601f191660200190565b5f82601f830112612c37575f80fd5b8151612c4a612c4582612c02565b612bd2565b818152846020838601011115612c5e575f80fd5b8160208501602083015e5f918101602001919091529392505050565b5f60208284031215612c8a575f80fd5b81516001600160401b03811115612c9f575f80fd5b612cab84828501612c28565b949350505050565b602081525f610c0560208301846129f3565b5f60208284031215612cd5575f80fd5b5051919050565b5f808335601e19843603018112612cf1575f80fd5b8301803591506001600160401b03821115612d0a575f80fd5b6020019150600581901b360382131561227f575f80fd5b634e487b7160e01b5f52603260045260245ffd5b5f8235605e19833603018112612d49575f80fd5b9190910192915050565b5f82601f830112612d62575f80fd5b8135612d70612c4582612c02565b818152846020838601011115612d84575f80fd5b816020850160208301375f918101602001919091529392505050565b5f60608236031215612db0575f80fd5b612db8612b88565b82356001600160401b0380821115612dce575f80fd5b612dda36838701612d53565b83526020850135915080821115612def575f80fd5b50612dfc36828601612d53565b602083015250612e0e60408401612914565b604082015292915050565b5f82518060208501845e5f920191825250919050565b601f821115610bb157805f5260205f20601f840160051c81016020851015612e545750805b601f840160051c820191505b81811015612e73575f8155600101612e60565b5050505050565b81516001600160401b03811115612e9357612e93612b74565b612ea781612ea18454612b2e565b84612e2f565b602080601f831160018114612eda575f8415612ec35750858301515b5f19600386901b1c1916600185901b178555612f31565b5f85815260208120601f198616915b82811015612f0857888601518255948401946001909101908401612ee9565b5085821015612f2557878501515f19600388901b60f8161c191681555b505060018460011b0185555b505050505050565b634e487b7160e01b5f52601160045260245ffd5b80820180821115610c0857610c08612f39565b5f63ffffffff808316818103612f7857612f78612f39565b6001019392505050565b8082028115828204841417610c0857610c08612f39565b5f808335601e19843603018112612fae575f80fd5b83016020810192503590506001600160401b03811115612fcc575f80fd5b80360382131561227f575f80fd5b81835281816020850137505f828201602090810191909152601f909101601f19169091010190565b5f8383855260208086019550808560051b830101845f5b878110156130af57848303601f19018952813536889003605e1901811261303e575f80fd5b8701606061304c8280612f99565b82875261305c8388018284612fda565b9250505061306c86830183612f99565b8683038888015261307e838284612fda565b9250505060406001600160401b03613097828501612914565b16950194909452509783019790830190600101613019565b5090979650505050505050565b6020815281356020820152602082013560408201525f60408301356130e08161296f565b6001600160a01b031660608381019190915283013536849003601e19018112613107575f80fd5b83016020810190356001600160401b03811115613122575f80fd5b8060051b3603821315613133575f80fd5b60808085015261314760a085018284613002565b95945050505050565b805180151581146128a8575f80fd5b5f8060408385031215613170575f80fd5b825191506128f260208401613150565b5f60208083525f845461319281612b2e565b806020870152604060018084165f81146131b357600181146131cf576131fc565b60ff19851660408a0152604084151560051b8a010195506131fc565b895f5260205f205f5b858110156131f35781548b82018601529083019088016131d8565b8a016040019650505b509398975050505050505050565b818382375f9101908152919050565b5f806040838503121561322a575f80fd5b82516001600160401b0380821115613240575f80fd5b9084019060608287031215613253575f80fd5b61325b612b88565b82518152602083015161326d8161296f565b6020820152604083015182811115613283575f80fd5b61328f88828601612c28565b60408301525093506128f291505060208401613150565b5f602082840312156132b6575f80fd5b610c0582612914565b5f8235603e19833603018112612d49575f80fd5b5f808335601e198436030181126132e8575f80fd5b8301803591506001600160401b03821115613301575f80fd5b60200191503681900382131561227f575f80fd5b602081525f612cab602083018486612fda565b5f60408236031215613338575f80fd5b613340612bb0565b61334983612895565b81526020808401356001600160401b0380821115613365575f80fd5b9085019036601f830112613377575f80fd5b81358181111561338957613389612b74565b8060051b915061339a848301612bd2565b81815291830184019184810190368411156133b3575f80fd5b938501935b838510156133dd57843592506133cd8361296f565b82825293850193908501906133b8565b94860194909452509295945050505050565b5f6040830163ffffffff8351168452602080840151604060208701528281518085526060880191506020830194505f92505b8083101561344a5784516001600160a01b03168252938301936001929092019190830190613421565b509695505050505050565b60208152815160208201525f602083015160e0604084015261347b6101008401826129f3565b90506040840151601f198085840301606086015261349983836129f3565b92506001600160401b03606087015116608086015260808601519150808584030160a08601526134c983836133ef565b925060a08601519150808584030160c0860152506134e782826133ef565b91505060c084015161350460e08501826001600160401b03169052565b509392505050565b5f806040838503121561351d575f80fd5b8251915060208301516001600160401b03811115613539575f80fd5b61354585828601612c28565b9150509250929050565b81810381811115610c0857610c08612f39565b6001600160401b0382811682821603908082111561134457611344612f39565b6001600160401b0381811683821601908082111561134457611344612f39565b6001600160401b038181168382160280821691908281146135c5576135c5612f39565b505092915050565b5f6001600160401b03808316818103612f7857612f78612f39565b5f602082840312156135f8575f80fd5b813560ff81168114612abc575f80fdfee92546d698950ddd38910d2e15ed1d923cd0a7b3dde9e2a6a3f380565559cb00e92546d698950ddd38910d2e15ed1d923cd0a7b3dde9e2a6a3f380565559cb07a2646970667358221220f90bd50d71afec718957216078721668080cbd5385bd95622edb665e483dcba964736f6c63430008190033",
 }
 
 // PoAValidatorManagerABI is the input ABI used to generate the binding from.
@@ -100,6 +4060,9 @@ func DeployPoAValidatorManager(auth *bind.TransactOpts, backend bind.ContractBac
 	if parsed == nil {
 		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
 	}
+
+	validatorMessagesAddr, _, _, _ := DeployValidatorMessages(auth, backend)
+	PoAValidatorManagerBin = strings.ReplaceAll(PoAValidatorManagerBin, "__$fd0c147b4031eef6079b0498cbafa865f0$__", validatorMessagesAddr.String()[2:])
 
 	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(PoAValidatorManagerBin), backend, init)
 	if err != nil {
@@ -2013,4 +5976,2150 @@ func (_PoAValidatorManager *PoAValidatorManagerFilterer) ParseValidatorWeightUpd
 	}
 	event.Raw = log
 	return event, nil
+}
+
+// ValidatorManagerMetaData contains all meta data concerning the ValidatorManager contract.
+var ValidatorManagerMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"length\",\"type\":\"uint256\"}],\"name\":\"InvalidBLSKeyLength\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidInitializationStatus\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"maximumChurnPercentage\",\"type\":\"uint8\"}],\"name\":\"InvalidMaximumChurnPercentage\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"}],\"name\":\"InvalidNodeID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"threshold\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"addressesLength\",\"type\":\"uint256\"}],\"name\":\"InvalidPChainOwnerThreshold\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"}],\"name\":\"InvalidRegistrationExpiry\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"encodedSubnetConversionID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"expectedSubnetConversionID\",\"type\":\"bytes32\"}],\"name\":\"InvalidSubnetConversionID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"}],\"name\":\"InvalidTotalWeight\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"InvalidValidationID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"validatorManagerAddress\",\"type\":\"address\"}],\"name\":\"InvalidValidatorManagerAddress\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"blockchainID\",\"type\":\"bytes32\"}],\"name\":\"InvalidValidatorManagerBlockchainID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"enumValidatorStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"InvalidValidatorStatus\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidWarpMessage\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"}],\"name\":\"InvalidWarpOriginSenderAddress\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"sourceChainID\",\"type\":\"bytes32\"}],\"name\":\"InvalidWarpSourceChainID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"churnAmount\",\"type\":\"uint64\"}],\"name\":\"MaxChurnRateExceeded\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"}],\"name\":\"NodeAlreadyRegistered\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"PChainOwnerAddressesNotSorted\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"validRegistration\",\"type\":\"bool\"}],\"name\":\"UnexpectedRegistrationStatus\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"}],\"name\":\"InitialValidatorCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"registerValidationMessageID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"}],\"name\":\"ValidationPeriodCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"enumValidatorStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"ValidationPeriodEnded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"ValidationPeriodRegistered\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"setWeightMessageID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\"}],\"name\":\"ValidatorRemovalInitialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"nonce\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"validatorWeight\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"setWeightMessageID\",\"type\":\"bytes32\"}],\"name\":\"ValidatorWeightUpdate\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"ADDRESS_LENGTH\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"BLS_PUBLIC_KEY_LENGTH\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAXIMUM_CHURN_PERCENTAGE_LIMIT\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAXIMUM_REGISTRATION_EXPIRY_LENGTH\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"P_CHAIN_BLOCKCHAIN_ID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"VALIDATOR_MANAGER_STORAGE_LOCATION\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractIWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeValidatorRegistration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"getValidator\",\"outputs\":[{\"components\":[{\"internalType\":\"enumValidatorStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"startingWeight\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"messageNonce\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"startedAt\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"endedAt\",\"type\":\"uint64\"}],\"internalType\":\"structValidator\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"getWeight\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"validatorManagerBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"validatorManagerAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structInitialValidator[]\",\"name\":\"initialValidators\",\"type\":\"tuple[]\"}],\"internalType\":\"structSubnetConversionData\",\"name\":\"subnetConversionData\",\"type\":\"tuple\"},{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"initializeValidatorSet\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"}],\"name\":\"registeredValidators\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"resendEndValidatorMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"resendRegisterValidatorMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+}
+
+// ValidatorManagerABI is the input ABI used to generate the binding from.
+// Deprecated: Use ValidatorManagerMetaData.ABI instead.
+var ValidatorManagerABI = ValidatorManagerMetaData.ABI
+
+// ValidatorManager is an auto generated Go binding around an Ethereum contract.
+type ValidatorManager struct {
+	ValidatorManagerCaller     // Read-only binding to the contract
+	ValidatorManagerTransactor // Write-only binding to the contract
+	ValidatorManagerFilterer   // Log filterer for contract events
+}
+
+// ValidatorManagerCaller is an auto generated read-only Go binding around an Ethereum contract.
+type ValidatorManagerCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ValidatorManagerTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type ValidatorManagerTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ValidatorManagerFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type ValidatorManagerFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ValidatorManagerSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type ValidatorManagerSession struct {
+	Contract     *ValidatorManager // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
+}
+
+// ValidatorManagerCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type ValidatorManagerCallerSession struct {
+	Contract *ValidatorManagerCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts           // Call options to use throughout this session
+}
+
+// ValidatorManagerTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type ValidatorManagerTransactorSession struct {
+	Contract     *ValidatorManagerTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts           // Transaction auth options to use throughout this session
+}
+
+// ValidatorManagerRaw is an auto generated low-level Go binding around an Ethereum contract.
+type ValidatorManagerRaw struct {
+	Contract *ValidatorManager // Generic contract binding to access the raw methods on
+}
+
+// ValidatorManagerCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type ValidatorManagerCallerRaw struct {
+	Contract *ValidatorManagerCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// ValidatorManagerTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type ValidatorManagerTransactorRaw struct {
+	Contract *ValidatorManagerTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewValidatorManager creates a new instance of ValidatorManager, bound to a specific deployed contract.
+func NewValidatorManager(address common.Address, backend bind.ContractBackend) (*ValidatorManager, error) {
+	contract, err := bindValidatorManager(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorManager{ValidatorManagerCaller: ValidatorManagerCaller{contract: contract}, ValidatorManagerTransactor: ValidatorManagerTransactor{contract: contract}, ValidatorManagerFilterer: ValidatorManagerFilterer{contract: contract}}, nil
+}
+
+// NewValidatorManagerCaller creates a new read-only instance of ValidatorManager, bound to a specific deployed contract.
+func NewValidatorManagerCaller(address common.Address, caller bind.ContractCaller) (*ValidatorManagerCaller, error) {
+	contract, err := bindValidatorManager(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorManagerCaller{contract: contract}, nil
+}
+
+// NewValidatorManagerTransactor creates a new write-only instance of ValidatorManager, bound to a specific deployed contract.
+func NewValidatorManagerTransactor(address common.Address, transactor bind.ContractTransactor) (*ValidatorManagerTransactor, error) {
+	contract, err := bindValidatorManager(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorManagerTransactor{contract: contract}, nil
+}
+
+// NewValidatorManagerFilterer creates a new log filterer instance of ValidatorManager, bound to a specific deployed contract.
+func NewValidatorManagerFilterer(address common.Address, filterer bind.ContractFilterer) (*ValidatorManagerFilterer, error) {
+	contract, err := bindValidatorManager(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorManagerFilterer{contract: contract}, nil
+}
+
+// bindValidatorManager binds a generic wrapper to an already deployed contract.
+func bindValidatorManager(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := ValidatorManagerMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ValidatorManager *ValidatorManagerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ValidatorManager.Contract.ValidatorManagerCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ValidatorManager *ValidatorManagerRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.ValidatorManagerTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ValidatorManager *ValidatorManagerRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.ValidatorManagerTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ValidatorManager *ValidatorManagerCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ValidatorManager.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ValidatorManager *ValidatorManagerTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ValidatorManager *ValidatorManagerTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.contract.Transact(opts, method, params...)
+}
+
+// ADDRESSLENGTH is a free data retrieval call binding the contract method 0x60305d62.
+//
+// Solidity: function ADDRESS_LENGTH() view returns(uint32)
+func (_ValidatorManager *ValidatorManagerCaller) ADDRESSLENGTH(opts *bind.CallOpts) (uint32, error) {
+	var out []interface{}
+	err := _ValidatorManager.contract.Call(opts, &out, "ADDRESS_LENGTH")
+
+	if err != nil {
+		return *new(uint32), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint32)).(*uint32)
+
+	return out0, err
+
+}
+
+// ADDRESSLENGTH is a free data retrieval call binding the contract method 0x60305d62.
+//
+// Solidity: function ADDRESS_LENGTH() view returns(uint32)
+func (_ValidatorManager *ValidatorManagerSession) ADDRESSLENGTH() (uint32, error) {
+	return _ValidatorManager.Contract.ADDRESSLENGTH(&_ValidatorManager.CallOpts)
+}
+
+// ADDRESSLENGTH is a free data retrieval call binding the contract method 0x60305d62.
+//
+// Solidity: function ADDRESS_LENGTH() view returns(uint32)
+func (_ValidatorManager *ValidatorManagerCallerSession) ADDRESSLENGTH() (uint32, error) {
+	return _ValidatorManager.Contract.ADDRESSLENGTH(&_ValidatorManager.CallOpts)
+}
+
+// BLSPUBLICKEYLENGTH is a free data retrieval call binding the contract method 0x8280a25a.
+//
+// Solidity: function BLS_PUBLIC_KEY_LENGTH() view returns(uint8)
+func (_ValidatorManager *ValidatorManagerCaller) BLSPUBLICKEYLENGTH(opts *bind.CallOpts) (uint8, error) {
+	var out []interface{}
+	err := _ValidatorManager.contract.Call(opts, &out, "BLS_PUBLIC_KEY_LENGTH")
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
+}
+
+// BLSPUBLICKEYLENGTH is a free data retrieval call binding the contract method 0x8280a25a.
+//
+// Solidity: function BLS_PUBLIC_KEY_LENGTH() view returns(uint8)
+func (_ValidatorManager *ValidatorManagerSession) BLSPUBLICKEYLENGTH() (uint8, error) {
+	return _ValidatorManager.Contract.BLSPUBLICKEYLENGTH(&_ValidatorManager.CallOpts)
+}
+
+// BLSPUBLICKEYLENGTH is a free data retrieval call binding the contract method 0x8280a25a.
+//
+// Solidity: function BLS_PUBLIC_KEY_LENGTH() view returns(uint8)
+func (_ValidatorManager *ValidatorManagerCallerSession) BLSPUBLICKEYLENGTH() (uint8, error) {
+	return _ValidatorManager.Contract.BLSPUBLICKEYLENGTH(&_ValidatorManager.CallOpts)
+}
+
+// MAXIMUMCHURNPERCENTAGELIMIT is a free data retrieval call binding the contract method 0xc974d1b6.
+//
+// Solidity: function MAXIMUM_CHURN_PERCENTAGE_LIMIT() view returns(uint8)
+func (_ValidatorManager *ValidatorManagerCaller) MAXIMUMCHURNPERCENTAGELIMIT(opts *bind.CallOpts) (uint8, error) {
+	var out []interface{}
+	err := _ValidatorManager.contract.Call(opts, &out, "MAXIMUM_CHURN_PERCENTAGE_LIMIT")
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
+}
+
+// MAXIMUMCHURNPERCENTAGELIMIT is a free data retrieval call binding the contract method 0xc974d1b6.
+//
+// Solidity: function MAXIMUM_CHURN_PERCENTAGE_LIMIT() view returns(uint8)
+func (_ValidatorManager *ValidatorManagerSession) MAXIMUMCHURNPERCENTAGELIMIT() (uint8, error) {
+	return _ValidatorManager.Contract.MAXIMUMCHURNPERCENTAGELIMIT(&_ValidatorManager.CallOpts)
+}
+
+// MAXIMUMCHURNPERCENTAGELIMIT is a free data retrieval call binding the contract method 0xc974d1b6.
+//
+// Solidity: function MAXIMUM_CHURN_PERCENTAGE_LIMIT() view returns(uint8)
+func (_ValidatorManager *ValidatorManagerCallerSession) MAXIMUMCHURNPERCENTAGELIMIT() (uint8, error) {
+	return _ValidatorManager.Contract.MAXIMUMCHURNPERCENTAGELIMIT(&_ValidatorManager.CallOpts)
+}
+
+// MAXIMUMREGISTRATIONEXPIRYLENGTH is a free data retrieval call binding the contract method 0xdf93d8de.
+//
+// Solidity: function MAXIMUM_REGISTRATION_EXPIRY_LENGTH() view returns(uint64)
+func (_ValidatorManager *ValidatorManagerCaller) MAXIMUMREGISTRATIONEXPIRYLENGTH(opts *bind.CallOpts) (uint64, error) {
+	var out []interface{}
+	err := _ValidatorManager.contract.Call(opts, &out, "MAXIMUM_REGISTRATION_EXPIRY_LENGTH")
+
+	if err != nil {
+		return *new(uint64), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint64)).(*uint64)
+
+	return out0, err
+
+}
+
+// MAXIMUMREGISTRATIONEXPIRYLENGTH is a free data retrieval call binding the contract method 0xdf93d8de.
+//
+// Solidity: function MAXIMUM_REGISTRATION_EXPIRY_LENGTH() view returns(uint64)
+func (_ValidatorManager *ValidatorManagerSession) MAXIMUMREGISTRATIONEXPIRYLENGTH() (uint64, error) {
+	return _ValidatorManager.Contract.MAXIMUMREGISTRATIONEXPIRYLENGTH(&_ValidatorManager.CallOpts)
+}
+
+// MAXIMUMREGISTRATIONEXPIRYLENGTH is a free data retrieval call binding the contract method 0xdf93d8de.
+//
+// Solidity: function MAXIMUM_REGISTRATION_EXPIRY_LENGTH() view returns(uint64)
+func (_ValidatorManager *ValidatorManagerCallerSession) MAXIMUMREGISTRATIONEXPIRYLENGTH() (uint64, error) {
+	return _ValidatorManager.Contract.MAXIMUMREGISTRATIONEXPIRYLENGTH(&_ValidatorManager.CallOpts)
+}
+
+// PCHAINBLOCKCHAINID is a free data retrieval call binding the contract method 0x732214f8.
+//
+// Solidity: function P_CHAIN_BLOCKCHAIN_ID() view returns(bytes32)
+func (_ValidatorManager *ValidatorManagerCaller) PCHAINBLOCKCHAINID(opts *bind.CallOpts) ([32]byte, error) {
+	var out []interface{}
+	err := _ValidatorManager.contract.Call(opts, &out, "P_CHAIN_BLOCKCHAIN_ID")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// PCHAINBLOCKCHAINID is a free data retrieval call binding the contract method 0x732214f8.
+//
+// Solidity: function P_CHAIN_BLOCKCHAIN_ID() view returns(bytes32)
+func (_ValidatorManager *ValidatorManagerSession) PCHAINBLOCKCHAINID() ([32]byte, error) {
+	return _ValidatorManager.Contract.PCHAINBLOCKCHAINID(&_ValidatorManager.CallOpts)
+}
+
+// PCHAINBLOCKCHAINID is a free data retrieval call binding the contract method 0x732214f8.
+//
+// Solidity: function P_CHAIN_BLOCKCHAIN_ID() view returns(bytes32)
+func (_ValidatorManager *ValidatorManagerCallerSession) PCHAINBLOCKCHAINID() ([32]byte, error) {
+	return _ValidatorManager.Contract.PCHAINBLOCKCHAINID(&_ValidatorManager.CallOpts)
+}
+
+// VALIDATORMANAGERSTORAGELOCATION is a free data retrieval call binding the contract method 0xbc5fbfec.
+//
+// Solidity: function VALIDATOR_MANAGER_STORAGE_LOCATION() view returns(bytes32)
+func (_ValidatorManager *ValidatorManagerCaller) VALIDATORMANAGERSTORAGELOCATION(opts *bind.CallOpts) ([32]byte, error) {
+	var out []interface{}
+	err := _ValidatorManager.contract.Call(opts, &out, "VALIDATOR_MANAGER_STORAGE_LOCATION")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// VALIDATORMANAGERSTORAGELOCATION is a free data retrieval call binding the contract method 0xbc5fbfec.
+//
+// Solidity: function VALIDATOR_MANAGER_STORAGE_LOCATION() view returns(bytes32)
+func (_ValidatorManager *ValidatorManagerSession) VALIDATORMANAGERSTORAGELOCATION() ([32]byte, error) {
+	return _ValidatorManager.Contract.VALIDATORMANAGERSTORAGELOCATION(&_ValidatorManager.CallOpts)
+}
+
+// VALIDATORMANAGERSTORAGELOCATION is a free data retrieval call binding the contract method 0xbc5fbfec.
+//
+// Solidity: function VALIDATOR_MANAGER_STORAGE_LOCATION() view returns(bytes32)
+func (_ValidatorManager *ValidatorManagerCallerSession) VALIDATORMANAGERSTORAGELOCATION() ([32]byte, error) {
+	return _ValidatorManager.Contract.VALIDATORMANAGERSTORAGELOCATION(&_ValidatorManager.CallOpts)
+}
+
+// WARPMESSENGER is a free data retrieval call binding the contract method 0xb771b3bc.
+//
+// Solidity: function WARP_MESSENGER() view returns(address)
+func (_ValidatorManager *ValidatorManagerCaller) WARPMESSENGER(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _ValidatorManager.contract.Call(opts, &out, "WARP_MESSENGER")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// WARPMESSENGER is a free data retrieval call binding the contract method 0xb771b3bc.
+//
+// Solidity: function WARP_MESSENGER() view returns(address)
+func (_ValidatorManager *ValidatorManagerSession) WARPMESSENGER() (common.Address, error) {
+	return _ValidatorManager.Contract.WARPMESSENGER(&_ValidatorManager.CallOpts)
+}
+
+// WARPMESSENGER is a free data retrieval call binding the contract method 0xb771b3bc.
+//
+// Solidity: function WARP_MESSENGER() view returns(address)
+func (_ValidatorManager *ValidatorManagerCallerSession) WARPMESSENGER() (common.Address, error) {
+	return _ValidatorManager.Contract.WARPMESSENGER(&_ValidatorManager.CallOpts)
+}
+
+// GetValidator is a free data retrieval call binding the contract method 0xd5f20ff6.
+//
+// Solidity: function getValidator(bytes32 validationID) view returns((uint8,bytes,uint64,uint64,uint64,uint64,uint64))
+func (_ValidatorManager *ValidatorManagerCaller) GetValidator(opts *bind.CallOpts, validationID [32]byte) (Validator, error) {
+	var out []interface{}
+	err := _ValidatorManager.contract.Call(opts, &out, "getValidator", validationID)
+
+	if err != nil {
+		return *new(Validator), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(Validator)).(*Validator)
+
+	return out0, err
+
+}
+
+// GetValidator is a free data retrieval call binding the contract method 0xd5f20ff6.
+//
+// Solidity: function getValidator(bytes32 validationID) view returns((uint8,bytes,uint64,uint64,uint64,uint64,uint64))
+func (_ValidatorManager *ValidatorManagerSession) GetValidator(validationID [32]byte) (Validator, error) {
+	return _ValidatorManager.Contract.GetValidator(&_ValidatorManager.CallOpts, validationID)
+}
+
+// GetValidator is a free data retrieval call binding the contract method 0xd5f20ff6.
+//
+// Solidity: function getValidator(bytes32 validationID) view returns((uint8,bytes,uint64,uint64,uint64,uint64,uint64))
+func (_ValidatorManager *ValidatorManagerCallerSession) GetValidator(validationID [32]byte) (Validator, error) {
+	return _ValidatorManager.Contract.GetValidator(&_ValidatorManager.CallOpts, validationID)
+}
+
+// GetWeight is a free data retrieval call binding the contract method 0x66435abf.
+//
+// Solidity: function getWeight(bytes32 validationID) view returns(uint64)
+func (_ValidatorManager *ValidatorManagerCaller) GetWeight(opts *bind.CallOpts, validationID [32]byte) (uint64, error) {
+	var out []interface{}
+	err := _ValidatorManager.contract.Call(opts, &out, "getWeight", validationID)
+
+	if err != nil {
+		return *new(uint64), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint64)).(*uint64)
+
+	return out0, err
+
+}
+
+// GetWeight is a free data retrieval call binding the contract method 0x66435abf.
+//
+// Solidity: function getWeight(bytes32 validationID) view returns(uint64)
+func (_ValidatorManager *ValidatorManagerSession) GetWeight(validationID [32]byte) (uint64, error) {
+	return _ValidatorManager.Contract.GetWeight(&_ValidatorManager.CallOpts, validationID)
+}
+
+// GetWeight is a free data retrieval call binding the contract method 0x66435abf.
+//
+// Solidity: function getWeight(bytes32 validationID) view returns(uint64)
+func (_ValidatorManager *ValidatorManagerCallerSession) GetWeight(validationID [32]byte) (uint64, error) {
+	return _ValidatorManager.Contract.GetWeight(&_ValidatorManager.CallOpts, validationID)
+}
+
+// RegisteredValidators is a free data retrieval call binding the contract method 0xfd7ac5e7.
+//
+// Solidity: function registeredValidators(bytes nodeID) view returns(bytes32)
+func (_ValidatorManager *ValidatorManagerCaller) RegisteredValidators(opts *bind.CallOpts, nodeID []byte) ([32]byte, error) {
+	var out []interface{}
+	err := _ValidatorManager.contract.Call(opts, &out, "registeredValidators", nodeID)
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// RegisteredValidators is a free data retrieval call binding the contract method 0xfd7ac5e7.
+//
+// Solidity: function registeredValidators(bytes nodeID) view returns(bytes32)
+func (_ValidatorManager *ValidatorManagerSession) RegisteredValidators(nodeID []byte) ([32]byte, error) {
+	return _ValidatorManager.Contract.RegisteredValidators(&_ValidatorManager.CallOpts, nodeID)
+}
+
+// RegisteredValidators is a free data retrieval call binding the contract method 0xfd7ac5e7.
+//
+// Solidity: function registeredValidators(bytes nodeID) view returns(bytes32)
+func (_ValidatorManager *ValidatorManagerCallerSession) RegisteredValidators(nodeID []byte) ([32]byte, error) {
+	return _ValidatorManager.Contract.RegisteredValidators(&_ValidatorManager.CallOpts, nodeID)
+}
+
+// CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
+//
+// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+func (_ValidatorManager *ValidatorManagerTransactor) CompleteEndValidation(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
+	return _ValidatorManager.contract.Transact(opts, "completeEndValidation", messageIndex)
+}
+
+// CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
+//
+// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+func (_ValidatorManager *ValidatorManagerSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.CompleteEndValidation(&_ValidatorManager.TransactOpts, messageIndex)
+}
+
+// CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
+//
+// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+func (_ValidatorManager *ValidatorManagerTransactorSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.CompleteEndValidation(&_ValidatorManager.TransactOpts, messageIndex)
+}
+
+// CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
+//
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+func (_ValidatorManager *ValidatorManagerTransactor) CompleteValidatorRegistration(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
+	return _ValidatorManager.contract.Transact(opts, "completeValidatorRegistration", messageIndex)
+}
+
+// CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
+//
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+func (_ValidatorManager *ValidatorManagerSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.CompleteValidatorRegistration(&_ValidatorManager.TransactOpts, messageIndex)
+}
+
+// CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
+//
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+func (_ValidatorManager *ValidatorManagerTransactorSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.CompleteValidatorRegistration(&_ValidatorManager.TransactOpts, messageIndex)
+}
+
+// InitializeValidatorSet is a paid mutator transaction binding the contract method 0x20d91b7a.
+//
+// Solidity: function initializeValidatorSet((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData, uint32 messageIndex) returns()
+func (_ValidatorManager *ValidatorManagerTransactor) InitializeValidatorSet(opts *bind.TransactOpts, subnetConversionData SubnetConversionData, messageIndex uint32) (*types.Transaction, error) {
+	return _ValidatorManager.contract.Transact(opts, "initializeValidatorSet", subnetConversionData, messageIndex)
+}
+
+// InitializeValidatorSet is a paid mutator transaction binding the contract method 0x20d91b7a.
+//
+// Solidity: function initializeValidatorSet((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData, uint32 messageIndex) returns()
+func (_ValidatorManager *ValidatorManagerSession) InitializeValidatorSet(subnetConversionData SubnetConversionData, messageIndex uint32) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.InitializeValidatorSet(&_ValidatorManager.TransactOpts, subnetConversionData, messageIndex)
+}
+
+// InitializeValidatorSet is a paid mutator transaction binding the contract method 0x20d91b7a.
+//
+// Solidity: function initializeValidatorSet((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData, uint32 messageIndex) returns()
+func (_ValidatorManager *ValidatorManagerTransactorSession) InitializeValidatorSet(subnetConversionData SubnetConversionData, messageIndex uint32) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.InitializeValidatorSet(&_ValidatorManager.TransactOpts, subnetConversionData, messageIndex)
+}
+
+// ResendEndValidatorMessage is a paid mutator transaction binding the contract method 0x0322ed98.
+//
+// Solidity: function resendEndValidatorMessage(bytes32 validationID) returns()
+func (_ValidatorManager *ValidatorManagerTransactor) ResendEndValidatorMessage(opts *bind.TransactOpts, validationID [32]byte) (*types.Transaction, error) {
+	return _ValidatorManager.contract.Transact(opts, "resendEndValidatorMessage", validationID)
+}
+
+// ResendEndValidatorMessage is a paid mutator transaction binding the contract method 0x0322ed98.
+//
+// Solidity: function resendEndValidatorMessage(bytes32 validationID) returns()
+func (_ValidatorManager *ValidatorManagerSession) ResendEndValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.ResendEndValidatorMessage(&_ValidatorManager.TransactOpts, validationID)
+}
+
+// ResendEndValidatorMessage is a paid mutator transaction binding the contract method 0x0322ed98.
+//
+// Solidity: function resendEndValidatorMessage(bytes32 validationID) returns()
+func (_ValidatorManager *ValidatorManagerTransactorSession) ResendEndValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.ResendEndValidatorMessage(&_ValidatorManager.TransactOpts, validationID)
+}
+
+// ResendRegisterValidatorMessage is a paid mutator transaction binding the contract method 0xbee0a03f.
+//
+// Solidity: function resendRegisterValidatorMessage(bytes32 validationID) returns()
+func (_ValidatorManager *ValidatorManagerTransactor) ResendRegisterValidatorMessage(opts *bind.TransactOpts, validationID [32]byte) (*types.Transaction, error) {
+	return _ValidatorManager.contract.Transact(opts, "resendRegisterValidatorMessage", validationID)
+}
+
+// ResendRegisterValidatorMessage is a paid mutator transaction binding the contract method 0xbee0a03f.
+//
+// Solidity: function resendRegisterValidatorMessage(bytes32 validationID) returns()
+func (_ValidatorManager *ValidatorManagerSession) ResendRegisterValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.ResendRegisterValidatorMessage(&_ValidatorManager.TransactOpts, validationID)
+}
+
+// ResendRegisterValidatorMessage is a paid mutator transaction binding the contract method 0xbee0a03f.
+//
+// Solidity: function resendRegisterValidatorMessage(bytes32 validationID) returns()
+func (_ValidatorManager *ValidatorManagerTransactorSession) ResendRegisterValidatorMessage(validationID [32]byte) (*types.Transaction, error) {
+	return _ValidatorManager.Contract.ResendRegisterValidatorMessage(&_ValidatorManager.TransactOpts, validationID)
+}
+
+// ValidatorManagerInitialValidatorCreatedIterator is returned from FilterInitialValidatorCreated and is used to iterate over the raw logs and unpacked data for InitialValidatorCreated events raised by the ValidatorManager contract.
+type ValidatorManagerInitialValidatorCreatedIterator struct {
+	Event *ValidatorManagerInitialValidatorCreated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ValidatorManagerInitialValidatorCreatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ValidatorManagerInitialValidatorCreated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ValidatorManagerInitialValidatorCreated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ValidatorManagerInitialValidatorCreatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ValidatorManagerInitialValidatorCreatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ValidatorManagerInitialValidatorCreated represents a InitialValidatorCreated event raised by the ValidatorManager contract.
+type ValidatorManagerInitialValidatorCreated struct {
+	ValidationID [32]byte
+	NodeID       common.Hash
+	Weight       *big.Int
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterInitialValidatorCreated is a free log retrieval operation binding the contract event 0x9d47fef9da077661546e646d61830bfcbda90506c2e5eed38195e82c4eb1cbdf.
+//
+// Solidity: event InitialValidatorCreated(bytes32 indexed validationID, bytes indexed nodeID, uint256 weight)
+func (_ValidatorManager *ValidatorManagerFilterer) FilterInitialValidatorCreated(opts *bind.FilterOpts, validationID [][32]byte, nodeID [][]byte) (*ValidatorManagerInitialValidatorCreatedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.FilterLogs(opts, "InitialValidatorCreated", validationIDRule, nodeIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorManagerInitialValidatorCreatedIterator{contract: _ValidatorManager.contract, event: "InitialValidatorCreated", logs: logs, sub: sub}, nil
+}
+
+// WatchInitialValidatorCreated is a free log subscription operation binding the contract event 0x9d47fef9da077661546e646d61830bfcbda90506c2e5eed38195e82c4eb1cbdf.
+//
+// Solidity: event InitialValidatorCreated(bytes32 indexed validationID, bytes indexed nodeID, uint256 weight)
+func (_ValidatorManager *ValidatorManagerFilterer) WatchInitialValidatorCreated(opts *bind.WatchOpts, sink chan<- *ValidatorManagerInitialValidatorCreated, validationID [][32]byte, nodeID [][]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.WatchLogs(opts, "InitialValidatorCreated", validationIDRule, nodeIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ValidatorManagerInitialValidatorCreated)
+				if err := _ValidatorManager.contract.UnpackLog(event, "InitialValidatorCreated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseInitialValidatorCreated is a log parse operation binding the contract event 0x9d47fef9da077661546e646d61830bfcbda90506c2e5eed38195e82c4eb1cbdf.
+//
+// Solidity: event InitialValidatorCreated(bytes32 indexed validationID, bytes indexed nodeID, uint256 weight)
+func (_ValidatorManager *ValidatorManagerFilterer) ParseInitialValidatorCreated(log types.Log) (*ValidatorManagerInitialValidatorCreated, error) {
+	event := new(ValidatorManagerInitialValidatorCreated)
+	if err := _ValidatorManager.contract.UnpackLog(event, "InitialValidatorCreated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ValidatorManagerInitializedIterator is returned from FilterInitialized and is used to iterate over the raw logs and unpacked data for Initialized events raised by the ValidatorManager contract.
+type ValidatorManagerInitializedIterator struct {
+	Event *ValidatorManagerInitialized // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ValidatorManagerInitializedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ValidatorManagerInitialized)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ValidatorManagerInitialized)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ValidatorManagerInitializedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ValidatorManagerInitializedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ValidatorManagerInitialized represents a Initialized event raised by the ValidatorManager contract.
+type ValidatorManagerInitialized struct {
+	Version uint64
+	Raw     types.Log // Blockchain specific contextual infos
+}
+
+// FilterInitialized is a free log retrieval operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_ValidatorManager *ValidatorManagerFilterer) FilterInitialized(opts *bind.FilterOpts) (*ValidatorManagerInitializedIterator, error) {
+
+	logs, sub, err := _ValidatorManager.contract.FilterLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorManagerInitializedIterator{contract: _ValidatorManager.contract, event: "Initialized", logs: logs, sub: sub}, nil
+}
+
+// WatchInitialized is a free log subscription operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_ValidatorManager *ValidatorManagerFilterer) WatchInitialized(opts *bind.WatchOpts, sink chan<- *ValidatorManagerInitialized) (event.Subscription, error) {
+
+	logs, sub, err := _ValidatorManager.contract.WatchLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ValidatorManagerInitialized)
+				if err := _ValidatorManager.contract.UnpackLog(event, "Initialized", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseInitialized is a log parse operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_ValidatorManager *ValidatorManagerFilterer) ParseInitialized(log types.Log) (*ValidatorManagerInitialized, error) {
+	event := new(ValidatorManagerInitialized)
+	if err := _ValidatorManager.contract.UnpackLog(event, "Initialized", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ValidatorManagerValidationPeriodCreatedIterator is returned from FilterValidationPeriodCreated and is used to iterate over the raw logs and unpacked data for ValidationPeriodCreated events raised by the ValidatorManager contract.
+type ValidatorManagerValidationPeriodCreatedIterator struct {
+	Event *ValidatorManagerValidationPeriodCreated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ValidatorManagerValidationPeriodCreatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ValidatorManagerValidationPeriodCreated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ValidatorManagerValidationPeriodCreated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ValidatorManagerValidationPeriodCreatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ValidatorManagerValidationPeriodCreatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ValidatorManagerValidationPeriodCreated represents a ValidationPeriodCreated event raised by the ValidatorManager contract.
+type ValidatorManagerValidationPeriodCreated struct {
+	ValidationID                [32]byte
+	NodeID                      common.Hash
+	RegisterValidationMessageID [32]byte
+	Weight                      *big.Int
+	RegistrationExpiry          uint64
+	Raw                         types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidationPeriodCreated is a free log retrieval operation binding the contract event 0xb77297e3befc691bfc864a81e241f83e2ef722b6e7becaa2ecec250c6d52b430.
+//
+// Solidity: event ValidationPeriodCreated(bytes32 indexed validationID, bytes indexed nodeID, bytes32 indexed registerValidationMessageID, uint256 weight, uint64 registrationExpiry)
+func (_ValidatorManager *ValidatorManagerFilterer) FilterValidationPeriodCreated(opts *bind.FilterOpts, validationID [][32]byte, nodeID [][]byte, registerValidationMessageID [][32]byte) (*ValidatorManagerValidationPeriodCreatedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+	var registerValidationMessageIDRule []interface{}
+	for _, registerValidationMessageIDItem := range registerValidationMessageID {
+		registerValidationMessageIDRule = append(registerValidationMessageIDRule, registerValidationMessageIDItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.FilterLogs(opts, "ValidationPeriodCreated", validationIDRule, nodeIDRule, registerValidationMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorManagerValidationPeriodCreatedIterator{contract: _ValidatorManager.contract, event: "ValidationPeriodCreated", logs: logs, sub: sub}, nil
+}
+
+// WatchValidationPeriodCreated is a free log subscription operation binding the contract event 0xb77297e3befc691bfc864a81e241f83e2ef722b6e7becaa2ecec250c6d52b430.
+//
+// Solidity: event ValidationPeriodCreated(bytes32 indexed validationID, bytes indexed nodeID, bytes32 indexed registerValidationMessageID, uint256 weight, uint64 registrationExpiry)
+func (_ValidatorManager *ValidatorManagerFilterer) WatchValidationPeriodCreated(opts *bind.WatchOpts, sink chan<- *ValidatorManagerValidationPeriodCreated, validationID [][32]byte, nodeID [][]byte, registerValidationMessageID [][32]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nodeIDRule []interface{}
+	for _, nodeIDItem := range nodeID {
+		nodeIDRule = append(nodeIDRule, nodeIDItem)
+	}
+	var registerValidationMessageIDRule []interface{}
+	for _, registerValidationMessageIDItem := range registerValidationMessageID {
+		registerValidationMessageIDRule = append(registerValidationMessageIDRule, registerValidationMessageIDItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.WatchLogs(opts, "ValidationPeriodCreated", validationIDRule, nodeIDRule, registerValidationMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ValidatorManagerValidationPeriodCreated)
+				if err := _ValidatorManager.contract.UnpackLog(event, "ValidationPeriodCreated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidationPeriodCreated is a log parse operation binding the contract event 0xb77297e3befc691bfc864a81e241f83e2ef722b6e7becaa2ecec250c6d52b430.
+//
+// Solidity: event ValidationPeriodCreated(bytes32 indexed validationID, bytes indexed nodeID, bytes32 indexed registerValidationMessageID, uint256 weight, uint64 registrationExpiry)
+func (_ValidatorManager *ValidatorManagerFilterer) ParseValidationPeriodCreated(log types.Log) (*ValidatorManagerValidationPeriodCreated, error) {
+	event := new(ValidatorManagerValidationPeriodCreated)
+	if err := _ValidatorManager.contract.UnpackLog(event, "ValidationPeriodCreated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ValidatorManagerValidationPeriodEndedIterator is returned from FilterValidationPeriodEnded and is used to iterate over the raw logs and unpacked data for ValidationPeriodEnded events raised by the ValidatorManager contract.
+type ValidatorManagerValidationPeriodEndedIterator struct {
+	Event *ValidatorManagerValidationPeriodEnded // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ValidatorManagerValidationPeriodEndedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ValidatorManagerValidationPeriodEnded)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ValidatorManagerValidationPeriodEnded)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ValidatorManagerValidationPeriodEndedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ValidatorManagerValidationPeriodEndedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ValidatorManagerValidationPeriodEnded represents a ValidationPeriodEnded event raised by the ValidatorManager contract.
+type ValidatorManagerValidationPeriodEnded struct {
+	ValidationID [32]byte
+	Status       uint8
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidationPeriodEnded is a free log retrieval operation binding the contract event 0x1c08e59656f1a18dc2da76826cdc52805c43e897a17c50faefb8ab3c1526cc16.
+//
+// Solidity: event ValidationPeriodEnded(bytes32 indexed validationID, uint8 indexed status)
+func (_ValidatorManager *ValidatorManagerFilterer) FilterValidationPeriodEnded(opts *bind.FilterOpts, validationID [][32]byte, status []uint8) (*ValidatorManagerValidationPeriodEndedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var statusRule []interface{}
+	for _, statusItem := range status {
+		statusRule = append(statusRule, statusItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.FilterLogs(opts, "ValidationPeriodEnded", validationIDRule, statusRule)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorManagerValidationPeriodEndedIterator{contract: _ValidatorManager.contract, event: "ValidationPeriodEnded", logs: logs, sub: sub}, nil
+}
+
+// WatchValidationPeriodEnded is a free log subscription operation binding the contract event 0x1c08e59656f1a18dc2da76826cdc52805c43e897a17c50faefb8ab3c1526cc16.
+//
+// Solidity: event ValidationPeriodEnded(bytes32 indexed validationID, uint8 indexed status)
+func (_ValidatorManager *ValidatorManagerFilterer) WatchValidationPeriodEnded(opts *bind.WatchOpts, sink chan<- *ValidatorManagerValidationPeriodEnded, validationID [][32]byte, status []uint8) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var statusRule []interface{}
+	for _, statusItem := range status {
+		statusRule = append(statusRule, statusItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.WatchLogs(opts, "ValidationPeriodEnded", validationIDRule, statusRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ValidatorManagerValidationPeriodEnded)
+				if err := _ValidatorManager.contract.UnpackLog(event, "ValidationPeriodEnded", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidationPeriodEnded is a log parse operation binding the contract event 0x1c08e59656f1a18dc2da76826cdc52805c43e897a17c50faefb8ab3c1526cc16.
+//
+// Solidity: event ValidationPeriodEnded(bytes32 indexed validationID, uint8 indexed status)
+func (_ValidatorManager *ValidatorManagerFilterer) ParseValidationPeriodEnded(log types.Log) (*ValidatorManagerValidationPeriodEnded, error) {
+	event := new(ValidatorManagerValidationPeriodEnded)
+	if err := _ValidatorManager.contract.UnpackLog(event, "ValidationPeriodEnded", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ValidatorManagerValidationPeriodRegisteredIterator is returned from FilterValidationPeriodRegistered and is used to iterate over the raw logs and unpacked data for ValidationPeriodRegistered events raised by the ValidatorManager contract.
+type ValidatorManagerValidationPeriodRegisteredIterator struct {
+	Event *ValidatorManagerValidationPeriodRegistered // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ValidatorManagerValidationPeriodRegisteredIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ValidatorManagerValidationPeriodRegistered)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ValidatorManagerValidationPeriodRegistered)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ValidatorManagerValidationPeriodRegisteredIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ValidatorManagerValidationPeriodRegisteredIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ValidatorManagerValidationPeriodRegistered represents a ValidationPeriodRegistered event raised by the ValidatorManager contract.
+type ValidatorManagerValidationPeriodRegistered struct {
+	ValidationID [32]byte
+	Weight       *big.Int
+	Timestamp    *big.Int
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidationPeriodRegistered is a free log retrieval operation binding the contract event 0xf8fd1c90fb9cfa2ca2358fdf5806b086ad43315d92b221c929efc7f105ce7568.
+//
+// Solidity: event ValidationPeriodRegistered(bytes32 indexed validationID, uint256 weight, uint256 timestamp)
+func (_ValidatorManager *ValidatorManagerFilterer) FilterValidationPeriodRegistered(opts *bind.FilterOpts, validationID [][32]byte) (*ValidatorManagerValidationPeriodRegisteredIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.FilterLogs(opts, "ValidationPeriodRegistered", validationIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorManagerValidationPeriodRegisteredIterator{contract: _ValidatorManager.contract, event: "ValidationPeriodRegistered", logs: logs, sub: sub}, nil
+}
+
+// WatchValidationPeriodRegistered is a free log subscription operation binding the contract event 0xf8fd1c90fb9cfa2ca2358fdf5806b086ad43315d92b221c929efc7f105ce7568.
+//
+// Solidity: event ValidationPeriodRegistered(bytes32 indexed validationID, uint256 weight, uint256 timestamp)
+func (_ValidatorManager *ValidatorManagerFilterer) WatchValidationPeriodRegistered(opts *bind.WatchOpts, sink chan<- *ValidatorManagerValidationPeriodRegistered, validationID [][32]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.WatchLogs(opts, "ValidationPeriodRegistered", validationIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ValidatorManagerValidationPeriodRegistered)
+				if err := _ValidatorManager.contract.UnpackLog(event, "ValidationPeriodRegistered", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidationPeriodRegistered is a log parse operation binding the contract event 0xf8fd1c90fb9cfa2ca2358fdf5806b086ad43315d92b221c929efc7f105ce7568.
+//
+// Solidity: event ValidationPeriodRegistered(bytes32 indexed validationID, uint256 weight, uint256 timestamp)
+func (_ValidatorManager *ValidatorManagerFilterer) ParseValidationPeriodRegistered(log types.Log) (*ValidatorManagerValidationPeriodRegistered, error) {
+	event := new(ValidatorManagerValidationPeriodRegistered)
+	if err := _ValidatorManager.contract.UnpackLog(event, "ValidationPeriodRegistered", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ValidatorManagerValidatorRemovalInitializedIterator is returned from FilterValidatorRemovalInitialized and is used to iterate over the raw logs and unpacked data for ValidatorRemovalInitialized events raised by the ValidatorManager contract.
+type ValidatorManagerValidatorRemovalInitializedIterator struct {
+	Event *ValidatorManagerValidatorRemovalInitialized // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ValidatorManagerValidatorRemovalInitializedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ValidatorManagerValidatorRemovalInitialized)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ValidatorManagerValidatorRemovalInitialized)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ValidatorManagerValidatorRemovalInitializedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ValidatorManagerValidatorRemovalInitializedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ValidatorManagerValidatorRemovalInitialized represents a ValidatorRemovalInitialized event raised by the ValidatorManager contract.
+type ValidatorManagerValidatorRemovalInitialized struct {
+	ValidationID       [32]byte
+	SetWeightMessageID [32]byte
+	Weight             *big.Int
+	EndTime            *big.Int
+	Raw                types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidatorRemovalInitialized is a free log retrieval operation binding the contract event 0x13d58394cf269d48bcf927959a29a5ffee7c9924dafff8927ecdf3c48ffa7c67.
+//
+// Solidity: event ValidatorRemovalInitialized(bytes32 indexed validationID, bytes32 indexed setWeightMessageID, uint256 weight, uint256 endTime)
+func (_ValidatorManager *ValidatorManagerFilterer) FilterValidatorRemovalInitialized(opts *bind.FilterOpts, validationID [][32]byte, setWeightMessageID [][32]byte) (*ValidatorManagerValidatorRemovalInitializedIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var setWeightMessageIDRule []interface{}
+	for _, setWeightMessageIDItem := range setWeightMessageID {
+		setWeightMessageIDRule = append(setWeightMessageIDRule, setWeightMessageIDItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.FilterLogs(opts, "ValidatorRemovalInitialized", validationIDRule, setWeightMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorManagerValidatorRemovalInitializedIterator{contract: _ValidatorManager.contract, event: "ValidatorRemovalInitialized", logs: logs, sub: sub}, nil
+}
+
+// WatchValidatorRemovalInitialized is a free log subscription operation binding the contract event 0x13d58394cf269d48bcf927959a29a5ffee7c9924dafff8927ecdf3c48ffa7c67.
+//
+// Solidity: event ValidatorRemovalInitialized(bytes32 indexed validationID, bytes32 indexed setWeightMessageID, uint256 weight, uint256 endTime)
+func (_ValidatorManager *ValidatorManagerFilterer) WatchValidatorRemovalInitialized(opts *bind.WatchOpts, sink chan<- *ValidatorManagerValidatorRemovalInitialized, validationID [][32]byte, setWeightMessageID [][32]byte) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var setWeightMessageIDRule []interface{}
+	for _, setWeightMessageIDItem := range setWeightMessageID {
+		setWeightMessageIDRule = append(setWeightMessageIDRule, setWeightMessageIDItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.WatchLogs(opts, "ValidatorRemovalInitialized", validationIDRule, setWeightMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ValidatorManagerValidatorRemovalInitialized)
+				if err := _ValidatorManager.contract.UnpackLog(event, "ValidatorRemovalInitialized", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidatorRemovalInitialized is a log parse operation binding the contract event 0x13d58394cf269d48bcf927959a29a5ffee7c9924dafff8927ecdf3c48ffa7c67.
+//
+// Solidity: event ValidatorRemovalInitialized(bytes32 indexed validationID, bytes32 indexed setWeightMessageID, uint256 weight, uint256 endTime)
+func (_ValidatorManager *ValidatorManagerFilterer) ParseValidatorRemovalInitialized(log types.Log) (*ValidatorManagerValidatorRemovalInitialized, error) {
+	event := new(ValidatorManagerValidatorRemovalInitialized)
+	if err := _ValidatorManager.contract.UnpackLog(event, "ValidatorRemovalInitialized", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ValidatorManagerValidatorWeightUpdateIterator is returned from FilterValidatorWeightUpdate and is used to iterate over the raw logs and unpacked data for ValidatorWeightUpdate events raised by the ValidatorManager contract.
+type ValidatorManagerValidatorWeightUpdateIterator struct {
+	Event *ValidatorManagerValidatorWeightUpdate // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ValidatorManagerValidatorWeightUpdateIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ValidatorManagerValidatorWeightUpdate)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ValidatorManagerValidatorWeightUpdate)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ValidatorManagerValidatorWeightUpdateIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ValidatorManagerValidatorWeightUpdateIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ValidatorManagerValidatorWeightUpdate represents a ValidatorWeightUpdate event raised by the ValidatorManager contract.
+type ValidatorManagerValidatorWeightUpdate struct {
+	ValidationID       [32]byte
+	Nonce              uint64
+	ValidatorWeight    uint64
+	SetWeightMessageID [32]byte
+	Raw                types.Log // Blockchain specific contextual infos
+}
+
+// FilterValidatorWeightUpdate is a free log retrieval operation binding the contract event 0x07de5ff35a674a8005e661f3333c907ca6333462808762d19dc7b3abb1a8c1df.
+//
+// Solidity: event ValidatorWeightUpdate(bytes32 indexed validationID, uint64 indexed nonce, uint64 validatorWeight, bytes32 setWeightMessageID)
+func (_ValidatorManager *ValidatorManagerFilterer) FilterValidatorWeightUpdate(opts *bind.FilterOpts, validationID [][32]byte, nonce []uint64) (*ValidatorManagerValidatorWeightUpdateIterator, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nonceRule []interface{}
+	for _, nonceItem := range nonce {
+		nonceRule = append(nonceRule, nonceItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.FilterLogs(opts, "ValidatorWeightUpdate", validationIDRule, nonceRule)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorManagerValidatorWeightUpdateIterator{contract: _ValidatorManager.contract, event: "ValidatorWeightUpdate", logs: logs, sub: sub}, nil
+}
+
+// WatchValidatorWeightUpdate is a free log subscription operation binding the contract event 0x07de5ff35a674a8005e661f3333c907ca6333462808762d19dc7b3abb1a8c1df.
+//
+// Solidity: event ValidatorWeightUpdate(bytes32 indexed validationID, uint64 indexed nonce, uint64 validatorWeight, bytes32 setWeightMessageID)
+func (_ValidatorManager *ValidatorManagerFilterer) WatchValidatorWeightUpdate(opts *bind.WatchOpts, sink chan<- *ValidatorManagerValidatorWeightUpdate, validationID [][32]byte, nonce []uint64) (event.Subscription, error) {
+
+	var validationIDRule []interface{}
+	for _, validationIDItem := range validationID {
+		validationIDRule = append(validationIDRule, validationIDItem)
+	}
+	var nonceRule []interface{}
+	for _, nonceItem := range nonce {
+		nonceRule = append(nonceRule, nonceItem)
+	}
+
+	logs, sub, err := _ValidatorManager.contract.WatchLogs(opts, "ValidatorWeightUpdate", validationIDRule, nonceRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ValidatorManagerValidatorWeightUpdate)
+				if err := _ValidatorManager.contract.UnpackLog(event, "ValidatorWeightUpdate", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValidatorWeightUpdate is a log parse operation binding the contract event 0x07de5ff35a674a8005e661f3333c907ca6333462808762d19dc7b3abb1a8c1df.
+//
+// Solidity: event ValidatorWeightUpdate(bytes32 indexed validationID, uint64 indexed nonce, uint64 validatorWeight, bytes32 setWeightMessageID)
+func (_ValidatorManager *ValidatorManagerFilterer) ParseValidatorWeightUpdate(log types.Log) (*ValidatorManagerValidatorWeightUpdate, error) {
+	event := new(ValidatorManagerValidatorWeightUpdate)
+	if err := _ValidatorManager.contract.UnpackLog(event, "ValidatorWeightUpdate", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ValidatorMessagesMetaData contains all meta data concerning the ValidatorMessages contract.
+var ValidatorMessagesMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[],\"name\":\"InvalidBLSPublicKey\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"id\",\"type\":\"uint32\"}],\"name\":\"InvalidCodecID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"actual\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"expected\",\"type\":\"uint32\"}],\"name\":\"InvalidMessageLength\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidMessageType\",\"type\":\"error\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"remainingBalanceOwner\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"disableOwner\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structValidatorMessages.ValidationPeriod\",\"name\":\"validationPeriod\",\"type\":\"tuple\"}],\"name\":\"packRegisterSubnetValidatorMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"validatorManagerBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"validatorManagerAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structInitialValidator[]\",\"name\":\"initialValidators\",\"type\":\"tuple[]\"}],\"internalType\":\"structSubnetConversionData\",\"name\":\"subnetConversionData\",\"type\":\"tuple\"}],\"name\":\"packSubnetConversionData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"subnetConversionID\",\"type\":\"bytes32\"}],\"name\":\"packSubnetConversionMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"valid\",\"type\":\"bool\"}],\"name\":\"packSubnetValidatorRegistrationMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"nonce\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"packSubnetValidatorWeightMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"uptime\",\"type\":\"uint64\"}],\"name\":\"packValidationUptimeMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"name\":\"unpackRegisterSubnetValidatorMessage\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"remainingBalanceOwner\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"disableOwner\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structValidatorMessages.ValidationPeriod\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"name\":\"unpackSubnetConversionMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"name\":\"unpackSubnetValidatorRegistrationMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"name\":\"unpackSubnetValidatorWeightMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"name\":\"unpackValidationUptimeMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}]",
+	Bin: "0x6120f3610034600b8282823980515f1a607314602857634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe73000000000000000000000000000000000000000030146080604052600436106100b1575f3560e01c8063862bfa6311610079578063862bfa63146101d75780639de23d40146101ea578063a523377014610222578063e047b28314610242578063e1d68f3014610263578063fa1f8dfb14610276575f80fd5b8063088c2463146100b55780631e6d9789146100ea5780631fd979c71461010b5780632e43ceb5146101525780638545c16a1461017a575b5f80fd5b6100c86100c3366004611904565b610289565b604080519283526001600160401b039091166020830152015b60405180910390f35b6100fd6100f8366004611904565b61047f565b6040519081526020016100e1565b61014561011936600461193d565b604080515f60208201819052602282015260268082019390935281518082039093018352604601905290565b6040516100e19190611982565b610165610160366004611904565b61060c565b604080519283529015156020830152016100e1565b6101456101883660046119b6565b604080515f6020820152600360e01b602282015260268101949094526001600160c01b031960c093841b811660468601529190921b16604e830152805180830360360181526056909201905290565b6101456101e53660046119ef565b6107c8565b6101fd6101f8366004611904565b6109a9565b604080519384526001600160401b0392831660208501529116908201526060016100e1565b610235610230366004611904565b610bff565b6040516100e19190611a8b565b610255610250366004611c26565b61154a565b6040516100e1929190611d22565b610145610271366004611d3a565b611737565b610145610284366004611d64565b611781565b5f808251602e146102c457825160405163cc92daa160e01b815263ffffffff9091166004820152602e60248201526044015b60405180910390fd5b5f805b6002811015610313576102db816001611daa565b6102e6906008611dbd565b61ffff168582815181106102fc576102fc611dd4565b016020015160f81c901b91909117906001016102c7565b5061ffff81161561033d5760405163407b587360e01b815261ffff821660048201526024016102bb565b5f805b600481101561039857610354816003611daa565b61035f906008611dbd565b63ffffffff1686610371836002611de8565b8151811061038157610381611dd4565b016020015160f81c901b9190911790600101610340565b5063ffffffff8116156103be57604051635b60892f60e01b815260040160405180910390fd5b5f805b6020811015610413576103d581601f611daa565b6103e0906008611dbd565b876103ec836006611de8565b815181106103fc576103fc611dd4565b016020015160f81c901b91909117906001016103c1565b505f805b60088110156104725761042b816007611daa565b610436906008611dbd565b6001600160401b03168861044b836026611de8565b8151811061045b5761045b611dd4565b016020015160f81c901b9190911790600101610417565b5090969095509350505050565b5f81516026146104b457815160405163cc92daa160e01b815263ffffffff9091166004820152602660248201526044016102bb565b5f805b6002811015610503576104cb816001611daa565b6104d6906008611dbd565b61ffff168482815181106104ec576104ec611dd4565b016020015160f81c901b91909117906001016104b7565b5061ffff81161561052d5760405163407b587360e01b815261ffff821660048201526024016102bb565b5f805b600481101561058857610544816003611daa565b61054f906008611dbd565b63ffffffff1685610561836002611de8565b8151811061057157610571611dd4565b016020015160f81c901b9190911790600101610530565b5063ffffffff8116156105ae57604051635b60892f60e01b815260040160405180910390fd5b5f805b6020811015610603576105c581601f611daa565b6105d0906008611dbd565b866105dc836006611de8565b815181106105ec576105ec611dd4565b016020015160f81c901b91909117906001016105b1565b50949350505050565b5f80825160271461064257825160405163cc92daa160e01b815263ffffffff9091166004820152602760248201526044016102bb565b5f805b600281101561069157610659816001611daa565b610664906008611dbd565b61ffff1685828151811061067a5761067a611dd4565b016020015160f81c901b9190911790600101610645565b5061ffff8116156106bb5760405163407b587360e01b815261ffff821660048201526024016102bb565b5f805b6004811015610716576106d2816003611daa565b6106dd906008611dbd565b63ffffffff16866106ef836002611de8565b815181106106ff576106ff611dd4565b016020015160f81c901b91909117906001016106be565b5063ffffffff811660021461073e57604051635b60892f60e01b815260040160405180910390fd5b5f805b60208110156107935761075581601f611daa565b610760906008611dbd565b8761076c836006611de8565b8151811061077c5761077c611dd4565b016020015160f81c901b9190911790600101610741565b505f866026815181106107a8576107a8611dd4565b016020015191976001600160f81b03199092161515965090945050505050565b60605f808335602085013560146107e487870160408901611dfb565b6107f16060890189611e14565b60405160f09790971b6001600160f01b0319166020880152602287019590955250604285019290925260e090811b6001600160e01b0319908116606286015260609290921b6bffffffffffffffffffffffff191660668501529190911b16607a820152607e0160405160208183030381529060405290505f5b6108776060850185611e14565b90508110156109a2578161088e6060860186611e14565b8381811061089e5761089e611dd4565b90506020028101906108b09190611e60565b6108ba9080611e7e565b90506108c96060870187611e14565b848181106108d9576108d9611dd4565b90506020028101906108eb9190611e60565b6108f59080611e7e565b6109026060890189611e14565b8681811061091257610912611dd4565b90506020028101906109249190611e60565b610932906020810190611e7e565b61093f60608b018b611e14565b8881811061094f5761094f611dd4565b90506020028101906109619190611e60565b610972906060810190604001611ec0565b6040516020016109889796959493929190611ef0565b60408051601f19818403018152919052915060010161086a565b5092915050565b5f805f83516036146109e057835160405163cc92daa160e01b815263ffffffff9091166004820152603660248201526044016102bb565b5f805b6002811015610a2f576109f7816001611daa565b610a02906008611dbd565b61ffff16868281518110610a1857610a18611dd4565b016020015160f81c901b91909117906001016109e3565b5061ffff811615610a595760405163407b587360e01b815261ffff821660048201526024016102bb565b5f805b6004811015610ab457610a70816003611daa565b610a7b906008611dbd565b63ffffffff1687610a8d836002611de8565b81518110610a9d57610a9d611dd4565b016020015160f81c901b9190911790600101610a5c565b5063ffffffff8116600314610adc57604051635b60892f60e01b815260040160405180910390fd5b5f805b6020811015610b3157610af381601f611daa565b610afe906008611dbd565b88610b0a836006611de8565b81518110610b1a57610b1a611dd4565b016020015160f81c901b9190911790600101610adf565b505f805b6008811015610b9057610b49816007611daa565b610b54906008611dbd565b6001600160401b031689610b69836026611de8565b81518110610b7957610b79611dd4565b016020015160f81c901b9190911790600101610b35565b505f805b6008811015610bef57610ba8816007611daa565b610bb3906008611dbd565b6001600160401b03168a610bc883602e611de8565b81518110610bd857610bd8611dd4565b016020015160f81c901b9190911790600101610b94565b5091989097509095509350505050565b610c076117b1565b5f610c106117b1565b5f805b6002811015610c6e57610c27816001611daa565b610c32906008611dbd565b61ffff1686610c4763ffffffff871684611de8565b81518110610c5757610c57611dd4565b016020015160f81c901b9190911790600101610c13565b5061ffff811615610c985760405163407b587360e01b815261ffff821660048201526024016102bb565b610ca3600284611f4f565b9250505f805b6004811015610d0857610cbd816003611daa565b610cc8906008611dbd565b63ffffffff16868563ffffffff1683610ce19190611de8565b81518110610cf157610cf1611dd4565b016020015160f81c901b9190911790600101610ca9565b5063ffffffff8116600114610d3057604051635b60892f60e01b815260040160405180910390fd5b610d3b600484611f4f565b9250505f805b6020811015610d9857610d5581601f611daa565b610d60906008611dbd565b86610d7163ffffffff871684611de8565b81518110610d8157610d81611dd4565b016020015160f81c901b9190911790600101610d41565b50808252610da7602084611f4f565b9250505f805b6004811015610e0c57610dc1816003611daa565b610dcc906008611dbd565b63ffffffff16868563ffffffff1683610de59190611de8565b81518110610df557610df5611dd4565b016020015160f81c901b9190911790600101610dad565b50610e18600484611f4f565b92505f8163ffffffff166001600160401b03811115610e3957610e3961180b565b6040519080825280601f01601f191660200182016040528015610e63576020820181803683370190505b5090505f5b8263ffffffff16811015610ed25786610e8763ffffffff871683611de8565b81518110610e9757610e97611dd4565b602001015160f81c60f81b828281518110610eb457610eb4611dd4565b60200101906001600160f81b03191690815f1a905350600101610e68565b5060208301819052610ee48285611f4f565b604080516030808252606082019092529195505f92506020820181803683370190505090505f5b6030811015610f705786610f2563ffffffff871683611de8565b81518110610f3557610f35611dd4565b602001015160f81c60f81b828281518110610f5257610f52611dd4565b60200101906001600160f81b03191690815f1a905350600101610f0b565b5060408301819052610f83603085611f4f565b9350505f805b6008811015610fe957610f9d816007611daa565b610fa8906008611dbd565b6001600160401b031687610fc263ffffffff881684611de8565b81518110610fd257610fd2611dd4565b016020015160f81c901b9190911790600101610f89565b506001600160401b0381166060840152611004600885611f4f565b9350505f805f5b600481101561106a5761101f816003611daa565b61102a906008611dbd565b63ffffffff16888763ffffffff16836110439190611de8565b8151811061105357611053611dd4565b016020015160f81c901b919091179060010161100b565b50611076600486611f4f565b94505f5b60048110156110d95761108e816003611daa565b611099906008611dbd565b63ffffffff16888763ffffffff16836110b29190611de8565b815181106110c2576110c2611dd4565b016020015160f81c901b929092179160010161107a565b506110e5600486611f4f565b94505f8263ffffffff166001600160401b038111156111065761110661180b565b60405190808252806020026020018201604052801561112f578160200160208202803683370190505b5090505f5b8363ffffffff16811015611217576040805160148082528183019092525f916020820181803683370190505090505f5b60148110156111c9578a61117e63ffffffff8b1683611de8565b8151811061118e5761118e611dd4565b602001015160f81c60f81b8282815181106111ab576111ab611dd4565b60200101906001600160f81b03191690815f1a905350600101611164565b505f60148201519050808484815181106111e5576111e5611dd4565b6001600160a01b039092166020928302919091019091015261120860148a611f4f565b98505050806001019050611134565b506040805180820190915263ffffffff9092168252602082015260808401525f80805b60048110156112995761124e816003611daa565b611259906008611dbd565b63ffffffff16898863ffffffff16836112729190611de8565b8151811061128257611282611dd4565b016020015160f81c901b919091179060010161123a565b506112a5600487611f4f565b95505f5b6004811015611308576112bd816003611daa565b6112c8906008611dbd565b63ffffffff16898863ffffffff16836112e19190611de8565b815181106112f1576112f1611dd4565b016020015160f81c901b92909217916001016112a9565b50611314600487611f4f565b95505f8263ffffffff166001600160401b038111156113355761133561180b565b60405190808252806020026020018201604052801561135e578160200160208202803683370190505b5090505f5b8363ffffffff16811015611446576040805160148082528183019092525f916020820181803683370190505090505f5b60148110156113f8578b6113ad63ffffffff8c1683611de8565b815181106113bd576113bd611dd4565b602001015160f81c60f81b8282815181106113da576113da611dd4565b60200101906001600160f81b03191690815f1a905350600101611393565b505f601482015190508084848151811061141457611414611dd4565b6001600160a01b039092166020928302919091019091015261143760148b611f4f565b99505050806001019050611363565b506040805180820190915263ffffffff9092168252602082015260a08501525f6114708284611f4f565b61147b906014611f6c565b61148685607a611f4f565b6114909190611f4f565b90508063ffffffff168851146114cc57875160405163cc92daa160e01b815263ffffffff918216600482015290821660248201526044016102bb565b5f805b600881101561152f576114e3816007611daa565b6114ee906008611dbd565b6001600160401b03168a61150863ffffffff8b1684611de8565b8151811061151857611518611dd4565b016020015160f81c901b91909117906001016114cf565b506001600160401b031660c086015250929695505050505050565b5f60608260400151516030146115735760405163180ffa0d60e01b815260040160405180910390fd5b82516020808501518051604080880151606089015160808a01518051908701515193515f986115b4988a986001989297929690959094909390929101611f94565b60405160208183030381529060405290505f5b84608001516020015151811015611626578185608001516020015182815181106115f3576115f3611dd4565b602002602001015160405160200161160c929190612015565b60408051601f1981840301815291905291506001016115c7565b5060a0840151805160209182015151604051611646938593929101612041565b60405160208183030381529060405290505f5b8460a0015160200151518110156116b857818560a0015160200151828151811061168557611685611dd4565b602002602001015160405160200161169e929190612015565b60408051601f198184030181529190529150600101611659565b5060c08401516040516116cf918391602001612074565b60405160208183030381529060405290506002816040516116f0919061209b565b602060405180830381855afa15801561170b573d5f803e3d5ffd5b5050506040513d601f19601f8201168201806040525081019061172e91906120a6565b94909350915050565b6040515f602082018190526022820152602681018390526001600160c01b031960c083901b166046820152606090604e015b60405160208183030381529060405290505b92915050565b6040515f6020820152600160e11b60228201526026810183905281151560f81b6046820152606090604701611769565b6040805160e0810182525f808252606060208084018290528385018290528184018390528451808601865283815280820183905260808501528451808601909552918452908301529060a082019081525f60209091015290565b634e487b7160e01b5f52604160045260245ffd5b604080519081016001600160401b03811182821017156118415761184161180b565b60405290565b60405160e081016001600160401b03811182821017156118415761184161180b565b604051601f8201601f191681016001600160401b03811182821017156118915761189161180b565b604052919050565b5f82601f8301126118a8575f80fd5b81356001600160401b038111156118c1576118c161180b565b6118d4601f8201601f1916602001611869565b8181528460208386010111156118e8575f80fd5b816020850160208301375f918101602001919091529392505050565b5f60208284031215611914575f80fd5b81356001600160401b03811115611929575f80fd5b61193584828501611899565b949350505050565b5f6020828403121561194d575f80fd5b5035919050565b5f81518084528060208401602086015e5f602082860101526020601f19601f83011685010191505092915050565b602081525f6119946020830184611954565b9392505050565b80356001600160401b03811681146119b1575f80fd5b919050565b5f805f606084860312156119c8575f80fd5b833592506119d86020850161199b565b91506119e66040850161199b565b90509250925092565b5f602082840312156119ff575f80fd5b81356001600160401b03811115611a14575f80fd5b820160808185031215611994575f80fd5b5f6040830163ffffffff8351168452602080840151604060208701528281518085526060880191506020830194505f92505b80831015611a805784516001600160a01b03168252938301936001929092019190830190611a57565b509695505050505050565b60208152815160208201525f602083015160e06040840152611ab1610100840182611954565b90506040840151601f1980858403016060860152611acf8383611954565b92506001600160401b03606087015116608086015260808601519150808584030160a0860152611aff8383611a25565b925060a08601519150808584030160c086015250611b1d8282611a25565b91505060c0840151611b3a60e08501826001600160401b03169052565b509392505050565b80356001600160a01b03811681146119b1575f80fd5b5f60408284031215611b68575f80fd5b611b7061181f565b9050813563ffffffff81168114611b85575f80fd5b81526020828101356001600160401b0380821115611ba1575f80fd5b818501915085601f830112611bb4575f80fd5b813581811115611bc657611bc661180b565b8060051b9150611bd7848301611869565b8181529183018401918481019088841115611bf0575f80fd5b938501935b83851015611c1557611c0685611b42565b82529385019390850190611bf5565b808688015250505050505092915050565b5f60208284031215611c36575f80fd5b81356001600160401b0380821115611c4c575f80fd5b9083019060e08286031215611c5f575f80fd5b611c67611847565b82358152602083013582811115611c7c575f80fd5b611c8887828601611899565b602083015250604083013582811115611c9f575f80fd5b611cab87828601611899565b604083015250611cbd6060840161199b565b6060820152608083013582811115611cd3575f80fd5b611cdf87828601611b58565b60808301525060a083013582811115611cf6575f80fd5b611d0287828601611b58565b60a083015250611d1460c0840161199b565b60c082015295945050505050565b828152604060208201525f6119356040830184611954565b5f8060408385031215611d4b575f80fd5b82359150611d5b6020840161199b565b90509250929050565b5f8060408385031215611d75575f80fd5b8235915060208301358015158114611d8b575f80fd5b809150509250929050565b634e487b7160e01b5f52601160045260245ffd5b8181038181111561177b5761177b611d96565b808202811582820484141761177b5761177b611d96565b634e487b7160e01b5f52603260045260245ffd5b8082018082111561177b5761177b611d96565b5f60208284031215611e0b575f80fd5b61199482611b42565b5f808335601e19843603018112611e29575f80fd5b8301803591506001600160401b03821115611e42575f80fd5b6020019150600581901b3603821315611e59575f80fd5b9250929050565b5f8235605e19833603018112611e74575f80fd5b9190910192915050565b5f808335601e19843603018112611e93575f80fd5b8301803591506001600160401b03821115611eac575f80fd5b602001915036819003821315611e59575f80fd5b5f60208284031215611ed0575f80fd5b6119948261199b565b5f81518060208401855e5f93019283525090919050565b5f611efb828a611ed9565b60e089901b6001600160e01b0319168152868860048301378681019050600481015f8152858782375060c09390931b6001600160c01b0319166004939094019283019390935250600c019695505050505050565b63ffffffff8181168382160190808211156109a2576109a2611d96565b63ffffffff818116838216028082169190828114611f8c57611f8c611d96565b505092915050565b61ffff60f01b8a60f01b1681525f63ffffffff60e01b808b60e01b166002840152896006840152808960e01b166026840152611fdc611fd6602a85018a611ed9565b88611ed9565b60c09690961b6001600160c01b031916865260e094851b811660088701529290931b909116600c84015250506010019695505050505050565b5f6120208285611ed9565b60609390931b6bffffffffffffffffffffffff191683525050601401919050565b5f61204c8286611ed9565b6001600160e01b031960e095861b811682529390941b90921660048401525050600801919050565b5f61207f8285611ed9565b60c09390931b6001600160c01b03191683525050600801919050565b5f6119948284611ed9565b5f602082840312156120b6575f80fd5b505191905056fea26469706673582212207d656061d8f95ab589d4afa49d2d1306b172ed85e5bb91ff860b1398145156c164736f6c63430008190033",
+}
+
+// ValidatorMessagesABI is the input ABI used to generate the binding from.
+// Deprecated: Use ValidatorMessagesMetaData.ABI instead.
+var ValidatorMessagesABI = ValidatorMessagesMetaData.ABI
+
+// ValidatorMessagesBin is the compiled bytecode used for deploying new contracts.
+// Deprecated: Use ValidatorMessagesMetaData.Bin instead.
+var ValidatorMessagesBin = ValidatorMessagesMetaData.Bin
+
+// DeployValidatorMessages deploys a new Ethereum contract, binding an instance of ValidatorMessages to it.
+func DeployValidatorMessages(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *ValidatorMessages, error) {
+	parsed, err := ValidatorMessagesMetaData.GetAbi()
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+	if parsed == nil {
+		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
+	}
+
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(ValidatorMessagesBin), backend)
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+	return address, tx, &ValidatorMessages{ValidatorMessagesCaller: ValidatorMessagesCaller{contract: contract}, ValidatorMessagesTransactor: ValidatorMessagesTransactor{contract: contract}, ValidatorMessagesFilterer: ValidatorMessagesFilterer{contract: contract}}, nil
+}
+
+// ValidatorMessages is an auto generated Go binding around an Ethereum contract.
+type ValidatorMessages struct {
+	ValidatorMessagesCaller     // Read-only binding to the contract
+	ValidatorMessagesTransactor // Write-only binding to the contract
+	ValidatorMessagesFilterer   // Log filterer for contract events
+}
+
+// ValidatorMessagesCaller is an auto generated read-only Go binding around an Ethereum contract.
+type ValidatorMessagesCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ValidatorMessagesTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type ValidatorMessagesTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ValidatorMessagesFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type ValidatorMessagesFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ValidatorMessagesSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type ValidatorMessagesSession struct {
+	Contract     *ValidatorMessages // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts      // Call options to use throughout this session
+	TransactOpts bind.TransactOpts  // Transaction auth options to use throughout this session
+}
+
+// ValidatorMessagesCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type ValidatorMessagesCallerSession struct {
+	Contract *ValidatorMessagesCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts            // Call options to use throughout this session
+}
+
+// ValidatorMessagesTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type ValidatorMessagesTransactorSession struct {
+	Contract     *ValidatorMessagesTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts            // Transaction auth options to use throughout this session
+}
+
+// ValidatorMessagesRaw is an auto generated low-level Go binding around an Ethereum contract.
+type ValidatorMessagesRaw struct {
+	Contract *ValidatorMessages // Generic contract binding to access the raw methods on
+}
+
+// ValidatorMessagesCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type ValidatorMessagesCallerRaw struct {
+	Contract *ValidatorMessagesCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// ValidatorMessagesTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type ValidatorMessagesTransactorRaw struct {
+	Contract *ValidatorMessagesTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewValidatorMessages creates a new instance of ValidatorMessages, bound to a specific deployed contract.
+func NewValidatorMessages(address common.Address, backend bind.ContractBackend) (*ValidatorMessages, error) {
+	contract, err := bindValidatorMessages(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorMessages{ValidatorMessagesCaller: ValidatorMessagesCaller{contract: contract}, ValidatorMessagesTransactor: ValidatorMessagesTransactor{contract: contract}, ValidatorMessagesFilterer: ValidatorMessagesFilterer{contract: contract}}, nil
+}
+
+// NewValidatorMessagesCaller creates a new read-only instance of ValidatorMessages, bound to a specific deployed contract.
+func NewValidatorMessagesCaller(address common.Address, caller bind.ContractCaller) (*ValidatorMessagesCaller, error) {
+	contract, err := bindValidatorMessages(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorMessagesCaller{contract: contract}, nil
+}
+
+// NewValidatorMessagesTransactor creates a new write-only instance of ValidatorMessages, bound to a specific deployed contract.
+func NewValidatorMessagesTransactor(address common.Address, transactor bind.ContractTransactor) (*ValidatorMessagesTransactor, error) {
+	contract, err := bindValidatorMessages(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorMessagesTransactor{contract: contract}, nil
+}
+
+// NewValidatorMessagesFilterer creates a new log filterer instance of ValidatorMessages, bound to a specific deployed contract.
+func NewValidatorMessagesFilterer(address common.Address, filterer bind.ContractFilterer) (*ValidatorMessagesFilterer, error) {
+	contract, err := bindValidatorMessages(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorMessagesFilterer{contract: contract}, nil
+}
+
+// bindValidatorMessages binds a generic wrapper to an already deployed contract.
+func bindValidatorMessages(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := ValidatorMessagesMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ValidatorMessages *ValidatorMessagesRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ValidatorMessages.Contract.ValidatorMessagesCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ValidatorMessages *ValidatorMessagesRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ValidatorMessages.Contract.ValidatorMessagesTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ValidatorMessages *ValidatorMessagesRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ValidatorMessages.Contract.ValidatorMessagesTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ValidatorMessages *ValidatorMessagesCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ValidatorMessages.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ValidatorMessages *ValidatorMessagesTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ValidatorMessages.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ValidatorMessages *ValidatorMessagesTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ValidatorMessages.Contract.contract.Transact(opts, method, params...)
+}
+
+// PackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0x01bbec74.
+//
+// Solidity: function packRegisterSubnetValidatorMessage((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64) validationPeriod) pure returns(bytes32, bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackRegisterSubnetValidatorMessage(opts *bind.CallOpts, validationPeriod ValidatorMessagesValidationPeriod) ([32]byte, []byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packRegisterSubnetValidatorMessage", validationPeriod)
+
+	if err != nil {
+		return *new([32]byte), *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+	out1 := *abi.ConvertType(out[1], new([]byte)).(*[]byte)
+
+	return out0, out1, err
+
+}
+
+// PackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0x01bbec74.
+//
+// Solidity: function packRegisterSubnetValidatorMessage((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64) validationPeriod) pure returns(bytes32, bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackRegisterSubnetValidatorMessage(validationPeriod ValidatorMessagesValidationPeriod) ([32]byte, []byte, error) {
+	return _ValidatorMessages.Contract.PackRegisterSubnetValidatorMessage(&_ValidatorMessages.CallOpts, validationPeriod)
+}
+
+// PackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0x01bbec74.
+//
+// Solidity: function packRegisterSubnetValidatorMessage((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64) validationPeriod) pure returns(bytes32, bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackRegisterSubnetValidatorMessage(validationPeriod ValidatorMessagesValidationPeriod) ([32]byte, []byte, error) {
+	return _ValidatorMessages.Contract.PackRegisterSubnetValidatorMessage(&_ValidatorMessages.CallOpts, validationPeriod)
+}
+
+// PackSubnetConversionData is a free data retrieval call binding the contract method 0xf65e4b33.
+//
+// Solidity: function packSubnetConversionData((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackSubnetConversionData(opts *bind.CallOpts, subnetConversionData SubnetConversionData) ([]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packSubnetConversionData", subnetConversionData)
+
+	if err != nil {
+		return *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+
+	return out0, err
+
+}
+
+// PackSubnetConversionData is a free data retrieval call binding the contract method 0xf65e4b33.
+//
+// Solidity: function packSubnetConversionData((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackSubnetConversionData(subnetConversionData SubnetConversionData) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetConversionData(&_ValidatorMessages.CallOpts, subnetConversionData)
+}
+
+// PackSubnetConversionData is a free data retrieval call binding the contract method 0xf65e4b33.
+//
+// Solidity: function packSubnetConversionData((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackSubnetConversionData(subnetConversionData SubnetConversionData) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetConversionData(&_ValidatorMessages.CallOpts, subnetConversionData)
+}
+
+// PackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1fd979c7.
+//
+// Solidity: function packSubnetConversionMessage(bytes32 subnetConversionID) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackSubnetConversionMessage(opts *bind.CallOpts, subnetConversionID [32]byte) ([]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packSubnetConversionMessage", subnetConversionID)
+
+	if err != nil {
+		return *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+
+	return out0, err
+
+}
+
+// PackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1fd979c7.
+//
+// Solidity: function packSubnetConversionMessage(bytes32 subnetConversionID) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackSubnetConversionMessage(subnetConversionID [32]byte) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetConversionMessage(&_ValidatorMessages.CallOpts, subnetConversionID)
+}
+
+// PackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1fd979c7.
+//
+// Solidity: function packSubnetConversionMessage(bytes32 subnetConversionID) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackSubnetConversionMessage(subnetConversionID [32]byte) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetConversionMessage(&_ValidatorMessages.CallOpts, subnetConversionID)
+}
+
+// PackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0xfa1f8dfb.
+//
+// Solidity: function packSubnetValidatorRegistrationMessage(bytes32 validationID, bool valid) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackSubnetValidatorRegistrationMessage(opts *bind.CallOpts, validationID [32]byte, valid bool) ([]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packSubnetValidatorRegistrationMessage", validationID, valid)
+
+	if err != nil {
+		return *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+
+	return out0, err
+
+}
+
+// PackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0xfa1f8dfb.
+//
+// Solidity: function packSubnetValidatorRegistrationMessage(bytes32 validationID, bool valid) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackSubnetValidatorRegistrationMessage(validationID [32]byte, valid bool) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetValidatorRegistrationMessage(&_ValidatorMessages.CallOpts, validationID, valid)
+}
+
+// PackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0xfa1f8dfb.
+//
+// Solidity: function packSubnetValidatorRegistrationMessage(bytes32 validationID, bool valid) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackSubnetValidatorRegistrationMessage(validationID [32]byte, valid bool) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetValidatorRegistrationMessage(&_ValidatorMessages.CallOpts, validationID, valid)
+}
+
+// PackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x8545c16a.
+//
+// Solidity: function packSubnetValidatorWeightMessage(bytes32 validationID, uint64 nonce, uint64 weight) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackSubnetValidatorWeightMessage(opts *bind.CallOpts, validationID [32]byte, nonce uint64, weight uint64) ([]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packSubnetValidatorWeightMessage", validationID, nonce, weight)
+
+	if err != nil {
+		return *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+
+	return out0, err
+
+}
+
+// PackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x8545c16a.
+//
+// Solidity: function packSubnetValidatorWeightMessage(bytes32 validationID, uint64 nonce, uint64 weight) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackSubnetValidatorWeightMessage(validationID [32]byte, nonce uint64, weight uint64) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetValidatorWeightMessage(&_ValidatorMessages.CallOpts, validationID, nonce, weight)
+}
+
+// PackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x8545c16a.
+//
+// Solidity: function packSubnetValidatorWeightMessage(bytes32 validationID, uint64 nonce, uint64 weight) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackSubnetValidatorWeightMessage(validationID [32]byte, nonce uint64, weight uint64) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetValidatorWeightMessage(&_ValidatorMessages.CallOpts, validationID, nonce, weight)
+}
+
+// PackValidationUptimeMessage is a free data retrieval call binding the contract method 0xe1d68f30.
+//
+// Solidity: function packValidationUptimeMessage(bytes32 validationID, uint64 uptime) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackValidationUptimeMessage(opts *bind.CallOpts, validationID [32]byte, uptime uint64) ([]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packValidationUptimeMessage", validationID, uptime)
+
+	if err != nil {
+		return *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+
+	return out0, err
+
+}
+
+// PackValidationUptimeMessage is a free data retrieval call binding the contract method 0xe1d68f30.
+//
+// Solidity: function packValidationUptimeMessage(bytes32 validationID, uint64 uptime) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackValidationUptimeMessage(validationID [32]byte, uptime uint64) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackValidationUptimeMessage(&_ValidatorMessages.CallOpts, validationID, uptime)
+}
+
+// PackValidationUptimeMessage is a free data retrieval call binding the contract method 0xe1d68f30.
+//
+// Solidity: function packValidationUptimeMessage(bytes32 validationID, uint64 uptime) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackValidationUptimeMessage(validationID [32]byte, uptime uint64) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackValidationUptimeMessage(&_ValidatorMessages.CallOpts, validationID, uptime)
+}
+
+// UnpackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0xa5233770.
+//
+// Solidity: function unpackRegisterSubnetValidatorMessage(bytes input) pure returns((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64))
+func (_ValidatorMessages *ValidatorMessagesCaller) UnpackRegisterSubnetValidatorMessage(opts *bind.CallOpts, input []byte) (ValidatorMessagesValidationPeriod, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "unpackRegisterSubnetValidatorMessage", input)
+
+	if err != nil {
+		return *new(ValidatorMessagesValidationPeriod), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(ValidatorMessagesValidationPeriod)).(*ValidatorMessagesValidationPeriod)
+
+	return out0, err
+
+}
+
+// UnpackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0xa5233770.
+//
+// Solidity: function unpackRegisterSubnetValidatorMessage(bytes input) pure returns((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64))
+func (_ValidatorMessages *ValidatorMessagesSession) UnpackRegisterSubnetValidatorMessage(input []byte) (ValidatorMessagesValidationPeriod, error) {
+	return _ValidatorMessages.Contract.UnpackRegisterSubnetValidatorMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0xa5233770.
+//
+// Solidity: function unpackRegisterSubnetValidatorMessage(bytes input) pure returns((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64))
+func (_ValidatorMessages *ValidatorMessagesCallerSession) UnpackRegisterSubnetValidatorMessage(input []byte) (ValidatorMessagesValidationPeriod, error) {
+	return _ValidatorMessages.Contract.UnpackRegisterSubnetValidatorMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1e6d9789.
+//
+// Solidity: function unpackSubnetConversionMessage(bytes input) pure returns(bytes32)
+func (_ValidatorMessages *ValidatorMessagesCaller) UnpackSubnetConversionMessage(opts *bind.CallOpts, input []byte) ([32]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "unpackSubnetConversionMessage", input)
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// UnpackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1e6d9789.
+//
+// Solidity: function unpackSubnetConversionMessage(bytes input) pure returns(bytes32)
+func (_ValidatorMessages *ValidatorMessagesSession) UnpackSubnetConversionMessage(input []byte) ([32]byte, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetConversionMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1e6d9789.
+//
+// Solidity: function unpackSubnetConversionMessage(bytes input) pure returns(bytes32)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) UnpackSubnetConversionMessage(input []byte) ([32]byte, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetConversionMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0x2e43ceb5.
+//
+// Solidity: function unpackSubnetValidatorRegistrationMessage(bytes input) pure returns(bytes32, bool)
+func (_ValidatorMessages *ValidatorMessagesCaller) UnpackSubnetValidatorRegistrationMessage(opts *bind.CallOpts, input []byte) ([32]byte, bool, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "unpackSubnetValidatorRegistrationMessage", input)
+
+	if err != nil {
+		return *new([32]byte), *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+	out1 := *abi.ConvertType(out[1], new(bool)).(*bool)
+
+	return out0, out1, err
+
+}
+
+// UnpackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0x2e43ceb5.
+//
+// Solidity: function unpackSubnetValidatorRegistrationMessage(bytes input) pure returns(bytes32, bool)
+func (_ValidatorMessages *ValidatorMessagesSession) UnpackSubnetValidatorRegistrationMessage(input []byte) ([32]byte, bool, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetValidatorRegistrationMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0x2e43ceb5.
+//
+// Solidity: function unpackSubnetValidatorRegistrationMessage(bytes input) pure returns(bytes32, bool)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) UnpackSubnetValidatorRegistrationMessage(input []byte) ([32]byte, bool, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetValidatorRegistrationMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x9de23d40.
+//
+// Solidity: function unpackSubnetValidatorWeightMessage(bytes input) pure returns(bytes32, uint64, uint64)
+func (_ValidatorMessages *ValidatorMessagesCaller) UnpackSubnetValidatorWeightMessage(opts *bind.CallOpts, input []byte) ([32]byte, uint64, uint64, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "unpackSubnetValidatorWeightMessage", input)
+
+	if err != nil {
+		return *new([32]byte), *new(uint64), *new(uint64), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+	out1 := *abi.ConvertType(out[1], new(uint64)).(*uint64)
+	out2 := *abi.ConvertType(out[2], new(uint64)).(*uint64)
+
+	return out0, out1, out2, err
+
+}
+
+// UnpackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x9de23d40.
+//
+// Solidity: function unpackSubnetValidatorWeightMessage(bytes input) pure returns(bytes32, uint64, uint64)
+func (_ValidatorMessages *ValidatorMessagesSession) UnpackSubnetValidatorWeightMessage(input []byte) ([32]byte, uint64, uint64, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetValidatorWeightMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x9de23d40.
+//
+// Solidity: function unpackSubnetValidatorWeightMessage(bytes input) pure returns(bytes32, uint64, uint64)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) UnpackSubnetValidatorWeightMessage(input []byte) ([32]byte, uint64, uint64, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetValidatorWeightMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackValidationUptimeMessage is a free data retrieval call binding the contract method 0x088c2463.
+//
+// Solidity: function unpackValidationUptimeMessage(bytes input) pure returns(bytes32, uint64)
+func (_ValidatorMessages *ValidatorMessagesCaller) UnpackValidationUptimeMessage(opts *bind.CallOpts, input []byte) ([32]byte, uint64, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "unpackValidationUptimeMessage", input)
+
+	if err != nil {
+		return *new([32]byte), *new(uint64), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+	out1 := *abi.ConvertType(out[1], new(uint64)).(*uint64)
+
+	return out0, out1, err
+
+}
+
+// UnpackValidationUptimeMessage is a free data retrieval call binding the contract method 0x088c2463.
+//
+// Solidity: function unpackValidationUptimeMessage(bytes input) pure returns(bytes32, uint64)
+func (_ValidatorMessages *ValidatorMessagesSession) UnpackValidationUptimeMessage(input []byte) ([32]byte, uint64, error) {
+	return _ValidatorMessages.Contract.UnpackValidationUptimeMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackValidationUptimeMessage is a free data retrieval call binding the contract method 0x088c2463.
+//
+// Solidity: function unpackValidationUptimeMessage(bytes input) pure returns(bytes32, uint64)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) UnpackValidationUptimeMessage(input []byte) ([32]byte, uint64, error) {
+	return _ValidatorMessages.Contract.UnpackValidationUptimeMessage(&_ValidatorMessages.CallOpts, input)
 }

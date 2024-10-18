@@ -2,6 +2,6 @@
 @openzeppelin/contracts@5.0.2=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts
 @openzeppelin/contracts-upgradeable@5.0.2=lib/openzeppelin-contracts-upgradeable/contracts
 @forge-std=lib/forge-std/src
-@teleporter/=contracts/teleporter
+@teleporter/=contracts/teleporter/
 @mocks/=contracts/mocks
 @utilities/=contracts/utilities/
