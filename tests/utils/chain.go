@@ -227,9 +227,10 @@ func waitForTransaction(
 	Expect(err).Should(BeNil())
 
 	if success {
-		if receipt.Status == types.ReceiptStatusFailed {
-			TraceTransactionAndExit(ctx, subnetInfo.RPCClient, receipt.TxHash)
-		}
+		TraceTransaction(ctx, subnetInfo.RPCClient, receipt.TxHash)
+		// if receipt.Status == types.ReceiptStatusFailed {
+		// 	TraceTransactionAndExit(ctx, subnetInfo.RPCClient, receipt.TxHash)
+		// }
 	} else {
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusFailed))
 	}

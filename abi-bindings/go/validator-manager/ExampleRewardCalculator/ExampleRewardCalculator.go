@@ -31,8 +31,8 @@ var (
 
 // ExampleRewardCalculatorMetaData contains all meta data concerning the ExampleRewardCalculator contract.
 var ExampleRewardCalculatorMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"rewardBasisPoints_\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"SECONDS_IN_YEAR\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"calculateReward\",\"inputs\":[{\"name\":\"stakeAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"stakingStartTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"stakingEndTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"rewardBasisPoints\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"}]",
-	Bin: "0x60a0604052348015600e575f80fd5b506040516102c13803806102c1833981016040819052602b91603b565b6001600160401b03166080526066565b5f60208284031215604a575f80fd5b81516001600160401b0381168114605f575f80fd5b9392505050565b60805161023e6100835f395f81816079015260d3015261023e5ff3fe608060405234801561000f575f80fd5b506004361061003f575f3560e01c80635dcc939114610043578063778c06b514610061578063bb65b24214610074575b5f80fd5b61004e6301e1338081565b6040519081526020015b60405180910390f35b61004e61006f36600461014d565b6100b4565b61009b7f000000000000000000000000000000000000000000000000000000000000000081565b60405167ffffffffffffffff9091168152602001610058565b5f6127106301e133806100c788886101cd565b67ffffffffffffffff167f000000000000000000000000000000000000000000000000000000000000000067ffffffffffffffff168b61010791906101f5565b61011191906101f5565b61011b9190610212565b6101259190610212565b98975050505050505050565b803567ffffffffffffffff81168114610148575f80fd5b919050565b5f805f805f805f60e0888a031215610163575f80fd5b8735965061017360208901610131565b955061018160408901610131565b945061018f60608901610131565b935061019d60808901610131565b925060a0880135915060c0880135905092959891949750929550565b634e487b7160e01b5f52601160045260245ffd5b67ffffffffffffffff8281168282160390808211156101ee576101ee6101b9565b5092915050565b808202811582820484141761020c5761020c6101b9565b92915050565b5f8261022c57634e487b7160e01b5f52601260045260245ffd5b50049056fea164736f6c6343000819000a",
+	ABI: "[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"rewardBasisPoints_\",\"type\":\"uint64\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"SECONDS_IN_YEAR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"stakeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"stakingStartTime\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"stakingEndTime\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"calculateReward\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rewardBasisPoints\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	Bin: "0x60a0604052348015600e575f80fd5b506040516102ea3803806102ea833981016040819052602b91603b565b6001600160401b03166080526066565b5f60208284031215604a575f80fd5b81516001600160401b0381168114605f575f80fd5b9392505050565b6080516102676100835f395f81816079015260d301526102675ff3fe608060405234801561000f575f80fd5b506004361061003f575f3560e01c80635dcc939114610043578063778c06b514610061578063bb65b24214610074575b5f80fd5b61004e6301e1338081565b6040519081526020015b60405180910390f35b61004e61006f36600461014d565b6100b4565b61009b7f000000000000000000000000000000000000000000000000000000000000000081565b60405167ffffffffffffffff9091168152602001610058565b5f6127106301e133806100c788886101cd565b67ffffffffffffffff167f000000000000000000000000000000000000000000000000000000000000000067ffffffffffffffff168b61010791906101f5565b61011191906101f5565b61011b9190610212565b6101259190610212565b98975050505050505050565b803567ffffffffffffffff81168114610148575f80fd5b919050565b5f805f805f805f60e0888a031215610163575f80fd5b8735965061017360208901610131565b955061018160408901610131565b945061018f60608901610131565b935061019d60808901610131565b925060a0880135915060c0880135905092959891949750929550565b634e487b7160e01b5f52601160045260245ffd5b67ffffffffffffffff8281168282160390808211156101ee576101ee6101b9565b5092915050565b808202811582820484141761020c5761020c6101b9565b92915050565b5f8261022c57634e487b7160e01b5f52601260045260245ffd5b50049056fea2646970667358221220f7d81988a2706bcfd958a34f09dd89420cbe679959e7c19b94bc1c5855dc82be64736f6c63430008190033",
 }
 
 // ExampleRewardCalculatorABI is the input ABI used to generate the binding from.
@@ -293,4 +293,186 @@ func (_ExampleRewardCalculator *ExampleRewardCalculatorSession) RewardBasisPoint
 // Solidity: function rewardBasisPoints() view returns(uint64)
 func (_ExampleRewardCalculator *ExampleRewardCalculatorCallerSession) RewardBasisPoints() (uint64, error) {
 	return _ExampleRewardCalculator.Contract.RewardBasisPoints(&_ExampleRewardCalculator.CallOpts)
+}
+
+// IRewardCalculatorMetaData contains all meta data concerning the IRewardCalculator contract.
+var IRewardCalculatorMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"stakeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"validatorStartTime\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"stakingStartTime\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"stakingEndTime\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"uptimeSeconds\",\"type\":\"uint64\"},{\"internalType\":\"uint256\",\"name\":\"initialSupply\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"endSupply\",\"type\":\"uint256\"}],\"name\":\"calculateReward\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+}
+
+// IRewardCalculatorABI is the input ABI used to generate the binding from.
+// Deprecated: Use IRewardCalculatorMetaData.ABI instead.
+var IRewardCalculatorABI = IRewardCalculatorMetaData.ABI
+
+// IRewardCalculator is an auto generated Go binding around an Ethereum contract.
+type IRewardCalculator struct {
+	IRewardCalculatorCaller     // Read-only binding to the contract
+	IRewardCalculatorTransactor // Write-only binding to the contract
+	IRewardCalculatorFilterer   // Log filterer for contract events
+}
+
+// IRewardCalculatorCaller is an auto generated read-only Go binding around an Ethereum contract.
+type IRewardCalculatorCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IRewardCalculatorTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type IRewardCalculatorTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IRewardCalculatorFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type IRewardCalculatorFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IRewardCalculatorSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type IRewardCalculatorSession struct {
+	Contract     *IRewardCalculator // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts      // Call options to use throughout this session
+	TransactOpts bind.TransactOpts  // Transaction auth options to use throughout this session
+}
+
+// IRewardCalculatorCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type IRewardCalculatorCallerSession struct {
+	Contract *IRewardCalculatorCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts            // Call options to use throughout this session
+}
+
+// IRewardCalculatorTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type IRewardCalculatorTransactorSession struct {
+	Contract     *IRewardCalculatorTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts            // Transaction auth options to use throughout this session
+}
+
+// IRewardCalculatorRaw is an auto generated low-level Go binding around an Ethereum contract.
+type IRewardCalculatorRaw struct {
+	Contract *IRewardCalculator // Generic contract binding to access the raw methods on
+}
+
+// IRewardCalculatorCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type IRewardCalculatorCallerRaw struct {
+	Contract *IRewardCalculatorCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// IRewardCalculatorTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type IRewardCalculatorTransactorRaw struct {
+	Contract *IRewardCalculatorTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewIRewardCalculator creates a new instance of IRewardCalculator, bound to a specific deployed contract.
+func NewIRewardCalculator(address common.Address, backend bind.ContractBackend) (*IRewardCalculator, error) {
+	contract, err := bindIRewardCalculator(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &IRewardCalculator{IRewardCalculatorCaller: IRewardCalculatorCaller{contract: contract}, IRewardCalculatorTransactor: IRewardCalculatorTransactor{contract: contract}, IRewardCalculatorFilterer: IRewardCalculatorFilterer{contract: contract}}, nil
+}
+
+// NewIRewardCalculatorCaller creates a new read-only instance of IRewardCalculator, bound to a specific deployed contract.
+func NewIRewardCalculatorCaller(address common.Address, caller bind.ContractCaller) (*IRewardCalculatorCaller, error) {
+	contract, err := bindIRewardCalculator(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &IRewardCalculatorCaller{contract: contract}, nil
+}
+
+// NewIRewardCalculatorTransactor creates a new write-only instance of IRewardCalculator, bound to a specific deployed contract.
+func NewIRewardCalculatorTransactor(address common.Address, transactor bind.ContractTransactor) (*IRewardCalculatorTransactor, error) {
+	contract, err := bindIRewardCalculator(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &IRewardCalculatorTransactor{contract: contract}, nil
+}
+
+// NewIRewardCalculatorFilterer creates a new log filterer instance of IRewardCalculator, bound to a specific deployed contract.
+func NewIRewardCalculatorFilterer(address common.Address, filterer bind.ContractFilterer) (*IRewardCalculatorFilterer, error) {
+	contract, err := bindIRewardCalculator(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &IRewardCalculatorFilterer{contract: contract}, nil
+}
+
+// bindIRewardCalculator binds a generic wrapper to an already deployed contract.
+func bindIRewardCalculator(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := IRewardCalculatorMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_IRewardCalculator *IRewardCalculatorRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _IRewardCalculator.Contract.IRewardCalculatorCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_IRewardCalculator *IRewardCalculatorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _IRewardCalculator.Contract.IRewardCalculatorTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_IRewardCalculator *IRewardCalculatorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _IRewardCalculator.Contract.IRewardCalculatorTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_IRewardCalculator *IRewardCalculatorCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _IRewardCalculator.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_IRewardCalculator *IRewardCalculatorTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _IRewardCalculator.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_IRewardCalculator *IRewardCalculatorTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _IRewardCalculator.Contract.contract.Transact(opts, method, params...)
+}
+
+// CalculateReward is a free data retrieval call binding the contract method 0x778c06b5.
+//
+// Solidity: function calculateReward(uint256 stakeAmount, uint64 validatorStartTime, uint64 stakingStartTime, uint64 stakingEndTime, uint64 uptimeSeconds, uint256 initialSupply, uint256 endSupply) view returns(uint256)
+func (_IRewardCalculator *IRewardCalculatorCaller) CalculateReward(opts *bind.CallOpts, stakeAmount *big.Int, validatorStartTime uint64, stakingStartTime uint64, stakingEndTime uint64, uptimeSeconds uint64, initialSupply *big.Int, endSupply *big.Int) (*big.Int, error) {
+	var out []interface{}
+	err := _IRewardCalculator.contract.Call(opts, &out, "calculateReward", stakeAmount, validatorStartTime, stakingStartTime, stakingEndTime, uptimeSeconds, initialSupply, endSupply)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// CalculateReward is a free data retrieval call binding the contract method 0x778c06b5.
+//
+// Solidity: function calculateReward(uint256 stakeAmount, uint64 validatorStartTime, uint64 stakingStartTime, uint64 stakingEndTime, uint64 uptimeSeconds, uint256 initialSupply, uint256 endSupply) view returns(uint256)
+func (_IRewardCalculator *IRewardCalculatorSession) CalculateReward(stakeAmount *big.Int, validatorStartTime uint64, stakingStartTime uint64, stakingEndTime uint64, uptimeSeconds uint64, initialSupply *big.Int, endSupply *big.Int) (*big.Int, error) {
+	return _IRewardCalculator.Contract.CalculateReward(&_IRewardCalculator.CallOpts, stakeAmount, validatorStartTime, stakingStartTime, stakingEndTime, uptimeSeconds, initialSupply, endSupply)
+}
+
+// CalculateReward is a free data retrieval call binding the contract method 0x778c06b5.
+//
+// Solidity: function calculateReward(uint256 stakeAmount, uint64 validatorStartTime, uint64 stakingStartTime, uint64 stakingEndTime, uint64 uptimeSeconds, uint256 initialSupply, uint256 endSupply) view returns(uint256)
+func (_IRewardCalculator *IRewardCalculatorCallerSession) CalculateReward(stakeAmount *big.Int, validatorStartTime uint64, stakingStartTime uint64, stakingEndTime uint64, uptimeSeconds uint64, initialSupply *big.Int, endSupply *big.Int) (*big.Int, error) {
+	return _IRewardCalculator.Contract.CalculateReward(&_IRewardCalculator.CallOpts, stakeAmount, validatorStartTime, stakingStartTime, stakingEndTime, uptimeSeconds, initialSupply, endSupply)
 }
