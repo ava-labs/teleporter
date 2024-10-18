@@ -12,6 +12,8 @@ contract ExampleRewardCalculator is IRewardCalculator {
 
     uint8 public constant UPTIME_REWARDS_THRESHOLD_PERCENTAGE = 80;
 
+    uint16 public constant BIPS_CONVERSION_FACTOR = 10000;
+
     uint64 public immutable rewardBasisPoints;
 
     constructor(uint64 rewardBasisPoints_) {
@@ -38,6 +40,6 @@ contract ExampleRewardCalculator is IRewardCalculator {
         }
 
         return (stakeAmount * rewardBasisPoints * (stakingEndTime - stakingStartTime))
-            / SECONDS_IN_YEAR / 10000;
+            / SECONDS_IN_YEAR / BIPS_CONVERSION_FACTOR;
     }
 }

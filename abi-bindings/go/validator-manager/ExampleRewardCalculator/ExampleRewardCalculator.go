@@ -31,8 +31,8 @@ var (
 
 // ExampleRewardCalculatorMetaData contains all meta data concerning the ExampleRewardCalculator contract.
 var ExampleRewardCalculatorMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"rewardBasisPoints_\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"SECONDS_IN_YEAR\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"UPTIME_REWARDS_THRESHOLD_PERCENTAGE\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"uint8\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"calculateReward\",\"inputs\":[{\"name\":\"stakeAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"validatorStartTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"stakingStartTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"stakingEndTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"uptimeSeconds\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"rewardBasisPoints\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"}]",
-	Bin: "0x60a0604052348015600e575f80fd5b50604051610343380380610343833981016040819052602b91603b565b6001600160401b03166080526066565b5f60208284031215604a575f80fd5b81516001600160401b0381168114605f575f80fd5b9392505050565b6080516102bf6100845f395f8181609e015261013a01526102bf5ff3fe608060405234801561000f575f80fd5b506004361061004a575f3560e01c80634f22429f1461004e5780635dcc939114610074578063afba878a1461007f578063bb65b24214610099575b5f80fd5b61006161005c3660046101b4565b6100d9565b6040519081526020015b60405180910390f35b6100616301e1338081565b610087605081565b60405160ff909116815260200161006b565b6100c07f000000000000000000000000000000000000000000000000000000000000000081565b60405167ffffffffffffffff909116815260200161006b565b5f60506100e68685610222565b6100f0919061024a565b67ffffffffffffffff1661010583606461024a565b67ffffffffffffffff16101561011c57505f61018f565b6127106301e1338061012e8686610222565b67ffffffffffffffff167f000000000000000000000000000000000000000000000000000000000000000067ffffffffffffffff168961016e9190610276565b6101789190610276565b6101829190610293565b61018c9190610293565b90505b95945050505050565b803567ffffffffffffffff811681146101af575f80fd5b919050565b5f805f805f60a086880312156101c8575f80fd5b853594506101d860208701610198565b93506101e660408701610198565b92506101f460608701610198565b915061020260808701610198565b90509295509295909350565b634e487b7160e01b5f52601160045260245ffd5b67ffffffffffffffff8281168282160390808211156102435761024361020e565b5092915050565b67ffffffffffffffff81811683821602808216919082811461026e5761026e61020e565b505092915050565b808202811582820484141761028d5761028d61020e565b92915050565b5f826102ad57634e487b7160e01b5f52601260045260245ffd5b50049056fea164736f6c6343000819000a",
+	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"rewardBasisPoints_\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"BIPS_CONVERSION_FACTOR\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint16\",\"internalType\":\"uint16\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"SECONDS_IN_YEAR\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"UPTIME_REWARDS_THRESHOLD_PERCENTAGE\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"uint8\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"calculateReward\",\"inputs\":[{\"name\":\"stakeAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"validatorStartTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"stakingStartTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"stakingEndTime\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"uptimeSeconds\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"rewardBasisPoints\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"}]",
+	Bin: "0x60a0604052348015600e575f80fd5b5060405161036a38038061036a833981016040819052602b91603b565b6001600160401b03166080526066565b5f60208284031215604a575f80fd5b81516001600160401b0381168114605f575f80fd5b9392505050565b6080516102e66100845f395f818160c5015261016101526102e65ff3fe608060405234801561000f575f80fd5b5060043610610055575f3560e01c80634f22429f146100595780635dcc93911461007f578063a9778a7a1461008a578063afba878a146100a6578063bb65b242146100c0575b5f80fd5b61006c6100673660046101db565b610100565b6040519081526020015b60405180910390f35b61006c6301e1338081565b61009361271081565b60405161ffff9091168152602001610076565b6100ae605081565b60405160ff9091168152602001610076565b6100e77f000000000000000000000000000000000000000000000000000000000000000081565b60405167ffffffffffffffff9091168152602001610076565b5f605061010d8685610249565b6101179190610271565b67ffffffffffffffff1661012c836064610271565b67ffffffffffffffff16101561014357505f6101b6565b6127106301e133806101558686610249565b67ffffffffffffffff167f000000000000000000000000000000000000000000000000000000000000000067ffffffffffffffff1689610195919061029d565b61019f919061029d565b6101a991906102ba565b6101b391906102ba565b90505b95945050505050565b803567ffffffffffffffff811681146101d6575f80fd5b919050565b5f805f805f60a086880312156101ef575f80fd5b853594506101ff602087016101bf565b935061020d604087016101bf565b925061021b606087016101bf565b9150610229608087016101bf565b90509295509295909350565b634e487b7160e01b5f52601160045260245ffd5b67ffffffffffffffff82811682821603908082111561026a5761026a610235565b5092915050565b67ffffffffffffffff81811683821602808216919082811461029557610295610235565b505092915050565b80820281158282048414176102b4576102b4610235565b92915050565b5f826102d457634e487b7160e01b5f52601260045260245ffd5b50049056fea164736f6c6343000819000a",
 }
 
 // ExampleRewardCalculatorABI is the input ABI used to generate the binding from.
@@ -200,6 +200,37 @@ func (_ExampleRewardCalculator *ExampleRewardCalculatorTransactorRaw) Transfer(o
 // Transact invokes the (paid) contract method with params as input values.
 func (_ExampleRewardCalculator *ExampleRewardCalculatorTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _ExampleRewardCalculator.Contract.contract.Transact(opts, method, params...)
+}
+
+// BIPSCONVERSIONFACTOR is a free data retrieval call binding the contract method 0xa9778a7a.
+//
+// Solidity: function BIPS_CONVERSION_FACTOR() view returns(uint16)
+func (_ExampleRewardCalculator *ExampleRewardCalculatorCaller) BIPSCONVERSIONFACTOR(opts *bind.CallOpts) (uint16, error) {
+	var out []interface{}
+	err := _ExampleRewardCalculator.contract.Call(opts, &out, "BIPS_CONVERSION_FACTOR")
+
+	if err != nil {
+		return *new(uint16), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint16)).(*uint16)
+
+	return out0, err
+
+}
+
+// BIPSCONVERSIONFACTOR is a free data retrieval call binding the contract method 0xa9778a7a.
+//
+// Solidity: function BIPS_CONVERSION_FACTOR() view returns(uint16)
+func (_ExampleRewardCalculator *ExampleRewardCalculatorSession) BIPSCONVERSIONFACTOR() (uint16, error) {
+	return _ExampleRewardCalculator.Contract.BIPSCONVERSIONFACTOR(&_ExampleRewardCalculator.CallOpts)
+}
+
+// BIPSCONVERSIONFACTOR is a free data retrieval call binding the contract method 0xa9778a7a.
+//
+// Solidity: function BIPS_CONVERSION_FACTOR() view returns(uint16)
+func (_ExampleRewardCalculator *ExampleRewardCalculatorCallerSession) BIPSCONVERSIONFACTOR() (uint16, error) {
+	return _ExampleRewardCalculator.Contract.BIPSCONVERSIONFACTOR(&_ExampleRewardCalculator.CallOpts)
 }
 
 // SECONDSINYEAR is a free data retrieval call binding the contract method 0x5dcc9391.
