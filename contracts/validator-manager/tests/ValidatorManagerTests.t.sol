@@ -114,6 +114,71 @@ abstract contract ValidatorManagerTest is Test {
         // TODO: implement
     }
 
+    function testInitializeValidatorRegistrationPChainOwnerThresholdTooLarge() public {
+        // Threshold too large
+        address[] memory addresses = new address[](1);
+        addresses[0] = 0x1234567812345678123456781234567812345678;
+        PChainOwner memory invalidPChainOwner1 = PChainOwner({threshold: 2, addresses: addresses});
+        _beforeSend(_weightToValue(DEFAULT_WEIGHT), address(this));
+        vm.expectRevert(
+            abi.encodeWithSelector(ValidatorManager.InvalidPChainOwnerThreshold.selector, 2, 1)
+        );
+        _initializeValidatorRegistration(
+            ValidatorRegistrationInput({
+                nodeID: DEFAULT_NODE_ID,
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+                remainingBalanceOwner: invalidPChainOwner1,
+                disableOwner: DEFAULT_P_CHAIN_OWNER,
+                registrationExpiry: DEFAULT_EXPIRY
+            }),
+            DEFAULT_WEIGHT
+        );
+    }
+
+    function testInitializeValidatorRegistrationZeroPChainOwnerThreshold() public {
+        // Zero threshold for non-zero address
+        address[] memory addresses = new address[](1);
+        addresses[0] = 0x1234567812345678123456781234567812345678;
+        PChainOwner memory invalidPChainOwner1 = PChainOwner({threshold: 0, addresses: addresses});
+        _beforeSend(_weightToValue(DEFAULT_WEIGHT), address(this));
+        vm.expectRevert(
+            abi.encodeWithSelector(ValidatorManager.InvalidPChainOwnerThreshold.selector, 0, 1)
+        );
+        _initializeValidatorRegistration(
+            ValidatorRegistrationInput({
+                nodeID: DEFAULT_NODE_ID,
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+                remainingBalanceOwner: invalidPChainOwner1,
+                disableOwner: DEFAULT_P_CHAIN_OWNER,
+                registrationExpiry: DEFAULT_EXPIRY
+            }),
+            DEFAULT_WEIGHT
+        );
+    }
+
+    function testInitializeValidatorRegistrationPChainOwnerAddressesUnsorted() public {
+        // Addresses not sorted
+        address[] memory addresses = new address[](2);
+        addresses[0] = 0x1234567812345678123456781234567812345678;
+        addresses[1] = 0x0123456781234567812345678123456781234567;
+        PChainOwner memory invalidPChainOwner1 = PChainOwner({threshold: 1, addresses: addresses});
+
+        _beforeSend(_weightToValue(DEFAULT_WEIGHT), address(this));
+        vm.expectRevert(
+            abi.encodeWithSelector(ValidatorManager.PChainOwnerAddressesNotSorted.selector)
+        );
+        _initializeValidatorRegistration(
+            ValidatorRegistrationInput({
+                nodeID: DEFAULT_NODE_ID,
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+                remainingBalanceOwner: invalidPChainOwner1,
+                disableOwner: DEFAULT_P_CHAIN_OWNER,
+                registrationExpiry: DEFAULT_EXPIRY
+            }),
+            DEFAULT_WEIGHT
+        );
+    }
+
     // The following tests call functions that are  implemented in ValidatorManager, but access state that's
     // only set in NativeTokenValidatorManager. Therefore we call them via the concrete type, rather than a
     // reference to the abstract type.
@@ -215,7 +280,7 @@ abstract contract ValidatorManagerTest is Test {
         validatorManager.completeEndValidation(0);
     }
 
-    function testCummulativeChurnRegistration() public {
+    function testCumulativeChurnRegistration() public {
         uint64 churnThreshold =
             uint64(DEFAULT_STARTING_TOTAL_WEIGHT) * DEFAULT_MAXIMUM_CHURN_PERCENTAGE / 100;
         _beforeSend(_weightToValue(churnThreshold), address(this));
@@ -251,7 +316,7 @@ abstract contract ValidatorManagerTest is Test {
         );
     }
 
-    function testCummulativeChurnRegistrationAndEndValidation() public {
+    function testCumulativeChurnRegistrationAndEndValidation() public {
         // Registration should succeed
         bytes32 validationID = _registerValidator({
             nodeID: DEFAULT_NODE_ID,

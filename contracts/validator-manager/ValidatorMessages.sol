@@ -143,6 +143,8 @@ library ValidatorMessages {
      *                           | 60 + len(nodeID) bytes |
      *                           +------------------------+
      *
+     * @dev Input validation is skipped, since the returned value is intended to be compared
+     * directly with an authenticated Warp message.
      * @param subnetConversionData The struct representing data to pack into the message.
      * @return The packed message.
      */
@@ -165,9 +167,6 @@ library ValidatorMessages {
         // was tested against pre-allocating the array and doing manual byte by byte packing and
         // it was found to be more gas efficient.
         for (uint256 i = 0; i < subnetConversionData.initialValidators.length; i++) {
-            if (subnetConversionData.initialValidators[i].blsPublicKey.length != 48) {
-                revert InvalidBLSPublicKey();
-            }
             res = abi.encodePacked(
                 res,
                 uint32(subnetConversionData.initialValidators[i].nodeID.length),
@@ -271,6 +270,7 @@ library ValidatorMessages {
         ValidationPeriod memory validation;
 
         // Unpack the codec ID
+        // Individual fields are unpacked in their own scopes to avoid stack too deep errors.
         {
             uint16 codecID;
             for (uint256 i; i < 2; ++i) {

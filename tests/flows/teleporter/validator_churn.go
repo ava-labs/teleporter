@@ -3,6 +3,7 @@ package teleporter
 import (
 	"context"
 	"math/big"
+	"time"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
@@ -16,9 +17,9 @@ import (
 
 const newNodeCount = 2
 
-func ValidatorChurn(network interfaces.LocalNetwork) {
+func ValidatorChurn(network interfaces.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
-	teleporterContractAddress := network.GetTeleporterContractAddress()
+	teleporterContractAddress := teleporter.TeleporterMessengerAddress(subnetAInfo)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -41,25 +42,31 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
+		teleporter.TeleporterMessenger(subnetAInfo),
 		subnetAInfo,
 		subnetBInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
 
-	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	sentTeleporterMessage := sendEvent.Message
 
 	// Construct the signed warp message
-	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, receipt, subnetAInfo, subnetBInfo)
+	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, receipt, subnetAInfo, subnetBInfo)
 
 	//
 	// Modify the validator set on Subnet A
 	//
 
 	// Add new nodes to the validator set
-	network.AddSubnetValidators(ctx, subnetAInfo.SubnetID, newNodeCount)
+	addValidatorsCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+	network.AddSubnetValidators(addValidatorsCtx, subnetAInfo.SubnetID, newNodeCount)
 
 	// Refresh the subnet info
 	subnetAInfo, subnetBInfo = utils.GetTwoSubnets(network)
@@ -91,7 +98,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	utils.SendTransactionAndWaitForFailure(ctx, subnetBInfo, signedTx)
 
 	// Verify the message was not delivered
-	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -103,7 +110,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	log.Info("Retrying message sending on source chain")
 	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(
+	tx, err := teleporter.TeleporterMessenger(subnetAInfo).RetrySendCrossChainMessage(
 		optsA, sentTeleporterMessage,
 	)
 	Expect(err).Should(BeNil())
@@ -111,10 +118,10 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	// Wait for the transaction to be mined
 	receipt = utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
 
 	// Verify the message was delivered
-	delivered, err = subnetBInfo.TeleporterMessenger.MessageReceived(
+	delivered, err = teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())

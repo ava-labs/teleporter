@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func DeliverToWrongChain(network interfaces.Network) {
+func DeliverToWrongChain(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, subnetCInfo := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -23,7 +23,7 @@ func DeliverToWrongChain(network interfaces.Network) {
 	//
 	// Get the expected teleporter message ID for Subnet C
 	//
-	expectedAtoCMessageID, err := subnetAInfo.TeleporterMessenger.GetNextMessageID(
+	expectedAtoCMessageID, err := teleporter.TeleporterMessenger(subnetAInfo).GetNextMessageID(
 		&bind.CallOpts{},
 		subnetCInfo.BlockchainID,
 	)
@@ -52,6 +52,7 @@ func DeliverToWrongChain(network interfaces.Network) {
 
 	receipt, _ := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
+		teleporter.TeleporterMessenger(subnetAInfo),
 		subnetAInfo,
 		subnetBInfo,
 		sendCrossChainMessageInput,
@@ -62,12 +63,12 @@ func DeliverToWrongChain(network interfaces.Network) {
 		//
 		// Try to relay the message to subnet C, should fail
 		//
-		network.RelayMessage(ctx, receipt, subnetAInfo, subnetCInfo, false)
+		teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetCInfo, false, fundedKey)
 	} else {
 		//
 		// Wait for external relayer to properly deliver the message to subnet B
 		//
-		deliveryReceipt := network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+		deliveryReceipt := teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
 		deliveryTx, isPending, err := subnetBInfo.RPCClient.TransactionByHash(ctx, deliveryReceipt.TxHash)
 		Expect(err).Should(BeNil())
 		Expect(isPending).Should(BeFalse())
@@ -83,7 +84,7 @@ func DeliverToWrongChain(network interfaces.Network) {
 	//
 	// Check that the message was not received on the Subnet C
 	//
-	delivered, err := subnetCInfo.TeleporterMessenger.MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(subnetCInfo).MessageReceived(
 		&bind.CallOpts{}, expectedAtoCMessageID,
 	)
 	Expect(err).Should(BeNil())

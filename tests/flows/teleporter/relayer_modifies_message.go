@@ -22,7 +22,7 @@ import (
 )
 
 // Disallow this test from being run on anything but a local network, since it requires special behavior by the relayer
-func RelayerModifiesMessage(network interfaces.LocalNetwork) {
+func RelayerModifiesMessage(network interfaces.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -43,35 +43,40 @@ func RelayerModifiesMessage(network interfaces.LocalNetwork) {
 	}
 
 	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
+		ctx, teleporter.TeleporterMessenger(subnetAInfo), subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message to the destination
 	// Relayer modifies the message in flight
 	relayAlteredMessage(
 		ctx,
+		teleporter,
 		receipt,
 		subnetAInfo,
 		subnetBInfo,
 		network)
 
 	// Check Teleporter message was not received on the destination
-	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
+	delivered, err := teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())
 }
 
 func relayAlteredMessage(
 	ctx context.Context,
+	teleporter utils.TeleporterTestInfo,
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
 	network interfaces.LocalNetwork,
 ) {
 	// Fetch the Teleporter message from the logs
-	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(
+		sourceReceipt.Logs,
+		teleporter.TeleporterMessenger(source).ParseSendCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
+	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
 
 	// Construct the transaction to send the Warp message to the destination chain
 	_, fundedKey := network.GetFundedAccountInfo()
@@ -80,7 +85,7 @@ func relayAlteredMessage(
 		signedWarpMessage,
 		&sendEvent.Message,
 		sendEvent.Message.RequiredGasLimit,
-		network.GetTeleporterContractAddress(),
+		teleporter.TeleporterMessengerAddress(source),
 		fundedKey,
 		destination,
 	)

@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func RetrySuccessfulExecution(network interfaces.Network) {
+func RetrySuccessfulExecution(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -25,12 +25,14 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 		ctx,
 		fundedKey,
 		fundedAddress,
+		teleporter.TeleporterRegistryAddress(subnetAInfo),
 		subnetAInfo,
 	)
 	testMessengerContractAddressB, subnetBTestMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
+		teleporter.TeleporterRegistryAddress(subnetBInfo),
 		subnetBInfo,
 	)
 
@@ -54,7 +56,10 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	// Wait for the transaction to be mined
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
-	event, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseSendCrossChainMessage)
+	event, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
@@ -63,16 +68,16 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	//
 	// Relay the message to the destination
 	//
-	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
 	receiveEvent, err :=
-		utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+		utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(subnetBInfo).ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	deliveredTeleporterMessage := receiveEvent.Message
 
 	//
 	// Check Teleporter message received on the destination
 	//
-	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -90,8 +95,11 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	//
 	optsB, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err =
-		subnetBInfo.TeleporterMessenger.RetryMessageExecution(optsB, subnetAInfo.BlockchainID, deliveredTeleporterMessage)
+	tx, err = teleporter.TeleporterMessenger(subnetBInfo).RetryMessageExecution(
+		optsB,
+		subnetAInfo.BlockchainID,
+		deliveredTeleporterMessage,
+	)
 	Expect(err).Should(Not(BeNil()))
 	Expect(tx).Should(BeNil())
 }

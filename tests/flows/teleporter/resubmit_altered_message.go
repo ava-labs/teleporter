@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func ResubmitAlteredMessage(network interfaces.Network) {
+func ResubmitAlteredMessage(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -34,18 +34,21 @@ func ResubmitAlteredMessage(network interfaces.Network) {
 	}
 
 	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
+		ctx, teleporter.TeleporterMessenger(subnetAInfo), subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message to the destination
-	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
 
 	log.Info("Checking the message was received on the destination")
-	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
+	delivered, err := teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Get the Teleporter message from receive event
-	event, err := utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+	event, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		teleporter.TeleporterMessenger(subnetBInfo).ParseReceiveCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	Expect(event.MessageID[:]).Should(Equal(messageID[:]))
 	teleporterMessage := event.Message
@@ -61,7 +64,7 @@ func ResubmitAlteredMessage(network interfaces.Network) {
 	log.Info("Submitting the altered Teleporter message on the source chain")
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(opts, teleporterMessage)
+	tx, err := teleporter.TeleporterMessenger(subnetAInfo).RetrySendCrossChainMessage(opts, teleporterMessage)
 	Expect(err).ShouldNot(BeNil())
 
 	// We expect the tx to be nil because the Warp message failed verification, which happens in the predicate
