@@ -566,9 +566,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         _completeEndDelegationWithChecks({
@@ -698,9 +696,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: validationEndTime - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: validationEndTime - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         _completeEndDelegationWithChecks({
@@ -770,9 +766,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_COMPLETION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         uint256 expectedValidatorFees = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
@@ -823,9 +817,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         uint256 expectedValidatorFees = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
@@ -964,9 +956,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         // Complete delegation1 by delivering the weight update from nonce 4 (delegator2's nonce)
@@ -999,9 +989,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_COMPLETION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         _completeEndValidationWithChecks({
@@ -1442,9 +1430,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: completeRegistrationTimestamp,
             stakingStartTime: completeRegistrationTimestamp,
             stakingEndTime: completionTimestamp,
-            uptimeSeconds: completionTimestamp - completeRegistrationTimestamp,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: completionTimestamp - completeRegistrationTimestamp
         });
 
         _completeEndValidationWithChecks({

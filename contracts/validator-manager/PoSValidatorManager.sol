@@ -75,6 +75,8 @@ abstract contract PoSValidatorManager is
 
     uint16 public constant MAXIMUM_DELEGATION_FEE_BIPS = 10000;
 
+    uint16 public constant BIPS_CONVERSION_FACTOR = 10000;
+
     error InvalidDelegationFee(uint16 delegationFeeBips);
     error InvalidDelegationID(bytes32 delegationID);
     error InvalidDelegatorStatus(DelegatorStatus status);
@@ -244,9 +246,7 @@ abstract contract PoSValidatorManager is
             validatorStartTime: validator.startedAt,
             stakingStartTime: validator.startedAt,
             stakingEndTime: validator.endedAt,
-            uptimeSeconds: uptimeSeconds,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: uptimeSeconds
         });
         $._redeemableValidatorRewards[validationID] += reward;
         return (reward > 0);
@@ -582,9 +582,7 @@ abstract contract PoSValidatorManager is
             validatorStartTime: validator.startedAt,
             stakingStartTime: delegator.startedAt,
             stakingEndTime: delegationEndTime,
-            uptimeSeconds: $._posValidatorInfo[delegator.validationID].uptimeSeconds,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: $._posValidatorInfo[delegator.validationID].uptimeSeconds
         });
     }
 
@@ -666,7 +664,8 @@ abstract contract PoSValidatorManager is
         uint256 validatorFees;
         uint256 delegatorRewards;
         if (rewards > 0) {
-            validatorFees = (rewards * $._posValidatorInfo[validationID].delegationFeeBips) / 10000;
+            validatorFees = (rewards * $._posValidatorInfo[validationID].delegationFeeBips)
+                / BIPS_CONVERSION_FACTOR;
 
             // Allocate the delegation fees to the validator.
             $._redeemableValidatorRewards[validationID] += validatorFees;
