@@ -79,7 +79,7 @@ library ValidatorMessages {
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
-     * @return the unpacked subnetConversionID.
+     * @return The unpacked subnetConversionID.
      */
     function unpackSubnetConversionMessage(bytes memory input) internal pure returns (bytes32) {
         if (input.length != 38) {
@@ -259,7 +259,7 @@ library ValidatorMessages {
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
-     * @return the unpacked ValidationPeriod.
+     * @return The unpacked ValidationPeriod.
      */
     function unpackRegisterSubnetValidatorMessage(bytes memory input)
         internal
@@ -466,8 +466,8 @@ library ValidatorMessages {
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
-     * @return The validationID and whether the validation period was registered
-     * or is not a validator and never will be a validator to do the expiry time passing.
+     * @return The validationID and whether the validation period was registered or is not a
+     * validator and never will be a validator due to the expiry time passing.
      */
     function unpackSubnetValidatorRegistrationMessage(bytes memory input)
         internal

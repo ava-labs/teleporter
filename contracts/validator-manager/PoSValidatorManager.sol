@@ -49,7 +49,6 @@ abstract contract PoSValidatorManager is
         /**
          * @notice A multiplier applied to validator's initial stake amount to determine
          * the maximum amount of stake a validator can have with delegations.
-         *
          * Note: Setting this value to 1 would disable delegations to validators, since
          * the maximum stake would be equal to the initial stake.
          */
@@ -148,6 +147,9 @@ abstract contract PoSValidatorManager is
         $._rewardCalculator = rewardCalculator;
     }
 
+    /**
+     * @notice See {IPoSValidatorManager-submitUptimeProof}.
+     */
     function submitUptimeProof(bytes32 validationID, uint32 messageIndex) external {
         if (!_isPoSValidator(validationID)) {
             revert ValidatorNotPoS(validationID);
@@ -161,6 +163,9 @@ abstract contract PoSValidatorManager is
         _updateUptime(validationID, messageIndex);
     }
 
+    /**
+     * @notice See {IPoSValidatorManager-claimDelegationFees}.
+     */
     function claimDelegationFees(bytes32 validationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
@@ -178,6 +183,9 @@ abstract contract PoSValidatorManager is
         _reward($._posValidatorInfo[validationID].owner, rewards);
     }
 
+    /**
+     * @notice See {IPoSValidatorManager-initializeEndValidation}.
+     */
     function initializeEndValidation(
         bytes32 validationID,
         bool includeUptimeProof,
@@ -188,6 +196,9 @@ abstract contract PoSValidatorManager is
         }
     }
 
+    /**
+     * @notice See {IPoSValidatorManager-forceInitializeEndValidation}.
+     */
     function forceInitializeEndValidation(
         bytes32 validationID,
         bool includeUptimeProof,
@@ -197,9 +208,11 @@ abstract contract PoSValidatorManager is
         _initializeEndPoSValidation(validationID, includeUptimeProof, messageIndex);
     }
 
-    // Helper function that initializes the end of a PoS validation period.
-    // Returns false if it is possible for the validator to claim rewards, but it is not eligible.
-    // Returns true otherwise.
+    /**
+     * @dev Helper function that initializes the end of a PoS validation period.
+     * Returns false if it is possible for the validator to claim rewards, but it is not eligible.
+     * Returns true otherwise.
+     */
     function _initializeEndPoSValidation(
         bytes32 validationID,
         bool includeUptimeProof,
@@ -248,6 +261,9 @@ abstract contract PoSValidatorManager is
         return (reward > 0);
     }
 
+    /**
+     * @notice See {IValidatorManager-completeEndValidation}.
+     */
     function completeEndValidation(uint32 messageIndex) external nonReentrant {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
@@ -267,12 +283,14 @@ abstract contract PoSValidatorManager is
             _reward(owner, rewards);
         }
 
-        // We unlock the stake whether the validation period is completed or invalidated.
+        // The stake is unlocked whether the validation period is completed or invalidated.
         _unlock(owner, weightToValue(validator.startingWeight));
     }
 
-    // Helper function that extracts the uptime from a ValidationUptimeMessage Warp message
-    // If the uptime is greater than the stored uptime, update the stored uptime
+    /**
+     * @dev Helper function that extracts the uptime from a ValidationUptimeMessage Warp message
+     * If the uptime is greater than the stored uptime, update the stored uptime.
+     */
     function _updateUptime(bytes32 validationID, uint32 messageIndex) internal returns (uint64) {
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
@@ -343,15 +361,33 @@ abstract contract PoSValidatorManager is
         return validationID;
     }
 
+    /**
+     * @notice Converts a token value to a weight.
+     * @param value Token value to convert.
+     */
     function valueToWeight(uint256 value) public pure returns (uint64) {
         return uint64(value / 1e12);
     }
 
+    /**
+     * @notice Converts a weight to a token value.
+     * @param weight weight to convert.
+     */
     function weightToValue(uint64 weight) public pure returns (uint256) {
         return uint256(weight) * 1e12;
     }
 
+    /**
+     * @notice Locks tokens in this contract.
+     * @param value Number of tokens to lock.
+     */
     function _lock(uint256 value) internal virtual returns (uint256);
+
+    /**
+     * @notice Unlocks token to a specific address.
+     * @param to Address to send token to.
+     * @param value Number of tokens to lock.
+     */
     function _unlock(address to, uint256 value) internal virtual;
 
     function _initializeDelegatorRegistration(
@@ -407,6 +443,9 @@ abstract contract PoSValidatorManager is
         return delegationID;
     }
 
+    /**
+     * @notice See {IPoSValidatorManager-completeDelegatorRegistration}.
+     */
     function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
@@ -454,6 +493,9 @@ abstract contract PoSValidatorManager is
         });
     }
 
+    /**
+     * @notice See {IPoSValidatorManager-initializeEndDelegation}.
+     */
     function initializeEndDelegation(
         bytes32 delegationID,
         bool includeUptimeProof,
@@ -464,6 +506,9 @@ abstract contract PoSValidatorManager is
         }
     }
 
+    /**
+     * @notice See {IPoSValidatorManager-forceInitializeEndDelegation}.
+     */
     function forceInitializeEndDelegation(
         bytes32 delegationID,
         bool includeUptimeProof,
@@ -473,9 +518,11 @@ abstract contract PoSValidatorManager is
         _initializeEndDelegation(delegationID, includeUptimeProof, messageIndex);
     }
 
-    // Helper function that initializes the end of a PoS delegation period.
-    // Returns false if it is possible for the delegator to claim rewards, but it is not eligible.
-    // Returns true otherwise.
+    /**
+     * @dev Helper function that initializes the end of a PoS delegation period.
+     * Returns false if it is possible for the delegator to claim rewards, but it is not eligible.
+     * Returns true otherwise.
+     */
     function _initializeEndDelegation(
         bytes32 delegationID,
         bool includeUptimeProof,
@@ -533,7 +580,7 @@ abstract contract PoSValidatorManager is
 
             _completeEndDelegation(delegationID);
             // If the validator has completed, then no further uptimes may be submitted, so we always
-            // end the delegation
+            // end the delegation.
             return true;
         } else {
             revert InvalidValidatorStatus(validator.status);
@@ -579,6 +626,7 @@ abstract contract PoSValidatorManager is
     }
 
     /**
+     * @notice See {IPoSValidatorManager-resendUpdateDelegation}.
      * @dev Resending the latest validator weight with the latest nonce is safe because all weight changes are
      * cumulative, so the latest weight change will always include the weight change for any added delegators.
      */
@@ -605,6 +653,9 @@ abstract contract PoSValidatorManager is
         );
     }
 
+    /**
+     * @notice See {IPoSValidatorManager-completeEndDelegation}.
+     */
     function completeEndDelegation(
         uint32 messageIndex,
         bytes32 delegationID
