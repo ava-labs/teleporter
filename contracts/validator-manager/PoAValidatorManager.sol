@@ -5,15 +5,15 @@
 
 pragma solidity 0.8.25;
 
-import {IPoAValidatorManager} from "./interfaces/IPoAValidatorManager.sol";
-import {OwnableUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
-import {ICMInitializable} from "../utilities/ICMInitializable.sol";
+import {ValidatorManager} from "./ValidatorManager.sol";
 import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput
 } from "./interfaces/IValidatorManager.sol";
-import {ValidatorManager} from "./ValidatorManager.sol";
+import {IPoAValidatorManager} from "./interfaces/IPoAValidatorManager.sol";
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
+import {OwnableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 
 /**
  * @dev Implementation of the {IPoAValidatorManager} interface.

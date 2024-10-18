@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Ecosystem
 pragma solidity 0.8.25;
 
-import {SubnetConversionData, PChainOwner} from "./interfaces/IValidatorManager.sol";
+import {PChainOwner, SubnetConversionData} from "./interfaces/IValidatorManager.sol";
 
 /**
  * @dev Packing utilities for the Warp message types used by the Validator Manager contracts, as specified in ACP-77:
@@ -166,7 +166,7 @@ library ValidatorMessages {
         // The approach below of encoding initialValidators using `abi.encodePacked` in a loop
         // was tested against pre-allocating the array and doing manual byte by byte packing and
         // it was found to be more gas efficient.
-        for (uint256 i = 0; i < subnetConversionData.initialValidators.length; i++) {
+        for (uint256 i; i < subnetConversionData.initialValidators.length; i++) {
             res = abi.encodePacked(
                 res,
                 uint32(subnetConversionData.initialValidators[i].nodeID.length),
@@ -238,7 +238,7 @@ library ValidatorMessages {
             validationPeriod.remainingBalanceOwner.threshold,
             uint32(validationPeriod.remainingBalanceOwner.addresses.length)
         );
-        for (uint256 i = 0; i < validationPeriod.remainingBalanceOwner.addresses.length; i++) {
+        for (uint256 i; i < validationPeriod.remainingBalanceOwner.addresses.length; i++) {
             res = abi.encodePacked(res, validationPeriod.remainingBalanceOwner.addresses[i]);
         }
         res = abi.encodePacked(
@@ -246,7 +246,7 @@ library ValidatorMessages {
             validationPeriod.disableOwner.threshold,
             uint32(validationPeriod.disableOwner.addresses.length)
         );
-        for (uint256 i = 0; i < validationPeriod.disableOwner.addresses.length; i++) {
+        for (uint256 i; i < validationPeriod.disableOwner.addresses.length; i++) {
             res = abi.encodePacked(res, validationPeriod.disableOwner.addresses[i]);
         }
         res = abi.encodePacked(res, validationPeriod.weight);

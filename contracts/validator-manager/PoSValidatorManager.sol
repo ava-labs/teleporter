@@ -5,23 +5,23 @@
 
 pragma solidity 0.8.25;
 
-import {
-    IPoSValidatorManager, Delegator, DelegatorStatus
-} from "./interfaces/IPoSValidatorManager.sol";
-import {
-    PoSValidatorManagerSettings, PoSValidatorInfo
-} from "./interfaces/IPoSValidatorManager.sol";
-import {Validator} from "./interfaces/IValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
+import {ValidatorMessages} from "./ValidatorMessages.sol";
+import {
+    Delegator,
+    DelegatorStatus,
+    IPoSValidatorManager,
+    PoSValidatorInfo,
+    PoSValidatorManagerSettings
+} from "./interfaces/IPoSValidatorManager.sol";
 import {
     Validator,
-    ValidatorStatus,
-    ValidatorRegistrationInput
+    ValidatorRegistrationInput,
+    ValidatorStatus
 } from "./interfaces/IValidatorManager.sol";
+import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {ValidatorMessages} from "./ValidatorMessages.sol";
-import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 import {ReentrancyGuardUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
 
@@ -658,7 +658,7 @@ abstract contract PoSValidatorManager is
         uint256 validatorFees;
         uint256 delegatorRewards;
         if (rewards > 0) {
-            validatorFees = rewards * $._posValidatorInfo[validationID].delegationFeeBips
+            validatorFees = (rewards * $._posValidatorInfo[validationID].delegationFeeBips)
                 / BIPS_CONVERSION_FACTOR;
 
             // Allocate the delegation fees to the validator.
