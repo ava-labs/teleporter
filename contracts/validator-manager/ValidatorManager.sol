@@ -387,7 +387,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         validator.endedAt = uint64(block.timestamp);
 
         // Save the validator updates.
-        // TODO: Optimize storage writes here (probably don't need to write the whole value).
         $._validationPeriods[validationID] = validator;
 
         (, bytes32 messageID) = _setValidatorWeight(validationID, 0);
