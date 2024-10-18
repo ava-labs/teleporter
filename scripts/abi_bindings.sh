@@ -47,14 +47,12 @@ if ! command -v forge &> /dev/null; then
     echo "forge not found. You can install by calling $TELEPORTER_PATH/scripts/install_foundry.sh" && exit 1
 fi
 
+if ! command -v solc &> /dev/null; then
+    echo "solc not found. See https://docs.soliditylang.org/en/latest/installing-solidity.html for installation instructions" && exit 1
+fi
+
 echo "Building subnet-evm abigen"
 go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
-
-# Force recompile of all contracts to prevent against using previous
-# compilations that did not generate new ABI files.
-echo "Building Contracts"
-cd $TELEPORTER_PATH
-forge build --skip test --force --extra-output-files abi bin
 
 function convertToLower() {
     if [ "$ARCH" = 'arm64' ]; then
@@ -70,18 +68,22 @@ function generate_bindings() {
     do
         path=$(find . -name $contract_name.sol)
         dir=$(dirname $path)
-        abi_file=$TELEPORTER_PATH/out/$contract_name.sol/$contract_name.abi.json
-        if ! [ -f $abi_file ]; then
-            echo "Error: Contract $contract_name abi file not found"
-            exit 1
-        fi
+        dir="${dir#./}"
+
+        echo "Building $contract_name..."
+        mkdir -p $TELEPORTER_PATH/out/$contract_name.sol
+        
+        cwd=$(pwd)
+        cd $TELEPORTER_PATH
+        solc --optimize --optimize-runs 200 --combined-json abi,bin,metadata,ast,devdoc,userdoc $cwd/$dir/$contract_name.sol $(cat $TELEPORTER_PATH/remappings.txt) > $TELEPORTER_PATH/out/$contract_name.sol/combined-output.json
+        cd $cwd
 
         echo "Generating Go bindings for $contract_name..."
         gen_path=$TELEPORTER_PATH/abi-bindings/go/$dir/$contract_name
         mkdir -p $gen_path
-        $GOPATH/bin/abigen --abi $abi_file \
-                        --pkg $(convertToLower $contract_name) \
-                        --bin $TELEPORTER_PATH/out/$contract_name.sol/$contract_name.bin \
+
+        $GOPATH/bin/abigen --pkg $(convertToLower $contract_name) \
+                        --combined-json $TELEPORTER_PATH/out/$contract_name.sol/combined-output.json \
                         --type $contract_name \
                         --out $gen_path/$contract_name.go
         echo "Done generating Go bindings for $contract_name."
@@ -99,16 +101,10 @@ cd $TELEPORTER_PATH/contracts
 generate_bindings "${contract_names[@]}"
 
 contract_names=($PROXY_LIST)
-cd $TELEPORTER_PATH/
-forge build --skip test --force --extra-output-files abi bin --contracts lib/openzeppelin-contracts/contracts/proxy/transparent
-
-cd $TELEPORTER_PATH/lib/openzeppelin-contracts/contracts/proxy/transparent
+cd $TELEPORTER_PATH/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/proxy/transparent
 generate_bindings "${contract_names[@]}"
 
 contract_names=($SUBNET_EVM_LIST)
-cd $TELEPORTER_PATH/
-forge build --skip test --force --extra-output-files abi bin --contracts lib/subnet-evm/contracts/contracts/interfaces
-
 cd $TELEPORTER_PATH/lib/subnet-evm/contracts/contracts/interfaces
 generate_bindings "${contract_names[@]}"
 
