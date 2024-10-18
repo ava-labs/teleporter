@@ -5,23 +5,23 @@
 
 pragma solidity 0.8.25;
 
-import {
-    IPoSValidatorManager, Delegator, DelegatorStatus
-} from "./interfaces/IPoSValidatorManager.sol";
-import {
-    PoSValidatorManagerSettings, PoSValidatorInfo
-} from "./interfaces/IPoSValidatorManager.sol";
-import {Validator} from "./interfaces/IValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
+import {ValidatorMessages} from "./ValidatorMessages.sol";
+import {
+    Delegator,
+    DelegatorStatus,
+    IPoSValidatorManager,
+    PoSValidatorInfo,
+    PoSValidatorManagerSettings
+} from "./interfaces/IPoSValidatorManager.sol";
 import {
     Validator,
-    ValidatorStatus,
-    ValidatorRegistrationInput
+    ValidatorRegistrationInput,
+    ValidatorStatus
 } from "./interfaces/IValidatorManager.sol";
+import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {ValidatorMessages} from "./ValidatorMessages.sol";
-import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 import {ReentrancyGuardUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
 
@@ -74,6 +74,8 @@ abstract contract PoSValidatorManager is
     uint8 public constant MAXIMUM_STAKE_MULTIPLIER_LIMIT = 10;
 
     uint16 public constant MAXIMUM_DELEGATION_FEE_BIPS = 10000;
+
+    uint16 public constant BIPS_CONVERSION_FACTOR = 10000;
 
     error InvalidDelegationFee(uint16 delegationFeeBips);
     error InvalidDelegationID(bytes32 delegationID);
@@ -240,9 +242,7 @@ abstract contract PoSValidatorManager is
             validatorStartTime: validator.startedAt,
             stakingStartTime: validator.startedAt,
             stakingEndTime: validator.endedAt,
-            uptimeSeconds: uptimeSeconds,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: uptimeSeconds
         });
         $._redeemableValidatorRewards[validationID] += reward;
         return (reward > 0);
@@ -572,9 +572,7 @@ abstract contract PoSValidatorManager is
             validatorStartTime: validator.startedAt,
             stakingStartTime: delegator.startedAt,
             stakingEndTime: delegationEndTime,
-            uptimeSeconds: $._posValidatorInfo[delegator.validationID].uptimeSeconds,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: $._posValidatorInfo[delegator.validationID].uptimeSeconds
         });
     }
 
@@ -656,7 +654,8 @@ abstract contract PoSValidatorManager is
         uint256 validatorFees;
         uint256 delegatorRewards;
         if (rewards > 0) {
-            validatorFees = rewards * $._posValidatorInfo[validationID].delegationFeeBips / 10000;
+            validatorFees = (rewards * $._posValidatorInfo[validationID].delegationFeeBips)
+                / BIPS_CONVERSION_FACTOR;
 
             // Allocate the delegation fees to the validator.
             $._redeemableValidatorRewards[validationID] += validatorFees;
