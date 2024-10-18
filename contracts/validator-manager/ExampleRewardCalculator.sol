@@ -22,6 +22,7 @@ contract ExampleRewardCalculator is IRewardCalculator {
 
     /**
      * @notice A linear, non-compounding reward calculation that rewards a set percentage of tokens per year.
+     * See {IRewardCalculator-calculateReward}
      */
     function calculateReward(
         uint256 stakeAmount,

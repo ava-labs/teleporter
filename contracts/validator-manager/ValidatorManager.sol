@@ -308,8 +308,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     }
 
     /**
-     * @notice Resubmits a validator registration message to be sent to P-Chain to the Warp precompile.
-     * Only necessary if the original message can't be delivered due to validator churn.
+     * @notice See {IValidatorManager-resendRegisterValidatorMessage}.
      */
     function resendRegisterValidatorMessage(bytes32 validationID) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
@@ -326,9 +325,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     }
 
     /**
-     * @notice Completes the validator registration process by returning an acknowledgement of the registration of a
-     * validationID from the P-Chain.
-     * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
+     * @notice See {IValidatorManager-completeValidatorRegistration}.
      */
     function completeValidatorRegistration(uint32 messageIndex) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
@@ -354,11 +351,19 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         );
     }
 
+    /**
+     * @notice Returns a validation ID registered to the given nodeID
+     * @param nodeID ID of the node associated with the validation ID
+     */
     function registeredValidators(bytes calldata nodeID) public view returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         return $._registeredValidators[nodeID];
     }
 
+    /**
+     * @notice Returns a validator registered to the given validationID
+     * @param validationID ID of the validation period associated with the validator
+     */
     function getValidator(bytes32 validationID) public view returns (Validator memory) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         return $._validationPeriods[validationID];
@@ -368,7 +373,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
      * @notice Begins the process of ending an active validation period. The validation period must have been previously
      * started by a successful call to {completeValidatorRegistration} with the given validationID.
      * Any rewards for this validation period will stop accruing when this function is called.
-     * @param validationID The ID of the validation being ended.
+     * @param validationID The ID of the validation period being ended.
      */
     function _initializeEndValidation(bytes32 validationID)
         internal
@@ -404,10 +409,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     }
 
     /**
-     * @notice Resubmits a validator end message to be sent to P-Chain to the Warp precompile.
-     * Only necessary if the original message can't be delivered due to validator churn.
+     * @notice See {IValidatorManager-resendEndValidatorMessage}.
      */
-    // solhint-disable-next-line
     function resendEndValidatorMessage(bytes32 validationID) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         Validator memory validator = $._validationPeriods[validationID];
@@ -427,10 +430,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     /**
      * @notice Completes the process of ending a validation period by receiving an acknowledgement from the P-Chain
      * that the validation ID is not active and will never be active in the future.
-     *  Note that this function can be used for successful validation periods that have been explicitly
+     * Note: that this function can be used for successful validation periods that have been explicitly
      * ended by calling {initializeEndValidation} or for validation periods that never began on the P-Chain due to the
      * {registrationExpiry} being reached.
-     * @return The Validator instance representing the completed validation period and the corresponding validation ID.
+     * @return (Validation ID, Validator instance) representing the completed validation period.
      */
     function _completeEndValidation(uint32 messageIndex)
         internal
@@ -476,7 +479,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
     /**
      * @notice Returns the validator's weight. This weight is not guaranteed to be known by the P-Chain
-     * @return The weight of the validator. If the validation ID does not exist, the weight will be 0.
+     * @return Weight of the validator. If the validation ID does not exist, the weight will be 0.
      */
     function getWeight(bytes32 validationID) external view returns (uint64) {
         return getValidator(validationID).weight;

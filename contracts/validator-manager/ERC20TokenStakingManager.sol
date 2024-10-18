@@ -97,7 +97,6 @@ contract ERC20TokenStakingManager is
 
     /**
      * @notice See {IERC20TokenStakingManager-initializeValidatorRegistration}
-     * Begins the validator registration process. Locks the configured ERC20 in the contract as the stake.
      */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
@@ -111,9 +110,7 @@ contract ERC20TokenStakingManager is
     }
 
     /**
-     * @notice Begins the delegator registration process. Locks the configured ERC20 in the contract as the delegated stake.
-     * @param validationID The ID of the validation period being delegated to.
-     * @param delegationAmount The amount to be delegated.
+     * @notice See {IERC20TokenStakingManager-initializeDelegatorRegistration}
      */
     function initializeDelegatorRegistration(
         bytes32 validationID,
@@ -122,16 +119,25 @@ contract ERC20TokenStakingManager is
         return _initializeDelegatorRegistration(validationID, _msgSender(), delegationAmount);
     }
 
-    // Must be guarded with reentrancy guard for safe transfer from
+    /**
+     * @notice See {PoSValidatorManager-_lock}
+     * Note: Must be guarded with reentrancy guard for safe transfer from.
+     */
     function _lock(uint256 value) internal virtual override returns (uint256) {
         return _getERC20StakingManagerStorage()._token.safeTransferFrom(value);
     }
 
-    // Must be guarded with reentrancy guard for safe transfer from
+    /**
+     * @notice See {PoSValidatorManager-_unlock}
+     * Note: Must be guarded with reentrancy guard for safe transfer.
+     */
     function _unlock(address to, uint256 value) internal virtual override {
         _getERC20StakingManagerStorage()._token.safeTransfer(to, value);
     }
 
+    /**
+     * @notice See {PoSValidatorManager-_reward}
+     */
     function _reward(address account, uint256 amount) internal virtual override {
         ERC20TokenStakingManagerStorage storage $ = _getERC20StakingManagerStorage();
         $._token.mint(account, amount);

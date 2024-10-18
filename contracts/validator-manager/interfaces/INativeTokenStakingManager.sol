@@ -24,6 +24,10 @@ interface INativeTokenStakingManager is IPoSValidatorManager {
         uint64 minStakeDuration
     ) external payable returns (bytes32 validationID);
 
+    /**
+     * @notice Begins the delegator registration process. Locks the provided native asset in the contract as the stake.
+     * @param validationID The ID of the validator to stake to.
+     */
     function initializeDelegatorRegistration(bytes32 validationID)
         external
         payable
