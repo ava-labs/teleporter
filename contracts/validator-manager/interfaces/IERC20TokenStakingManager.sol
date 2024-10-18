@@ -17,7 +17,7 @@ interface IERC20TokenStakingManager is IPoSValidatorManager {
      * @param registrationInput The inputs for a validator registration.
      * @param delegationFeeBips The fee that delegators must pay to delegate to this validator.
      * @param minStakeDuration The minimum amount of time this validator must be staked for in seconds.
-     * @param stakeAmount The amount of tokens of stake.
+     * @param stakeAmount The amount of tokens to stake.
      */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
