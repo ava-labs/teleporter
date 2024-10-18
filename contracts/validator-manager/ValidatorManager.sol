@@ -5,23 +5,22 @@
 
 pragma solidity 0.8.25;
 
+import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {
+    InitialValidator,
     IValidatorManager,
-    ValidatorManagerSettings,
-    ValidatorChurnPeriod,
-    ValidatorStatus,
+    PChainOwner,
+    SubnetConversionData,
     Validator,
     ValidatorChurnPeriod,
-    SubnetConversionData,
-    InitialValidator,
+    ValidatorManagerSettings,
     ValidatorRegistrationInput,
-    PChainOwner
+    ValidatorStatus
 } from "./interfaces/IValidatorManager.sol";
 import {
-    WarpMessage,
-    IWarpMessenger
+    IWarpMessenger,
+    WarpMessage
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
 import {Initializable} from
