@@ -61,7 +61,7 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Event emitted when a delegator registration is initiated
      * @param delegationID The ID of the delegation
-     * @param validationID The ID of the validation perdiod being delegated to
+     * @param validationID The ID of the validation period being delegated to
      * @param delegatorAddress The address of the delegator
      * @param nonce The message nonce used to update the validator weight
      * @param validatorWeight The updated validator weight that is sent to the P-Chain
