@@ -19,6 +19,7 @@ import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
+import {Codec} from "../Codec.sol";
 
 contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     NativeTokenStakingManager public app;
@@ -29,12 +30,14 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         // Construct the object under test
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         rewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_RATE);
+        codec = new Codec();
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: codec
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
@@ -61,7 +64,8 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: Codec(address(0))
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
@@ -86,7 +90,8 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: Codec(address(0))
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
@@ -110,7 +115,8 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: Codec(address(0))
                 }),
                 minimumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
@@ -132,7 +138,8 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: Codec(address(0))
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
@@ -157,7 +164,8 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 baseSettings: ValidatorManagerSettings({
                     subnetID: DEFAULT_SUBNET_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
+                    codec: Codec(address(0))
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,

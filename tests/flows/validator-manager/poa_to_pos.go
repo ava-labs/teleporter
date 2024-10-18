@@ -87,12 +87,14 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	)
 	Expect(err).Should(BeNil())
 
+	codecAddress, _ := utils.DeployCodec(ctx, fundedKey, subnetAInfo)
 	tx, err := poaValidatorManager.Initialize(
 		opts,
 		poavalidatormanager.ValidatorManagerSettings{
 			SubnetID:               subnetAInfo.SubnetID,
 			ChurnPeriodSeconds:     uint64(0),
 			MaximumChurnPercentage: uint8(20),
+			Codec:                  codecAddress,
 		},
 		ownerAddress,
 	)
@@ -216,6 +218,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 				SubnetID:               subnetAInfo.SubnetID,
 				ChurnPeriodSeconds:     utils.DefaultChurnPeriodSeconds,
 				MaximumChurnPercentage: utils.DefaultMaxChurnPercentage,
+				Codec:                  codecAddress,
 			},
 			MinimumStakeAmount:       big.NewInt(0).SetUint64(utils.DefaultMinStakeAmount),
 			MaximumStakeAmount:       big.NewInt(0).SetUint64(utils.DefaultMaxStakeAmount),
