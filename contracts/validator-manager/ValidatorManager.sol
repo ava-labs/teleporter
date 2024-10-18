@@ -5,23 +5,22 @@
 
 pragma solidity 0.8.25;
 
+import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {
+    InitialValidator,
     IValidatorManager,
-    ValidatorManagerSettings,
-    ValidatorChurnPeriod,
-    ValidatorStatus,
+    PChainOwner,
+    SubnetConversionData,
     Validator,
     ValidatorChurnPeriod,
-    SubnetConversionData,
-    InitialValidator,
+    ValidatorManagerSettings,
     ValidatorRegistrationInput,
-    PChainOwner
+    ValidatorStatus
 } from "./interfaces/IValidatorManager.sol";
 import {
-    WarpMessage,
-    IWarpMessenger
+    IWarpMessenger,
+    WarpMessage
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
 import {Initializable} from
@@ -78,6 +77,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     error InvalidSubnetConversionID(
         bytes32 encodedSubnetConversionID, bytes32 expectedSubnetConversionID
     );
+    error InvalidTotalWeight(uint256 weight);
     error InvalidValidationID(bytes32 validationID);
     error InvalidValidatorStatus(ValidatorStatus status);
     error InvalidWarpMessage();
@@ -196,6 +196,12 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             );
         }
         $._churnTracker.totalWeight = totalWeight;
+
+        // Rearranged equation for totalWeight < (100 / $._maximumChurnPercentage)
+        // Total weight must be above this value in order to not trigger churn limits with an added/removed weight of 1.
+        if (totalWeight * $._maximumChurnPercentage < 100) {
+            revert InvalidTotalWeight(totalWeight);
+        }
 
         // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
         bytes32 subnetConversionID = ValidatorMessages.unpackSubnetConversionMessage(
@@ -392,7 +398,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         validator.endedAt = uint64(block.timestamp);
 
         // Save the validator updates.
-        // TODO: Optimize storage writes here (probably don't need to write the whole value).
         $._validationPeriods[validationID] = validator;
 
         (, bytes32 messageID) = _setValidatorWeight(validationID, 0);
@@ -577,6 +582,12 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Two separate calculations because we're using uints and (newValidatorWeight - oldValidatorWeight) could underflow.
         churnTracker.totalWeight += newValidatorWeight;
         churnTracker.totalWeight -= oldValidatorWeight;
+
+        // Rearranged equation for totalWeight < (100 / $._maximumChurnPercentage)
+        // Total weight must be above this value in order to not trigger churn limits with an added/removed weight of 1.
+        if (churnTracker.totalWeight * $._maximumChurnPercentage < 100) {
+            revert InvalidTotalWeight(churnTracker.totalWeight);
+        }
 
         $._churnTracker = churnTracker;
     }

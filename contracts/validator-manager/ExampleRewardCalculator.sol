@@ -12,6 +12,8 @@ contract ExampleRewardCalculator is IRewardCalculator {
 
     uint8 public constant UPTIME_REWARDS_THRESHOLD_PERCENTAGE = 80;
 
+    uint16 public constant BIPS_CONVERSION_FACTOR = 10000;
+
     uint64 public immutable rewardBasisPoints;
 
     constructor(uint64 rewardBasisPoints_) {
@@ -27,9 +29,7 @@ contract ExampleRewardCalculator is IRewardCalculator {
         uint64 validatorStartTime,
         uint64 stakingStartTime,
         uint64 stakingEndTime,
-        uint64 uptimeSeconds,
-        uint256, // initialSupply
-        uint256 // endSupply
+        uint64 uptimeSeconds
     ) external view returns (uint256) {
         // Equivalent to uptimeSeconds/(validator.endedAt - validator.startedAt) < UPTIME_REWARDS_THRESHOLD_PERCENTAGE/100
         // Rearranged to prevent integer division truncation.
@@ -41,6 +41,6 @@ contract ExampleRewardCalculator is IRewardCalculator {
         }
 
         return (stakeAmount * rewardBasisPoints * (stakingEndTime - stakingStartTime))
-            / SECONDS_IN_YEAR / 10000;
+            / SECONDS_IN_YEAR / BIPS_CONVERSION_FACTOR;
     }
 }
