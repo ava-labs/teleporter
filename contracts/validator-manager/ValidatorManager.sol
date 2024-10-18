@@ -78,6 +78,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     error InvalidSubnetConversionID(
         bytes32 encodedSubnetConversionID, bytes32 expectedSubnetConversionID
     );
+    error InvalidTotalWeight(uint256 weight);
     error InvalidValidationID(bytes32 validationID);
     error InvalidValidatorStatus(ValidatorStatus status);
     error InvalidWarpMessage();
@@ -196,6 +197,12 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             );
         }
         $._churnTracker.totalWeight = totalWeight;
+
+        // Rearranged equation for totalWeight < (100 / $._maximumChurnPercentage)
+        // Total weight must be above this value in order to not trigger churn limits with an added/removed weight of 1.
+        if (totalWeight * $._maximumChurnPercentage < 100) {
+            revert InvalidTotalWeight(totalWeight);
+        }
 
         // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
         bytes32 subnetConversionID = ValidatorMessages.unpackSubnetConversionMessage(
@@ -574,6 +581,12 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Two separate calculations because we're using uints and (newValidatorWeight - oldValidatorWeight) could underflow.
         churnTracker.totalWeight += newValidatorWeight;
         churnTracker.totalWeight -= oldValidatorWeight;
+
+        // Rearranged equation for totalWeight < (100 / $._maximumChurnPercentage)
+        // Total weight must be above this value in order to not trigger churn limits with an added/removed weight of 1.
+        if (churnTracker.totalWeight * $._maximumChurnPercentage < 100) {
+            revert InvalidTotalWeight(churnTracker.totalWeight);
+        }
 
         $._churnTracker = churnTracker;
     }
