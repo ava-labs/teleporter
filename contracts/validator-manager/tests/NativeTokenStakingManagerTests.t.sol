@@ -10,7 +10,8 @@ import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
 import {PoSValidatorManager} from "../PoSValidatorManager.sol";
 import {
     ValidatorManagerSettings,
-    ValidatorRegistrationInput
+    ValidatorRegistrationInput,
+    IValidatorManager
 } from "../interfaces/IValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
@@ -26,26 +27,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     function setUp() public override {
         ValidatorManagerTest.setUp();
 
-        // Construct the object under test
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        rewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_RATE);
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                rewardCalculator: rewardCalculator
-            })
-        );
-        validatorManager = app;
-        posValidatorManager = app;
+        _setUp();
         _mockGetBlockchainID();
         _mockInitializeValidatorSet();
         app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
@@ -252,6 +234,30 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         });
         // Units tests don't have access to the native minter precompile, so use vm.deal instead.
         vm.deal(account, account.balance + amount);
+    }
+
+    function _setUp() internal override returns (IValidatorManager) {
+        // Construct the object under test
+        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        rewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_RATE);
+        app.initialize(
+            PoSValidatorManagerSettings({
+                baseSettings: ValidatorManagerSettings({
+                    subnetID: DEFAULT_SUBNET_ID,
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                }),
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+                rewardCalculator: rewardCalculator
+            })
+        );
+        validatorManager = app;
+        posValidatorManager = app;
+        return app;
     }
 
     function _getStakeAssetBalance(address account) internal view override returns (uint256) {
