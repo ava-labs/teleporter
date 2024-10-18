@@ -5,16 +5,16 @@
 
 pragma solidity 0.8.25;
 
-import {IERC20TokenStakingManager} from "./interfaces/IERC20TokenStakingManager.sol";
-import {Initializable} from
-    "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
-import {IERC20Mintable} from "./interfaces/IERC20Mintable.sol";
-import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
-import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
-import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {ValidatorRegistrationInput} from "./interfaces/IValidatorManager.sol";
+import {IERC20TokenStakingManager} from "./interfaces/IERC20TokenStakingManager.sol";
+import {IERC20Mintable} from "./interfaces/IERC20Mintable.sol";
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
+import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
+import {Initializable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @dev Implementation of the {IERC20TokenStakingManager} interface.
