@@ -496,11 +496,6 @@ abstract contract PoSValidatorManager is
             revert InvalidDelegatorStatus(delegator.status);
         }
 
-        // Check that minimum stake duration has passed.
-        if (block.timestamp < delegator.startedAt + $._minimumStakeDuration) {
-            revert MinStakeDurationNotPassed(uint64(block.timestamp));
-        }
-
         // Only the delegation owner or parent validator can end the delegation.
         if (delegator.owner != _msgSender()) {
             // Validators can only remove delegations after the minimum stake duration has passed.
@@ -517,6 +512,11 @@ abstract contract PoSValidatorManager is
         }
 
         if (validator.status == ValidatorStatus.Active) {
+            // Check that minimum stake duration has passed.
+            if (block.timestamp < delegator.startedAt + $._minimumStakeDuration) {
+                revert MinStakeDurationNotPassed(uint64(block.timestamp));
+            }
+
             if (includeUptimeProof) {
                 // Uptime proofs include the absolute number of seconds the validator has been active.
                 _updateUptime(validationID, messageIndex);
