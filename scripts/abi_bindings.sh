@@ -75,7 +75,7 @@ function generate_bindings() {
         
         cwd=$(pwd)
         cd $TELEPORTER_PATH
-        solc --optimize --evm-version shanghai --combined-json abi,bin,metadata,ast,devdoc,userdoc $cwd/$dir/$contract_name.sol $(cat $TELEPORTER_PATH/remappings.txt) > $TELEPORTER_PATH/out/$contract_name.sol/combined-output.json
+        solc --optimize --evm-version shanghai --combined-json abi,bin,metadata,ast,devdoc,userdoc --pretty-json $cwd/$dir/$contract_name.sol $(cat $TELEPORTER_PATH/remappings.txt) > $TELEPORTER_PATH/out/$contract_name.sol/combined-output.json
         cd $cwd
 
         echo "Generating Go bindings for $contract_name..."
