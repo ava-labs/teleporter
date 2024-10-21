@@ -512,12 +512,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     function testResendEndValidation() public override {
         bytes32 validationID = _registerDefaultValidator();
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, 1, 0
+        );
+        bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
+            validationID, DEFAULT_COMPLETION_TIMESTAMP-DEFAULT_REGISTRATION_TIMESTAMP
+        );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
-            expectedNonce: 1,
+            setWeightMessage: setWeightMessage,
             includeUptime: true,
+            uptimeMessage: uptimeMessage,
             force: false
         });
 
@@ -537,12 +543,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testInitializeDelegatorRegistrationValidatorPendingRemoved() public {
         bytes32 validationID = _registerDefaultValidator();
 
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, 1, 0
+        );
+        bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
+            validationID, DEFAULT_COMPLETION_TIMESTAMP-DEFAULT_REGISTRATION_TIMESTAMP
+        );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION,
-            expectedNonce: 1,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            setWeightMessage: setWeightMessage,
             includeUptime: true,
+            uptimeMessage: uptimeMessage,
             force: false
         });
 
@@ -572,12 +584,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
 
         uint64 validatorEndTime = DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION;
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, 2, 0
+        );
+        bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
+            validationID, validatorEndTime-DEFAULT_REGISTRATION_TIMESTAMP
+        );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: validatorEndTime,
-            expectedNonce: 2,
+            setWeightMessage: setWeightMessage,
             includeUptime: true,
+            uptimeMessage: uptimeMessage,
             force: false
         });
 
@@ -594,12 +612,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testInitializeEndDelegationValidatorPendingRemoved() public {
         bytes32 validationID = _registerDefaultValidator();
 
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, 1, 0
+        );
+        bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
+            validationID, DEFAULT_COMPLETION_TIMESTAMP-DEFAULT_REGISTRATION_TIMESTAMP
+        );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION,
-            expectedNonce: 1,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            setWeightMessage: setWeightMessage,
             includeUptime: true,
+            uptimeMessage: uptimeMessage,
             force: false
         });
 
@@ -633,12 +657,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
 
         uint64 validationEndTime = DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP + 1;
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, 3, 0
+        );
+        bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
+            validationID, validationEndTime-DEFAULT_REGISTRATION_TIMESTAMP
+        );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: validationEndTime,
-            expectedNonce: 3,
+            setWeightMessage: setWeightMessage,
             includeUptime: true,
+            uptimeMessage: uptimeMessage,
             force: false
         });
 
@@ -934,12 +964,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     function testCompleteEndValidation() public virtual override {
         bytes32 validationID = _registerDefaultValidator();
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, 1, 0
+        );
+        bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
+            validationID, DEFAULT_COMPLETION_TIMESTAMP-DEFAULT_REGISTRATION_TIMESTAMP
+        );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
-            expectedNonce: 1,
+            setWeightMessage: setWeightMessage,
             includeUptime: true,
+            uptimeMessage: uptimeMessage,
             force: false
         });
 
@@ -963,12 +999,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     function testInitializeEndValidation() public virtual override {
         bytes32 validationID = _registerDefaultValidator();
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, 1, 0
+        );
+        bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
+            validationID, DEFAULT_COMPLETION_TIMESTAMP-DEFAULT_REGISTRATION_TIMESTAMP
+        );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
-            expectedNonce: 1,
+            setWeightMessage: setWeightMessage,
             includeUptime: true,
+            uptimeMessage: uptimeMessage,
             force: false
         });
     }
@@ -1054,12 +1096,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     function testForceInitializeEndValidation() public {
         bytes32 validationID = _registerDefaultValidator();
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, 1, 0
+        );
+        bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
+            validationID, DEFAULT_COMPLETION_TIMESTAMP-DEFAULT_REGISTRATION_TIMESTAMP
+        );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
-            expectedNonce: 1,
+            setWeightMessage: setWeightMessage,
             includeUptime: true,
+            uptimeMessage: uptimeMessage,
             force: true
         });
     }
@@ -1258,6 +1306,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         // Try to end the validation with a stale uptime
         uint64 thirdClaimTime = secondClaimTime + 5 hours;
+        bytes memory setValidatorWeightPayload =
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
         vm.expectRevert(
             abi.encodeWithSelector(
                 PoSValidatorManager.ValidatorIneligibleForRewards.selector, validationID
@@ -1265,20 +1315,23 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: thirdClaimTime,
-            expectedNonce: 1,
+            setWeightMessage: setValidatorWeightPayload,
             includeUptime: false,
+            uptimeMessage: uptimeMsg,
             force: false
         });
 
         // Try again with the correct uptime
+        uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
+                validationID, thirdClaimTime - DEFAULT_REGISTRATION_TIMESTAMP
+            );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: thirdClaimTime,
-            expectedNonce: 1,
+            setWeightMessage: setValidatorWeightPayload,
             includeUptime: true,
+            uptimeMessage: uptimeMsg,
             force: false
         });
 
@@ -1613,12 +1666,18 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 validatorWeight,
         uint64 expectedNonce
     ) internal {
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, expectedNonce, 0
+        );
+        bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
+            validationID, completionTimestamp-completeRegistrationTimestamp
+        );
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: completeRegistrationTimestamp,
             completionTimestamp: completionTimestamp,
-            expectedNonce: expectedNonce,
+            setWeightMessage: setWeightMessage,
             includeUptime: true,
+            uptimeMessage: uptimeMessage,
             force: false
         });
 

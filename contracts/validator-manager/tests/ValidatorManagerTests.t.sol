@@ -7,7 +7,7 @@ pragma solidity 0.8.25;
 
 import {Test} from "@forge-std/Test.sol";
 import {ValidatorManager, SubnetConversionData, InitialValidator} from "../ValidatorManager.sol";
-import {ValidatorMessages} from "./utils/ValidatorMessagesInternal.sol";
+import {ValidatorMessages} from "../ValidatorMessages.sol";
 import {
     ValidatorStatus,
     ValidatorRegistrationInput,
@@ -214,24 +214,32 @@ abstract contract ValidatorManagerTest is Test {
 
     function testInitializeEndValidation() public virtual {
         bytes32 validationID = _registerDefaultValidator();
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, 1, 0
+        );
+        bytes memory uptimeMessage;
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
-            expectedNonce: 1,
+            setWeightMessage: setWeightMessage,
             includeUptime: false,
+            uptimeMessage: uptimeMessage,
             force: false
         });
     }
 
     function testResendEndValidation() public virtual {
         bytes32 validationID = _registerDefaultValidator();
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, 1, 0
+        );
+        bytes memory uptimeMessage;
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
-            expectedNonce: 1,
+            setWeightMessage: setWeightMessage,
             includeUptime: false,
+            uptimeMessage: uptimeMessage,
             force: false
         });
 
@@ -243,12 +251,16 @@ abstract contract ValidatorManagerTest is Test {
 
     function testCompleteEndValidation() public virtual {
         bytes32 validationID = _registerDefaultValidator();
+        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+            validationID, 1, 0
+        );
+        bytes memory uptimeMessage;
         _initializeEndValidation({
             validationID: validationID,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
-            expectedNonce: 1,
+            setWeightMessage: setWeightMessage,
             includeUptime: false,
+            uptimeMessage: uptimeMessage,
             force: false
         });
 
@@ -441,21 +453,15 @@ abstract contract ValidatorManagerTest is Test {
 
     function _initializeEndValidation(
         bytes32 validationID,
-        uint64 registrationTimestamp,
         uint64 completionTimestamp,
-        uint64 expectedNonce,
+        bytes memory setWeightMessage,
         bool includeUptime,
+        bytes memory uptimeMessage,
         bool force
     ) internal {
-        bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, expectedNonce, 0);
-        _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
-
+        _mockSendWarpMessage(setWeightMessage, bytes32(0));
         if (includeUptime) {
-            bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
-                validationID, completionTimestamp - registrationTimestamp
-            );
-            _mockGetUptimeWarpMessage(uptimeMsg, true);
+            _mockGetUptimeWarpMessage(uptimeMessage, true);
             _mockGetBlockchainID();
         }
 
