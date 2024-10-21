@@ -1108,6 +1108,14 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _forceInitializeEndValidation(validationID, true);
     }
 
+    function testValueToWeightTruncated() public {
+        // default weightToValueFactor is 1e12
+        vm.expectRevert(
+            abi.encodeWithSelector(PoSValidatorManager.InvalidStakeAmount.selector, 1e11)
+        );
+        posValidatorManager.valueToWeight(1e11);
+    }
+
     function testValueToWeight() public view {
         uint64 w1 = posValidatorManager.valueToWeight(1e12);
         uint64 w2 = posValidatorManager.valueToWeight(1e18);

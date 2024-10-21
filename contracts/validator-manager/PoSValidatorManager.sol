@@ -375,7 +375,11 @@ abstract contract PoSValidatorManager is
      * @param value Token value to convert.
      */
     function valueToWeight(uint256 value) public view returns (uint64) {
-        return uint64(value / _getPoSValidatorManagerStorage()._weightToValueFactor);
+        uint64 weight = uint64(value / _getPoSValidatorManagerStorage()._weightToValueFactor);
+        if (weight == 0) {
+            revert InvalidStakeAmount(value);
+        }
+        return weight;
     }
 
     /**
