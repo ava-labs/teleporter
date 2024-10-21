@@ -213,9 +213,8 @@ abstract contract ValidatorManagerTest is Test {
 
     function testInitializeEndValidation() public virtual {
         bytes32 validationID = _registerDefaultValidator();
-        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
-            validationID, 1, 0
-        );
+        bytes memory setWeightMessage =
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
         bytes memory uptimeMessage;
         _initializeEndValidation({
             validationID: validationID,
@@ -229,9 +228,8 @@ abstract contract ValidatorManagerTest is Test {
 
     function testResendEndValidation() public virtual {
         bytes32 validationID = _registerDefaultValidator();
-        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
-            validationID, 1, 0
-        );
+        bytes memory setWeightMessage =
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
         bytes memory uptimeMessage;
         _initializeEndValidation({
             validationID: validationID,
@@ -250,9 +248,8 @@ abstract contract ValidatorManagerTest is Test {
 
     function testCompleteEndValidation() public virtual {
         bytes32 validationID = _registerDefaultValidator();
-        bytes memory setWeightMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
-            validationID, 1, 0
-        );
+        bytes memory setWeightMessage =
+            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
         bytes memory uptimeMessage;
         _initializeEndValidation({
             validationID: validationID,
