@@ -166,6 +166,30 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         );
     }
 
+    function testZeroWeightToValueFactor() public {
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
+        vm.expectRevert(
+            abi.encodeWithSelector(PoSValidatorManager.ZeroWeightToValueFactor.selector)
+        );
+        app.initialize(
+            PoSValidatorManagerSettings({
+                baseSettings: ValidatorManagerSettings({
+                    subnetID: DEFAULT_SUBNET_ID,
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                }),
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+                weightToValueFactor: 0,
+                rewardCalculator: IRewardCalculator(address(0))
+            }),
+            token
+        );
+    }
+
     function testInvalidValidatorMinStakeDuration() public {
         ValidatorRegistrationInput memory input = ValidatorRegistrationInput({
             nodeID: DEFAULT_NODE_ID,

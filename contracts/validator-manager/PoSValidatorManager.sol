@@ -91,6 +91,7 @@ abstract contract PoSValidatorManager is
     error ValidatorNotPoS(bytes32 validationID);
     error ValidatorIneligibleForRewards(bytes32 validationID);
     error DelegatorIneligibleForRewards(bytes32 delegationID);
+    error ZeroWeightToValueFactor();
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
@@ -143,6 +144,9 @@ abstract contract PoSValidatorManager is
         if (maximumStakeMultiplier == 0 || maximumStakeMultiplier > MAXIMUM_STAKE_MULTIPLIER_LIMIT)
         {
             revert InvalidStakeMultiplier(maximumStakeMultiplier);
+        }
+        if (weightToValueFactor == 0) {
+            revert ZeroWeightToValueFactor();
         }
 
         $._minimumStakeAmount = minimumStakeAmount;
