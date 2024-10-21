@@ -34,6 +34,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     uint16 public constant DEFAULT_MINIMUM_DELEGATION_FEE_BIPS = 100;
     uint16 public constant DEFAULT_DELEGATION_FEE_BIPS = 150;
     uint8 public constant DEFAULT_MAXIMUM_STAKE_MULTIPLIER = 4;
+    uint256 public constant DEFAULT_WEIGHT_TO_VALUE_FACTOR = 1e12;
     uint256 public constant SECONDS_IN_YEAR = 31536000;
 
     PoSValidatorManager public posValidatorManager;

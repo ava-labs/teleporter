@@ -50,6 +50,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: 0,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
@@ -75,6 +76,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: minimumDelegationFeeBips,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
@@ -99,6 +101,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
@@ -121,6 +124,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: 0,
+                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
@@ -146,6 +150,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: maximumStakeMultiplier,
+                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
@@ -227,6 +232,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
                 rewardCalculator: rewardCalculator
             })
         );

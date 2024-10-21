@@ -53,6 +53,8 @@ abstract contract PoSValidatorManager is
          * the maximum stake would be equal to the initial stake.
          */
         uint64 _maximumStakeMultiplier;
+        /// @notice The factor used to convert between weight and value.
+        uint256 _weightToValueFactor;
         /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
         /// @notice Maps the validation ID to its requirements.
@@ -115,6 +117,7 @@ abstract contract PoSValidatorManager is
             minimumStakeDuration: settings.minimumStakeDuration,
             minimumDelegationFeeBips: settings.minimumDelegationFeeBips,
             maximumStakeMultiplier: settings.maximumStakeMultiplier,
+            weightToValueFactor: settings.weightToValueFactor,
             rewardCalculator: settings.rewardCalculator
         });
     }
@@ -126,6 +129,7 @@ abstract contract PoSValidatorManager is
         uint64 minimumStakeDuration,
         uint16 minimumDelegationFeeBips,
         uint8 maximumStakeMultiplier,
+        uint256 weightToValueFactor,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
@@ -146,6 +150,7 @@ abstract contract PoSValidatorManager is
         $._minimumStakeDuration = minimumStakeDuration;
         $._minimumDelegationFeeBips = minimumDelegationFeeBips;
         $._maximumStakeMultiplier = maximumStakeMultiplier;
+        $._weightToValueFactor = weightToValueFactor;
         $._rewardCalculator = rewardCalculator;
     }
 
@@ -365,16 +370,16 @@ abstract contract PoSValidatorManager is
      * @notice Converts a token value to a weight.
      * @param value Token value to convert.
      */
-    function valueToWeight(uint256 value) public pure returns (uint64) {
-        return uint64(value / 1e12);
+    function valueToWeight(uint256 value) public view returns (uint64) {
+        return uint64(value / _getPoSValidatorManagerStorage()._weightToValueFactor);
     }
 
     /**
      * @notice Converts a weight to a token value.
      * @param weight weight to convert.
      */
-    function weightToValue(uint64 weight) public pure returns (uint256) {
-        return uint256(weight) * 1e12;
+    function weightToValue(uint64 weight) public view returns (uint256) {
+        return uint256(weight) * _getPoSValidatorManagerStorage()._weightToValueFactor;
     }
 
     /**
