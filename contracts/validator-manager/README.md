@@ -62,6 +62,7 @@ Proof-of-Stake Validator management is provided by the abstract contract `PoSVal
 > The `weightToValueFactor` fields of the `PoSValidatorManagerSettings` passed to `PoSValidatorManager`'s `initialize` function sets the factor used to convert between the weight that the Validator is registered with on the P-Chain, and the value transferred to the contract as stake. This involves integer division, which may result in loss of precision. When selecting `weightToValueFactor`, it's important to make the following considerations:
 > 1. If `weightToValueFactor` is near the denomination of the asset, then staking amounts on the order of 1 unit of the asset may cause the converted weight to round down to 0. This may impose a larger-than-expected minimum stake amount.
 > 2. Staked amounts up to `weightValueFactor - 1` may be lost in the contract as dust, as the Validator's registered weight is used to calculate the original staked amount.
+> 3. The Validator's weight is represented on the P-Chain as a `uint64`. `PoSValidatorManager` restricts values such that the calculated weight does not exceed the maximum value for that type.
 
 #### NativeTokenStakingManager
 
