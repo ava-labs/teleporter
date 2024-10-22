@@ -79,6 +79,17 @@ type ValidatorManagerSettings struct {
 	MaximumChurnPercentage uint8
 }
 
+// ValidatorMessagesValidationPeriod is an auto generated low-level Go binding around an user-defined struct.
+type ValidatorMessagesValidationPeriod struct {
+	SubnetID              [32]byte
+	NodeID                []byte
+	BlsPublicKey          []byte
+	RegistrationExpiry    uint64
+	RemainingBalanceOwner PChainOwner
+	DisableOwner          PChainOwner
+	Weight                uint64
+}
+
 // ValidatorRegistrationInput is an auto generated low-level Go binding around an user-defined struct.
 type ValidatorRegistrationInput struct {
 	NodeID                []byte
@@ -111,6 +122,9 @@ func DeployNativeTokenStakingManager(auth *bind.TransactOpts, backend bind.Contr
 	if parsed == nil {
 		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
 	}
+
+	validatorMessagesAddr, _, _, _ := DeployValidatorMessages(auth, backend)
+	NativeTokenStakingManagerBin = strings.ReplaceAll(NativeTokenStakingManagerBin, "__$fd0c147b4031eef6079b0498cbafa865f0$__", validatorMessagesAddr.String()[2:])
 
 	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(NativeTokenStakingManagerBin), backend, init)
 	if err != nil {
@@ -3151,4 +3165,523 @@ func (_NativeTokenStakingManager *NativeTokenStakingManagerFilterer) ParseValida
 	}
 	event.Raw = log
 	return event, nil
+}
+
+// ValidatorMessagesMetaData contains all meta data concerning the ValidatorMessages contract.
+var ValidatorMessagesMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[],\"name\":\"InvalidBLSPublicKey\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"id\",\"type\":\"uint32\"}],\"name\":\"InvalidCodecID\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"actual\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"expected\",\"type\":\"uint32\"}],\"name\":\"InvalidMessageLength\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidMessageType\",\"type\":\"error\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"remainingBalanceOwner\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"disableOwner\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structValidatorMessages.ValidationPeriod\",\"name\":\"validationPeriod\",\"type\":\"tuple\"}],\"name\":\"packRegisterSubnetValidatorMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"validatorManagerBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"validatorManagerAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structInitialValidator[]\",\"name\":\"initialValidators\",\"type\":\"tuple[]\"}],\"internalType\":\"structSubnetConversionData\",\"name\":\"subnetConversionData\",\"type\":\"tuple\"}],\"name\":\"packSubnetConversionData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"subnetConversionID\",\"type\":\"bytes32\"}],\"name\":\"packSubnetConversionMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"valid\",\"type\":\"bool\"}],\"name\":\"packSubnetValidatorRegistrationMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"nonce\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"packSubnetValidatorWeightMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"uptime\",\"type\":\"uint64\"}],\"name\":\"packValidationUptimeMessage\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"name\":\"unpackRegisterSubnetValidatorMessage\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"remainingBalanceOwner\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"disableOwner\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structValidatorMessages.ValidationPeriod\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"name\":\"unpackSubnetConversionMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"name\":\"unpackSubnetValidatorRegistrationMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"name\":\"unpackSubnetValidatorWeightMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"name\":\"unpackValidationUptimeMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}]",
+	Bin: "0x612160610034600b8282823980515f1a607314602857634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe73000000000000000000000000000000000000000030146080604052600436106100b1575f3560e01c8063862bfa6311610079578063862bfa63146101d75780639de23d40146101ea578063a523377014610222578063e047b28314610242578063e1d68f3014610263578063fa1f8dfb14610276575f80fd5b8063088c2463146100b55780631e6d9789146100ea5780631fd979c71461010b5780632e43ceb5146101525780638545c16a1461017a575b5f80fd5b6100c86100c3366004611904565b610289565b604080519283526001600160401b039091166020830152015b60405180910390f35b6100fd6100f8366004611904565b61047f565b6040519081526020016100e1565b61014561011936600461193d565b604080515f60208201819052602282015260268082019390935281518082039093018352604601905290565b6040516100e191906119a1565b610165610160366004611904565b61060c565b604080519283529015156020830152016100e1565b6101456101883660046119d5565b604080515f6020820152600360e01b602282015260268101949094526001600160c01b031960c093841b811660468601529190921b16604e830152805180830360360181526056909201905290565b6101456101e5366004611a0e565b6107c8565b6101fd6101f8366004611904565b6109a9565b604080519384526001600160401b0392831660208501529116908201526060016100e1565b610235610230366004611904565b610bff565b6040516100e19190611aaa565b610255610250366004611c45565b61154a565b6040516100e1929190611d41565b610145610271366004611d59565b611737565b610145610284366004611d83565b611781565b5f808251602e146102c457825160405163cc92daa160e01b815263ffffffff9091166004820152602e60248201526044015b60405180910390fd5b5f805b6002811015610313576102db816001611dc9565b6102e6906008611ddc565b61ffff168582815181106102fc576102fc611df3565b016020015160f81c901b91909117906001016102c7565b5061ffff81161561033d5760405163407b587360e01b815261ffff821660048201526024016102bb565b5f805b600481101561039857610354816003611dc9565b61035f906008611ddc565b63ffffffff1686610371836002611e07565b8151811061038157610381611df3565b016020015160f81c901b9190911790600101610340565b5063ffffffff8116156103be57604051635b60892f60e01b815260040160405180910390fd5b5f805b6020811015610413576103d581601f611dc9565b6103e0906008611ddc565b876103ec836006611e07565b815181106103fc576103fc611df3565b016020015160f81c901b91909117906001016103c1565b505f805b60088110156104725761042b816007611dc9565b610436906008611ddc565b6001600160401b03168861044b836026611e07565b8151811061045b5761045b611df3565b016020015160f81c901b9190911790600101610417565b5090969095509350505050565b5f81516026146104b457815160405163cc92daa160e01b815263ffffffff9091166004820152602660248201526044016102bb565b5f805b6002811015610503576104cb816001611dc9565b6104d6906008611ddc565b61ffff168482815181106104ec576104ec611df3565b016020015160f81c901b91909117906001016104b7565b5061ffff81161561052d5760405163407b587360e01b815261ffff821660048201526024016102bb565b5f805b600481101561058857610544816003611dc9565b61054f906008611ddc565b63ffffffff1685610561836002611e07565b8151811061057157610571611df3565b016020015160f81c901b9190911790600101610530565b5063ffffffff8116156105ae57604051635b60892f60e01b815260040160405180910390fd5b5f805b6020811015610603576105c581601f611dc9565b6105d0906008611ddc565b866105dc836006611e07565b815181106105ec576105ec611df3565b016020015160f81c901b91909117906001016105b1565b50949350505050565b5f80825160271461064257825160405163cc92daa160e01b815263ffffffff9091166004820152602760248201526044016102bb565b5f805b600281101561069157610659816001611dc9565b610664906008611ddc565b61ffff1685828151811061067a5761067a611df3565b016020015160f81c901b9190911790600101610645565b5061ffff8116156106bb5760405163407b587360e01b815261ffff821660048201526024016102bb565b5f805b6004811015610716576106d2816003611dc9565b6106dd906008611ddc565b63ffffffff16866106ef836002611e07565b815181106106ff576106ff611df3565b016020015160f81c901b91909117906001016106be565b5063ffffffff811660021461073e57604051635b60892f60e01b815260040160405180910390fd5b5f805b60208110156107935761075581601f611dc9565b610760906008611ddc565b8761076c836006611e07565b8151811061077c5761077c611df3565b016020015160f81c901b9190911790600101610741565b505f866026815181106107a8576107a8611df3565b016020015191976001600160f81b03199092161515965090945050505050565b60605f808335602085013560146107e487870160408901611e1a565b6107f16060890189611e33565b60405160f09790971b6001600160f01b0319166020880152602287019590955250604285019290925260e090811b6001600160e01b0319908116606286015260609290921b6bffffffffffffffffffffffff191660668501529190911b16607a820152607e0160405160208183030381529060405290505f5b6108776060850185611e33565b90508110156109a2578161088e6060860186611e33565b8381811061089e5761089e611df3565b90506020028101906108b09190611e7f565b6108ba9080611e9d565b90506108c96060870187611e33565b848181106108d9576108d9611df3565b90506020028101906108eb9190611e7f565b6108f59080611e9d565b6109026060890189611e33565b8681811061091257610912611df3565b90506020028101906109249190611e7f565b610932906020810190611e9d565b61093f60608b018b611e33565b8881811061094f5761094f611df3565b90506020028101906109619190611e7f565b610972906060810190604001611edf565b6040516020016109889796959493929190611ef8565b60408051601f19818403018152919052915060010161086a565b5092915050565b5f805f83516036146109e057835160405163cc92daa160e01b815263ffffffff9091166004820152603660248201526044016102bb565b5f805b6002811015610a2f576109f7816001611dc9565b610a02906008611ddc565b61ffff16868281518110610a1857610a18611df3565b016020015160f81c901b91909117906001016109e3565b5061ffff811615610a595760405163407b587360e01b815261ffff821660048201526024016102bb565b5f805b6004811015610ab457610a70816003611dc9565b610a7b906008611ddc565b63ffffffff1687610a8d836002611e07565b81518110610a9d57610a9d611df3565b016020015160f81c901b9190911790600101610a5c565b5063ffffffff8116600314610adc57604051635b60892f60e01b815260040160405180910390fd5b5f805b6020811015610b3157610af381601f611dc9565b610afe906008611ddc565b88610b0a836006611e07565b81518110610b1a57610b1a611df3565b016020015160f81c901b9190911790600101610adf565b505f805b6008811015610b9057610b49816007611dc9565b610b54906008611ddc565b6001600160401b031689610b69836026611e07565b81518110610b7957610b79611df3565b016020015160f81c901b9190911790600101610b35565b505f805b6008811015610bef57610ba8816007611dc9565b610bb3906008611ddc565b6001600160401b03168a610bc883602e611e07565b81518110610bd857610bd8611df3565b016020015160f81c901b9190911790600101610b94565b5091989097509095509350505050565b610c076117b1565b5f610c106117b1565b5f805b6002811015610c6e57610c27816001611dc9565b610c32906008611ddc565b61ffff1686610c4763ffffffff871684611e07565b81518110610c5757610c57611df3565b016020015160f81c901b9190911790600101610c13565b5061ffff811615610c985760405163407b587360e01b815261ffff821660048201526024016102bb565b610ca3600284611f61565b9250505f805b6004811015610d0857610cbd816003611dc9565b610cc8906008611ddc565b63ffffffff16868563ffffffff1683610ce19190611e07565b81518110610cf157610cf1611df3565b016020015160f81c901b9190911790600101610ca9565b5063ffffffff8116600114610d3057604051635b60892f60e01b815260040160405180910390fd5b610d3b600484611f61565b9250505f805b6020811015610d9857610d5581601f611dc9565b610d60906008611ddc565b86610d7163ffffffff871684611e07565b81518110610d8157610d81611df3565b016020015160f81c901b9190911790600101610d41565b50808252610da7602084611f61565b9250505f805b6004811015610e0c57610dc1816003611dc9565b610dcc906008611ddc565b63ffffffff16868563ffffffff1683610de59190611e07565b81518110610df557610df5611df3565b016020015160f81c901b9190911790600101610dad565b50610e18600484611f61565b92505f8163ffffffff166001600160401b03811115610e3957610e3961180b565b6040519080825280601f01601f191660200182016040528015610e63576020820181803683370190505b5090505f5b8263ffffffff16811015610ed25786610e8763ffffffff871683611e07565b81518110610e9757610e97611df3565b602001015160f81c60f81b828281518110610eb457610eb4611df3565b60200101906001600160f81b03191690815f1a905350600101610e68565b5060208301819052610ee48285611f61565b604080516030808252606082019092529195505f92506020820181803683370190505090505f5b6030811015610f705786610f2563ffffffff871683611e07565b81518110610f3557610f35611df3565b602001015160f81c60f81b828281518110610f5257610f52611df3565b60200101906001600160f81b03191690815f1a905350600101610f0b565b5060408301819052610f83603085611f61565b9350505f805b6008811015610fe957610f9d816007611dc9565b610fa8906008611ddc565b6001600160401b031687610fc263ffffffff881684611e07565b81518110610fd257610fd2611df3565b016020015160f81c901b9190911790600101610f89565b506001600160401b0381166060840152611004600885611f61565b9350505f805f5b600481101561106a5761101f816003611dc9565b61102a906008611ddc565b63ffffffff16888763ffffffff16836110439190611e07565b8151811061105357611053611df3565b016020015160f81c901b919091179060010161100b565b50611076600486611f61565b94505f5b60048110156110d95761108e816003611dc9565b611099906008611ddc565b63ffffffff16888763ffffffff16836110b29190611e07565b815181106110c2576110c2611df3565b016020015160f81c901b929092179160010161107a565b506110e5600486611f61565b94505f8263ffffffff166001600160401b038111156111065761110661180b565b60405190808252806020026020018201604052801561112f578160200160208202803683370190505b5090505f5b8363ffffffff16811015611217576040805160148082528183019092525f916020820181803683370190505090505f5b60148110156111c9578a61117e63ffffffff8b1683611e07565b8151811061118e5761118e611df3565b602001015160f81c60f81b8282815181106111ab576111ab611df3565b60200101906001600160f81b03191690815f1a905350600101611164565b505f60148201519050808484815181106111e5576111e5611df3565b6001600160a01b039092166020928302919091019091015261120860148a611f61565b98505050806001019050611134565b506040805180820190915263ffffffff9092168252602082015260808401525f80805b60048110156112995761124e816003611dc9565b611259906008611ddc565b63ffffffff16898863ffffffff16836112729190611e07565b8151811061128257611282611df3565b016020015160f81c901b919091179060010161123a565b506112a5600487611f61565b95505f5b6004811015611308576112bd816003611dc9565b6112c8906008611ddc565b63ffffffff16898863ffffffff16836112e19190611e07565b815181106112f1576112f1611df3565b016020015160f81c901b92909217916001016112a9565b50611314600487611f61565b95505f8263ffffffff166001600160401b038111156113355761133561180b565b60405190808252806020026020018201604052801561135e578160200160208202803683370190505b5090505f5b8363ffffffff16811015611446576040805160148082528183019092525f916020820181803683370190505090505f5b60148110156113f8578b6113ad63ffffffff8c1683611e07565b815181106113bd576113bd611df3565b602001015160f81c60f81b8282815181106113da576113da611df3565b60200101906001600160f81b03191690815f1a905350600101611393565b505f601482015190508084848151811061141457611414611df3565b6001600160a01b039092166020928302919091019091015261143760148b611f61565b99505050806001019050611363565b506040805180820190915263ffffffff9092168252602082015260a08501525f6114708284611f61565b61147b906014611f7e565b61148685607a611f61565b6114909190611f61565b90508063ffffffff168851146114cc57875160405163cc92daa160e01b815263ffffffff918216600482015290821660248201526044016102bb565b5f805b600881101561152f576114e3816007611dc9565b6114ee906008611ddc565b6001600160401b03168a61150863ffffffff8b1684611e07565b8151811061151857611518611df3565b016020015160f81c901b91909117906001016114cf565b506001600160401b031660c086015250929695505050505050565b5f60608260400151516030146115735760405163180ffa0d60e01b815260040160405180910390fd5b82516020808501518051604080880151606089015160808a01518051908701515193515f986115b4988a986001989297929690959094909390929101611fa6565b60405160208183030381529060405290505f5b84608001516020015151811015611626578185608001516020015182815181106115f3576115f3611df3565b602002602001015160405160200161160c929190612060565b60408051601f1981840301815291905291506001016115c7565b5060a0840151805160209182015151604051611646938593929101612096565b60405160208183030381529060405290505f5b8460a0015160200151518110156116b857818560a0015160200151828151811061168557611685611df3565b602002602001015160405160200161169e929190612060565b60408051601f198184030181529190529150600101611659565b5060c08401516040516116cf9183916020016120d1565b60405160208183030381529060405290506002816040516116f09190612102565b602060405180830381855afa15801561170b573d5f803e3d5ffd5b5050506040513d601f19601f8201168201806040525081019061172e9190612113565b94909350915050565b6040515f602082018190526022820152602681018390526001600160c01b031960c083901b166046820152606090604e015b60405160208183030381529060405290505b92915050565b6040515f6020820152600160e11b60228201526026810183905281151560f81b6046820152606090604701611769565b6040805160e0810182525f808252606060208084018290528385018290528184018390528451808601865283815280820183905260808501528451808601909552918452908301529060a082019081525f60209091015290565b634e487b7160e01b5f52604160045260245ffd5b604080519081016001600160401b03811182821017156118415761184161180b565b60405290565b60405160e081016001600160401b03811182821017156118415761184161180b565b604051601f8201601f191681016001600160401b03811182821017156118915761189161180b565b604052919050565b5f82601f8301126118a8575f80fd5b81356001600160401b038111156118c1576118c161180b565b6118d4601f8201601f1916602001611869565b8181528460208386010111156118e8575f80fd5b816020850160208301375f918101602001919091529392505050565b5f60208284031215611914575f80fd5b81356001600160401b03811115611929575f80fd5b61193584828501611899565b949350505050565b5f6020828403121561194d575f80fd5b5035919050565b5f5b8381101561196e578181015183820152602001611956565b50505f910152565b5f815180845261198d816020860160208601611954565b601f01601f19169290920160200192915050565b602081525f6119b36020830184611976565b9392505050565b80356001600160401b03811681146119d0575f80fd5b919050565b5f805f606084860312156119e7575f80fd5b833592506119f7602085016119ba565b9150611a05604085016119ba565b90509250925092565b5f60208284031215611a1e575f80fd5b81356001600160401b03811115611a33575f80fd5b8201608081850312156119b3575f80fd5b5f6040830163ffffffff8351168452602080840151604060208701528281518085526060880191506020830194505f92505b80831015611a9f5784516001600160a01b03168252938301936001929092019190830190611a76565b509695505050505050565b60208152815160208201525f602083015160e06040840152611ad0610100840182611976565b90506040840151601f1980858403016060860152611aee8383611976565b92506001600160401b03606087015116608086015260808601519150808584030160a0860152611b1e8383611a44565b925060a08601519150808584030160c086015250611b3c8282611a44565b91505060c0840151611b5960e08501826001600160401b03169052565b509392505050565b80356001600160a01b03811681146119d0575f80fd5b5f60408284031215611b87575f80fd5b611b8f61181f565b9050813563ffffffff81168114611ba4575f80fd5b81526020828101356001600160401b0380821115611bc0575f80fd5b818501915085601f830112611bd3575f80fd5b813581811115611be557611be561180b565b8060051b9150611bf6848301611869565b8181529183018401918481019088841115611c0f575f80fd5b938501935b83851015611c3457611c2585611b61565b82529385019390850190611c14565b808688015250505050505092915050565b5f60208284031215611c55575f80fd5b81356001600160401b0380821115611c6b575f80fd5b9083019060e08286031215611c7e575f80fd5b611c86611847565b82358152602083013582811115611c9b575f80fd5b611ca787828601611899565b602083015250604083013582811115611cbe575f80fd5b611cca87828601611899565b604083015250611cdc606084016119ba565b6060820152608083013582811115611cf2575f80fd5b611cfe87828601611b77565b60808301525060a083013582811115611d15575f80fd5b611d2187828601611b77565b60a083015250611d3360c084016119ba565b60c082015295945050505050565b828152604060208201525f6119356040830184611976565b5f8060408385031215611d6a575f80fd5b82359150611d7a602084016119ba565b90509250929050565b5f8060408385031215611d94575f80fd5b8235915060208301358015158114611daa575f80fd5b809150509250929050565b634e487b7160e01b5f52601160045260245ffd5b8181038181111561177b5761177b611db5565b808202811582820484141761177b5761177b611db5565b634e487b7160e01b5f52603260045260245ffd5b8082018082111561177b5761177b611db5565b5f60208284031215611e2a575f80fd5b6119b382611b61565b5f808335601e19843603018112611e48575f80fd5b8301803591506001600160401b03821115611e61575f80fd5b6020019150600581901b3603821315611e78575f80fd5b9250929050565b5f8235605e19833603018112611e93575f80fd5b9190910192915050565b5f808335601e19843603018112611eb2575f80fd5b8301803591506001600160401b03821115611ecb575f80fd5b602001915036819003821315611e78575f80fd5b5f60208284031215611eef575f80fd5b6119b3826119ba565b5f8851611f09818460208d01611954565b60e089901b6001600160e01b031916908301908152868860048301378681019050600481015f8152858782375060c09390931b6001600160c01b0319166004939094019283019390935250600c019695505050505050565b63ffffffff8181168382160190808211156109a2576109a2611db5565b63ffffffff818116838216028082169190828114611f9e57611f9e611db5565b505092915050565b61ffff60f01b8a60f01b1681525f63ffffffff60e01b808b60e01b166002840152896006840152808960e01b166026840152508651611fec81602a850160208b01611954565b86519083019061200381602a840160208b01611954565b60c087901b6001600160c01b031916602a9290910191820152612035603282018660e01b6001600160e01b0319169052565b61204e603682018560e01b6001600160e01b0319169052565b603a019b9a5050505050505050505050565b5f8351612071818460208801611954565b60609390931b6bffffffffffffffffffffffff19169190920190815260140192915050565b5f84516120a7818460208901611954565b6001600160e01b031960e095861b8116919093019081529290931b16600482015260080192915050565b5f83516120e2818460208801611954565b60c09390931b6001600160c01b0319169190920190815260080192915050565b5f8251611e93818460208701611954565b5f60208284031215612123575f80fd5b505191905056fea2646970667358221220c6870ddd810b3f0c78fe8c26d4cde70582b0e1033651ad0d4b083666233a715064736f6c63430008190033",
+}
+
+// ValidatorMessagesABI is the input ABI used to generate the binding from.
+// Deprecated: Use ValidatorMessagesMetaData.ABI instead.
+var ValidatorMessagesABI = ValidatorMessagesMetaData.ABI
+
+// ValidatorMessagesBin is the compiled bytecode used for deploying new contracts.
+// Deprecated: Use ValidatorMessagesMetaData.Bin instead.
+var ValidatorMessagesBin = ValidatorMessagesMetaData.Bin
+
+// DeployValidatorMessages deploys a new Ethereum contract, binding an instance of ValidatorMessages to it.
+func DeployValidatorMessages(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *ValidatorMessages, error) {
+	parsed, err := ValidatorMessagesMetaData.GetAbi()
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+	if parsed == nil {
+		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
+	}
+
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(ValidatorMessagesBin), backend)
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+	return address, tx, &ValidatorMessages{ValidatorMessagesCaller: ValidatorMessagesCaller{contract: contract}, ValidatorMessagesTransactor: ValidatorMessagesTransactor{contract: contract}, ValidatorMessagesFilterer: ValidatorMessagesFilterer{contract: contract}}, nil
+}
+
+// ValidatorMessages is an auto generated Go binding around an Ethereum contract.
+type ValidatorMessages struct {
+	ValidatorMessagesCaller     // Read-only binding to the contract
+	ValidatorMessagesTransactor // Write-only binding to the contract
+	ValidatorMessagesFilterer   // Log filterer for contract events
+}
+
+// ValidatorMessagesCaller is an auto generated read-only Go binding around an Ethereum contract.
+type ValidatorMessagesCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ValidatorMessagesTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type ValidatorMessagesTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ValidatorMessagesFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type ValidatorMessagesFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// ValidatorMessagesSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type ValidatorMessagesSession struct {
+	Contract     *ValidatorMessages // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts      // Call options to use throughout this session
+	TransactOpts bind.TransactOpts  // Transaction auth options to use throughout this session
+}
+
+// ValidatorMessagesCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type ValidatorMessagesCallerSession struct {
+	Contract *ValidatorMessagesCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts            // Call options to use throughout this session
+}
+
+// ValidatorMessagesTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type ValidatorMessagesTransactorSession struct {
+	Contract     *ValidatorMessagesTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts            // Transaction auth options to use throughout this session
+}
+
+// ValidatorMessagesRaw is an auto generated low-level Go binding around an Ethereum contract.
+type ValidatorMessagesRaw struct {
+	Contract *ValidatorMessages // Generic contract binding to access the raw methods on
+}
+
+// ValidatorMessagesCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type ValidatorMessagesCallerRaw struct {
+	Contract *ValidatorMessagesCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// ValidatorMessagesTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type ValidatorMessagesTransactorRaw struct {
+	Contract *ValidatorMessagesTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewValidatorMessages creates a new instance of ValidatorMessages, bound to a specific deployed contract.
+func NewValidatorMessages(address common.Address, backend bind.ContractBackend) (*ValidatorMessages, error) {
+	contract, err := bindValidatorMessages(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorMessages{ValidatorMessagesCaller: ValidatorMessagesCaller{contract: contract}, ValidatorMessagesTransactor: ValidatorMessagesTransactor{contract: contract}, ValidatorMessagesFilterer: ValidatorMessagesFilterer{contract: contract}}, nil
+}
+
+// NewValidatorMessagesCaller creates a new read-only instance of ValidatorMessages, bound to a specific deployed contract.
+func NewValidatorMessagesCaller(address common.Address, caller bind.ContractCaller) (*ValidatorMessagesCaller, error) {
+	contract, err := bindValidatorMessages(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorMessagesCaller{contract: contract}, nil
+}
+
+// NewValidatorMessagesTransactor creates a new write-only instance of ValidatorMessages, bound to a specific deployed contract.
+func NewValidatorMessagesTransactor(address common.Address, transactor bind.ContractTransactor) (*ValidatorMessagesTransactor, error) {
+	contract, err := bindValidatorMessages(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorMessagesTransactor{contract: contract}, nil
+}
+
+// NewValidatorMessagesFilterer creates a new log filterer instance of ValidatorMessages, bound to a specific deployed contract.
+func NewValidatorMessagesFilterer(address common.Address, filterer bind.ContractFilterer) (*ValidatorMessagesFilterer, error) {
+	contract, err := bindValidatorMessages(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorMessagesFilterer{contract: contract}, nil
+}
+
+// bindValidatorMessages binds a generic wrapper to an already deployed contract.
+func bindValidatorMessages(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := ValidatorMessagesMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ValidatorMessages *ValidatorMessagesRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ValidatorMessages.Contract.ValidatorMessagesCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ValidatorMessages *ValidatorMessagesRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ValidatorMessages.Contract.ValidatorMessagesTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ValidatorMessages *ValidatorMessagesRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ValidatorMessages.Contract.ValidatorMessagesTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ValidatorMessages *ValidatorMessagesCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ValidatorMessages.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ValidatorMessages *ValidatorMessagesTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ValidatorMessages.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ValidatorMessages *ValidatorMessagesTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ValidatorMessages.Contract.contract.Transact(opts, method, params...)
+}
+
+// PackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0x01bbec74.
+//
+// Solidity: function packRegisterSubnetValidatorMessage((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64) validationPeriod) pure returns(bytes32, bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackRegisterSubnetValidatorMessage(opts *bind.CallOpts, validationPeriod ValidatorMessagesValidationPeriod) ([32]byte, []byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packRegisterSubnetValidatorMessage", validationPeriod)
+
+	if err != nil {
+		return *new([32]byte), *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+	out1 := *abi.ConvertType(out[1], new([]byte)).(*[]byte)
+
+	return out0, out1, err
+
+}
+
+// PackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0x01bbec74.
+//
+// Solidity: function packRegisterSubnetValidatorMessage((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64) validationPeriod) pure returns(bytes32, bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackRegisterSubnetValidatorMessage(validationPeriod ValidatorMessagesValidationPeriod) ([32]byte, []byte, error) {
+	return _ValidatorMessages.Contract.PackRegisterSubnetValidatorMessage(&_ValidatorMessages.CallOpts, validationPeriod)
+}
+
+// PackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0x01bbec74.
+//
+// Solidity: function packRegisterSubnetValidatorMessage((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64) validationPeriod) pure returns(bytes32, bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackRegisterSubnetValidatorMessage(validationPeriod ValidatorMessagesValidationPeriod) ([32]byte, []byte, error) {
+	return _ValidatorMessages.Contract.PackRegisterSubnetValidatorMessage(&_ValidatorMessages.CallOpts, validationPeriod)
+}
+
+// PackSubnetConversionData is a free data retrieval call binding the contract method 0xf65e4b33.
+//
+// Solidity: function packSubnetConversionData((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackSubnetConversionData(opts *bind.CallOpts, subnetConversionData SubnetConversionData) ([]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packSubnetConversionData", subnetConversionData)
+
+	if err != nil {
+		return *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+
+	return out0, err
+
+}
+
+// PackSubnetConversionData is a free data retrieval call binding the contract method 0xf65e4b33.
+//
+// Solidity: function packSubnetConversionData((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackSubnetConversionData(subnetConversionData SubnetConversionData) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetConversionData(&_ValidatorMessages.CallOpts, subnetConversionData)
+}
+
+// PackSubnetConversionData is a free data retrieval call binding the contract method 0xf65e4b33.
+//
+// Solidity: function packSubnetConversionData((bytes32,bytes32,address,(bytes,bytes,uint64)[]) subnetConversionData) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackSubnetConversionData(subnetConversionData SubnetConversionData) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetConversionData(&_ValidatorMessages.CallOpts, subnetConversionData)
+}
+
+// PackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1fd979c7.
+//
+// Solidity: function packSubnetConversionMessage(bytes32 subnetConversionID) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackSubnetConversionMessage(opts *bind.CallOpts, subnetConversionID [32]byte) ([]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packSubnetConversionMessage", subnetConversionID)
+
+	if err != nil {
+		return *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+
+	return out0, err
+
+}
+
+// PackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1fd979c7.
+//
+// Solidity: function packSubnetConversionMessage(bytes32 subnetConversionID) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackSubnetConversionMessage(subnetConversionID [32]byte) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetConversionMessage(&_ValidatorMessages.CallOpts, subnetConversionID)
+}
+
+// PackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1fd979c7.
+//
+// Solidity: function packSubnetConversionMessage(bytes32 subnetConversionID) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackSubnetConversionMessage(subnetConversionID [32]byte) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetConversionMessage(&_ValidatorMessages.CallOpts, subnetConversionID)
+}
+
+// PackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0xfa1f8dfb.
+//
+// Solidity: function packSubnetValidatorRegistrationMessage(bytes32 validationID, bool valid) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackSubnetValidatorRegistrationMessage(opts *bind.CallOpts, validationID [32]byte, valid bool) ([]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packSubnetValidatorRegistrationMessage", validationID, valid)
+
+	if err != nil {
+		return *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+
+	return out0, err
+
+}
+
+// PackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0xfa1f8dfb.
+//
+// Solidity: function packSubnetValidatorRegistrationMessage(bytes32 validationID, bool valid) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackSubnetValidatorRegistrationMessage(validationID [32]byte, valid bool) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetValidatorRegistrationMessage(&_ValidatorMessages.CallOpts, validationID, valid)
+}
+
+// PackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0xfa1f8dfb.
+//
+// Solidity: function packSubnetValidatorRegistrationMessage(bytes32 validationID, bool valid) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackSubnetValidatorRegistrationMessage(validationID [32]byte, valid bool) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetValidatorRegistrationMessage(&_ValidatorMessages.CallOpts, validationID, valid)
+}
+
+// PackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x8545c16a.
+//
+// Solidity: function packSubnetValidatorWeightMessage(bytes32 validationID, uint64 nonce, uint64 weight) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackSubnetValidatorWeightMessage(opts *bind.CallOpts, validationID [32]byte, nonce uint64, weight uint64) ([]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packSubnetValidatorWeightMessage", validationID, nonce, weight)
+
+	if err != nil {
+		return *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+
+	return out0, err
+
+}
+
+// PackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x8545c16a.
+//
+// Solidity: function packSubnetValidatorWeightMessage(bytes32 validationID, uint64 nonce, uint64 weight) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackSubnetValidatorWeightMessage(validationID [32]byte, nonce uint64, weight uint64) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetValidatorWeightMessage(&_ValidatorMessages.CallOpts, validationID, nonce, weight)
+}
+
+// PackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x8545c16a.
+//
+// Solidity: function packSubnetValidatorWeightMessage(bytes32 validationID, uint64 nonce, uint64 weight) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackSubnetValidatorWeightMessage(validationID [32]byte, nonce uint64, weight uint64) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackSubnetValidatorWeightMessage(&_ValidatorMessages.CallOpts, validationID, nonce, weight)
+}
+
+// PackValidationUptimeMessage is a free data retrieval call binding the contract method 0xe1d68f30.
+//
+// Solidity: function packValidationUptimeMessage(bytes32 validationID, uint64 uptime) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCaller) PackValidationUptimeMessage(opts *bind.CallOpts, validationID [32]byte, uptime uint64) ([]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "packValidationUptimeMessage", validationID, uptime)
+
+	if err != nil {
+		return *new([]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
+
+	return out0, err
+
+}
+
+// PackValidationUptimeMessage is a free data retrieval call binding the contract method 0xe1d68f30.
+//
+// Solidity: function packValidationUptimeMessage(bytes32 validationID, uint64 uptime) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesSession) PackValidationUptimeMessage(validationID [32]byte, uptime uint64) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackValidationUptimeMessage(&_ValidatorMessages.CallOpts, validationID, uptime)
+}
+
+// PackValidationUptimeMessage is a free data retrieval call binding the contract method 0xe1d68f30.
+//
+// Solidity: function packValidationUptimeMessage(bytes32 validationID, uint64 uptime) pure returns(bytes)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) PackValidationUptimeMessage(validationID [32]byte, uptime uint64) ([]byte, error) {
+	return _ValidatorMessages.Contract.PackValidationUptimeMessage(&_ValidatorMessages.CallOpts, validationID, uptime)
+}
+
+// UnpackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0xa5233770.
+//
+// Solidity: function unpackRegisterSubnetValidatorMessage(bytes input) pure returns((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64))
+func (_ValidatorMessages *ValidatorMessagesCaller) UnpackRegisterSubnetValidatorMessage(opts *bind.CallOpts, input []byte) (ValidatorMessagesValidationPeriod, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "unpackRegisterSubnetValidatorMessage", input)
+
+	if err != nil {
+		return *new(ValidatorMessagesValidationPeriod), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(ValidatorMessagesValidationPeriod)).(*ValidatorMessagesValidationPeriod)
+
+	return out0, err
+
+}
+
+// UnpackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0xa5233770.
+//
+// Solidity: function unpackRegisterSubnetValidatorMessage(bytes input) pure returns((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64))
+func (_ValidatorMessages *ValidatorMessagesSession) UnpackRegisterSubnetValidatorMessage(input []byte) (ValidatorMessagesValidationPeriod, error) {
+	return _ValidatorMessages.Contract.UnpackRegisterSubnetValidatorMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackRegisterSubnetValidatorMessage is a free data retrieval call binding the contract method 0xa5233770.
+//
+// Solidity: function unpackRegisterSubnetValidatorMessage(bytes input) pure returns((bytes32,bytes,bytes,uint64,(uint32,address[]),(uint32,address[]),uint64))
+func (_ValidatorMessages *ValidatorMessagesCallerSession) UnpackRegisterSubnetValidatorMessage(input []byte) (ValidatorMessagesValidationPeriod, error) {
+	return _ValidatorMessages.Contract.UnpackRegisterSubnetValidatorMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1e6d9789.
+//
+// Solidity: function unpackSubnetConversionMessage(bytes input) pure returns(bytes32)
+func (_ValidatorMessages *ValidatorMessagesCaller) UnpackSubnetConversionMessage(opts *bind.CallOpts, input []byte) ([32]byte, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "unpackSubnetConversionMessage", input)
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// UnpackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1e6d9789.
+//
+// Solidity: function unpackSubnetConversionMessage(bytes input) pure returns(bytes32)
+func (_ValidatorMessages *ValidatorMessagesSession) UnpackSubnetConversionMessage(input []byte) ([32]byte, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetConversionMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetConversionMessage is a free data retrieval call binding the contract method 0x1e6d9789.
+//
+// Solidity: function unpackSubnetConversionMessage(bytes input) pure returns(bytes32)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) UnpackSubnetConversionMessage(input []byte) ([32]byte, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetConversionMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0x2e43ceb5.
+//
+// Solidity: function unpackSubnetValidatorRegistrationMessage(bytes input) pure returns(bytes32, bool)
+func (_ValidatorMessages *ValidatorMessagesCaller) UnpackSubnetValidatorRegistrationMessage(opts *bind.CallOpts, input []byte) ([32]byte, bool, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "unpackSubnetValidatorRegistrationMessage", input)
+
+	if err != nil {
+		return *new([32]byte), *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+	out1 := *abi.ConvertType(out[1], new(bool)).(*bool)
+
+	return out0, out1, err
+
+}
+
+// UnpackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0x2e43ceb5.
+//
+// Solidity: function unpackSubnetValidatorRegistrationMessage(bytes input) pure returns(bytes32, bool)
+func (_ValidatorMessages *ValidatorMessagesSession) UnpackSubnetValidatorRegistrationMessage(input []byte) ([32]byte, bool, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetValidatorRegistrationMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetValidatorRegistrationMessage is a free data retrieval call binding the contract method 0x2e43ceb5.
+//
+// Solidity: function unpackSubnetValidatorRegistrationMessage(bytes input) pure returns(bytes32, bool)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) UnpackSubnetValidatorRegistrationMessage(input []byte) ([32]byte, bool, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetValidatorRegistrationMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x9de23d40.
+//
+// Solidity: function unpackSubnetValidatorWeightMessage(bytes input) pure returns(bytes32, uint64, uint64)
+func (_ValidatorMessages *ValidatorMessagesCaller) UnpackSubnetValidatorWeightMessage(opts *bind.CallOpts, input []byte) ([32]byte, uint64, uint64, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "unpackSubnetValidatorWeightMessage", input)
+
+	if err != nil {
+		return *new([32]byte), *new(uint64), *new(uint64), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+	out1 := *abi.ConvertType(out[1], new(uint64)).(*uint64)
+	out2 := *abi.ConvertType(out[2], new(uint64)).(*uint64)
+
+	return out0, out1, out2, err
+
+}
+
+// UnpackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x9de23d40.
+//
+// Solidity: function unpackSubnetValidatorWeightMessage(bytes input) pure returns(bytes32, uint64, uint64)
+func (_ValidatorMessages *ValidatorMessagesSession) UnpackSubnetValidatorWeightMessage(input []byte) ([32]byte, uint64, uint64, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetValidatorWeightMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackSubnetValidatorWeightMessage is a free data retrieval call binding the contract method 0x9de23d40.
+//
+// Solidity: function unpackSubnetValidatorWeightMessage(bytes input) pure returns(bytes32, uint64, uint64)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) UnpackSubnetValidatorWeightMessage(input []byte) ([32]byte, uint64, uint64, error) {
+	return _ValidatorMessages.Contract.UnpackSubnetValidatorWeightMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackValidationUptimeMessage is a free data retrieval call binding the contract method 0x088c2463.
+//
+// Solidity: function unpackValidationUptimeMessage(bytes input) pure returns(bytes32, uint64)
+func (_ValidatorMessages *ValidatorMessagesCaller) UnpackValidationUptimeMessage(opts *bind.CallOpts, input []byte) ([32]byte, uint64, error) {
+	var out []interface{}
+	err := _ValidatorMessages.contract.Call(opts, &out, "unpackValidationUptimeMessage", input)
+
+	if err != nil {
+		return *new([32]byte), *new(uint64), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+	out1 := *abi.ConvertType(out[1], new(uint64)).(*uint64)
+
+	return out0, out1, err
+
+}
+
+// UnpackValidationUptimeMessage is a free data retrieval call binding the contract method 0x088c2463.
+//
+// Solidity: function unpackValidationUptimeMessage(bytes input) pure returns(bytes32, uint64)
+func (_ValidatorMessages *ValidatorMessagesSession) UnpackValidationUptimeMessage(input []byte) ([32]byte, uint64, error) {
+	return _ValidatorMessages.Contract.UnpackValidationUptimeMessage(&_ValidatorMessages.CallOpts, input)
+}
+
+// UnpackValidationUptimeMessage is a free data retrieval call binding the contract method 0x088c2463.
+//
+// Solidity: function unpackValidationUptimeMessage(bytes input) pure returns(bytes32, uint64)
+func (_ValidatorMessages *ValidatorMessagesCallerSession) UnpackValidationUptimeMessage(input []byte) ([32]byte, uint64, error) {
+	return _ValidatorMessages.Contract.UnpackValidationUptimeMessage(&_ValidatorMessages.CallOpts, input)
 }
