@@ -85,7 +85,8 @@ function generate_bindings() {
         $GOPATH/bin/abigen --pkg $(convertToLower $contract_name) \
                         --combined-json $TELEPORTER_PATH/out/$contract_name.sol/combined-output.json \
                         --type $contract_name \
-                        --out $gen_path/$contract_name.go
+                        --out $gen_path/$contract_name.go \
+                        --exc lib/subnet-evm/contracts/contracts/interfaces/IWarpMessenger.sol:IWarpMessenger
         echo "Done generating Go bindings for $contract_name."
     done
 }
