@@ -62,6 +62,28 @@ function convertToLower() {
     fi
 }
 
+remove_matching_string() {
+    input_list="$1"
+    match="$2"
+    # Split the input list by commas
+    IFS=',' read -ra elements <<< "$input_list"
+    
+    # Initialize an empty result array
+    result=()
+
+    # Iterate over each element
+    for element in "${elements[@]}"; do
+        # Check if the part after the colon matches the given string
+        if [[ "${element#*:}" != "$match" ]]; then
+        # If it doesn't match, add the element to the result array
+        result+=("$element")
+        fi
+    done
+
+    # Join the result array with commas and print
+    (IFS=','; echo "${result[*]}")
+}
+
 function generate_bindings() {
     local contract_names=("$@")
     for contract_name in "${contract_names[@]}"
@@ -73,20 +95,26 @@ function generate_bindings() {
         echo "Building $contract_name..."
         mkdir -p $TELEPORTER_PATH/out/$contract_name.sol
         
+        combined_json=$TELEPORTER_PATH/out/$contract_name.sol/combined-output.json
+
         cwd=$(pwd)
         cd $TELEPORTER_PATH
-        solc --optimize --evm-version shanghai --combined-json abi,bin,metadata,ast,devdoc,userdoc --pretty-json $cwd/$dir/$contract_name.sol $(cat $TELEPORTER_PATH/remappings.txt) > $TELEPORTER_PATH/out/$contract_name.sol/combined-output.json
+        solc --optimize --evm-version shanghai --combined-json abi,bin,metadata,ast,devdoc,userdoc --pretty-json $cwd/$dir/$contract_name.sol $(cat $TELEPORTER_PATH/remappings.txt) > $combined_json
         cd $cwd
+
+        # construct the exclude list
+        contracts=$(jq -r '.contracts | keys | join(",")' $combined_json)
+        filtered_contracts=$(remove_matching_string $contracts $contract_name)
 
         echo "Generating Go bindings for $contract_name..."
         gen_path=$TELEPORTER_PATH/abi-bindings/go/$dir/$contract_name
         mkdir -p $gen_path
 
         $GOPATH/bin/abigen --pkg $(convertToLower $contract_name) \
-                        --combined-json $TELEPORTER_PATH/out/$contract_name.sol/combined-output.json \
+                        --combined-json $combined_json \
                         --type $contract_name \
                         --out $gen_path/$contract_name.go \
-                        --exc lib/subnet-evm/contracts/contracts/interfaces/IWarpMessenger.sol:IWarpMessenger
+                        --exc $filtered_contracts
         echo "Done generating Go bindings for $contract_name."
     done
 }
