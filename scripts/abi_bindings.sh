@@ -22,6 +22,8 @@ PROXY_LIST="TransparentUpgradeableProxy ProxyAdmin"
 
 SUBNET_EVM_LIST="INativeMinter"
 
+EXTERNAL_LIBS="ValidatorMessages"
+
 CONTRACT_LIST=
 HELP=
 while [ $# -gt 0 ]; do
@@ -104,7 +106,14 @@ function generate_bindings() {
 
         # construct the exclude list
         contracts=$(jq -r '.contracts | keys | join(",")' $combined_json)
+
+        # Filter out the contract we are generating bindings for
         filtered_contracts=$(remove_matching_string $contracts $contract_name)
+
+        # Filter out external libraries
+        for lib in $EXTERNAL_LIBS; do
+            filtered_contracts=$(remove_matching_string $filtered_contracts $lib)
+        done
 
         echo "Generating Go bindings for $contract_name..."
         gen_path=$TELEPORTER_PATH/abi-bindings/go/$dir/$contract_name
