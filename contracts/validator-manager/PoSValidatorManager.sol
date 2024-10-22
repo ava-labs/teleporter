@@ -53,6 +53,8 @@ abstract contract PoSValidatorManager is
          * the maximum stake would be equal to the initial stake.
          */
         uint64 _maximumStakeMultiplier;
+        /// @notice The factor used to convert between weight and value.
+        uint256 _weightToValueFactor;
         /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
         /// @notice Maps the validation ID to its requirements.
@@ -89,6 +91,7 @@ abstract contract PoSValidatorManager is
     error ValidatorNotPoS(bytes32 validationID);
     error ValidatorIneligibleForRewards(bytes32 validationID);
     error DelegatorIneligibleForRewards(bytes32 delegationID);
+    error ZeroWeightToValueFactor();
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
@@ -115,6 +118,7 @@ abstract contract PoSValidatorManager is
             minimumStakeDuration: settings.minimumStakeDuration,
             minimumDelegationFeeBips: settings.minimumDelegationFeeBips,
             maximumStakeMultiplier: settings.maximumStakeMultiplier,
+            weightToValueFactor: settings.weightToValueFactor,
             rewardCalculator: settings.rewardCalculator
         });
     }
@@ -126,6 +130,7 @@ abstract contract PoSValidatorManager is
         uint64 minimumStakeDuration,
         uint16 minimumDelegationFeeBips,
         uint8 maximumStakeMultiplier,
+        uint256 weightToValueFactor,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
@@ -140,12 +145,16 @@ abstract contract PoSValidatorManager is
         {
             revert InvalidStakeMultiplier(maximumStakeMultiplier);
         }
+        if (weightToValueFactor == 0) {
+            revert ZeroWeightToValueFactor();
+        }
 
         $._minimumStakeAmount = minimumStakeAmount;
         $._maximumStakeAmount = maximumStakeAmount;
         $._minimumStakeDuration = minimumStakeDuration;
         $._minimumDelegationFeeBips = minimumDelegationFeeBips;
         $._maximumStakeMultiplier = maximumStakeMultiplier;
+        $._weightToValueFactor = weightToValueFactor;
         $._rewardCalculator = rewardCalculator;
     }
 
@@ -365,16 +374,20 @@ abstract contract PoSValidatorManager is
      * @notice Converts a token value to a weight.
      * @param value Token value to convert.
      */
-    function valueToWeight(uint256 value) public pure returns (uint64) {
-        return uint64(value / 1e12);
+    function valueToWeight(uint256 value) public view returns (uint64) {
+        uint256 weight = value / _getPoSValidatorManagerStorage()._weightToValueFactor;
+        if (weight == 0 || weight > type(uint64).max) {
+            revert InvalidStakeAmount(value);
+        }
+        return uint64(weight);
     }
 
     /**
      * @notice Converts a weight to a token value.
      * @param weight weight to convert.
      */
-    function weightToValue(uint64 weight) public pure returns (uint256) {
-        return uint256(weight) * 1e12;
+    function weightToValue(uint64 weight) public view returns (uint256) {
+        return uint256(weight) * _getPoSValidatorManagerStorage()._weightToValueFactor;
     }
 
     /**

@@ -28,6 +28,7 @@ struct PoSValidatorManagerSettings {
     uint64 minimumStakeDuration;
     uint16 minimumDelegationFeeBips;
     uint8 maximumStakeMultiplier;
+    uint256 weightToValueFactor;
     IRewardCalculator rewardCalculator;
 }
 
