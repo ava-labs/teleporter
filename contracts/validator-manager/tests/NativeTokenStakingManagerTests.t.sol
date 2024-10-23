@@ -179,6 +179,32 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         );
     }
 
+    function testMinStakeDurationTooLow() public {
+        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        uint64 minStakeDuration = DEFAULT_CHURN_PERIOD - 1;
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.InvalidMinStakeDuration.selector, minStakeDuration
+            )
+        );
+        app.initialize(
+            PoSValidatorManagerSettings({
+                baseSettings: ValidatorManagerSettings({
+                    subnetID: DEFAULT_SUBNET_ID,
+                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+                }),
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
+                minimumStakeDuration: minStakeDuration,
+                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
+                rewardCalculator: IRewardCalculator(address(0))
+            })
+        );
+    }
+
     // Helpers
     function _initializeValidatorRegistration(
         ValidatorRegistrationInput memory registrationInput,

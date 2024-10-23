@@ -42,7 +42,7 @@ abstract contract PoSValidatorManager is
         uint256 _minimumStakeAmount;
         /// @notice The maximum amount of stake allowed to be a validator.
         uint256 _maximumStakeAmount;
-        /// @notice The minimum amount of time a validator must be staked for.
+        /// @notice The minimum amount of time in seconds a validator must be staked for. Must be at least {_churnPeriodSeconds}.
         uint64 _minimumStakeDuration;
         /// @notice The minimum delegation fee percentage, in basis points, required to delegate to a validator.
         uint16 _minimumDelegationFeeBips;
@@ -144,6 +144,10 @@ abstract contract PoSValidatorManager is
         if (maximumStakeMultiplier == 0 || maximumStakeMultiplier > MAXIMUM_STAKE_MULTIPLIER_LIMIT)
         {
             revert InvalidStakeMultiplier(maximumStakeMultiplier);
+        }
+        // Minimum stake duration should be at least one churn period in order to prevent churn tracker abuse.
+        if (minimumStakeDuration < _getChurnPeriodSeconds()) {
+            revert InvalidMinStakeDuration(minimumStakeDuration);
         }
         if (weightToValueFactor == 0) {
             revert ZeroWeightToValueFactor();
@@ -551,22 +555,28 @@ abstract contract PoSValidatorManager is
         if (delegator.status != DelegatorStatus.Active) {
             revert InvalidDelegatorStatus(delegator.status);
         }
+
         // Only the delegation owner or parent validator can end the delegation.
         if (delegator.owner != _msgSender()) {
             // Validators can only remove delegations after the minimum stake duration has passed.
-            if ($._posValidatorInfo[validationID].owner == _msgSender()) {
-                if (
-                    block.timestamp
-                        < validator.startedAt + $._posValidatorInfo[validationID].minStakeDuration
-                ) {
-                    revert MinStakeDurationNotPassed(uint64(block.timestamp));
-                }
-            } else {
+            if ($._posValidatorInfo[validationID].owner != _msgSender()) {
                 revert UnauthorizedOwner(_msgSender());
+            }
+
+            if (
+                block.timestamp
+                    < validator.startedAt + $._posValidatorInfo[validationID].minStakeDuration
+            ) {
+                revert MinStakeDurationNotPassed(uint64(block.timestamp));
             }
         }
 
         if (validator.status == ValidatorStatus.Active) {
+            // Check that minimum stake duration has passed.
+            if (block.timestamp < delegator.startedAt + $._minimumStakeDuration) {
+                revert MinStakeDurationNotPassed(uint64(block.timestamp));
+            }
+
             if (includeUptimeProof) {
                 // Uptime proofs include the absolute number of seconds the validator has been active.
                 _updateUptime(validationID, messageIndex);

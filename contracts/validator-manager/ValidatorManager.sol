@@ -540,6 +540,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         return (nonce, messageID);
     }
 
+    function _getChurnPeriodSeconds() internal view returns (uint64) {
+        return _getValidatorManagerStorage()._churnPeriodSeconds;
+    }
+
     /**
      * @dev Helper function to check if the stake weight to be added or removed would exceed the maximum stake churn
      * rate for the past churn period. If the churn rate is exceeded, the function will revert. If the churn rate is
