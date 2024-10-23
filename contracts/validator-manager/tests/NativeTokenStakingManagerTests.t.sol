@@ -199,6 +199,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeDuration: minStakeDuration,
                 minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
                 maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
