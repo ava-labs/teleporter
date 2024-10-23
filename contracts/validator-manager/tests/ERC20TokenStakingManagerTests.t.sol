@@ -139,7 +139,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         );
     }
 
-    function testMaxStakeMultiplierOverLimit() public {
+    function testMinStakeDurationTooLow() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         uint64 minStakeDuration = DEFAULT_CHURN_PERIOD - 1;
         vm.expectRevert(
@@ -166,7 +166,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         );
     }
 
-    function testInvalidMinimumStakeDuration() public {
+    function testMaxStakeMultiplierOverLimit() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         uint8 maximumStakeMultiplier = app.MAXIMUM_STAKE_MULTIPLIER_LIMIT() + 1;
         vm.expectRevert(
