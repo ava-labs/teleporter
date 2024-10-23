@@ -48,6 +48,9 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
 
     // solhint-enable func-name-mixedcase
 
+    /**
+     * @notice See {IPoAValidatorManager-initializeValidatorRegistration}.
+     */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
         uint64 weight
@@ -56,10 +59,16 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
     }
 
     // solhint-enable ordering
+    /**
+     * @notice See {IPoAValidatorManager-initializeEndValidation}.
+     */
     function initializeEndValidation(bytes32 validationID) external override onlyOwner {
         _initializeEndValidation(validationID);
     }
 
+    /**
+     * @notice See {IValidatorManager-completeEndValidation}.
+     */
     function completeEndValidation(uint32 messageIndex) external {
         _completeEndValidation(messageIndex);
     }

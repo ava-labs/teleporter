@@ -28,6 +28,7 @@ struct PoSValidatorManagerSettings {
     uint64 minimumStakeDuration;
     uint16 minimumDelegationFeeBips;
     uint8 maximumStakeMultiplier;
+    uint256 weightToValueFactor;
     IRewardCalculator rewardCalculator;
 }
 
@@ -45,7 +46,7 @@ struct Delegator {
 }
 
 /**
- * @dev Describes the active state of a PoS Validator. Extends {IValidatorManager-Validator}
+ * @dev Describes the active state of a PoS Validator in addition the information in {IValidatorManager-Validator}
  */
 struct PoSValidatorInfo {
     address owner;
@@ -61,7 +62,7 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Event emitted when a delegator registration is initiated
      * @param delegationID The ID of the delegation
-     * @param validationID The ID of the validation period
+     * @param validationID The ID of the validation period being delegated to
      * @param delegatorAddress The address of the delegator
      * @param nonce The message nonce used to update the validator weight
      * @param validatorWeight The updated validator weight that is sent to the P-Chain
@@ -91,7 +92,7 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Event emitted when delegator removal is initiated
      * @param delegationID The ID of the delegation
-     * @param validationID The ID of the validation period
+     * @param validationID The ID of the validation period the delegator was staked to
      */
     event DelegatorRemovalInitialized(bytes32 indexed delegationID, bytes32 indexed validationID);
 
@@ -126,11 +127,11 @@ interface IPoSValidatorManager is IValidatorManager {
      * for uptime-based rewards. This function is used to exit the validator set when rewards are expected.
      * The validation period must have been previously started by a successful call to {completeValidatorRegistration} with the given validationID.
      * Any rewards for this validation period will stop accruing when this function is called.
+     * Note: Reverts if the uptime is not eligible for rewards.
      * @param validationID The ID of the validation period being ended.
      * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period. If no uptime proof is provided,
      * the latest known uptime will be used.
-     * @param messageIndex The index of the Warp message to be received providing the uptime proof. Reverts if the uptime
-     * is not eligible for rewards.
+     * @param messageIndex The index of the Warp message to be received providing the uptime proof.
      */
     function initializeEndValidation(
         bytes32 validationID,
@@ -146,6 +147,7 @@ interface IPoSValidatorManager is IValidatorManager {
      * Any rewards for this validation period will stop accruing when this function is called.
      * @param validationID The ID of the validation period being ended.
      * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period. If no uptime proof is provided,
+     * the latest known uptime will be used.
      * @param messageIndex The index of the Warp message to be received providing the uptime proof.
      */
     function forceInitializeEndValidation(
@@ -155,12 +157,12 @@ interface IPoSValidatorManager is IValidatorManager {
     ) external;
 
     /**
-     * @notice Completes the delegator registration process by returning an acknowledgement of the registration of a
+     * @notice Completes the delegator registration process by submitting an acknowledgement of the registration of a
      * validationID from the P-Chain. After this function is called, the validator's weight is updated in the contract state.
      * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize registration of the
      * delegator is valid, as long as that nonce has been sent by the contract. For the purposes of computing delegation rewards,
-     * the delegation is considered active after this function is called.
-     * Note: only the specified delegation will be marked as registered, even if the validator weight update
+     * the delegation is considered active after this function is completed.
+     * Note: Only the specified delegation will be marked as registered, even if the validator weight update
      * message implicitly includes multiple weight changes.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegationID The ID of the delegation being registered.
@@ -172,7 +174,8 @@ interface IPoSValidatorManager is IValidatorManager {
      * The delegator must have been previously registered with the given validationID. For the purposes of computing delegation rewards,
      * the delegation period is considered ended when this function is called. Uses the supplied uptime proof to calculate rewards.
      * If none is provided in the call, the latest known uptime will be used. Reverts if the uptime is not eligible for rewards.
-     * Note that this function can only be called by the address that registered the delegation.
+     * Note: This function can only be called by the address that registered the delegation.
+     * Note: Reverts if the uptime is not eligible for rewards.
      * @param delegationID The ID of the delegation being removed.
      * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
      * If the validator has completed its validation period, it has already provided an uptime proof, so {includeUptimeProof}
@@ -192,7 +195,7 @@ interface IPoSValidatorManager is IValidatorManager {
      * The delegator must have been previously registered with the given validationID. For the purposes of computing delegation rewards,
      * the delegation period is considered ended when this function is called. Uses the supplied uptime proof to calculate rewards.
      * If none is provided in the call, the latest known uptime will be used. Reverts if the uptime is not eligible for rewards.
-     * Note that this function can only be called by the address that registered the delegation.
+     * Note: This function can only be called by the address that registered the delegation.
      * @param delegationID The ID of the delegation being removed.
      * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
      * If the validator has completed its validation period, it has already provided an uptime proof, so {includeUptimeProof}
@@ -220,7 +223,7 @@ interface IPoSValidatorManager is IValidatorManager {
      * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize the end of the
      * delegator's delegation is valid, as long as that nonce has been sent by the contract. This is because the validator
      * weight change pertaining to the delegation ending is included in any subsequent validator weight update messages.
-     * Note: only the specified delegation will be marked as completed, even if the validator weight update
+     * Note: Only the specified delegation will be marked as completed, even if the validator weight update
      * message implicitly includes multiple weight changes.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegationID The ID of the delegation being removed.
@@ -229,8 +232,7 @@ interface IPoSValidatorManager is IValidatorManager {
 
     /**
      * @notice Withdraws the delegation fees from completed delegations to the owner of the validator.
-     * Can currently only be called once the validator has completed its validation period.
-     * @param validationID The ID of the validation being ended.
+     * @param validationID The ID of the validation period being ended.
      */
     function claimDelegationFees(bytes32 validationID) external;
 }
