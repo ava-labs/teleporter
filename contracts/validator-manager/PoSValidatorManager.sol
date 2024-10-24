@@ -697,11 +697,6 @@ abstract contract PoSValidatorManager is
             revert InvalidDelegatorStatus(delegator.status);
         }
 
-        // Check that minimum stake duration has passed.
-        if (block.timestamp < delegator.startedAt + $._minimumStakeDuration) {
-            revert MinStakeDurationNotPassed(uint64(block.timestamp));
-        }
-
         if (getValidator(delegator.validationID).status != ValidatorStatus.Completed) {
             // Unpack the Warp message
             WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
