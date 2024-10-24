@@ -67,7 +67,7 @@ library ValidatorMessages {
      * @return The packed message.
      */
     function packSubnetConversionMessage(bytes32 subnetConversionID)
-        internal
+        external
         pure
         returns (bytes memory)
     {
@@ -81,7 +81,7 @@ library ValidatorMessages {
      * @param input The byte array to unpack.
      * @return The unpacked subnetConversionID.
      */
-    function unpackSubnetConversionMessage(bytes memory input) internal pure returns (bytes32) {
+    function unpackSubnetConversionMessage(bytes memory input) external pure returns (bytes32) {
         if (input.length != 38) {
             revert InvalidMessageLength(uint32(input.length), 38);
         }
@@ -149,7 +149,7 @@ library ValidatorMessages {
      * @return The packed message.
      */
     function packSubnetConversionData(SubnetConversionData calldata subnetConversionData)
-        internal
+        external
         pure
         returns (bytes memory)
     {
@@ -218,7 +218,7 @@ library ValidatorMessages {
      * @return The validationID and the packed message.
      */
     function packRegisterSubnetValidatorMessage(ValidationPeriod memory validationPeriod)
-        internal
+        external
         pure
         returns (bytes32, bytes memory)
     {
@@ -262,7 +262,7 @@ library ValidatorMessages {
      * @return The unpacked ValidationPeriod.
      */
     function unpackRegisterSubnetValidatorMessage(bytes memory input)
-        internal
+        external
         pure
         returns (ValidationPeriod memory)
     {
@@ -455,7 +455,7 @@ library ValidatorMessages {
     function packSubnetValidatorRegistrationMessage(
         bytes32 validationID,
         bool valid
-    ) internal pure returns (bytes memory) {
+    ) external pure returns (bytes memory) {
         return abi.encodePacked(
             CODEC_ID, SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID, validationID, valid
         );
@@ -470,7 +470,7 @@ library ValidatorMessages {
      * validator and never will be a validator due to the expiry time passing.
      */
     function unpackSubnetValidatorRegistrationMessage(bytes memory input)
-        internal
+        external
         pure
         returns (bytes32, bool)
     {
@@ -533,7 +533,7 @@ library ValidatorMessages {
         bytes32 validationID,
         uint64 nonce,
         uint64 weight
-    ) internal pure returns (bytes memory) {
+    ) external pure returns (bytes memory) {
         return abi.encodePacked(
             CODEC_ID, SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID, validationID, nonce, weight
         );
@@ -547,7 +547,7 @@ library ValidatorMessages {
      * @return The validationID, nonce, and weight.
      */
     function unpackSubnetValidatorWeightMessage(bytes memory input)
-        internal
+        external
         pure
         returns (bytes32, uint64, uint64)
     {
@@ -616,7 +616,7 @@ library ValidatorMessages {
     function packValidationUptimeMessage(
         bytes32 validationID,
         uint64 uptime
-    ) internal pure returns (bytes memory) {
+    ) external pure returns (bytes memory) {
         return abi.encodePacked(CODEC_ID, VALIDATION_UPTIME_MESSAGE_TYPE_ID, validationID, uptime);
     }
 
@@ -628,7 +628,7 @@ library ValidatorMessages {
      * @return The validationID and uptime.
      */
     function unpackValidationUptimeMessage(bytes memory input)
-        internal
+        external
         pure
         returns (bytes32, uint64)
     {

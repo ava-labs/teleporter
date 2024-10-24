@@ -27,6 +27,13 @@ jobs:
       - name: Install Foundry
         run: ./scripts/install_foundry.sh
 
+      - name: Install solc
+        run: |
+          source ./scripts/versions.sh
+          wget https://github.com/ethereum/solidity/releases/download/v$SOLIDITY_VERSION/solc-static-linux
+          chmod +x solc-static-linux
+          sudo mv solc-static-linux /usr/local/bin/solc
+
       - name: Generate ABI Go bindings
         run: |
           export PATH=$PATH:$HOME/.foundry/bin

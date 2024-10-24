@@ -76,7 +76,7 @@ export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
 
 cd $TELEPORTER_PATH
 if command -v forge &> /dev/null; then
-  forge build --skip test --optimizer-runs 100
+  forge build --skip test
 else
   echo "Forge command not found, attempting to use from $HOME"
   $HOME/.foundry/bin/forge build
@@ -92,6 +92,20 @@ for component in $(echo $components | tr ',' ' '); do
     ginkgo build ./tests/local/$component
 
     echo "Running e2e tests for $component"
+
+    # If component is validator-manager, run each flow separately
+    if [ "$component" == "validator-manager" ]; then
+        for flow in "ERC20" "Native" "PoA"; do
+            echo "Running $flow flow"
+            RUN_E2E=true ./tests/local/$component/$component.test \
+            --ginkgo.vv \
+            --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""} \
+            --ginkgo.trace \
+            --ginkgo.focus=$flow
+        done
+        continue
+    fi
+
     RUN_E2E=true ./tests/local/$component/$component.test \
     --ginkgo.vv \
     --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""} \

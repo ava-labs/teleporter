@@ -1176,7 +1176,7 @@ func CompleteERC20DelegatorRegistration(
 ) *types.Receipt {
 	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeDelegatorRegistration", uint32(0), delegationID)
+	callData, err := abi.Pack("completeDelegatorRegistration", delegationID, uint32(0))
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		ctx,
@@ -1218,7 +1218,7 @@ func CompleteEndERC20Delegation(
 ) *types.Receipt {
 	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeEndDelegation", uint32(0), delegationID)
+	callData, err := abi.Pack("completeEndDelegation", delegationID, uint32(0))
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		ctx,
@@ -1267,7 +1267,7 @@ func CompleteNativeDelegatorRegistration(
 ) *types.Receipt {
 	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeDelegatorRegistration", uint32(0), delegationID)
+	callData, err := abi.Pack("completeDelegatorRegistration", delegationID, uint32(0))
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		ctx,
@@ -1309,7 +1309,7 @@ func CompleteEndNativeDelegation(
 ) *types.Receipt {
 	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeEndDelegation", uint32(0), delegationID)
+	callData, err := abi.Pack("completeEndDelegation", delegationID, uint32(0))
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		ctx,
