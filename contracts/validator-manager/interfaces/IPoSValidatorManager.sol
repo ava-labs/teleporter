@@ -164,10 +164,10 @@ interface IPoSValidatorManager is IValidatorManager {
      * the delegation is considered active after this function is completed.
      * Note: Only the specified delegation will be marked as registered, even if the validator weight update
      * message implicitly includes multiple weight changes.
-     * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegationID The ID of the delegation being registered.
+     * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      */
-    function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external;
+    function completeDelegatorRegistration(bytes32 delegationID, uint32 messageIndex) external;
 
     /**
      * @notice Begins the process of removing a delegator from a validation period, and reverts if the delegation is not eligible for rewards.
@@ -225,10 +225,10 @@ interface IPoSValidatorManager is IValidatorManager {
      * weight change pertaining to the delegation ending is included in any subsequent validator weight update messages.
      * Note: Only the specified delegation will be marked as completed, even if the validator weight update
      * message implicitly includes multiple weight changes.
-     * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegationID The ID of the delegation being removed.
+     * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      */
-    function completeEndDelegation(uint32 messageIndex, bytes32 delegationID) external;
+    function completeEndDelegation(bytes32 delegationID, uint32 messageIndex) external;
 
     /**
      * @notice Withdraws the delegation fees from completed delegations to the owner of the validator.
