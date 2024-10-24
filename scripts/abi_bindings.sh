@@ -63,7 +63,6 @@ extracted_version=$(solc --version 2>&1 | awk '/Version:/ {print $2}' | awk -F'+
 if ! [[ "$extracted_version" == "$SOLIDITY_VERSION" ]]; then
     echo "Expected solc version $SOLIDITY_VERSION, but found $extracted_version. Please install the correct version." && exit 1
 fi
-exit 0
 
 echo "Building subnet-evm abigen"
 go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
@@ -114,7 +113,7 @@ function generate_bindings() {
 
         cwd=$(pwd)
         cd $TELEPORTER_PATH
-        solc --optimize --evm-version shanghai --combined-json abi,bin,metadata,ast,devdoc,userdoc --pretty-json $cwd/$dir/$contract_name.sol $(cat $TELEPORTER_PATH/remappings.txt) > $combined_json
+        solc --optimize --evm-version $EVM_VERSION --combined-json abi,bin,metadata,ast,devdoc,userdoc --pretty-json $cwd/$dir/$contract_name.sol $(cat $TELEPORTER_PATH/remappings.txt) > $combined_json
         cd $cwd
 
         # construct the exclude list
