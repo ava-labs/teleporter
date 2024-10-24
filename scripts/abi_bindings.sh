@@ -52,6 +52,18 @@ fi
 if ! command -v solc &> /dev/null; then
     echo "solc not found. See https://docs.soliditylang.org/en/latest/installing-solidity.html for installation instructions" && exit 1
 fi
+    
+# Get the version from solc output
+solc_version_output=$(solc --version 2>&1)
+
+# Extract the semver version from the output
+extracted_version=$(solc --version 2>&1 | awk '/Version:/ {print $2}' | awk -F'+' '{print $1}')
+
+# Check if the extracted version matches the expected version
+if ! [[ "$extracted_version" == "$SOLIDITY_VERSION" ]]; then
+    echo "Expected solc version $SOLIDITY_VERSION, but found $extracted_version. Please install the correct version." && exit 1
+fi
+exit 0
 
 echo "Building subnet-evm abigen"
 go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
@@ -64,6 +76,7 @@ function convertToLower() {
     fi
 }
 
+# Removes a matching string from a comma-separated list
 remove_matching_string() {
     input_list="$1"
     match="$2"
