@@ -1361,6 +1361,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorWeight: DEFAULT_WEIGHT
         });
 
+        vm.warp(DEFAULT_COMPLETION_TIMESTAMP + 1 + DEFAULT_MINIMUM_STAKE_DURATION);
         _expectStakeUnlock(DEFAULT_DELEGATOR_ADDRESS, _weightToValue(DEFAULT_DELEGATOR_WEIGHT));
         posValidatorManager.initializeEndDelegation(delegationID, true, 0);
     }
