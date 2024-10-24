@@ -721,6 +721,12 @@ abstract contract PoSValidatorManager is
         Delegator memory delegator = $._delegatorStakes[delegationID];
         bytes32 validationID = delegator.validationID;
 
+        // To prevent churn tracker abuse, check that one full churn period has passed,
+        // so a delegator may not stake twice in the same churn period.
+        if (block.timestamp < delegator.startedAt + _getChurnPeriodSeconds()) {
+            revert MinStakeDurationNotPassed(uint64(block.timestamp));
+        }
+
         // Once this function completes, the delegation is completed so we can clear it from state now.
         delete $._delegatorStakes[delegationID];
 

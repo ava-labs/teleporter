@@ -455,6 +455,47 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
     }
 
+    function testCompleteEndDelegationChurnPeriodSecondsNotPassed() public {
+        bytes32 validationID = _registerDefaultValidator();
+        uint64 delegatorRegistrationTime =
+            DEFAULT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION + 1;
+        bytes32 delegationID = _registerDelegator({
+            validationID: validationID,
+            delegatorAddress: DEFAULT_DELEGATOR_ADDRESS,
+            weight: DEFAULT_DELEGATOR_WEIGHT,
+            initRegistrationTimestamp: delegatorRegistrationTime - 1,
+            completeRegistrationTimestamp: delegatorRegistrationTime,
+            expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            expectedNonce: 1
+        });
+
+        _endValidationWithChecks({
+            validationID: validationID,
+            validatorOwner: address(this),
+            completeRegistrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: delegatorRegistrationTime + 1,
+            validatorWeight: DEFAULT_WEIGHT,
+            expectedNonce: 2
+        });
+
+        uint64 invalidEndTime = delegatorRegistrationTime + DEFAULT_CHURN_PERIOD - 1;
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.MinStakeDurationNotPassed.selector, invalidEndTime
+            )
+        );
+
+        // Initialize end delegation will also call _completeEndDelegation because the validator is copmleted.
+        _initializeEndDelegation({
+            sender: DEFAULT_DELEGATOR_ADDRESS,
+            delegationID: delegationID,
+            endDelegationTimestamp: invalidEndTime,
+            includeUptime: false,
+            force: false
+        });
+    }
+
     function testInitializeEndDelegationInsufficientUptime() public {
         bytes32 validationID = _registerDefaultValidator();
         bytes32 delegationID = _registerDefaultDelegator(validationID);
