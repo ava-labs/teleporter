@@ -74,14 +74,6 @@ echo "Copied ${BASEDIR}/subnet-evm/subnet-evm binary to ${BASEDIR}/avalanchego/p
 
 export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
 
-cd $TELEPORTER_PATH
-if command -v forge &> /dev/null; then
-  forge build --skip test --optimizer-runs 0
-else
-  echo "Forge command not found, attempting to use from $HOME"
-  $HOME/.foundry/bin/forge build
-fi
-
 cd "$TELEPORTER_PATH"
 # Build ginkgo
 # to install the ginkgo binary (required for test build and run)
