@@ -16,7 +16,11 @@ export ARCH=$(uname -m)
 [ $ARCH = x86_64 ] && ARCH=amd64
 echo "ARCH set to $ARCH"
 
-DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 TestMessenger ValidatorSetSig"
+DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 ExampleRewardCalculator TestMessenger ValidatorSetSig NativeTokenStakingManager ERC20TokenStakingManager PoAValidatorManager"
+
+PROXY_LIST="TransparentUpgradeableProxy ProxyAdmin"
+
+SUBNET_EVM_LIST="INativeMinter"
 
 CONTRACT_LIST=
 HELP=
@@ -50,7 +54,7 @@ go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 # compilations that did not generate new ABI files.
 echo "Building Contracts"
 cd $TELEPORTER_PATH
-forge build --force --extra-output-files abi bin
+forge build --skip test --optimizer-runs 100 --force --extra-output-files abi bin
 
 function convertToLower() {
     if [ "$ARCH" = 'arm64' ]; then
@@ -58,6 +62,30 @@ function convertToLower() {
     else
         echo $1 | sed -e 's/\(.*\)/\L\1/'
     fi
+}
+
+function generate_bindings() {
+    local contract_names=("$@")
+    for contract_name in "${contract_names[@]}"
+    do
+        path=$(find . -name $contract_name.sol)
+        dir=$(dirname $path)
+        abi_file=$TELEPORTER_PATH/out/$contract_name.sol/$contract_name.abi.json
+        if ! [ -f $abi_file ]; then
+            echo "Error: Contract $contract_name abi file not found"
+            exit 1
+        fi
+
+        echo "Generating Go bindings for $contract_name..."
+        gen_path=$TELEPORTER_PATH/abi-bindings/go/$dir/$contract_name
+        mkdir -p $gen_path
+        $GOPATH/bin/abigen --abi $abi_file \
+                        --pkg $(convertToLower $contract_name) \
+                        --bin $TELEPORTER_PATH/out/$contract_name.sol/$contract_name.bin \
+                        --type $contract_name \
+                        --out $gen_path/$contract_name.go
+        echo "Done generating Go bindings for $contract_name."
+    done
 }
 
 contract_names=($CONTRACT_LIST)
@@ -68,25 +96,20 @@ if [[ -z "${CONTRACT_LIST}" ]]; then
 fi
 
 cd $TELEPORTER_PATH/contracts
-for contract_name in "${contract_names[@]}"
-do
-    path=$(find . -name $contract_name.sol)
-    dir=$(dirname $path)
-    abi_file=$TELEPORTER_PATH/out/$contract_name.sol/$contract_name.abi.json
-    if ! [ -f $abi_file ]; then
-        echo "Error: Contract $contract_name abi file not found"
-        exit 1
-    fi
+generate_bindings "${contract_names[@]}"
 
-    echo "Generating Go bindings for $contract_name..."
-    gen_path=$TELEPORTER_PATH/abi-bindings/go/$dir/$contract_name
-    mkdir -p $gen_path
-    $GOPATH/bin/abigen --abi $abi_file \
-                       --pkg $(convertToLower $contract_name) \
-                       --bin $TELEPORTER_PATH/out/$contract_name.sol/$contract_name.bin \
-                       --type $contract_name \
-                       --out $gen_path/$contract_name.go
-    echo "Done generating Go bindings for $contract_name."
-done
+contract_names=($PROXY_LIST)
+cd $TELEPORTER_PATH/
+forge build --skip test --force --extra-output-files abi bin --contracts lib/openzeppelin-contracts/contracts/proxy/transparent
+
+cd $TELEPORTER_PATH/lib/openzeppelin-contracts/contracts/proxy/transparent
+generate_bindings "${contract_names[@]}"
+
+contract_names=($SUBNET_EVM_LIST)
+cd $TELEPORTER_PATH/
+forge build --skip test --force --extra-output-files abi bin --contracts lib/subnet-evm/contracts/contracts/interfaces
+
+cd $TELEPORTER_PATH/lib/subnet-evm/contracts/contracts/interfaces
+generate_bindings "${contract_names[@]}"
 
 exit 0
