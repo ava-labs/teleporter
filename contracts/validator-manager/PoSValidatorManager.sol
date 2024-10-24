@@ -599,12 +599,6 @@ abstract contract PoSValidatorManager is
             });
             return (reward > 0);
         } else if (validator.status == ValidatorStatus.Completed) {
-            // To prevent churn tracker abuse, check that one full churn period has passed,
-            // so a delegator may not stake twice in the same churn period.
-            if (block.timestamp < delegator.startedAt + _getChurnPeriodSeconds()) {
-                revert MinStakeDurationNotPassed(uint64(block.timestamp));
-            }
-
             $._redeemableDelegatorRewards[delegationID] = _calculateDelegationReward(delegator);
 
             _completeEndDelegation(delegationID);
@@ -724,6 +718,12 @@ abstract contract PoSValidatorManager is
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
         bytes32 validationID = delegator.validationID;
+
+        // To prevent churn tracker abuse, check that one full churn period has passed,
+        // so a delegator may not stake twice in the same churn period.
+        if (block.timestamp < delegator.startedAt + _getChurnPeriodSeconds()) {
+            revert MinStakeDurationNotPassed(uint64(block.timestamp));
+        }
 
         // Once this function completes, the delegation is completed so we can clear it from state now.
         delete $._delegatorStakes[delegationID];
