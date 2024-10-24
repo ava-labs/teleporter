@@ -9,18 +9,13 @@ import {PoSValidatorManagerTest} from "./PoSValidatorManagerTests.t.sol";
 import {ERC20TokenStakingManager} from "../ERC20TokenStakingManager.sol";
 import {PoSValidatorManager} from "../PoSValidatorManager.sol";
 import {ExampleRewardCalculator} from "../ExampleRewardCalculator.sol";
-import {
-    ValidatorManagerSettings,
-    ValidatorRegistrationInput,
-    IValidatorManager
-} from "../interfaces/IValidatorManager.sol";
-import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
-import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
+import {ValidatorRegistrationInput, IValidatorManager} from "../interfaces/IValidatorManager.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 import {ExampleERC20} from "@mocks/ExampleERC20.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {IERC20Mintable} from "../interfaces/IERC20Mintable.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 
 contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
@@ -38,28 +33,30 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
     }
 
+    function testDisableInitialization() public {
+        app = new ERC20TokenStakingManager(ICMInitializable.Disallowed);
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
+        app.initialize(defaultPoSSettings, token);
+    }
+
+    function testZeroTokenAddress() public {
+        app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC20TokenStakingManager.InvalidTokenAddress.selector, address(0)
+            )
+        );
+        app.initialize(defaultPoSSettings, IERC20Mintable(address(0)));
+    }
+
     function testZeroMinimumDelegationFee() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         vm.expectRevert(
             abi.encodeWithSelector(PoSValidatorManager.InvalidDelegationFee.selector, 0)
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: 0,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0))
-            }),
-            token
-        );
+
+        defaultPoSSettings.minimumDelegationFeeBips = 0;
+        app.initialize(defaultPoSSettings, token);
     }
 
     function testMaxMinimumDelegationFee() public {
@@ -70,23 +67,9 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 PoSValidatorManager.InvalidDelegationFee.selector, minimumDelegationFeeBips
             )
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: minimumDelegationFeeBips,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0))
-            }),
-            token
-        );
+
+        defaultPoSSettings.minimumDelegationFeeBips = minimumDelegationFeeBips;
+        app.initialize(defaultPoSSettings, token);
     }
 
     function testInvalidStakeAmountRange() public {
@@ -96,23 +79,10 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 PoSValidatorManager.InvalidStakeAmount.selector, DEFAULT_MAXIMUM_STAKE_AMOUNT
             )
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0))
-            }),
-            token
-        );
+
+        defaultPoSSettings.minimumStakeAmount = DEFAULT_MAXIMUM_STAKE_AMOUNT;
+        defaultPoSSettings.maximumStakeAmount = DEFAULT_MINIMUM_STAKE_AMOUNT;
+        app.initialize(defaultPoSSettings, token);
     }
 
     function testZeroMaxStakeMultiplier() public {
@@ -120,50 +90,22 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         vm.expectRevert(
             abi.encodeWithSelector(PoSValidatorManager.InvalidStakeMultiplier.selector, 0)
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: 0,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0))
-            }),
-            token
-        );
+
+        defaultPoSSettings.maximumStakeMultiplier = 0;
+        app.initialize(defaultPoSSettings, token);
     }
 
     function testMinStakeDurationTooLow() public {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
-        uint64 minStakeDuration = DEFAULT_CHURN_PERIOD - 1;
+        uint64 minimumStakeDuration = DEFAULT_CHURN_PERIOD - 1;
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidMinStakeDuration.selector, minStakeDuration
+                PoSValidatorManager.InvalidMinStakeDuration.selector, minimumStakeDuration
             )
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: minStakeDuration,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0))
-            }),
-            token
-        );
+
+        defaultPoSSettings.minimumStakeDuration = minimumStakeDuration;
+        app.initialize(defaultPoSSettings, token);
     }
 
     function testMaxStakeMultiplierOverLimit() public {
@@ -174,23 +116,9 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 PoSValidatorManager.InvalidStakeMultiplier.selector, maximumStakeMultiplier
             )
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: maximumStakeMultiplier,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0))
-            }),
-            token
-        );
+
+        defaultPoSSettings.maximumStakeMultiplier = maximumStakeMultiplier;
+        app.initialize(defaultPoSSettings, token);
     }
 
     function testZeroWeightToValueFactor() public {
@@ -198,23 +126,9 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         vm.expectRevert(
             abi.encodeWithSelector(PoSValidatorManager.ZeroWeightToValueFactor.selector)
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: 0,
-                rewardCalculator: IRewardCalculator(address(0))
-            }),
-            token
-        );
+
+        defaultPoSSettings.weightToValueFactor = 0;
+        app.initialize(defaultPoSSettings, token);
     }
 
     function testInvalidValidatorMinStakeDuration() public {
@@ -302,23 +216,10 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         token = new ExampleERC20();
         rewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_RATE);
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: rewardCalculator
-            }),
-            token
-        );
+
+        defaultPoSSettings.rewardCalculator = rewardCalculator;
+        app.initialize(defaultPoSSettings, token);
+
         validatorManager = app;
         posValidatorManager = app;
 
