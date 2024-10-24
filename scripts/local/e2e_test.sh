@@ -76,7 +76,7 @@ export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
 
 cd $TELEPORTER_PATH
 if command -v forge &> /dev/null; then
-  forge build --skip test --optimizer-runs 100
+  forge build --skip test --optimizer-runs 0
 else
   echo "Forge command not found, attempting to use from $HOME"
   $HOME/.foundry/bin/forge build
