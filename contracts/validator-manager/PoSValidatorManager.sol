@@ -599,6 +599,12 @@ abstract contract PoSValidatorManager is
             });
             return (reward > 0);
         } else if (validator.status == ValidatorStatus.Completed) {
+            // To prevent churn tracker abuse, check that one full churn period has passed,
+            // so a delegator may not stake twice in the same churn period.
+            if (block.timestamp < delegator.startedAt + _getChurnPeriodSeconds()) {
+                revert MinStakeDurationNotPassed(uint64(block.timestamp));
+            }
+
             $._redeemableDelegatorRewards[delegationID] = _calculateDelegationReward(delegator);
 
             _completeEndDelegation(delegationID);
@@ -689,6 +695,11 @@ abstract contract PoSValidatorManager is
         // callable after that has been done.
         if (delegator.status != DelegatorStatus.PendingRemoved) {
             revert InvalidDelegatorStatus(delegator.status);
+        }
+
+        // Check that minimum stake duration has passed.
+        if (block.timestamp < delegator.startedAt + $._minimumStakeDuration) {
+            revert MinStakeDurationNotPassed(uint64(block.timestamp));
         }
 
         if (getValidator(delegator.validationID).status != ValidatorStatus.Completed) {
