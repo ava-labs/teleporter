@@ -28,9 +28,7 @@ contract ExampleRewardCalculatorTest is Test {
             validatorStartTime: DEFAULT_START_TIME,
             stakingStartTime: DEFAULT_START_TIME,
             stakingEndTime: DEFAULT_END_TIME,
-            uptimeSeconds: DEFAULT_UPTIME,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_UPTIME
         });
         assertEq(output, 42e8);
     }
@@ -41,9 +39,7 @@ contract ExampleRewardCalculatorTest is Test {
             validatorStartTime: DEFAULT_START_TIME,
             stakingStartTime: DEFAULT_START_TIME,
             stakingEndTime: DEFAULT_END_TIME,
-            uptimeSeconds: DEFAULT_UPTIME - 1,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_UPTIME - 1
         });
         assertEq(output, 0);
     }

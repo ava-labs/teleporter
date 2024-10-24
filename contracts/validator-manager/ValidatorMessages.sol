@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Ecosystem
 pragma solidity 0.8.25;
 
-import {SubnetConversionData, PChainOwner} from "./interfaces/IValidatorManager.sol";
+import {PChainOwner, SubnetConversionData} from "./interfaces/IValidatorManager.sol";
 
 /**
  * @dev Packing utilities for the Warp message types used by the Validator Manager contracts, as specified in ACP-77:
@@ -79,7 +79,7 @@ library ValidatorMessages {
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
-     * @return the unpacked subnetConversionID.
+     * @return The unpacked subnetConversionID.
      */
     function unpackSubnetConversionMessage(bytes memory input) internal pure returns (bytes32) {
         if (input.length != 38) {
@@ -166,7 +166,7 @@ library ValidatorMessages {
         // The approach below of encoding initialValidators using `abi.encodePacked` in a loop
         // was tested against pre-allocating the array and doing manual byte by byte packing and
         // it was found to be more gas efficient.
-        for (uint256 i = 0; i < subnetConversionData.initialValidators.length; i++) {
+        for (uint256 i; i < subnetConversionData.initialValidators.length; ++i) {
             res = abi.encodePacked(
                 res,
                 uint32(subnetConversionData.initialValidators[i].nodeID.length),
@@ -196,9 +196,9 @@ library ValidatorMessages {
      * +-----------------------+-------------+--------------------------------------------------------------------+
      * |                expiry :      uint64 |                                                            8 bytes |
      * +-----------------------+-------------+--------------------------------------------------------------------+
-     * | remainingBalanceOwner : PChainOwner |                                      4 + len(addresses) * 20 bytes |
+     * | remainingBalanceOwner : PChainOwner |                                      8 + len(addresses) * 20 bytes |
      * +-----------------------+-------------+--------------------------------------------------------------------+
-     * |          disableOwner : PChainOwner |                                      4 + len(addresses) * 20 bytes |
+     * |          disableOwner : PChainOwner |                                      8 + len(addresses) * 20 bytes |
      * +-----------------------+-------------+--------------------------------------------------------------------+
      * |                weight :      uint64 |                                                            8 bytes |
      * +-----------------------+-------------+--------------------------------------------------------------------+
@@ -238,7 +238,7 @@ library ValidatorMessages {
             validationPeriod.remainingBalanceOwner.threshold,
             uint32(validationPeriod.remainingBalanceOwner.addresses.length)
         );
-        for (uint256 i = 0; i < validationPeriod.remainingBalanceOwner.addresses.length; i++) {
+        for (uint256 i; i < validationPeriod.remainingBalanceOwner.addresses.length; ++i) {
             res = abi.encodePacked(res, validationPeriod.remainingBalanceOwner.addresses[i]);
         }
         res = abi.encodePacked(
@@ -246,7 +246,7 @@ library ValidatorMessages {
             validationPeriod.disableOwner.threshold,
             uint32(validationPeriod.disableOwner.addresses.length)
         );
-        for (uint256 i = 0; i < validationPeriod.disableOwner.addresses.length; i++) {
+        for (uint256 i; i < validationPeriod.disableOwner.addresses.length; ++i) {
             res = abi.encodePacked(res, validationPeriod.disableOwner.addresses[i]);
         }
         res = abi.encodePacked(res, validationPeriod.weight);
@@ -259,7 +259,7 @@ library ValidatorMessages {
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
-     * @return the unpacked ValidationPeriod.
+     * @return The unpacked ValidationPeriod.
      */
     function unpackRegisterSubnetValidatorMessage(bytes memory input)
         internal
@@ -466,8 +466,8 @@ library ValidatorMessages {
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
-     * @return The validationID and whether the validation period was registered
-     * or is not a validator and never will be a validator to do the expiry time passing.
+     * @return The validationID and whether the validation period was registered or is not a
+     * validator and never will be a validator due to the expiry time passing.
      */
     function unpackSubnetValidatorRegistrationMessage(bytes memory input)
         internal

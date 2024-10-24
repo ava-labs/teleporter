@@ -51,6 +51,7 @@ const (
 	DefaultMaxStakeMultiplier      uint8  = 4
 	DefaultMaxChurnPercentage      uint8  = 20
 	DefaultChurnPeriodSeconds      uint64 = 1
+	DefaultWeightToValueFactor     uint64 = 1e12
 	DefaultPChainAddress           string = "P-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u00z96u"
 )
 
@@ -110,6 +111,7 @@ func DeployAndInitializeNativeTokenStakingManager(
 			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
 			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
 			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
+			WeightToValueFactor:      big.NewInt(0).SetUint64(DefaultWeightToValueFactor),
 			RewardCalculator:         rewardCalculatorAddress,
 		},
 	)
@@ -178,6 +180,7 @@ func DeployAndInitializeERC20TokenStakingManager(
 			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
 			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
 			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
+			WeightToValueFactor:      big.NewInt(0).SetUint64(DefaultWeightToValueFactor),
 			RewardCalculator:         rewardCalculatorAddress,
 		},
 		erc20Address,

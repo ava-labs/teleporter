@@ -34,6 +34,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     uint16 public constant DEFAULT_MINIMUM_DELEGATION_FEE_BIPS = 100;
     uint16 public constant DEFAULT_DELEGATION_FEE_BIPS = 150;
     uint8 public constant DEFAULT_MAXIMUM_STAKE_MULTIPLIER = 4;
+    uint256 public constant DEFAULT_WEIGHT_TO_VALUE_FACTOR = 1e12;
     uint256 public constant SECONDS_IN_YEAR = 31536000;
 
     PoSValidatorManager public posValidatorManager;
@@ -439,6 +440,26 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
     }
 
+    function testInitializeEndDelegationMinStakeDurationNotPassed() public {
+        bytes32 validationID = _registerDefaultValidator();
+        bytes32 delegationID = _registerDefaultDelegator(validationID);
+
+        uint64 invalidEndTime =
+            DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION - 1;
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.MinStakeDurationNotPassed.selector, invalidEndTime
+            )
+        );
+        _initializeEndDelegation({
+            sender: DEFAULT_DELEGATOR_ADDRESS,
+            delegationID: delegationID,
+            endDelegationTimestamp: invalidEndTime,
+            includeUptime: false,
+            force: false
+        });
+    }
+
     function testInitializeEndDelegationInsufficientUptime() public {
         bytes32 validationID = _registerDefaultValidator();
         bytes32 delegationID = _registerDefaultDelegator(validationID);
@@ -546,9 +567,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         _completeEndDelegationWithChecks({
@@ -678,9 +697,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: validationEndTime - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: validationEndTime - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         _completeEndDelegationWithChecks({
@@ -750,9 +767,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_COMPLETION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         uint256 expectedValidatorFees = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
@@ -803,9 +818,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         uint256 expectedValidatorFees = expectedTotalReward * DEFAULT_DELEGATION_FEE_BIPS / 10000;
@@ -944,9 +957,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         // Complete delegation1 by delivering the weight update from nonce 4 (delegator2's nonce)
@@ -979,9 +990,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_COMPLETION_TIMESTAMP,
-            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         });
 
         _completeEndValidationWithChecks({
@@ -1117,6 +1126,22 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
 
         _forceInitializeEndValidation(validationID, true);
+    }
+
+    function testValueToWeightTruncated() public {
+        // default weightToValueFactor is 1e12
+        vm.expectRevert(
+            abi.encodeWithSelector(PoSValidatorManager.InvalidStakeAmount.selector, 1e11)
+        );
+        posValidatorManager.valueToWeight(1e11);
+    }
+
+    function testValueToWeightExceedsUInt64Max() public {
+        // default weightToValueFactor is 1e12
+        vm.expectRevert(
+            abi.encodeWithSelector(PoSValidatorManager.InvalidStakeAmount.selector, 1e40)
+        );
+        posValidatorManager.valueToWeight(1e40);
     }
 
     function testValueToWeight() public view {
@@ -1422,9 +1447,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validatorStartTime: completeRegistrationTimestamp,
             stakingStartTime: completeRegistrationTimestamp,
             stakingEndTime: completionTimestamp,
-            uptimeSeconds: completionTimestamp - completeRegistrationTimestamp,
-            initialSupply: 0,
-            endSupply: 0
+            uptimeSeconds: completionTimestamp - completeRegistrationTimestamp
         });
 
         _completeEndValidationWithChecks({
