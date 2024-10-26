@@ -180,15 +180,14 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             // Save the initial validator as an active validator.
 
             $._registeredValidators[initialValidator.nodeID] = validationID;
-            $._validationPeriods[validationID] = Validator({
-                status: ValidatorStatus.Active,
-                nodeID: initialValidator.nodeID,
-                startingWeight: initialValidator.weight,
-                messageNonce: 0,
-                weight: initialValidator.weight,
-                startedAt: uint64(block.timestamp),
-                endedAt: 0
-            });
+            // Efficient Assignment
+            $._validationPeriods[validationID].status = ValidatorStatus.Active;
+            $._validationPeriods[validationID].nodeID = initialValidator.nodeID;
+            $._validationPeriods[validationID].startingWeight = initialValidator.weight;
+            $._validationPeriods[validationID].messageNonce = 0;
+            $._validationPeriods[validationID].weight = initialValidator.weight;
+            $._validationPeriods[validationID].startedAt = uint64(block.timestamp);
+            $._validationPeriods[validationID].endedAt = 0;
             totalWeight += initialValidator.weight;
 
             emit InitialValidatorCreated(
@@ -290,15 +289,14 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerSubnetValidatorMessage);
-        $._validationPeriods[validationID] = Validator({
-            status: ValidatorStatus.PendingAdded,
-            nodeID: input.nodeID,
-            startingWeight: weight,
-            messageNonce: 0,
-            weight: weight,
-            startedAt: 0, // The validation period only starts once the registration is acknowledged.
-            endedAt: 0
-        });
+        // Efficient Assignment
+        $._validationPeriods[validationID].status = ValidatorStatus.PendingAdded;
+        $._validationPeriods[validationID].nodeID = input.nodeID;
+        $._validationPeriods[validationID].startingWeight = weight;
+        $._validationPeriods[validationID].messageNonce = 0;
+        $._validationPeriods[validationID].weight = weight;
+        $._validationPeriods[validationID].startedAt = 0; // The validation period only starts once the registration is acknowledged.
+        $._validationPeriods[validationID].endedAt = 0;
 
         emit ValidationPeriodCreated(
             validationID, input.nodeID, messageID, weight, input.registrationExpiry

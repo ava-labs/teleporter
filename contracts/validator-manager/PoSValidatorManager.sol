@@ -36,8 +36,7 @@ abstract contract PoSValidatorManager is
     ReentrancyGuardUpgradeable
 {
     // solhint-disable private-vars-leading-underscore
-    /// @custom:storage-location erc7201:avalanche-icm.storage.PoSValidatorManager
-    struct PoSValidatorManagerStorage {
+    struct PoSValidatorManagerConfig{
         /// @notice The minimum amount of stake required to be a validator.
         uint256 _minimumStakeAmount;
         /// @notice The maximum amount of stake allowed to be a validator.
@@ -57,6 +56,12 @@ abstract contract PoSValidatorManager is
         uint256 _weightToValueFactor;
         /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
+    }
+
+    /// @custom:storage-location erc7201:avalanche-icm.storage.PoSValidatorManager
+    struct PoSValidatorManagerStorage {
+        /// @dev Using Struct for optimal assignment
+        PoSValidatorManagerConfig config;
         /// @notice Maps the validation ID to its requirements.
         mapping(bytes32 validationID => PoSValidatorInfo) _posValidatorInfo;
         /// @notice Maps the delegation ID to the delegator information.
@@ -152,14 +157,16 @@ abstract contract PoSValidatorManager is
         if (weightToValueFactor == 0) {
             revert ZeroWeightToValueFactor();
         }
-
-        $._minimumStakeAmount = minimumStakeAmount;
-        $._maximumStakeAmount = maximumStakeAmount;
-        $._minimumStakeDuration = minimumStakeDuration;
-        $._minimumDelegationFeeBips = minimumDelegationFeeBips;
-        $._maximumStakeMultiplier = maximumStakeMultiplier;
-        $._weightToValueFactor = weightToValueFactor;
-        $._rewardCalculator = rewardCalculator;
+        // Efficient Assignment
+        $.config = PoSValidatorManagerConfig({
+            _minimumStakeAmount : minimumStakeAmount,
+            _maximumStakeAmount : maximumStakeAmount,
+            _minimumStakeDuration : minimumStakeDuration,
+            _minimumDelegationFeeBips : minimumDelegationFeeBips,
+            _maximumStakeMultiplier : maximumStakeMultiplier,
+            _weightToValueFactor : weightToValueFactor,
+            _rewardCalculator : rewardCalculator
+        });
     }
 
     /**
@@ -263,7 +270,7 @@ abstract contract PoSValidatorManager is
             uptimeSeconds = $._posValidatorInfo[validationID].uptimeSeconds;
         }
 
-        uint256 reward = $._rewardCalculator.calculateReward({
+        uint256 reward = $.config._rewardCalculator.calculateReward({
             stakeAmount: weightToValue(validator.startingWeight),
             validatorStartTime: validator.startedAt,
             stakingStartTime: validator.startedAt,
@@ -344,18 +351,18 @@ abstract contract PoSValidatorManager is
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         // Validate and save the validator requirements
         if (
-            delegationFeeBips < $._minimumDelegationFeeBips
+            delegationFeeBips < $.config._minimumDelegationFeeBips
                 || delegationFeeBips > MAXIMUM_DELEGATION_FEE_BIPS
         ) {
             revert InvalidDelegationFee(delegationFeeBips);
         }
 
-        if (minStakeDuration < $._minimumStakeDuration) {
+        if (minStakeDuration < $.config._minimumStakeDuration) {
             revert InvalidMinStakeDuration(minStakeDuration);
         }
 
         // Ensure the weight is within the valid range.
-        if (stakeAmount < $._minimumStakeAmount || stakeAmount > $._maximumStakeAmount) {
+        if (stakeAmount < $.config._minimumStakeAmount || stakeAmount > $.config._maximumStakeAmount) {
             revert InvalidStakeAmount(stakeAmount);
         }
 
@@ -365,12 +372,11 @@ abstract contract PoSValidatorManager is
         uint64 weight = valueToWeight(lockedValue);
         bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
 
-        $._posValidatorInfo[validationID] = PoSValidatorInfo({
-            owner: _msgSender(),
-            delegationFeeBips: delegationFeeBips,
-            minStakeDuration: minStakeDuration,
-            uptimeSeconds: 0
-        });
+        // Efficient Assignment
+        $._posValidatorInfo[validationID].owner= _msgSender();
+        $._posValidatorInfo[validationID].delegationFeeBips= delegationFeeBips;
+        $._posValidatorInfo[validationID].minStakeDuration= minStakeDuration;
+        $._posValidatorInfo[validationID].uptimeSeconds= 0;
         return validationID;
     }
 
@@ -379,7 +385,7 @@ abstract contract PoSValidatorManager is
      * @param value Token value to convert.
      */
     function valueToWeight(uint256 value) public view returns (uint64) {
-        uint256 weight = value / _getPoSValidatorManagerStorage()._weightToValueFactor;
+        uint256 weight = value / _getPoSValidatorManagerStorage().config._weightToValueFactor;
         if (weight == 0 || weight > type(uint64).max) {
             revert InvalidStakeAmount(value);
         }
@@ -391,7 +397,7 @@ abstract contract PoSValidatorManager is
      * @param weight weight to convert.
      */
     function weightToValue(uint64 weight) public view returns (uint256) {
-        return uint256(weight) * _getPoSValidatorManagerStorage()._weightToValueFactor;
+        return uint256(weight) * _getPoSValidatorManagerStorage().config._weightToValueFactor;
     }
 
     /**
@@ -427,7 +433,7 @@ abstract contract PoSValidatorManager is
 
         // Update the validator weight
         uint64 newValidatorWeight = validator.weight + weight;
-        if (newValidatorWeight > validator.startingWeight * $._maximumStakeMultiplier) {
+        if (newValidatorWeight > validator.startingWeight * $.config._maximumStakeMultiplier) {
             revert MaxWeightExceeded(newValidatorWeight);
         }
 
@@ -438,15 +444,14 @@ abstract contract PoSValidatorManager is
         // Store the delegation information. Set the delegator status to pending added,
         // so that it can be properly started in the complete step, even if the delivered
         // nonce is greater than the nonce used to initialize registration.
-        $._delegatorStakes[delegationID] = Delegator({
-            status: DelegatorStatus.PendingAdded,
-            owner: delegatorAddress,
-            validationID: validationID,
-            weight: weight,
-            startedAt: 0,
-            startingNonce: nonce,
-            endingNonce: 0
-        });
+        // Efficient Assignment
+        $._delegatorStakes[delegationID].status = DelegatorStatus.PendingAdded;
+        $._delegatorStakes[delegationID].owner = delegatorAddress;
+        $._delegatorStakes[delegationID].validationID = validationID;
+        $._delegatorStakes[delegationID].weight = weight;
+        $._delegatorStakes[delegationID].startedAt = 0;
+        $._delegatorStakes[delegationID].startingNonce = nonce;
+        $._delegatorStakes[delegationID].endingNonce = 0;
 
         emit DelegatorAdded({
             delegationID: delegationID,
@@ -573,7 +578,7 @@ abstract contract PoSValidatorManager is
 
         if (validator.status == ValidatorStatus.Active) {
             // Check that minimum stake duration has passed.
-            if (block.timestamp < delegator.startedAt + $._minimumStakeDuration) {
+            if (block.timestamp < delegator.startedAt + $.config._minimumStakeDuration) {
                 revert MinStakeDurationNotPassed(uint64(block.timestamp));
             }
 
@@ -637,7 +642,7 @@ abstract contract PoSValidatorManager is
             return 0;
         }
 
-        return $._rewardCalculator.calculateReward({
+        return $.config._rewardCalculator.calculateReward({
             stakeAmount: weightToValue(delegator.weight),
             validatorStartTime: validator.startedAt,
             stakingStartTime: delegator.startedAt,
