@@ -36,7 +36,7 @@ abstract contract PoSValidatorManager is
     ReentrancyGuardUpgradeable
 {
     // solhint-disable private-vars-leading-underscore
-    struct PoSValidatorManagerConfig{
+    struct PoSValidatorManagerConfig {
         /// @notice The minimum amount of stake required to be a validator.
         uint256 _minimumStakeAmount;
         /// @notice The maximum amount of stake allowed to be a validator.
@@ -159,13 +159,13 @@ abstract contract PoSValidatorManager is
         }
         // Efficient Assignment
         $.config = PoSValidatorManagerConfig({
-            _minimumStakeAmount : minimumStakeAmount,
-            _maximumStakeAmount : maximumStakeAmount,
-            _minimumStakeDuration : minimumStakeDuration,
-            _minimumDelegationFeeBips : minimumDelegationFeeBips,
-            _maximumStakeMultiplier : maximumStakeMultiplier,
-            _weightToValueFactor : weightToValueFactor,
-            _rewardCalculator : rewardCalculator
+            _minimumStakeAmount: minimumStakeAmount,
+            _maximumStakeAmount: maximumStakeAmount,
+            _minimumStakeDuration: minimumStakeDuration,
+            _minimumDelegationFeeBips: minimumDelegationFeeBips,
+            _maximumStakeMultiplier: maximumStakeMultiplier,
+            _weightToValueFactor: weightToValueFactor,
+            _rewardCalculator: rewardCalculator
         });
     }
 
@@ -362,7 +362,9 @@ abstract contract PoSValidatorManager is
         }
 
         // Ensure the weight is within the valid range.
-        if (stakeAmount < $.config._minimumStakeAmount || stakeAmount > $.config._maximumStakeAmount) {
+        if (
+            stakeAmount < $.config._minimumStakeAmount || stakeAmount > $.config._maximumStakeAmount
+        ) {
             revert InvalidStakeAmount(stakeAmount);
         }
 
@@ -373,10 +375,10 @@ abstract contract PoSValidatorManager is
         bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
 
         // Efficient Assignment
-        $._posValidatorInfo[validationID].owner= _msgSender();
-        $._posValidatorInfo[validationID].delegationFeeBips= delegationFeeBips;
-        $._posValidatorInfo[validationID].minStakeDuration= minStakeDuration;
-        $._posValidatorInfo[validationID].uptimeSeconds= 0;
+        $._posValidatorInfo[validationID].owner = _msgSender();
+        $._posValidatorInfo[validationID].delegationFeeBips = delegationFeeBips;
+        $._posValidatorInfo[validationID].minStakeDuration = minStakeDuration;
+        $._posValidatorInfo[validationID].uptimeSeconds = 0;
         return validationID;
     }
 
