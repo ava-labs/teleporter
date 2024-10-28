@@ -3,12 +3,12 @@ module github.com/ava-labs/teleporter
 go 1.22.8
 
 require (
-	github.com/ava-labs/avalanchego v1.11.11
+	github.com/ava-labs/avalanchego v1.11.12
 	github.com/supranational/blst v0.3.11 // indirect
 )
 
 require (
-	github.com/ava-labs/subnet-evm v0.6.9
+	github.com/ava-labs/subnet-evm v0.6.11
 	github.com/ethereum/go-ethereum v1.13.14
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
@@ -23,7 +23,7 @@ require (
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.1 // indirect
-	github.com/ava-labs/coreth v0.13.8-fixed-genesis-upgrade.0.20240815193440-a96bc921e732 // indirect
+	github.com/ava-labs/coreth v0.13.8 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.10.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
@@ -67,7 +67,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/rpc v1.2.0 // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/hashicorp/go-bexpr v0.1.10 // indirect
