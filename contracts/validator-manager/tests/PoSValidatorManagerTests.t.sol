@@ -294,7 +294,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             expectedValidatorWeight: DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
             expectedNonce: 1
         });
-        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packL1ValidatorWeightMessage(
             validationID, 1, DEFAULT_WEIGHT + DEFAULT_DELEGATOR_WEIGHT
         );
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
@@ -334,7 +334,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         // Complete registration of delegator2 with delegator1's nonce
         // Note that registering delegator1 with delegator2's nonce is valid
         uint64 nonce = 1;
-        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packL1ValidatorWeightMessage(
             validationID, nonce, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
@@ -565,7 +565,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             force: false
         });
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 2, DEFAULT_WEIGHT);
+            ValidatorMessages.packL1ValidatorWeightMessage(validationID, 2, DEFAULT_WEIGHT);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         posValidatorManager.resendUpdateDelegation(delegationID);
     }
@@ -582,7 +582,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
 
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
+            ValidatorMessages.packL1ValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         validatorManager.resendEndValidatorMessage(validationID);
     }
@@ -934,7 +934,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         // Complete ending delegator2 with delegator1's nonce
         // Note that ending delegator1 with delegator2's nonce is valid
         uint64 nonce = 3;
-        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packL1ValidatorWeightMessage(
             validationID, nonce, DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
@@ -1059,7 +1059,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
+            ValidatorMessages.packL1ValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
 
         // Submit an uptime proof via submitUptime
@@ -1099,7 +1099,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
+            ValidatorMessages.packL1ValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
 
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
@@ -1123,7 +1123,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSubnetValidatorWeightMessage(defaultInitialValidationID, 1, 0);
+            ValidatorMessages.packL1ValidatorWeightMessage(defaultInitialValidationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidatorRemovalInitialized(
@@ -1151,7 +1151,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
         bytes memory setValidatorWeightPayload =
-            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, 1, 0);
+            ValidatorMessages.packL1ValidatorWeightMessage(validationID, 1, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
 
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
@@ -1250,7 +1250,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 expectedValidatorWeight,
         uint64 expectedNonce
     ) internal returns (bytes32) {
-        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packL1ValidatorWeightMessage(
             validationID, expectedNonce, expectedValidatorWeight
         );
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
@@ -1279,7 +1279,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 expectedValidatorWeight,
         uint64 expectedNonce
     ) internal {
-        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packL1ValidatorWeightMessage(
             validationID, expectedNonce, expectedValidatorWeight
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
@@ -1425,7 +1425,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bool includeUptime,
         bool force
     ) internal {
-        bytes memory setValidatorWeightPayload = ValidatorMessages.packSubnetValidatorWeightMessage(
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packL1ValidatorWeightMessage(
             validationID, expectedNonce, expectedValidatorWeight
         );
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
@@ -1522,7 +1522,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     function _completeEndValidation(bytes32 validationID) internal {
         bytes memory subnetValidatorRegistrationMessage =
-            ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
+            ValidatorMessages.packL1ValidatorRegistrationMessage(validationID, false);
         _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
 
         posValidatorManager.completeEndValidation(0);
@@ -1566,7 +1566,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 validatorWeight,
         uint64 expectedNonce
     ) internal {
-        bytes memory weightUpdateMessage = ValidatorMessages.packSubnetValidatorWeightMessage(
+        bytes memory weightUpdateMessage = ValidatorMessages.packL1ValidatorWeightMessage(
             validationID, expectedNonce, validatorWeight
         );
         _mockGetPChainWarpMessage(weightUpdateMessage, true);

@@ -485,7 +485,7 @@ abstract contract PoSValidatorManager is
 
         // Unpack the Warp message
         (bytes32 messageValidationID, uint64 nonce,) = ValidatorMessages
-            .unpackSubnetValidatorWeightMessage(_getPChainWarpMessage(messageIndex).payload);
+            .unpackL1ValidatorWeightMessage(_getPChainWarpMessage(messageIndex).payload);
 
         if (validationID != messageValidationID) {
             revert InvalidValidationID(delegator.validationID);
@@ -668,7 +668,7 @@ abstract contract PoSValidatorManager is
 
         // Submit the message to the Warp precompile.
         WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSubnetValidatorWeightMessage(
+            ValidatorMessages.packL1ValidatorWeightMessage(
                 delegator.validationID, validator.messageNonce, validator.weight
             )
         );
@@ -695,7 +695,7 @@ abstract contract PoSValidatorManager is
             // Unpack the Warp message
             WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
             (bytes32 validationID, uint64 nonce,) =
-                ValidatorMessages.unpackSubnetValidatorWeightMessage(warpMessage.payload);
+                ValidatorMessages.unpackL1ValidatorWeightMessage(warpMessage.payload);
 
             if (delegator.validationID != validationID) {
                 revert InvalidValidationID(validationID);
