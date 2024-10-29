@@ -2,7 +2,9 @@ package staking
 
 import (
 	"context"
+	"log"
 	"math/big"
+	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
@@ -44,7 +46,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		cChainInfo.NodeURIs[0],
 		[]ids.ID{
 			subnetAInfo.SubnetID,
-			ids.Empty, // Primary network subnet ID
 		},
 	)
 
@@ -55,7 +56,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 
 	// Transfer native assets to the owner account
 	ctx := context.Background()
-	fundAmount := big.NewInt(1e18) // 1avax
+	fundAmount := big.NewInt(1e18) // 10avax
+	fundAmount.Mul(fundAmount, big.NewInt(10))
 	utils.SendNativeTransfer(
 		ctx,
 		subnetAInfo,
@@ -97,7 +99,17 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 	utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
 
-	_ = utils.InitializePoAValidatorSet(
+	nodes := utils.ConvertSubnet(
+		ctx,
+		subnetAInfo,
+		network,
+		proxyAddress,
+		fundedKey,
+	)
+
+	// Initialize the validator set on the subnet
+	log.Println("Initializing validator set")
+	initialValidationIDs := utils.InitializePoAValidatorSet(
 		ctx,
 		fundedKey,
 		subnetAInfo,
@@ -106,11 +118,46 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		proxyAddress,
 		network,
 		signatureAggregator,
-		utils.DefaultMinStakeAmount*10,
+		nodes,
 	)
 
-	// Register a validator
-	poaWeight := uint64(1)
+	//
+	// Delist one initial validator
+	//
+	utils.InitializeAndCompleteEndInitialPoAValidation(
+		ctx,
+		network,
+		signatureAggregator,
+		ownerKey,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		poaValidatorManager,
+		proxyAddress,
+		initialValidationIDs[0],
+		0,
+		nodes[0].Weight,
+	)
+
+	// Try to call with invalid owner
+	opts, err = bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
+	Expect(err).Should(BeNil())
+
+	_, err = poaValidatorManager.InitializeValidatorRegistration(
+		opts,
+		poavalidatormanager.ValidatorRegistrationInput{
+			NodeID:             nodes[0].NodeID[:],
+			RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
+			BlsPublicKey:       nodes[0].NodePoP.PublicKey[:],
+		},
+		nodes[0].Weight,
+	)
+	Expect(err).ShouldNot(BeNil())
+
+	//
+	// Re-register the validator as a SoV validator
+	//
+	expiry := uint64(time.Now().Add(24 * time.Hour).Unix())
 	poaValidationID := utils.InitializeAndCompletePoAValidatorRegistration(
 		ctx,
 		network,
@@ -121,7 +168,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		pChainInfo,
 		poaValidatorManager,
 		proxyAddress,
-		poaWeight,
+		expiry,
+		nodes[0],
 	)
 	poaValidator, err := poaValidatorManager.GetValidator(&bind.CallOpts{}, poaValidationID)
 	Expect(err).Should(BeNil())
@@ -174,6 +222,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 			MinimumStakeDuration:     utils.DefaultMinStakeDurationSeconds,
 			MinimumDelegationFeeBips: utils.DefaultMinDelegateFeeBips,
 			MaximumStakeMultiplier:   utils.DefaultMaxStakeMultiplier,
+			WeightToValueFactor:      big.NewInt(0).SetUint64(utils.DefaultWeightToValueFactor),
 			RewardCalculator:         rewardCalculatorAddress,
 		},
 	)
@@ -185,27 +234,10 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 	Expect(validationID[:]).Should(Equal(poaValidationID[:]))
 
-	// Register a PoS validator
-	stakeAmount := big.NewInt(1e18)
-	posWeight, err := posValidatorManager.ValueToWeight(
-		&bind.CallOpts{},
-		stakeAmount,
-	)
-	Expect(err).Should(BeNil())
+	//
+	// Remove the PoA validator and re-register as a PoS validator
+	//
 
-	posValidationID := utils.InitializeAndCompleteNativeValidatorRegistration(
-		ctx,
-		network,
-		signatureAggregator,
-		fundedKey,
-		subnetAInfo,
-		pChainInfo,
-		posValidatorManager,
-		proxyAddress,
-		stakeAmount,
-	)
-
-	// Delist the previous PoA validator
 	utils.InitializeAndCompleteEndNativeValidation(
 		ctx,
 		network,
@@ -216,8 +248,23 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		posValidatorManager,
 		proxyAddress,
 		poaValidationID,
-		poaWeight,
+		expiry,
+		nodes[0],
 		1,
+	)
+
+	expiry2 := uint64(time.Now().Add(24 * time.Hour).Unix())
+	posValidationID := utils.InitializeAndCompleteNativeValidatorRegistration(
+		ctx,
+		network,
+		signatureAggregator,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		posValidatorManager,
+		proxyAddress,
+		expiry2,
+		nodes[0],
 	)
 
 	// Delist the PoS validator
@@ -231,7 +278,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		posValidatorManager,
 		proxyAddress,
 		posValidationID,
-		posWeight,
+		expiry2,
+		nodes[0],
 		1,
 	)
 }

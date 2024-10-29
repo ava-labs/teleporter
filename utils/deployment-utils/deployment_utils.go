@@ -126,8 +126,6 @@ func ConstructKeylessTransaction(
 	contractAddress := crypto.CreateAddress(senderAddress, 0)
 	contractAddressString := contractAddress.Hex() // "0x" prepended by Hex() already.
 
-	log.Println("Raw Teleporter Contract Creation Transaction:")
-	log.Println(contractCreationTxString)
 	log.Println("Teleporter Contract Keyless Deployer Address: ", senderAddressString)
 	log.Println("Teleporter Messenger Universal Contract Address: ", contractAddressString)
 
