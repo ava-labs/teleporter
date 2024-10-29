@@ -11,7 +11,8 @@ import {ValidatorMessages} from "../ValidatorMessages.sol";
 import {
     ValidatorStatus,
     ValidatorRegistrationInput,
-    PChainOwner
+    PChainOwner,
+    IValidatorManager
 } from "../interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
@@ -280,6 +281,34 @@ abstract contract ValidatorManagerTest is Test {
         emit ValidationPeriodEnded(validationID, ValidatorStatus.Invalidated);
 
         validatorManager.completeEndValidation(0);
+    }
+
+    function testInitialWeightsTooLow() public {
+        vm.prank(address(123));
+        IValidatorManager manager = _setUp();
+
+        _mockGetBlockchainID();
+        vm.expectRevert(abi.encodeWithSelector(ValidatorManager.InvalidTotalWeight.selector, 4));
+        manager.initializeValidatorSet(_defaultSubnetConversionDataWeightsTooLow(), 0);
+    }
+
+    function testRemoveValidatorTotalWeight5() public {
+        // Use prank here, because otherwise each test will end up with a different contract address, leading to a different subnet conversion hash.
+        vm.prank(address(123));
+        IValidatorManager manager = _setUp();
+
+        _mockGetBlockchainID();
+        _mockGetPChainWarpMessage(
+            ValidatorMessages.packSubnetConversionMessage(
+                bytes32(hex"1d72565851401e05d6351ebf5443d9bdc04953f3233da1345af126e7e4be7464")
+            ),
+            true
+        );
+        manager.initializeValidatorSet(_defaultSubnetConversionDataTotalWeight5(), 0);
+
+        bytes32 validationID = sha256(abi.encodePacked(DEFAULT_SUBNET_ID, uint32(0)));
+        vm.expectRevert(abi.encodeWithSelector(ValidatorManager.InvalidTotalWeight.selector, 4));
+        _forceInitializeEndValidation(validationID, false);
     }
 
     function testCumulativeChurnRegistration() public {
@@ -558,6 +587,8 @@ abstract contract ValidatorManagerTest is Test {
         bool includeUptime
     ) internal virtual;
 
+    function _setUp() internal virtual returns (IValidatorManager);
+
     function _beforeSend(uint256 amount, address spender) internal virtual;
 
     function _defaultSubnetConversionData() internal view returns (SubnetConversionData memory) {
@@ -583,14 +614,66 @@ abstract contract ValidatorManagerTest is Test {
         });
     }
 
-    // TODO this needs to be kept in line with the contract conversions, but we can't make external calls
+    function _defaultSubnetConversionDataWeightsTooLow()
+        internal
+        view
+        returns (SubnetConversionData memory)
+    {
+        InitialValidator[] memory initialValidators = new InitialValidator[](2);
+
+        initialValidators[0] = InitialValidator({
+            nodeID: DEFAULT_INITIAL_VALIDATOR_NODE_ID_1,
+            weight: 1,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+        });
+        initialValidators[1] = InitialValidator({
+            nodeID: DEFAULT_INITIAL_VALIDATOR_NODE_ID_2,
+            weight: 3,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+        });
+
+        return SubnetConversionData({
+            subnetID: DEFAULT_SUBNET_ID,
+            validatorManagerBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            validatorManagerAddress: address(validatorManager),
+            initialValidators: initialValidators
+        });
+    }
+
+    function _defaultSubnetConversionDataTotalWeight5()
+        internal
+        view
+        returns (SubnetConversionData memory)
+    {
+        InitialValidator[] memory initialValidators = new InitialValidator[](2);
+
+        initialValidators[0] = InitialValidator({
+            nodeID: DEFAULT_INITIAL_VALIDATOR_NODE_ID_1,
+            weight: 1,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+        });
+        initialValidators[1] = InitialValidator({
+            nodeID: DEFAULT_INITIAL_VALIDATOR_NODE_ID_2,
+            weight: 4,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
+        });
+
+        return SubnetConversionData({
+            subnetID: DEFAULT_SUBNET_ID,
+            validatorManagerBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            validatorManagerAddress: address(validatorManager),
+            initialValidators: initialValidators
+        });
+    }
+
+    // This needs to be kept in line with the contract conversions, but we can't make external calls
     // to the contract and use vm.expectRevert at the same time.
     // These are okay to use for PoA as well, because they're just used for conversions inside the tests.
     function _valueToWeight(uint256 value) internal pure returns (uint64) {
         return uint64(value / 1e12);
     }
 
-    // TODO this needs to be kept in line with the contract conversions, but we can't make external calls
+    // This needs to be kept in line with the contract conversions, but we can't make external calls
     // to the contract and use vm.expectRevert at the same time.
     // These are okay to use for PoA as well, because they're just used for conversions inside the tests.
     function _weightToValue(uint64 weight) internal pure returns (uint256) {

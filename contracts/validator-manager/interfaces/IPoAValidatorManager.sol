@@ -24,8 +24,7 @@ interface IPoAValidatorManager is IValidatorManager {
     /**
      * @notice Begins the process of ending an active validation period. The validation period must have been previously
      * started by a successful call to {completeValidatorRegistration} with the given validationID.
-     * Any rewards for this validation period will stop accruing when this function is called.
-     * @param validationID The ID of the validation being ended.
+     * @param validationID The ID of the validation period being ended.
      */
     function initializeEndValidation(bytes32 validationID) external;
 }

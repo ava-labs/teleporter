@@ -96,8 +96,8 @@ struct ValidatorRegistrationInput {
  */
 interface IValidatorManager {
     /**
-     * @notice Emitted when a new validation period is created by stake being locked in the manager contract.
-     * Note that this event does not mean that the validation period has been successfully registered on the P-Chain,
+     * @notice Emitted when a new validation period is created by locking stake in the manager contract.
+     * Note: This event does not mean that the validation period has been successfully registered on the P-Chain,
      * and rewards for this validation period will not begin accruing until the {ValidationPeriodRegistered} event is
      * emitted.
      * @param validationID The ID of the validation period being created.
@@ -132,8 +132,8 @@ interface IValidatorManager {
 
     /**
      * @notice Emitted when the process of ending a registered validation period is started by calling
-     * {initializeEndValidation}. Note that the stake for this validation period remains locked until
-     * a {ValidationPeriodRemoved} event is emitted.
+     * {initializeEndValidation}.
+     * Note: The stake for this validation period remains locked until a {ValidationPeriodRemoved} event is emitted.
      * @param validationID The ID of the validation period being removed.
      * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain.
      * @param weight The weight of the validator being removed.
@@ -156,7 +156,7 @@ interface IValidatorManager {
 
     /**
      * @notice Event emitted when validator weight is updated.
-     * @param validationID The ID of the validation period
+     * @param validationID The ID of the validation period being updated
      * @param nonce The message nonce used to update the validator weight
      * @param validatorWeight The updated validator weight that is sent to the P-Chain
      * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
@@ -203,9 +203,9 @@ interface IValidatorManager {
     /**
      * @notice Completes the process of ending a validation period by receiving an acknowledgement from the P-Chain
      * that the validation ID is not active and will never be active in the future. Returns the the stake associated
-     * with the validation. Note that this function can be used for successful validation periods that have been explicitly
-     * ended by calling {initializeEndValidation} or for validation periods that never began on the P-Chain due to the
-     * {registrationExpiry} being reached.
+     * with the validation.
+     * Note: This function can be used for successful validation periods that have been explicitly ended by calling
+     * {initializeEndValidation} or for validation periods that never began on the P-Chain due to the {registrationExpiry} being reached.
      * @param messageIndex The index of the Warp message to be received providing the proof the validation is not active
      * and never will be active on the P-Chain.
      */

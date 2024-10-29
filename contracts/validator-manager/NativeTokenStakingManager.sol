@@ -5,16 +5,16 @@
 
 pragma solidity 0.8.25;
 
-import {INativeTokenStakingManager} from "./interfaces/INativeTokenStakingManager.sol";
-import {INativeMinter} from
-    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
-import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
-import {Initializable} from
-    "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
-import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {ValidatorRegistrationInput} from "./interfaces/IValidatorManager.sol";
+import {INativeTokenStakingManager} from "./interfaces/INativeTokenStakingManager.sol";
+import {INativeMinter} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
+import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
+import {Initializable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 
 /**
  * @dev Implementation of the {INativeTokenStakingManager} interface.
@@ -38,7 +38,7 @@ contract NativeTokenStakingManager is
     }
 
     /**
-     * @notice Initialize the ERC20 token staking manager
+     * @notice Initialize the native token staking manager
      * @dev Uses reinitializer(2) on the PoS staking contracts to make sure after migration from PoA, the PoS contracts can reinitialize with its needed values.
      * @param settings Initial settings for the PoS validator manager
      */
@@ -60,7 +60,6 @@ contract NativeTokenStakingManager is
 
     /**
      * @notice See {INativeTokenStakingManager-initializeValidatorRegistration}.
-     * Begins the validator registration process. Locks the provided native asset in the contract as the stake.
      */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
@@ -73,8 +72,7 @@ contract NativeTokenStakingManager is
     }
 
     /**
-     * @notice Begins the delegator registration process. Locks the provided native asset in the contract as the delegated stake.
-     * @param validationID The ID of the validation period being delegated to.
+     * @notice See {INativeTokenStakingManager-initializeDelegatorRegistration}.
      */
     function initializeDelegatorRegistration(bytes32 validationID)
         external
@@ -85,15 +83,23 @@ contract NativeTokenStakingManager is
         return _initializeDelegatorRegistration(validationID, _msgSender(), msg.value);
     }
 
-    // solhint-enable ordering
+    /**
+     * @notice See {PoSValidatorManager-_lock}
+     */
     function _lock(uint256 value) internal virtual override returns (uint256) {
         return value;
     }
 
+    /**
+     * @notice See {PoSValidatorManager-_unlock}
+     */
     function _unlock(address to, uint256 value) internal virtual override {
         payable(to).sendValue(value);
     }
 
+    /**
+     * @notice See {PoSValidatorManager-_reward}
+     */
     function _reward(address account, uint256 amount) internal virtual override {
         NATIVE_MINTER.mintNativeCoin(account, amount);
     }

@@ -222,6 +222,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 			MinimumStakeDuration:     utils.DefaultMinStakeDurationSeconds,
 			MinimumDelegationFeeBips: utils.DefaultMinDelegateFeeBips,
 			MaximumStakeMultiplier:   utils.DefaultMaxStakeMultiplier,
+			WeightToValueFactor:      big.NewInt(0).SetUint64(utils.DefaultWeightToValueFactor),
 			RewardCalculator:         rewardCalculatorAddress,
 		},
 	)
