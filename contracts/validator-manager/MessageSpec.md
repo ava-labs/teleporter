@@ -1,127 +1,107 @@
 ## Warp Message Format Reference
 
-### `RegisterSubnetValidatorMessage`
+### `RegisterL1ValidatorMessage`
 
-Description: Register a Subnet Validator on the P-Chain
+Description: Register an L1 Validator on the P-Chain
 
-Signed by: Subnet
+Signed by: L1
 Consumed by: P-Chain
 
 Specification:
 
-```
-+--------------+----------+-----------+
-|      codecID :   uint16 |   2 bytes |
-+--------------+----------+-----------+
-|       typeID :   uint32 |   4 bytes |
-+--------------+----------+-----------+
-|     subnetID : [32]byte |  32 bytes |
-+--------------+----------+-----------+
-|       nodeID : [32]byte |  32 bytes |
-+--------------+----------+-----------+
-|       weight :   uint64 |   8 bytes |
-+--------------+----------+-----------+
-| blsPublicKey : [48]byte |  48 bytes |
-+--------------+----------+-----------+
-|       expiry :   uint64 |   8 bytes |
-+--------------+----------+-----------+
-                          | 134 bytes |
-                          +-----------+
+|                   Field |          Type |                                                                      Size |
+| ----------------------: | ------------: | ------------------------------------------------------------------------: |
+|               `codecID` |      `uint16` |                                                                   2 bytes |
+|                `typeID` |      `uint32` |                                                                   4 bytes |
+|              `subnetID` |    `[32]byte` |                                                                  32 bytes |
+|                `nodeID` |      `[]byte` |                                                   4 + len(`nodeID`) bytes |
+|          `blsPublicKey` |    `[48]byte` |                                                                  48 bytes |
+|                `expiry` |      `uint64` |                                                                   8 bytes |
+| `remainingBalanceOwner` | `PChainOwner` |                                          8 + len(`addresses`) \* 20 bytes |
+|          `disableOwner` | `PChainOwner` |                                          8 + len(`addresses`) \* 20 bytes |
+|                `weight` |      `uint64` |                                                                   8 bytes |
+|                         |               | 122 + len(`nodeID`) + (len(`addresses1`) + len(`addresses2`)) \* 20 bytes |
 
-```
+- `codecID` is the codec version used to serialize the payload, and is hardcoded to `0x0000`
+- `typeID` is the payload type identifier and is `0x00000001` for this payload
+- `subnetID`, `nodeID`, `weight`, and `blsPublicKey` are for the validator being added
+- `expiry` is the time at which this message becomes invalid. As of a P-Chain timestamp `>= expiry`, this Avalanche Warp Message can no longer be used to add the `nodeID` to the validator set of `subnetID`
+- `remainingBalanceOwner` is the P-Chain owner where leftover $AVAX from the validator's Balance will be issued to when this validator it is removed from the validator set.
+- `disableOwner` is the only P-Chain owner allowed to disable the validator using `DisableL1ValidatorTx`, specified below.
 
-### `SubnetValidatorRegistrationMessage`
+The following is the serialization of a `PChainOwner`:
 
-Description: Confirms a Subnet Validator's registration validity on the P-Chain
+|       Field |         Type |                             Size |
+| ----------: | -----------: | -------------------------------: |
+| `threshold` |     `uint32` |                          4 bytes |
+| `addresses` | `[][20]byte` | 4 + len(`addresses`) \* 20 bytes |
+|             |              | 8 + len(`addresses`) \* 20 bytes |
+
+- `threshold` is the number of `addresses` that must provide a signature for the `PChainOwner` to authorize an action.
+- Validation criteria:
+  - If `threshold` is `0`, `addresses` must be empty
+  - `threshold` <= len(`addresses`)
+  - Entries of `addresses` must be unique and sorted in ascending order
+
+### `L1ValidatorRegistrationMessage`
+
+Description: Confirms an L1 validator's registration validity on the P-Chain
 
 Signed by: P-Chain
 Consumed by: Validator Manager contract
 
 Specification:
 
-```
-+--------------+----------+----------+
-|      codecID :   uint16 |  2 bytes |
-+--------------+----------+----------+
-|       typeID :   uint32 |  4 bytes |
-+--------------+----------+----------+
-| validationID : [32]byte | 32 bytes |
-+--------------+----------+----------+
-|        valid :     bool |  1 byte  |
-+--------------+----------+----------+
-                          | 39 bytes |
-                          +----------+
-```
+|          Field |       Type |     Size |
+| -------------: | ---------: | -------: |
+|      `codecID` |   `uint16` |  2 bytes |
+|       `typeID` |   `uint32` |  4 bytes |
+| `validationID` | `[32]byte` | 32 bytes |
+|   `registered` |     `bool` |   1 byte |
+|                |            | 39 bytes |
+
+- `codecID` is the codec version used to serialize the payload, and is hardcoded to `0x0000`
+- `typeID` is the payload type identifier and is `0x00000002` for this message
+- `validationID` identifies the validator for the message
+- `registered` is a boolean representing the status of the `validationID`. If true, the `validationID` corresponds to a validator in the current validator set. If false, the `validationID` does not correspond to a validator in the current validator set, and never will in the future.
 
 ### `ValidationUptimeMessage`
 
 Description: Provides a Validator's uptime for calculating staking rewards
 
-Signed by: Subnet
-Consumed by: Validator Manager contract
+Signed by: L1
+Consumed by: Validator Manager Contract
 
 Specification:
 
-```
-+--------------+----------+----------+
-|      codecID :   uint16 |  2 bytes |
-+--------------+----------+----------+
-|       typeID :   uint32 |  4 bytes |
-+--------------+----------+----------+
-| validationID : [32]byte | 32 bytes |
-+--------------+----------+----------+
-|       uptime :   uint64 |  8 bytes |
-+--------------+----------+----------+
-                          | 46 bytes |
-                          +----------+
-```
+|          Field |       Type |     Size |
+| -------------: | ---------: | -------: |
+|      `codecID` |   `uint16` |  2 bytes |
+|       `typeID` |   `uint32` |  4 bytes |
+| `validationID` | `[32]byte` | 32 bytes |
+|       `uptime` |   `uint64` |   8 byte |
+|                |            | 46 bytes |
 
-### `SetSubnetValidatorWeightMessage`
+### `L1ValidatorWeightMessage`
 
 Description: Used to set a Validator's stake weight on another chain
 
-Signed by: Subnet
-Consumed by: P-Chain
+Signed by: P-Chain or L1
+Consumed by: P-Chain or L1
 
 Specification:
 
-```
-+--------------+----------+----------+
-|      codecID :   uint16 |  2 bytes |
-+--------------+----------+----------+
-|       typeID :   uint32 |  4 bytes |
-+--------------+----------+----------+
-| validationID : [32]byte | 32 bytes |
-+--------------+----------+----------+
-|        nonce :   uint64 |  8 bytes |
-+--------------+----------+----------+
-|       weight :   uint64 |  8 bytes |
-+--------------+----------+----------+
-                          | 54 bytes |
-                          +----------+
-```
+|          Field |       Type |     Size |
+| -------------: | ---------: | -------: |
+|      `codecID` |   `uint16` |  2 bytes |
+|       `typeID` |   `uint32` |  4 bytes |
+| `validationID` | `[32]byte` | 32 bytes |
+|        `nonce` |   `uint64` |  8 bytes |
+|       `weight` |   `uint64` |  8 bytes |
+|                |            | 54 bytes |
 
-### `SubnetValidatorWeightUpdateMessage`
-
-Description: Acknowledges a Validator weight update
-
-Signed by: P-Chain
-Consumed by: Validator Manager contract
-
-Specification:
-
-```
-+--------------+----------+----------+
-|      codecID :   uint16 |  2 bytes |
-+--------------+----------+----------+
-|       typeID :   uint32 |  4 bytes |
-+--------------+----------+----------+
-| validationID : [32]byte | 32 bytes |
-+--------------+----------+----------+
-|        nonce :   uint64 |  8 bytes |
-+--------------+----------+----------+
-|       weight :   uint64 |  8 bytes |
-+--------------+----------+----------+
-                          | 54 bytes |
-                          +----------+
-```
+- `codecID` is the codec version used to serialize the payload, and is hardcoded to `0x0000`
+- `typeID` is the payload type identifier and is `0x00000003` for this message
+- `validationID` identifies the validator for the message
+- `nonce` is a strictly increasing number that denotes the latest validator weight update and provides replay protection for this transaction
+- `weight` is the new `weight` of the validator

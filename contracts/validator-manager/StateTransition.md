@@ -1,6 +1,7 @@
 ## State Transitions
 
-The following state transition diagram illustrates the relationship between Validator and Delegator state. `Validator` is abbreviated as `V`, `Delegator` is abbreviated as `D`, and function names are shortened to improve readability. `Delegator.Completed` is omitted to show equivalance between the Validator's initial state and the state after a Delegation completes.
+The following state transition diagram illustrates the relationship between validator and delegator state. `Validator` is abbreviated as `V`, `Delegator` is abbreviated as `D`, and function names are shortened to improve readability. `Delegator.Completed` is omitted to show equivalance between the validator's initial state and the state after a delegation completes.
+
 ```mermaid
 stateDiagram-v2
     % Happy path
