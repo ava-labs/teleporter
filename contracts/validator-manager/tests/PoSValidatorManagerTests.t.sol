@@ -1120,12 +1120,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
             validationID, (firstClaimTime - DEFAULT_REGISTRATION_TIMESTAMP) * uptimePercentage / 100
         );
-        _claimRewards({
+        uint256 claimedReward = _claimRewards({
             validationID: validationID,
             uptimeMsg: uptimeMsg,
             validationStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             claimTime: firstClaimTime,
-            lastClaimTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            claimedReward: 0,
             success: true
         });
 
@@ -1140,7 +1140,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             uptimeMsg: uptimeMsg,
             validationStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             claimTime: secondClaimTime,
-            lastClaimTime: firstClaimTime,
+            claimedReward: claimedReward,
             success: true
         });
     }
@@ -1161,12 +1161,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory uptimeMsg = ValidatorMessages.packValidationUptimeMessage(
             validationID, ((firstClaimTime - validationStartTime) * uptimePercentage / 100) + 1
         );
-        _claimRewards({
+        uint256 claimedReward = _claimRewards({
             validationID: validationID,
             uptimeMsg: uptimeMsg,
             validationStartTime: validationStartTime,
             claimTime: firstClaimTime,
-            lastClaimTime: validationStartTime,
+            claimedReward: 0,
             success: true
         });
 
@@ -1177,7 +1177,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             uptimeMsg: uptimeMsg,
             validationStartTime: validationStartTime,
             claimTime: secondClaimTime,
-            lastClaimTime: firstClaimTime,
+            claimedReward: claimedReward,
             success: false
         });
     }
@@ -1195,7 +1195,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             uptimeMsg: uptimeMsg,
             validationStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             claimTime: DEFAULT_COMPLETION_TIMESTAMP,
-            lastClaimTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            claimedReward: 0,
             success: false
         });
     }
@@ -1216,7 +1216,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             uptimeMsg: uptimeMsg,
             validationStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             claimTime: claimTime,
-            lastClaimTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            claimedReward: 0,
             success: true
         });
 
@@ -1237,7 +1237,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             uptimeMsg: uptimeMsg,
             validationStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             claimTime: firstClaimTime,
-            lastClaimTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            claimedReward: 0,
             success: true
         });
 
@@ -1252,7 +1252,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             uptimeMsg: uptimeMsg,
             validationStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             claimTime: secondClaimTime,
-            lastClaimTime: firstClaimTime,
+            claimedReward: firstExpectedReward,
             success: true
         });
 
@@ -1284,13 +1284,14 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 thirdExpectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
-            validatorStartTime: 0,
-            stakingStartTime: secondClaimTime,
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
+            stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingEndTime: thirdClaimTime,
             uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
+        thirdExpectedReward = thirdExpectedReward - firstExpectedReward - secondExpectedReward;
 
         _completeEndValidationWithChecks({
             validationID: validationID,
@@ -1302,26 +1303,16 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         // Confirm the pro-rated rewards match the total expected reward
         uint256 totalExpectedReward = rewardCalculator.calculateReward({
             stakeAmount: _weightToValue(DEFAULT_WEIGHT),
-            validatorStartTime: 0,
+            validatorStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingStartTime: DEFAULT_REGISTRATION_TIMESTAMP,
             stakingEndTime: thirdClaimTime,
             uptimeSeconds: 0,
             initialSupply: 0,
             endSupply: 0
         });
-        // Off-by one errors are possible due to integer rounding
-        if (totalExpectedReward > firstExpectedReward + secondExpectedReward + thirdExpectedReward)
-        {
-            assertTrue(
-                totalExpectedReward
-                    - (firstExpectedReward + secondExpectedReward + thirdExpectedReward) <= 1
-            );
-        } else {
-            assertTrue(
-                (firstExpectedReward + secondExpectedReward + thirdExpectedReward)
-                    - totalExpectedReward <= 1
-            );
-        }
+        assertEq(
+            totalExpectedReward, firstExpectedReward + secondExpectedReward + thirdExpectedReward
+        );
     }
 
     function testValueToWeight() public view {
@@ -1769,7 +1760,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory uptimeMsg,
         uint64 validationStartTime,
         uint64 claimTime,
-        uint64 lastClaimTime,
+        uint256 claimedReward,
         bool success
     ) internal returns (uint256) {
         uint256 expectedReward;
@@ -1777,12 +1768,13 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             expectedReward = rewardCalculator.calculateReward({
                 stakeAmount: _weightToValue(DEFAULT_WEIGHT),
                 validatorStartTime: validationStartTime,
-                stakingStartTime: lastClaimTime,
+                stakingStartTime: validationStartTime,
                 stakingEndTime: claimTime,
                 uptimeSeconds: 0,
                 initialSupply: 0,
                 endSupply: 0
             });
+            expectedReward -= claimedReward;
             _expectValidationRewardsIssuance(validationID, address(this), expectedReward);
         } else {
             vm.expectRevert(

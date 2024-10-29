@@ -228,33 +228,31 @@ abstract contract PoSValidatorManager is
         }
 
         // Uptime proofs include the absolute number of seconds the validator has been active.
-        uint64 totalUptime;
+        uint64 uptime;
         if (includeUptimeProof) {
-            totalUptime = _updateUptime(validationID, messageIndex);
+            uptime = _updateUptime(validationID, messageIndex);
         } else {
-            totalUptime = $._posValidatorInfo[validationID].uptimeSeconds;
-        }
-        uint64 uptime = totalUptime - $._posValidatorInfo[validationID].lastClaimMinUptime;
-        uint64 lastClaimTime = $._posValidatorInfo[validationID].lastClaimTime;
-        if (lastClaimTime == 0) {
-            lastClaimTime = validator.startedAt;
+            uptime = $._posValidatorInfo[validationID].uptimeSeconds;
         }
         if (
             requireSufficientUptime
-                && !_validateSufficientUptime(uptime, lastClaimTime, validator.endedAt)
+                && !_validateSufficientUptime(uptime, validator.startedAt, validator.endedAt)
         ) {
             revert ValidatorIneligibleForRewards(validationID);
         }
 
+        // Calculate the reward for the entire staking period
         uint256 reward = $._rewardCalculator.calculateReward({
             stakeAmount: weightToValue(validator.startingWeight),
-            validatorStartTime: lastClaimTime,
-            stakingStartTime: lastClaimTime,
+            validatorStartTime: validator.startedAt,
+            stakingStartTime: validator.startedAt,
             stakingEndTime: validator.endedAt,
             uptimeSeconds: uptime,
             initialSupply: 0,
             endSupply: 0
         });
+        // Subtract the rewards that have already been claimed.
+        reward -= $._posValidatorInfo[validationID].claimedRewards;
         $._redeemableValidatorRewards[validationID] += reward;
     }
 
@@ -318,36 +316,26 @@ abstract contract PoSValidatorManager is
             revert MinStakeDurationNotPassed(claimTime);
         }
 
-        // The claim's uptime is the difference between the total uptime and the minimum possible uptime from the last claim.
-        // We use the minimum uptime to get a lower bound on the required uptime for this claim
-        uint64 totalUptime = _updateUptime(validationID, messageIndex);
-        uint64 uptime = totalUptime - $._posValidatorInfo[validationID].lastClaimMinUptime;
-
-        // If no rewards have yet been claimed, use the validator's start time
-        uint64 lastClaimTime = $._posValidatorInfo[validationID].lastClaimTime;
-        if (lastClaimTime == 0) {
-            lastClaimTime = validator.startedAt;
-        }
-        // Validate the uptime for this claim. Given that all previous claims have been similarly validated,
-        // this is equivalent to validating the uptime of the entire validation period up to this point, due
-        // to the linearity of the uptime threshold calculation.
-        if (!_validateSufficientUptime(uptime, lastClaimTime, claimTime)) {
+        uint64 uptime = _updateUptime(validationID, messageIndex);
+        if (!_validateSufficientUptime(uptime, validator.startedAt, claimTime)) {
             revert ValidatorIneligibleForRewards(validationID);
         }
 
-        uint256 reward = $._rewardCalculator.calculateReward({
+        // Calculate the reward for the entire staking period
+        uint256 totalReward = $._rewardCalculator.calculateReward({
             stakeAmount: weightToValue(validator.startingWeight),
-            validatorStartTime: lastClaimTime,
-            stakingStartTime: lastClaimTime,
+            validatorStartTime: validator.startedAt,
+            stakingStartTime: validator.startedAt,
             stakingEndTime: claimTime,
             uptimeSeconds: uptime,
             initialSupply: 0,
             endSupply: 0
         });
 
-        $._posValidatorInfo[validationID].lastClaimMinUptime =
-            (claimTime - validator.startedAt) * UPTIME_REWARDS_THRESHOLD_PERCENTAGE / 100;
-        $._posValidatorInfo[validationID].lastClaimTime = claimTime;
+        // Subtract the rewards that have already been claimed.
+        uint256 reward = totalReward - $._posValidatorInfo[validationID].claimedRewards;
+        $._posValidatorInfo[validationID].claimedRewards = totalReward;
+
         _reward($._posValidatorInfo[validationID].owner, reward);
 
         emit ValidationRewardsClaimed(validationID, reward);
@@ -437,8 +425,7 @@ abstract contract PoSValidatorManager is
             delegationFeeBips: delegationFeeBips,
             minStakeDuration: minStakeDuration,
             uptimeSeconds: 0,
-            lastClaimMinUptime: 0,
-            lastClaimTime: 0
+            claimedRewards: 0
         });
         return validationID;
     }

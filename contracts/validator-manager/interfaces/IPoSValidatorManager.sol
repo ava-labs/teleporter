@@ -52,8 +52,7 @@ struct PoSValidatorInfo {
     uint16 delegationFeeBips;
     uint64 minStakeDuration;
     uint64 uptimeSeconds;
-    uint64 lastClaimMinUptime;
-    uint64 lastClaimTime;
+    uint256 claimedRewards;
 }
 
 /**
