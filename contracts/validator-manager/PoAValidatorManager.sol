@@ -5,15 +5,15 @@
 
 pragma solidity 0.8.25;
 
-import {IPoAValidatorManager} from "./interfaces/IPoAValidatorManager.sol";
-import {OwnableUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
-import {ICMInitializable} from "../utilities/ICMInitializable.sol";
+import {ValidatorManager} from "./ValidatorManager.sol";
 import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput
 } from "./interfaces/IValidatorManager.sol";
-import {ValidatorManager} from "./ValidatorManager.sol";
+import {IPoAValidatorManager} from "./interfaces/IPoAValidatorManager.sol";
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
+import {OwnableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 
 /**
  * @dev Implementation of the {IPoAValidatorManager} interface.
@@ -48,6 +48,9 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
 
     // solhint-enable func-name-mixedcase
 
+    /**
+     * @notice See {IPoAValidatorManager-initializeValidatorRegistration}.
+     */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
         uint64 weight
@@ -56,10 +59,16 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
     }
 
     // solhint-enable ordering
+    /**
+     * @notice See {IPoAValidatorManager-initializeEndValidation}.
+     */
     function initializeEndValidation(bytes32 validationID) external override onlyOwner {
         _initializeEndValidation(validationID);
     }
 
+    /**
+     * @notice See {IValidatorManager-completeEndValidation}.
+     */
     function completeEndValidation(uint32 messageIndex) external {
         _completeEndValidation(messageIndex);
     }

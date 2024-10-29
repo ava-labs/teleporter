@@ -10,7 +10,8 @@ import {PoAValidatorManager} from "../PoAValidatorManager.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {
     ValidatorManagerSettings,
-    ValidatorRegistrationInput
+    ValidatorRegistrationInput,
+    IValidatorManager
 } from "../interfaces/IValidatorManager.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
@@ -24,16 +25,7 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
     function setUp() public override {
         ValidatorManagerTest.setUp();
 
-        app = new PoAValidatorManager(ICMInitializable.Allowed);
-        app.initialize(
-            ValidatorManagerSettings({
-                subnetID: DEFAULT_SUBNET_ID,
-                churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-            }),
-            address(this)
-        );
-        validatorManager = app;
+        _setUp();
         _mockGetBlockchainID();
         _mockInitializeValidatorSet();
         app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
@@ -71,6 +63,21 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
 
     function _forceInitializeEndValidation(bytes32 validationID, bool) internal virtual override {
         return app.initializeEndValidation(validationID);
+    }
+
+    function _setUp() internal override returns (IValidatorManager) {
+        app = new PoAValidatorManager(ICMInitializable.Allowed);
+        app.initialize(
+            ValidatorManagerSettings({
+                subnetID: DEFAULT_SUBNET_ID,
+                churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+            }),
+            address(this)
+        );
+        validatorManager = app;
+
+        return app;
     }
 
     // solhint-disable-next-line no-empty-blocks
