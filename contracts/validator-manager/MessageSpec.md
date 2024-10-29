@@ -1,6 +1,6 @@
 ## Warp Message Format Reference
 
-#### `SubnetToL1ConversionMessage`
+### `SubnetToL1ConversionMessage`
 
 Description: Confirms conversion to L1 on the P-Chain
 
