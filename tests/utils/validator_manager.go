@@ -1010,7 +1010,6 @@ func ForceInitializeEndNativeValidation(
 	validationID ids.ID,
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
-	opts.GasLimit = 1_000_000
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.ForceInitializeEndValidation(
 		opts,
