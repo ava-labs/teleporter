@@ -59,12 +59,12 @@ struct ValidatorManagerSettings {
 }
 
 /**
- * @dev Description of the subnet conversion data used to convert
- * a subnet to a permissionless subnet on the P-Chain.
+ * @dev Description of the conversion data used to convert
+ * a subnet to an L1 on the P-Chain.
  * This data is the pre-image of a hash that is authenticated by the P-Chain
  * and verified by the Validator Manager.
  */
-struct SubnetConversionData {
+struct ConversionData {
     bytes32 subnetID;
     bytes32 validatorManagerBlockchainID;
     address validatorManagerAddress;
@@ -72,7 +72,7 @@ struct SubnetConversionData {
 }
 
 /**
- * @dev Specifies an initial validator, used in the subnet conversion data.
+ * @dev Specifies an initial validator, used in the conversion data.
  */
 struct InitialValidator {
     bytes nodeID;
@@ -169,13 +169,12 @@ interface IValidatorManager {
     );
 
     /**
-     * @notice Verifies and sets the initial validator set for the chain through a P-Chain
-     * SubnetConversionMessage.
-     * @param subnetConversionData The subnet conversion message data used to recompute and verify against the subnetConversionID.
-     * @param messsageIndex The index that contains the SubnetConversionMessage Warp message containing the subnetConversionID to be verified against the provided {subnetConversionData}
+     * @notice Verifies and sets the initial validator set for the chain through a P-Chain SubnetToL1ConversionMessage.
+     * @param conversionData The subnet conversion message data used to recompute and verify against the conversionID.
+     * @param messsageIndex The index that contains the SubnetToL1ConversionMessage Warp message containing the conversionID to be verified against the provided {ConversionData}
      */
     function initializeValidatorSet(
-        SubnetConversionData calldata subnetConversionData,
+        ConversionData calldata conversionData,
         uint32 messsageIndex
     ) external;
 

@@ -297,7 +297,7 @@ func InitializeNativeTokenValidatorSet(
 		ManagerAddress: validatorManagerAddress[:],
 		Validators:     initialValidators,
 	}
-	subnetConversionDataABI := nativetokenstakingmanager.SubnetConversionData{
+	subnetConversionDataABI := nativetokenstakingmanager.ConversionData{
 		SubnetID:                     subnetInfo.SubnetID,
 		ValidatorManagerBlockchainID: subnetInfo.BlockchainID,
 		ValidatorManagerAddress:      validatorManagerAddress,
@@ -371,7 +371,7 @@ func InitializeERC20TokenValidatorSet(
 		ManagerAddress: validatorManagerAddress[:],
 		Validators:     initialValidators,
 	}
-	subnetConversionDataABI := erc20tokenstakingmanager.SubnetConversionData{
+	subnetConversionDataABI := erc20tokenstakingmanager.ConversionData{
 		SubnetID:                     subnetInfo.SubnetID,
 		ValidatorManagerBlockchainID: subnetInfo.BlockchainID,
 		ValidatorManagerAddress:      validatorManagerAddress,
@@ -446,7 +446,7 @@ func InitializePoAValidatorSet(
 		ManagerAddress: validatorManagerAddress[:],
 		Validators:     initialValidators,
 	}
-	subnetConversionDataABI := poavalidatormanager.SubnetConversionData{
+	subnetConversionDataABI := poavalidatormanager.ConversionData{
 		SubnetID:                     subnetInfo.SubnetID,
 		ValidatorManagerBlockchainID: subnetInfo.BlockchainID,
 		ValidatorManagerAddress:      validatorManagerAddress,
@@ -494,7 +494,7 @@ func DeliverNativeTokenSubnetConversion(
 	subnet interfaces.SubnetTestInfo,
 	validatorManagerAddress common.Address,
 	subnetConversionSignedMessage *avalancheWarp.Message,
-	subnetConversionData nativetokenstakingmanager.SubnetConversionData,
+	subnetConversionData nativetokenstakingmanager.ConversionData,
 ) *types.Receipt {
 	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
@@ -516,7 +516,7 @@ func DeliverERC20TokenSubnetConversion(
 	subnet interfaces.SubnetTestInfo,
 	validatorManagerAddress common.Address,
 	subnetConversionSignedMessage *avalancheWarp.Message,
-	subnetConversionData erc20tokenstakingmanager.SubnetConversionData,
+	subnetConversionData erc20tokenstakingmanager.ConversionData,
 ) *types.Receipt {
 	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
@@ -538,7 +538,7 @@ func DeliverPoASubnetConversion(
 	subnet interfaces.SubnetTestInfo,
 	validatorManagerAddress common.Address,
 	subnetConversionSignedMessage *avalancheWarp.Message,
-	subnetConversionData poavalidatormanager.SubnetConversionData,
+	subnetConversionData poavalidatormanager.ConversionData,
 ) *types.Receipt {
 	abi, err := poavalidatormanager.PoAValidatorManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
