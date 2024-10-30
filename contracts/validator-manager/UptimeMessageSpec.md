@@ -1,6 +1,6 @@
 # `ValidationUptimeMessage` Warp Message Format Reference
 
-Description: Provides a Validator's uptime for calculating staking rewards
+Description: Provides a validator's uptime for calculating staking rewards
 
 Signed by: L1
 
