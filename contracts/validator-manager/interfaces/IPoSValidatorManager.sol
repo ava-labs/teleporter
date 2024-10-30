@@ -53,6 +53,7 @@ struct PoSValidatorInfo {
     uint16 delegationFeeBips;
     uint64 minStakeDuration;
     uint64 uptimeSeconds;
+    uint256 claimedRewards;
 }
 
 /**
@@ -114,6 +115,8 @@ interface IPoSValidatorManager is IValidatorManager {
      */
     event UptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
+    event ValidationRewardsClaimed(bytes32 indexed validationID, uint256 indexed reward);
+
     /**
      * @notice Updates the uptime of the validationID if the submitted proof is greated than the stored uptime.
      * Anybody may call this function to ensure the stored uptime is accurate. Callable only when the validation period is active.
@@ -157,6 +160,16 @@ interface IPoSValidatorManager is IValidatorManager {
     ) external;
 
     /**
+     * @notice Withdraws pro-rated rewards for an active validation to the owner of the validator.
+     * Uses the uptime proof provided in the Warp message to determine rewards eligibility. Reverts if the uptime is not eligible for rewards.
+     * Rewards are calculated from the last time this function was called, or the beginning of the
+     * validation, whichever is later.
+     * @param validationID The ID of the validation being claimed.
+     * @param messageIndex The index of the Warp message to be received providing the uptime proof.
+     */
+    function claimValidationRewards(bytes32 validationID, uint32 messageIndex) external;
+
+    /**
      * @notice Completes the delegator registration process by submitting an acknowledgement of the registration of a
      * validationID from the P-Chain. After this function is called, the validator's weight is updated in the contract state.
      * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize registration of the
@@ -164,10 +177,10 @@ interface IPoSValidatorManager is IValidatorManager {
      * the delegation is considered active after this function is completed.
      * Note: Only the specified delegation will be marked as registered, even if the validator weight update
      * message implicitly includes multiple weight changes.
-     * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegationID The ID of the delegation being registered.
+     * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      */
-    function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external;
+    function completeDelegatorRegistration(bytes32 delegationID, uint32 messageIndex) external;
 
     /**
      * @notice Begins the process of removing a delegator from a validation period, and reverts if the delegation is not eligible for rewards.
@@ -225,10 +238,10 @@ interface IPoSValidatorManager is IValidatorManager {
      * weight change pertaining to the delegation ending is included in any subsequent validator weight update messages.
      * Note: Only the specified delegation will be marked as completed, even if the validator weight update
      * message implicitly includes multiple weight changes.
-     * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegationID The ID of the delegation being removed.
+     * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      */
-    function completeEndDelegation(uint32 messageIndex, bytes32 delegationID) external;
+    function completeEndDelegation(bytes32 delegationID, uint32 messageIndex) external;
 
     /**
      * @notice Withdraws the delegation fees from completed delegations to the owner of the validator.
