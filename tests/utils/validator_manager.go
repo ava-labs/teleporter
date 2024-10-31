@@ -1016,7 +1016,6 @@ func InitializeEndERC20Validation(
 	subnet interfaces.SubnetTestInfo,
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	validationID ids.ID,
-	force bool,
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
