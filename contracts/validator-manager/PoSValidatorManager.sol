@@ -365,12 +365,10 @@ abstract contract PoSValidatorManager is
         uint64 weight = valueToWeight(lockedValue);
         bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
 
-        $._posValidatorInfo[validationID] = PoSValidatorInfo({
-            owner: _msgSender(),
-            delegationFeeBips: delegationFeeBips,
-            minStakeDuration: minStakeDuration,
-            uptimeSeconds: 0
-        });
+        $._posValidatorInfo[validationID].owner = _msgSender();
+        $._posValidatorInfo[validationID].delegationFeeBips = delegationFeeBips;
+        $._posValidatorInfo[validationID].minStakeDuration = minStakeDuration;
+        $._posValidatorInfo[validationID].uptimeSeconds = 0;
         return validationID;
     }
 
@@ -438,15 +436,13 @@ abstract contract PoSValidatorManager is
         // Store the delegation information. Set the delegator status to pending added,
         // so that it can be properly started in the complete step, even if the delivered
         // nonce is greater than the nonce used to initialize registration.
-        $._delegatorStakes[delegationID] = Delegator({
-            status: DelegatorStatus.PendingAdded,
-            owner: delegatorAddress,
-            validationID: validationID,
-            weight: weight,
-            startedAt: 0,
-            startingNonce: nonce,
-            endingNonce: 0
-        });
+        $._delegatorStakes[delegationID].status = DelegatorStatus.PendingAdded;
+        $._delegatorStakes[delegationID].owner = delegatorAddress;
+        $._delegatorStakes[delegationID].validationID = validationID;
+        $._delegatorStakes[delegationID].weight = weight;
+        $._delegatorStakes[delegationID].startedAt = 0;
+        $._delegatorStakes[delegationID].startingNonce = nonce;
+        $._delegatorStakes[delegationID].endingNonce = 0;
 
         emit DelegatorAdded({
             delegationID: delegationID,
@@ -463,7 +459,7 @@ abstract contract PoSValidatorManager is
     /**
      * @notice See {IPoSValidatorManager-completeDelegatorRegistration}.
      */
-    function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external {
+    function completeDelegatorRegistration(bytes32 delegationID, uint32 messageIndex) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
@@ -678,8 +674,8 @@ abstract contract PoSValidatorManager is
      * @notice See {IPoSValidatorManager-completeEndDelegation}.
      */
     function completeEndDelegation(
-        uint32 messageIndex,
-        bytes32 delegationID
+        bytes32 delegationID,
+        uint32 messageIndex
     ) external nonReentrant {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         Delegator memory delegator = $._delegatorStakes[delegationID];

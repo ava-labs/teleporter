@@ -76,7 +76,7 @@ export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
 
 cd $TELEPORTER_PATH
 if command -v forge &> /dev/null; then
-  forge build --skip test --optimizer-runs 100
+  forge build --skip test
 else
   echo "Forge command not found, attempting to use from $HOME"
   $HOME/.foundry/bin/forge build
@@ -92,6 +92,7 @@ for component in $(echo $components | tr ',' ' '); do
     ginkgo build ./tests/local/$component
 
     echo "Running e2e tests for $component"
+
     RUN_E2E=true ./tests/local/$component/$component.test \
     --ginkgo.vv \
     --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""} \
