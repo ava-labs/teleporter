@@ -30,7 +30,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         _setUp();
         _mockGetBlockchainID();
         _mockInitializeValidatorSet();
-        app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
+        app.initializeValidatorSet(_defaultConversionData(), 0);
     }
 
     function testZeroMinimumDelegationFee() public {
