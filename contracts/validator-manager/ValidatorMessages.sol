@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Ecosystem
 pragma solidity 0.8.25;
 
-import {PChainOwner, SubnetConversionData} from "./interfaces/IValidatorManager.sol";
+import {PChainOwner, ConversionData} from "./interfaces/IValidatorManager.sol";
 
 /**
  * @dev Packing utilities for the Warp message types used by the Validator Manager contracts, as specified in ACP-77:
@@ -13,7 +13,7 @@ import {PChainOwner, SubnetConversionData} from "./interfaces/IValidatorManager.
 library ValidatorMessages {
     // The information that uniquely identifies a subnet validation period.
     // The validationID is the SHA-256 hash of the concatenation of the CODEC_ID,
-    // REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID, and the concatenated ValidationPeriod fields.
+    // REGISTER_L1_VALIDATOR_MESSAGE_TYPE_ID, and the concatenated ValidationPeriod fields.
     struct ValidationPeriod {
         bytes32 subnetID;
         bytes nodeID;
@@ -27,21 +27,21 @@ library ValidatorMessages {
     // The P-Chain uses a hardcoded codecID of 0 for all messages.
     uint16 internal constant CODEC_ID = 0;
 
-    // The P-Chain signs a SubnetConversion message that is used to verify the Subnet's initial validators.
-    uint32 internal constant SUBNET_CONVERSION_MESSAGE_TYPE_ID = 0;
+    // The P-Chain signs a SubnetToL1ConversionMessage that is used to verify the L1's initial validators.
+    uint32 internal constant SUBNET_TO_L1_CONVERSION_MESSAGE_TYPE_ID = 0;
 
-    // Subnets send a RegisterSubnetValidator message to the P-Chain to register a validator.
-    uint32 internal constant REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID = 1;
+    // L1s send a RegisterL1ValidatorMessage to the P-Chain to register a validator.
+    uint32 internal constant REGISTER_L1_VALIDATOR_MESSAGE_TYPE_ID = 1;
 
-    // The P-Chain responds with a RegisterSubnetValidator message indicating whether the registration was successful
+    // The P-Chain responds with a RegisterL1ValidatorMessage indicating whether the registration was successful
     // for the given validation ID.
-    uint32 internal constant SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID = 2;
+    uint32 internal constant L1_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID = 2;
 
-    // Subnets can send a SubnetValidatorWeight message to the P-Chain to update a validator's weight.
-    // The P-Chain responds with another SubnetValidatorWeight message acknowledging the weight update.
-    uint32 internal constant SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID = 3;
+    // L1s can send a L1ValidatorWeightMessage to the P-Chain to update a validator's weight.
+    // The P-Chain responds with another L1ValidatorWeightMessage acknowledging the weight update.
+    uint32 internal constant L1_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID = 3;
 
-    // The Subnet will self-sign a ValidationUptimeMessage to be provided when a validator is initiating
+    // The L1 will self-sign a ValidationUptimeMessage to be provided when a validator is initiating
     // the end of their validation period.
     uint32 internal constant VALIDATION_UPTIME_MESSAGE_TYPE_ID = 0;
 
@@ -51,37 +51,41 @@ library ValidatorMessages {
     error InvalidBLSPublicKey();
 
     /**
-     * @notice Packs a SubnetConversionMessage message into a byte array.
+     * @notice Packs a SubnetToL1ConversionMessage message into a byte array.
      * The message format specification is:
      * +--------------------+----------+----------+
      * |            codecID :   uint16 |  2 bytes |
      * +--------------------+----------+----------+
      * |             typeID :   uint32 |  4 bytes |
      * +--------------------+----------+----------+
-     * | subnetConversionID : [32]byte | 32 bytes |
+     * |       conversionID : [32]byte | 32 bytes |
      * +--------------------+----------+----------+
      *                                 | 38 bytes |
      *                                 +----------+
      *
-     * @param subnetConversionID The subnet conversion ID to pack into the message.
+     * @param conversionID The subnet conversion ID to pack into the message.
      * @return The packed message.
      */
-    function packSubnetConversionMessage(bytes32 subnetConversionID)
+    function packSubnetToL1ConversionMessage(bytes32 conversionID)
         external
         pure
         returns (bytes memory)
     {
-        return abi.encodePacked(CODEC_ID, SUBNET_CONVERSION_MESSAGE_TYPE_ID, subnetConversionID);
+        return abi.encodePacked(CODEC_ID, SUBNET_TO_L1_CONVERSION_MESSAGE_TYPE_ID, conversionID);
     }
 
     /**
-     * @notice Unpacks a byte array as a SubnetConversionMessage message.
+     * @notice Unpacks a byte array as a SubnetToL1ConversionMessage message.
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
-     * @return The unpacked subnetConversionID.
+     * @return The unpacked conversionID.
      */
-    function unpackSubnetConversionMessage(bytes memory input) external pure returns (bytes32) {
+    function unpackSubnetToL1ConversionMessage(bytes memory input)
+        external
+        pure
+        returns (bytes32)
+    {
         if (input.length != 38) {
             revert InvalidMessageLength(uint32(input.length), 38);
         }
@@ -100,25 +104,25 @@ library ValidatorMessages {
         for (uint256 i; i < 4; ++i) {
             typeID |= uint32(uint8(input[i + 2])) << uint32((8 * (3 - i)));
         }
-        if (typeID != SUBNET_CONVERSION_MESSAGE_TYPE_ID) {
+        if (typeID != SUBNET_TO_L1_CONVERSION_MESSAGE_TYPE_ID) {
             revert InvalidMessageType();
         }
 
-        // Unpack the subnetConversionID
-        bytes32 subnetConversionID;
+        // Unpack the conversionID
+        bytes32 conversionID;
         for (uint256 i; i < 32; ++i) {
-            subnetConversionID |= bytes32(uint256(uint8(input[i + 6])) << (8 * (31 - i)));
+            conversionID |= bytes32(uint256(uint8(input[i + 6])) << (8 * (31 - i)));
         }
 
-        return subnetConversionID;
+        return conversionID;
     }
 
     /**
-     * @notice Packs SubnetConversionData into a byte array.
-     * This byte array is the SHA256 pre-image of the subnetConversionID hash
+     * @notice Packs ConversionData into a byte array.
+     * This byte array is the SHA256 pre-image of the conversionID hash
      * The message format specification is:
      *
-     * SubnetConversionData:
+     * ConversionData:
      * +----------------+-----------------+--------------------------------------------------------+
      * |       codecID  :          uint16 |                                                2 bytes |
      * +----------------+-----------------+--------------------------------------------------------+
@@ -145,10 +149,10 @@ library ValidatorMessages {
      *
      * @dev Input validation is skipped, since the returned value is intended to be compared
      * directly with an authenticated Warp message.
-     * @param subnetConversionData The struct representing data to pack into the message.
+     * @param conversionData The struct representing data to pack into the message.
      * @return The packed message.
      */
-    function packSubnetConversionData(SubnetConversionData calldata subnetConversionData)
+    function packConversionData(ConversionData calldata conversionData)
         external
         pure
         returns (bytes memory)
@@ -157,32 +161,32 @@ library ValidatorMessages {
         // solhint-disable-next-line func-named-parameters
         bytes memory res = abi.encodePacked(
             CODEC_ID,
-            subnetConversionData.subnetID,
-            subnetConversionData.validatorManagerBlockchainID,
+            conversionData.subnetID,
+            conversionData.validatorManagerBlockchainID,
             uint32(20),
-            subnetConversionData.validatorManagerAddress,
-            uint32(subnetConversionData.initialValidators.length)
+            conversionData.validatorManagerAddress,
+            uint32(conversionData.initialValidators.length)
         );
         // The approach below of encoding initialValidators using `abi.encodePacked` in a loop
         // was tested against pre-allocating the array and doing manual byte by byte packing and
         // it was found to be more gas efficient.
-        for (uint256 i; i < subnetConversionData.initialValidators.length; ++i) {
+        for (uint256 i; i < conversionData.initialValidators.length; ++i) {
             res = abi.encodePacked(
                 res,
-                uint32(subnetConversionData.initialValidators[i].nodeID.length),
-                subnetConversionData.initialValidators[i].nodeID,
-                subnetConversionData.initialValidators[i].blsPublicKey,
-                subnetConversionData.initialValidators[i].weight
+                uint32(conversionData.initialValidators[i].nodeID.length),
+                conversionData.initialValidators[i].nodeID,
+                conversionData.initialValidators[i].blsPublicKey,
+                conversionData.initialValidators[i].weight
             );
         }
         return res;
     }
 
     /**
-     * @notice Packs a RegisterSubnetValidatorMessage message into a byte array.
+     * @notice Packs a RegisterL1ValidatorMessage message into a byte array.
      * The message format specification is:
      *
-     * RegisterSubnetValidatorMessage:
+     * RegisterL1ValidatorMessage:
      * +-----------------------+-------------+--------------------------------------------------------------------+
      * |               codecID :      uint16 |                                                            2 bytes |
      * +-----------------------+-------------+--------------------------------------------------------------------+
@@ -217,7 +221,7 @@ library ValidatorMessages {
      * @param validationPeriod The information to pack into the message.
      * @return The validationID and the packed message.
      */
-    function packRegisterSubnetValidatorMessage(ValidationPeriod memory validationPeriod)
+    function packRegisterL1ValidatorMessage(ValidationPeriod memory validationPeriod)
         external
         pure
         returns (bytes32, bytes memory)
@@ -229,7 +233,7 @@ library ValidatorMessages {
         // solhint-disable-next-line func-named-parameters
         bytes memory res = abi.encodePacked(
             CODEC_ID,
-            REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID,
+            REGISTER_L1_VALIDATOR_MESSAGE_TYPE_ID,
             validationPeriod.subnetID,
             uint32(validationPeriod.nodeID.length),
             validationPeriod.nodeID,
@@ -255,13 +259,13 @@ library ValidatorMessages {
     }
 
     /**
-     * @notice Unpacks a byte array as a RegisterSubnetValidatorMessage message.
+     * @notice Unpacks a byte array as a RegisterL1ValidatorMessage message.
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
      * @return The unpacked ValidationPeriod.
      */
-    function unpackRegisterSubnetValidatorMessage(bytes memory input)
+    function unpackRegisterL1ValidatorMessage(bytes memory input)
         external
         pure
         returns (ValidationPeriod memory)
@@ -288,7 +292,7 @@ library ValidatorMessages {
             for (uint256 i; i < 4; ++i) {
                 typeID |= uint32(uint8(input[i + index])) << uint32((8 * (3 - i)));
             }
-            if (typeID != REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID) {
+            if (typeID != REGISTER_L1_VALIDATOR_MESSAGE_TYPE_ID) {
                 revert InvalidMessageType();
             }
             index += 4;
@@ -433,7 +437,7 @@ library ValidatorMessages {
     }
 
     /**
-     * @notice Packs a SubnetValidatorRegistrationMessage into a byte array.
+     * @notice Packs a L1ValidatorRegistrationMessage into a byte array.
      * The message format specification is:
      * +--------------+----------+----------+
      * |      codecID :   uint16 |  2 bytes |
@@ -452,24 +456,24 @@ library ValidatorMessages {
      * @return The packed message.
      *
      */
-    function packSubnetValidatorRegistrationMessage(
+    function packL1ValidatorRegistrationMessage(
         bytes32 validationID,
         bool valid
     ) external pure returns (bytes memory) {
         return abi.encodePacked(
-            CODEC_ID, SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID, validationID, valid
+            CODEC_ID, L1_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID, validationID, valid
         );
     }
 
     /**
-     * @notice Unpacks a byte array as a SubnetValidatorRegistrationMessage message.
+     * @notice Unpacks a byte array as a L1ValidatorRegistrationMessage message.
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
      * @return The validationID and whether the validation period was registered or is not a
      * validator and never will be a validator due to the expiry time passing.
      */
-    function unpackSubnetValidatorRegistrationMessage(bytes memory input)
+    function unpackL1ValidatorRegistrationMessage(bytes memory input)
         external
         pure
         returns (bytes32, bool)
@@ -491,7 +495,7 @@ library ValidatorMessages {
         for (uint256 i; i < 4; ++i) {
             typeID |= uint32(uint8(input[i + 2])) << uint32((8 * (3 - i)));
         }
-        if (typeID != SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID) {
+        if (typeID != L1_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID) {
             revert InvalidMessageType();
         }
 
@@ -508,7 +512,7 @@ library ValidatorMessages {
     }
 
     /**
-     * @notice Packs a SubnetValidatorWeightMessage message into a byte array.
+     * @notice Packs a L1ValidatorWeightMessage message into a byte array.
      * The message format specification is:
      * +--------------+----------+----------+
      * |      codecID :   uint16 |  2 bytes |
@@ -529,24 +533,24 @@ library ValidatorMessages {
      * @param weight The new weight of the validator.
      * @return The packed message.
      */
-    function packSubnetValidatorWeightMessage(
+    function packL1ValidatorWeightMessage(
         bytes32 validationID,
         uint64 nonce,
         uint64 weight
     ) external pure returns (bytes memory) {
         return abi.encodePacked(
-            CODEC_ID, SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID, validationID, nonce, weight
+            CODEC_ID, L1_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID, validationID, nonce, weight
         );
     }
 
     /**
-     * @notice Unpacks a byte array as a SubnetValidatorWeight message.
+     * @notice Unpacks a byte array as a SubnetValidatorWeightMessage.
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
      * @return The validationID, nonce, and weight.
      */
-    function unpackSubnetValidatorWeightMessage(bytes memory input)
+    function unpackL1ValidatorWeightMessage(bytes memory input)
         external
         pure
         returns (bytes32, uint64, uint64)
@@ -569,7 +573,7 @@ library ValidatorMessages {
         for (uint256 i; i < 4; ++i) {
             typeID |= uint32(uint8(input[i + 2])) << uint32((8 * (3 - i)));
         }
-        if (typeID != SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID) {
+        if (typeID != L1_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID) {
             revert InvalidMessageType();
         }
 
