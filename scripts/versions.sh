@@ -16,11 +16,15 @@ function getDepVersion() {
     grep -m1 "^\s*$1" $TELEPORTER_PATH/go.mod | cut -d ' ' -f2
 }
 
-extract_commit() {
+function extract_commit() {
   local version=$1
-  if [[ $version == *-* ]]; then
+
+  # Regex for a commit hash (assumed to be a 12+ character hex string)
+  commit_hash_regex="-([0-9a-f]{12,})$"
+
+  if [[ "$version" =~ $commit_hash_regex ]]; then
       # Extract the substring after the last '-'
-      version=${version##*-}
+      version=${BASH_REMATCH[1]}
   fi
   echo "$version"
 }
@@ -29,9 +33,10 @@ extract_commit() {
 AWM_RELAYER_VERSION=${AWM_RELAYER_VERSION:-'v1.0.0'}
 
 # Don't export them as they're used in the context of other calls
-AVALANCHEGO_VERSION=${AVALANCHEGO_VERSION:-$(getDepVersion github.com/ava-labs/avalanchego)}
-GINKGO_VERSION=${GINKGO_VERSION:-$(getDepVersion github.com/onsi/ginkgo/v2)}
-SUBNET_EVM_VERSION=${SUBNET_EVM_VERSION:-$(getDepVersion github.com/ava-labs/subnet-evm)}
+AVALANCHEGO_VERSION=${AVALANCHEGO_VERSION:-$(extract_commit "$(getDepVersion github.com/ava-labs/avalanchego)")}
+GINKGO_VERSION=${GINKGO_VERSION:-$(extract_commit "$(getDepVersion github.com/onsi/ginkgo/v2)")}
+SUBNET_EVM_VERSION=${SUBNET_EVM_VERSION:-$(extract_commit "$(getDepVersion github.com/ava-labs/subnet-evm)")}
+
 
 # Set golangci-lint version
 GOLANGCI_LINT_VERSION=${GOLANGCI_LINT_VERSION:-'v1.60'}

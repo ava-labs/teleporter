@@ -16,11 +16,12 @@ export ARCH=$(uname -m)
 [ $ARCH = x86_64 ] && ARCH=amd64
 echo "ARCH set to $ARCH"
 
-# Contract names to generate Go bindings for
-DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 TestMessenger ValidatorSetSig
+DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 ExampleRewardCalculator TestMessenger ValidatorSetSig NativeTokenStakingManager ERC20TokenStakingManager PoAValidatorManager
 TokenHome TokenRemote ERC20TokenHome ERC20TokenHomeUpgradeable ERC20TokenRemote ERC20TokenRemoteUpgradeable NativeTokenHome NativeTokenHomeUpgradeable NativeTokenRemote NativeTokenRemoteUpgradeable WrappedNativeToken MockERC20SendAndCallReceiver MockNativeSendAndCallReceiver ExampleERC20Decimals"
 
 PROXY_LIST="TransparentUpgradeableProxy ProxyAdmin"
+
+SUBNET_EVM_LIST="INativeMinter"
 
 CONTRACT_LIST=
 HELP=
@@ -54,7 +55,7 @@ go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 # compilations that did not generate new ABI files.
 echo "Building Contracts"
 cd $TELEPORTER_PATH
-forge build --skip test --force --extra-output-files abi bin
+forge build --skip test --optimizer-runs 100 --force --extra-output-files abi bin
 
 function convertToLower() {
     if [ "$ARCH" = 'arm64' ]; then

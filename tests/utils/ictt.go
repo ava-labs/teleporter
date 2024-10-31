@@ -12,8 +12,6 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	proxyadmin "github.com/ava-labs/teleporter/abi-bindings/go/ProxyAdmin"
-	transparentupgradeableproxy "github.com/ava-labs/teleporter/abi-bindings/go/TransparentUpgradeableProxy"
 	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
 	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
 	tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/TokenHome"
@@ -72,6 +70,7 @@ const NativeTokenDecimals = 18
 
 func DeployERC20TokenHome(
 	ctx context.Context,
+	teleporter TeleporterTestInfo,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	teleporterManager common.Address,
@@ -86,9 +85,9 @@ func DeployERC20TokenHome(
 	implAddress, tx, erc20TokenHome, err := erc20tokenhome.DeployERC20TokenHome(
 		opts,
 		subnet.RPCClient,
-		subnet.TeleporterRegistryAddress,
+		teleporter.TeleporterRegistryAddress(subnet),
 		teleporterManager,
-		GetLatestTeleporterVersion(subnet),
+		teleporter.GetLatestTeleporterVersion(subnet),
 		tokenAddress,
 		tokenHomeDecimals,
 	)
@@ -100,6 +99,7 @@ func DeployERC20TokenHome(
 
 func DeployERC20TokenRemote(
 	ctx context.Context,
+	teleporter TeleporterTestInfo,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	teleporterManager common.Address,
@@ -119,9 +119,9 @@ func DeployERC20TokenRemote(
 		opts,
 		subnet.RPCClient,
 		erc20tokenremote.TokenRemoteSettings{
-			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
+			TeleporterRegistryAddress: teleporter.TeleporterRegistryAddress(subnet),
 			TeleporterManager:         teleporterManager,
-			MinTeleporterVersion:      GetLatestTeleporterVersion(subnet),
+			MinTeleporterVersion:      teleporter.GetLatestTeleporterVersion(subnet),
 			TokenHomeBlockchainID:     tokenHomeBlockchainID,
 			TokenHomeAddress:          tokenHomeAddress,
 			TokenHomeDecimals:         tokenHomeDecimals,
@@ -139,6 +139,7 @@ func DeployERC20TokenRemote(
 
 func DeployNativeTokenRemote(
 	ctx context.Context,
+	teleporter TeleporterTestInfo,
 	subnet interfaces.SubnetTestInfo,
 	symbol string,
 	teleporterManager common.Address,
@@ -165,9 +166,9 @@ func DeployNativeTokenRemote(
 		opts,
 		subnet.RPCClient,
 		nativetokenremote.TokenRemoteSettings{
-			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
+			TeleporterRegistryAddress: teleporter.TeleporterRegistryAddress(subnet),
 			TeleporterManager:         teleporterManager,
-			MinTeleporterVersion:      GetLatestTeleporterVersion(subnet),
+			MinTeleporterVersion:      teleporter.GetLatestTeleporterVersion(subnet),
 			TokenHomeBlockchainID:     tokenHomeBlockchainID,
 			TokenHomeAddress:          tokenHomeAddress,
 			TokenHomeDecimals:         tokenHomeDecimals,
@@ -187,6 +188,7 @@ func DeployNativeTokenRemote(
 
 func DeployNativeTokenHome(
 	ctx context.Context,
+	teleporter TeleporterTestInfo,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	teleporterManager common.Address,
@@ -200,9 +202,9 @@ func DeployNativeTokenHome(
 	implAddress, tx, nativeTokenHome, err := nativetokenhome.DeployNativeTokenHome(
 		opts,
 		subnet.RPCClient,
-		subnet.TeleporterRegistryAddress,
+		teleporter.TeleporterRegistryAddress(subnet),
 		teleporterManager,
-		GetLatestTeleporterVersion(subnet),
+		teleporter.GetLatestTeleporterVersion(subnet),
 		tokenAddress,
 	)
 	Expect(err).Should(BeNil())
@@ -297,44 +299,10 @@ func DeployExampleERC20Decimals(
 	return address, token
 }
 
-func DeployTransparentUpgradeableProxy[T any](
-	ctx context.Context,
-	subnet interfaces.SubnetTestInfo,
-	senderKey *ecdsa.PrivateKey,
-	implAddress common.Address,
-	newInstance func(address common.Address, backend bind.ContractBackend) (*T, error),
-) (common.Address, *proxyadmin.ProxyAdmin, *T) {
-	opts, err := bind.NewKeyedTransactorWithChainID(
-		senderKey,
-		subnet.EVMChainID,
-	)
-	Expect(err).Should((BeNil()))
-
-	senderAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
-	proxyAddress, tx, proxy, err := transparentupgradeableproxy.DeployTransparentUpgradeableProxy(
-		opts,
-		subnet.RPCClient,
-		implAddress,
-		senderAddress,
-		[]byte{},
-	)
-	Expect(err).Should(BeNil())
-	receipt := WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	proxyAdminEvent, err := GetEventFromLogs(receipt.Logs, proxy.ParseAdminChanged)
-	Expect(err).Should(BeNil())
-
-	proxyAdmin, err := proxyadmin.NewProxyAdmin(proxyAdminEvent.NewAdmin, subnet.RPCClient)
-	Expect(err).Should(BeNil())
-
-	contract, err := newInstance(proxyAddress, subnet.RPCClient)
-	Expect(err).Should(BeNil())
-
-	return proxyAddress, proxyAdmin, contract
-}
-
 func RegisterERC20TokenRemoteOnHome(
 	ctx context.Context,
 	network interfaces.Network,
+	teleporter TeleporterTestInfo,
 	homeSubnet interfaces.SubnetTestInfo,
 	homeAddress common.Address,
 	remoteSubnet interfaces.SubnetTestInfo,
@@ -342,6 +310,7 @@ func RegisterERC20TokenRemoteOnHome(
 ) {
 	RegisterTokenRemoteOnHome(
 		ctx,
+		teleporter,
 		network,
 		homeSubnet,
 		homeAddress,
@@ -355,6 +324,7 @@ func RegisterERC20TokenRemoteOnHome(
 
 func RegisterTokenRemoteOnHome(
 	ctx context.Context,
+	teleporter TeleporterTestInfo,
 	network interfaces.Network,
 	homeSubnet interfaces.SubnetTestInfo,
 	homeAddress common.Address,
@@ -405,10 +375,10 @@ func RegisterTokenRemoteOnHome(
 	receipt := WaitForTransactionSuccess(ctx, remoteSubnet, sendRegisterTx.Hash())
 
 	// Relay the register message to the home
-	receipt = network.RelayMessage(ctx, receipt, remoteSubnet, homeSubnet, true)
+	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, remoteSubnet, homeSubnet, true, fundedKey)
 	_, err = GetEventFromLogs(
 		receipt.Logs,
-		homeSubnet.TeleporterMessenger.ParseMessageExecuted,
+		teleporter.TeleporterMessenger(homeSubnet).ParseMessageExecuted,
 	)
 	if err != nil {
 		TraceTransactionAndExit(ctx, homeSubnet.RPCClient, receipt.TxHash)
@@ -856,6 +826,7 @@ func SendAndCallERC20TokenRemote(
 func SendNativeMultiHopAndVerify(
 	ctx context.Context,
 	network interfaces.Network,
+	teleporter TeleporterTestInfo,
 	sendingKey *ecdsa.PrivateKey,
 	recipientAddress common.Address,
 	fromSubnet interfaces.SubnetTestInfo,
@@ -890,14 +861,17 @@ func SendNativeMultiHopAndVerify(
 		sendingKey,
 	)
 
+	_, fundedKey := network.GetFundedAccountInfo()
+
 	// Relay the first message back to the home chain, in this case C-Chain,
 	// which then performs the multi-hop transfer to the destination TokenRemote instance.
-	intermediateReceipt := network.RelayMessage(
+	intermediateReceipt := teleporter.RelayTeleporterMessage(
 		ctx,
 		originReceipt,
 		fromSubnet,
 		cChainInfo,
 		true,
+		fundedKey,
 	)
 
 	initialBalance, err := toSubnet.RPCClient.BalanceAt(ctx, recipientAddress, nil)
@@ -906,12 +880,13 @@ func SendNativeMultiHopAndVerify(
 	// When we relay the above message to the home chain, a multi-hop transfer
 	// is performed to the destination TokenRemote instance. Parse for the send tokens event
 	// and relay to the destination TokenRemote instance.
-	network.RelayMessage(
+	teleporter.RelayTeleporterMessage(
 		ctx,
 		intermediateReceipt,
 		cChainInfo,
 		toSubnet,
 		true,
+		fundedKey,
 	)
 
 	transferredAmount := big.NewInt(0).Sub(amount, input.SecondaryFee)
@@ -926,6 +901,7 @@ func SendNativeMultiHopAndVerify(
 func SendERC20TokenMultiHopAndVerify(
 	ctx context.Context,
 	network interfaces.Network,
+	teleporter TeleporterTestInfo,
 	fundedKey *ecdsa.PrivateKey,
 	sendingKey *ecdsa.PrivateKey,
 	recipientAddress common.Address,
@@ -971,16 +947,17 @@ func SendERC20TokenMultiHopAndVerify(
 
 	// Relay the first message back to the home chain, in this case C-Chain,
 	// which then performs the multi-hop transfer to the destination TokenRemote instance.
-	intermediateReceipt := network.RelayMessage(
+	intermediateReceipt := teleporter.RelayTeleporterMessage(
 		ctx,
 		originReceipt,
 		fromSubnet,
 		cChainInfo,
 		true,
+		fundedKey,
 	)
 	_, err := GetEventFromLogs(
 		intermediateReceipt.Logs,
-		cChainInfo.TeleporterMessenger.ParseMessageExecuted,
+		teleporter.TeleporterMessenger(cChainInfo).ParseMessageExecuted,
 	)
 	if err != nil {
 		TraceTransactionAndExit(ctx, cChainInfo.RPCClient, intermediateReceipt.TxHash)
@@ -992,14 +969,15 @@ func SendERC20TokenMultiHopAndVerify(
 	// When we relay the above message to the home chain, a multi-hop transfer
 	// is performed to the destination TokenRemote instance. Parse for the send tokens event
 	// and relay to the destination TokenRemote instance.
-	remoteReceipt := network.RelayMessage(
+	remoteReceipt := teleporter.RelayTeleporterMessage(
 		ctx,
 		intermediateReceipt,
 		cChainInfo,
 		toSubnet,
 		true,
+		fundedKey,
 	)
-	_, err = GetEventFromLogs(remoteReceipt.Logs, toSubnet.TeleporterMessenger.ParseMessageExecuted)
+	_, err = GetEventFromLogs(remoteReceipt.Logs, teleporter.TeleporterMessenger(toSubnet).ParseMessageExecuted)
 	if err != nil {
 		TraceTransactionAndExit(ctx, toSubnet.RPCClient, remoteReceipt.TxHash)
 	}
@@ -1115,10 +1093,4 @@ func ERC20DecimalsApprove(
 	log.Info("Approved ERC20", "spender", spender.Hex(), "txHash", tx.Hash().Hex())
 
 	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-}
-
-func GetLatestTeleporterVersion(subnet interfaces.SubnetTestInfo) *big.Int {
-	version, err := subnet.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
-	Expect(err).Should(BeNil())
-	return version
 }
