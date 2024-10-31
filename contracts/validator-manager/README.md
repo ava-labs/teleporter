@@ -101,7 +101,7 @@ Proof-of-Stake validator management is provided by the abstract contract `PoSVal
 
 ### Convert PoA to PoS
 
-A `PoAValidatorManager` can later be converted to a `PoSValidatorManager` by upgrading the implementation contract pointed to by the proxy. After performing the upgrade, the `PoSValidatorManager` contract should be initialized by calling `initialize` as described above. The validator set contained in the `PoAValidatorManager` will be tracked by the `PoSValidatorManager` after the upgrade, but will neither be eligible to stake and earn staking rewards, nor provide any such capability for potential delegators.
+A `PoAValidatorManager` can later be converted to a `PoSValidatorManager` by upgrading the implementation contract pointed to by the proxy. After performing the upgrade, the `PoSValidatorManager` contract should be initialized by calling `initialize` as described above. The validator set contained in the `PoAValidatorManager` will be tracked by the `PoSValidatorManager` after the upgrade, but these validators will neither be eligible to stake and earn staking rewards, nor support delegation.
 
 ## Usage
 
