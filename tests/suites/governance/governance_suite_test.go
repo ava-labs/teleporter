@@ -1,4 +1,4 @@
-package validator_manager_test
+package governance_test
 
 import (
 	"context"
@@ -6,9 +6,8 @@ import (
 	"testing"
 	"time"
 
-	validatorManagerFlows "github.com/ava-labs/teleporter/tests/flows/validator-manager"
+	governanceFlows "github.com/ava-labs/teleporter/tests/flows/governance"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
-	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -27,10 +26,9 @@ const (
 
 var (
 	LocalNetworkInstance *localnetwork.LocalNetwork
-	TeleporterInfo       utils.TeleporterTestInfo
 )
 
-func TestValidatorManager(t *testing.T) {
+func TestGovernance(t *testing.T) {
 	if os.Getenv("RUN_E2E") == "" {
 		t.Skip("Environment variable RUN_E2E not set; skipping E2E tests")
 	}
@@ -40,7 +38,7 @@ func TestValidatorManager(t *testing.T) {
 }
 
 // Define the Teleporter before and after suite functions.
-var _ = ginkgo.BeforeEach(func() {
+var _ = ginkgo.BeforeSuite(func() {
 	// Create the local network instance
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
@@ -65,26 +63,15 @@ var _ = ginkgo.BeforeEach(func() {
 	log.Info("Started local network")
 })
 
-var _ = ginkgo.AfterEach(func() {
+var _ = ginkgo.AfterSuite(func() {
 	LocalNetworkInstance.TearDownNetwork()
-	LocalNetworkInstance = nil
 })
 
-var _ = ginkgo.Describe("[Validator manager integration tests]", func() {
-	// Validator Manager tests
-	ginkgo.It("Native token staking manager",
-		ginkgo.Label(validatorManagerLabel),
+var _ = ginkgo.Describe("[Governance integration tests]", func() {
+	// Governance tests
+	ginkgo.It("Deliver ValidatorSetSig signed message",
+		ginkgo.Label(validatorSetSigLabel),
 		func() {
-			validatorManagerFlows.NativeTokenStakingManager(LocalNetworkInstance, TeleporterInfo)
-		})
-	ginkgo.It("ERC20 token staking manager",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManagerFlows.ERC20TokenStakingManager(LocalNetworkInstance, TeleporterInfo)
-		})
-	ginkgo.It("PoA migration to PoS",
-		ginkgo.Label(validatorManagerLabel),
-		func() {
-			validatorManagerFlows.PoAMigrationToPoS(LocalNetworkInstance, TeleporterInfo)
+			governanceFlows.ValidatorSetSig(LocalNetworkInstance)
 		})
 })

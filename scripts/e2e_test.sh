@@ -26,7 +26,7 @@ Options:
 EOF
 }
 
-valid_components=$(ls -d $TELEPORTER_PATH/tests/*/ | xargs -n 1 basename)
+valid_components=$(ls -d $TELEPORTER_PATH/tests/suites/*/ | xargs -n 1 basename)
 components=
 
 while [ $# -gt 0 ]; do

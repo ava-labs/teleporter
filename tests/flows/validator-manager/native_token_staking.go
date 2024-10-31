@@ -29,7 +29,7 @@ import (
  * - Deliver the Warp message to the subnet
  * - Verify that the validator is delisted from the staking contract
  */
-func NativeTokenStakingManager(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
+func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 	// Get the subnets info
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := network.GetTwoSubnets()

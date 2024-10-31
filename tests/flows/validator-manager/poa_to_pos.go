@@ -36,7 +36,7 @@ import (
  * - Delist the previous PoA validator properly
  * - Delist the PoS validator
  */
-func PoAMigrationToPoS(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
+func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := network.GetTwoSubnets()
 	_, fundedKey := network.GetFundedAccountInfo()

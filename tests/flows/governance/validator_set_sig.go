@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func ValidatorSetSig(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
+func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	// ************************************************************************************************
 	// Setup
 	// ************************************************************************************************
