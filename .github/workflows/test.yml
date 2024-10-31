@@ -8,6 +8,10 @@ on:
     branches:
       - "**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   solidity-unit-tests:
     runs-on: ubuntu-22.04
@@ -116,3 +120,27 @@ jobs:
           export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
           ./scripts/e2e_test.sh --components validator-manager
+
+  ictt_e2e:
+    name: ictt-e2e-tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repositories and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Install Foundry
+        run: ./scripts/install_foundry.sh
+
+      - name: Run E2E Tests
+        # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          export PATH="$PATH:$GOPATH/bin"
+          ./scripts/e2e_test.sh --components ictt

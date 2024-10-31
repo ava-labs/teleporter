@@ -26,8 +26,6 @@ const (
 	teleporterMessengerLabel = "TeleporterMessenger"
 	upgradabilityLabel       = "upgradability"
 	utilsLabel               = "utils"
-	validatorSetSigLabel     = "ValidatorSetSig"
-	validatorManagerLabel    = "ValidatorManager"
 )
 
 var (
