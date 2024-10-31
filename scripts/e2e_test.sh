@@ -89,10 +89,10 @@ go install -v github.com/onsi/ginkgo/v2/ginkgo@${GINKGO_VERSION}
 
 for component in $(echo $components | tr ',' ' '); do
     echo "Building e2e tests for $component"
-    ginkgo build ./tests/$component
+    ginkgo build ./tests/suites/$component
 
     echo "Running e2e tests for $component"
-    RUN_E2E=true ./tests/$component/$component.test \
+    RUN_E2E=true ./tests/suites/$component/$component.test \
     --ginkgo.vv \
     --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""} \
     --ginkgo.focus=${GINKGO_FOCUS:-""} \
