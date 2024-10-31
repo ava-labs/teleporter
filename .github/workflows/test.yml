@@ -45,8 +45,8 @@ jobs:
           source scripts/constants.sh
           go test ./...
 
-  e2e_tests:
-    name: e2e_tests
+  teleporter_e2e:
+    name: teleporter-e2e-tests
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repositories and submodules
@@ -67,15 +67,52 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
-          ./scripts/e2e_test.sh
+          ./scripts/e2e_test.sh --components teleporter
 
-      - name: Upload tmpnet network dir
-        uses: actions/upload-artifact@v4
-        if: always()
+  governance_e2e:
+    name: governance-e2e-tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repositories and submodules
+        uses: actions/checkout@v4
         with:
-          name: e2e-tmpnet-data
-          path: |
-            ~/.tmpnet/networks
-            ~/.tmpnet/prometheus/prometheus.log
-            ~/.tmpnet/promtail/promtail.log
-          if-no-files-found: error
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Install Foundry
+        run: ./scripts/install_foundry.sh
+
+      - name: Run E2E Tests
+        # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          export PATH="$PATH:$GOPATH/bin"
+          ./scripts/e2e_test.sh --components governance
+
+  validator_manager_e2e:
+    name: validator-manager-e2e-tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repositories and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Install Foundry
+        run: ./scripts/install_foundry.sh
+
+      - name: Run E2E Tests
+        # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          export PATH="$PATH:$GOPATH/bin"
+          ./scripts/e2e_test.sh --components validator-manager

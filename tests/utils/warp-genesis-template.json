@@ -1,54 +1,82 @@
 {
     "config": {
-        "chainId": <EVM_CHAIN_ID>,
-        "homesteadBlock": 0,
-        "eip150Block": 0,
-        "eip150Hash": "0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0",
-        "eip155Block": 0,
-        "eip158Block": 0,
-        "byzantiumBlock": 0,
-        "constantinopleBlock": 0,
-        "petersburgBlock": 0,
-        "istanbulBlock": 0,
-        "muirGlacierBlock": 0,
-        "feeConfig": {
-            "gasLimit": 20000000,
-            "minBaseFee": 1000000000,
-            "targetGas": 100000000,
-            "baseFeeChangeDenominator": 48,
-            "minBlockGasCost": 0,
-            "maxBlockGasCost": 10000000,
-            "targetBlockRate": 2,
-            "blockGasCostStep": 500000
-        },
-        "warpConfig": {
-            "blockTimestamp": 1719343601
-        },
-        "contractNativeMinterConfig": {
-            "blockTimestamp": 0,
-            "adminAddresses": [
-                "0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B",
-                "0x3405506b3711859c5070949ed9b700c7ba7bf750"
-            ]
-        }
+      "chainId": <EVM_CHAIN_ID>,
+      "homesteadBlock": 0,
+      "eip150Block": 0,
+      "eip150Hash": "0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0",
+      "eip155Block": 0,
+      "eip158Block": 0,
+      "byzantiumBlock": 0,
+      "constantinopleBlock": 0,
+      "petersburgBlock": 0,
+      "istanbulBlock": 0,
+      "muirGlacierBlock": 0,
+      "feeConfig": {
+        "gasLimit": 20000000,
+        "minBaseFee": 1000000000,
+        "targetGas": 100000000,
+        "baseFeeChangeDenominator": 48,
+        "minBlockGasCost": 0,
+        "maxBlockGasCost": 10000000,
+        "targetBlockRate": 2,
+        "blockGasCostStep": 500000
+      },
+      "warpConfig": {
+        "blockTimestamp": 1719343601
+      },
+      "contractNativeMinterConfig": {
+        "blockTimestamp": 0,
+        "adminAddresses": [
+          "0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B",
+          "0x3405506b3711859c5070949ed9b700c7ba7bf750",
+          "0x962c62B01529ecc0561D85d3fe395921ddC3665B",
+          "0x1549B96D9D97F435CA9b25000FEDE3A7e54C0bb9",
+          "0x190110D1228EB2cDd36559b2215A572Dc8592C3d",
+          "0xf9EF017A764F265A1fD0975bfc200725E41d860E",
+          "0x4f3663be6d22B0F19F8617f1A9E9485aB0144Bff",
+          "0x463a6bE7a5098A5f06435c6c468adD338F15B93A",
+          "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"
+        ]
+      }
     },
     "alloc": {
-        "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC": {
-            "balance": "0x52B7D2DCC80CD2E4000000"
+      "<TELEPORTER_MESSENGER_CONTRACT_ADDRESS>": {
+        "balance": "0x0",
+        "code": "<TELEPORTER_MESSENGER_DEPLOYED_BYTECODE>",
+        "storage": {
+          "0x0000000000000000000000000000000000000000000000000000000000000000": "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000000000000000000000000000001": "0x0000000000000000000000000000000000000000000000000000000000000001"
         },
-        "<TELEPORTER_MESSENGER_CONTRACT_ADDRESS>": {
-            "balance": "0x0",
-            "code": "<TELEPORTER_MESSENGER_DEPLOYED_BYTECODE>",
-            "storage": {
-                "0x0000000000000000000000000000000000000000000000000000000000000000": "0x0000000000000000000000000000000000000000000000000000000000000001",
-                "0x0000000000000000000000000000000000000000000000000000000000000001": "0x0000000000000000000000000000000000000000000000000000000000000001"
-            },
-            "nonce": 1
-        },
-        "<TELEPORTER_MESSENGER_DEPLOYER_ADDRESS>": {
-            "balance": "0x0",
-            "nonce": 1
-        }
+        "nonce": 1
+      },
+      "<TELEPORTER_MESSENGER_DEPLOYER_ADDRESS>": {
+        "balance": "0x0",
+        "nonce": 1
+      },
+      "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC": {
+        "balance": "0x52B7D2DCC80CD2E4000000"
+      },
+      "0x1337cfd2dCff6270615B90938aCB1efE79801704": {
+        "balance": "0x52B7D2DCC80CD2E4000000"
+      },
+      "0xFcec6c0674037f99fa473de09609B4b6D8158863": {
+        "balance": "0x52B7D2DCC80CD2E4000000"
+      },
+      "0x2e1533d976A675bCD6306deC3B05e9f73e6722Fb": {
+        "balance": "0x52B7D2DCC80CD2E4000000"
+      },
+      "0xA638b0a597dc0520e2f20E83cFbeBBCd45a79990": {
+        "balance": "0x52B7D2DCC80CD2E4000000"
+      },
+      "0x787C079cB0d5A7AA1Cae95d991F76Dce771A432D": {
+        "balance": "0x52B7D2DCC80CD2E4000000"
+      },
+      "0x741D536f5B07bcD43727CD8435389CA36aE5A4Ae": {
+        "balance": "0x52B7D2DCC80CD2E4000000"
+      },
+      "0xd466f12795BA59d0fef389c21fA63c287956fb18": {
+        "balance": "0x52B7D2DCC80CD2E4000000"
+      }
     },
     "nonce": "0x0",
     "timestamp": "0x667B19F0",
@@ -60,4 +88,4 @@
     "number": "0x0",
     "gasUsed": "0x0",
     "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
-}
+  }
