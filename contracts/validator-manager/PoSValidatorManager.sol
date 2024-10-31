@@ -459,7 +459,7 @@ abstract contract PoSValidatorManager is
     /**
      * @notice See {IPoSValidatorManager-completeDelegatorRegistration}.
      */
-    function completeDelegatorRegistration(uint32 messageIndex, bytes32 delegationID) external {
+    function completeDelegatorRegistration(bytes32 delegationID, uint32 messageIndex) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
@@ -674,8 +674,8 @@ abstract contract PoSValidatorManager is
      * @notice See {IPoSValidatorManager-completeEndDelegation}.
      */
     function completeEndDelegation(
-        uint32 messageIndex,
-        bytes32 delegationID
+        bytes32 delegationID,
+        uint32 messageIndex
     ) external nonReentrant {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         Delegator memory delegator = $._delegatorStakes[delegationID];

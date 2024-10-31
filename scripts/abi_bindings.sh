@@ -22,6 +22,8 @@ PROXY_LIST="TransparentUpgradeableProxy ProxyAdmin"
 
 SUBNET_EVM_LIST="INativeMinter"
 
+EXTERNAL_LIBS="ValidatorMessages"
+
 CONTRACT_LIST=
 HELP=
 while [ $# -gt 0 ]; do
@@ -47,14 +49,23 @@ if ! command -v forge &> /dev/null; then
     echo "forge not found. You can install by calling $TELEPORTER_PATH/scripts/install_foundry.sh" && exit 1
 fi
 
+if ! command -v solc &> /dev/null; then
+    echo "solc not found. See https://docs.soliditylang.org/en/latest/installing-solidity.html for installation instructions" && exit 1
+fi
+    
+# Get the version from solc output
+solc_version_output=$(solc --version 2>&1)
+
+# Extract the semver version from the output
+extracted_version=$(solc --version 2>&1 | awk '/Version:/ {print $2}' | awk -F'+' '{print $1}')
+
+# Check if the extracted version matches the expected version
+if ! [[ "$extracted_version" == "$SOLIDITY_VERSION" ]]; then
+    echo "Expected solc version $SOLIDITY_VERSION, but found $extracted_version. Please install the correct version." && exit 1
+fi
+
 echo "Building subnet-evm abigen"
 go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
-
-# Force recompile of all contracts to prevent against using previous
-# compilations that did not generate new ABI files.
-echo "Building Contracts"
-cd $TELEPORTER_PATH
-forge build --skip test --optimizer-runs 100 --force --extra-output-files abi bin
 
 function convertToLower() {
     if [ "$ARCH" = 'arm64' ]; then
@@ -64,26 +75,67 @@ function convertToLower() {
     fi
 }
 
+# Removes a matching string from a comma-separated list
+remove_matching_string() {
+    input_list="$1"
+    match="$2"
+    # Split the input list by commas
+    IFS=',' read -ra elements <<< "$input_list"
+    
+    # Initialize an empty result array
+    result=()
+
+    # Iterate over each element
+    for element in "${elements[@]}"; do
+        # Check if the part after the colon matches the given string
+        if [[ "${element#*:}" != "$match" ]]; then
+        # If it doesn't match, add the element to the result array
+        result+=("$element")
+        fi
+    done
+
+    # Join the result array with commas and print
+    (IFS=','; echo "${result[*]}")
+}
+
 function generate_bindings() {
     local contract_names=("$@")
     for contract_name in "${contract_names[@]}"
     do
         path=$(find . -name $contract_name.sol)
         dir=$(dirname $path)
-        abi_file=$TELEPORTER_PATH/out/$contract_name.sol/$contract_name.abi.json
-        if ! [ -f $abi_file ]; then
-            echo "Error: Contract $contract_name abi file not found"
-            exit 1
-        fi
+        dir="${dir#./}"
+
+        echo "Building $contract_name..."
+        mkdir -p $TELEPORTER_PATH/out/$contract_name.sol
+        
+        combined_json=$TELEPORTER_PATH/out/$contract_name.sol/combined-output.json
+
+        cwd=$(pwd)
+        cd $TELEPORTER_PATH
+        solc --optimize --evm-version $EVM_VERSION --combined-json abi,bin,metadata,ast,devdoc,userdoc --pretty-json $cwd/$dir/$contract_name.sol $(cat $TELEPORTER_PATH/remappings.txt) > $combined_json
+        cd $cwd
+
+        # construct the exclude list
+        contracts=$(jq -r '.contracts | keys | join(",")' $combined_json)
+
+        # Filter out the contract we are generating bindings for
+        filtered_contracts=$(remove_matching_string $contracts $contract_name)
+
+        # Filter out external libraries
+        for lib in $EXTERNAL_LIBS; do
+            filtered_contracts=$(remove_matching_string $filtered_contracts $lib)
+        done
 
         echo "Generating Go bindings for $contract_name..."
         gen_path=$TELEPORTER_PATH/abi-bindings/go/$dir/$contract_name
         mkdir -p $gen_path
-        $GOPATH/bin/abigen --abi $abi_file \
-                        --pkg $(convertToLower $contract_name) \
-                        --bin $TELEPORTER_PATH/out/$contract_name.sol/$contract_name.bin \
+
+        $GOPATH/bin/abigen --pkg $(convertToLower $contract_name) \
+                        --combined-json $combined_json \
                         --type $contract_name \
-                        --out $gen_path/$contract_name.go
+                        --out $gen_path/$contract_name.go \
+                        --exc $filtered_contracts
         echo "Done generating Go bindings for $contract_name."
     done
 }
@@ -99,16 +151,10 @@ cd $TELEPORTER_PATH/contracts
 generate_bindings "${contract_names[@]}"
 
 contract_names=($PROXY_LIST)
-cd $TELEPORTER_PATH/
-forge build --skip test --force --extra-output-files abi bin --contracts lib/openzeppelin-contracts/contracts/proxy/transparent
-
-cd $TELEPORTER_PATH/lib/openzeppelin-contracts/contracts/proxy/transparent
+cd $TELEPORTER_PATH/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/proxy/transparent
 generate_bindings "${contract_names[@]}"
 
 contract_names=($SUBNET_EVM_LIST)
-cd $TELEPORTER_PATH/
-forge build --skip test --force --extra-output-files abi bin --contracts lib/subnet-evm/contracts/contracts/interfaces
-
 cd $TELEPORTER_PATH/lib/subnet-evm/contracts/contracts/interfaces
 generate_bindings "${contract_names[@]}"
 
