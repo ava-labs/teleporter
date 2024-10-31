@@ -3,13 +3,13 @@ module github.com/ava-labs/teleporter
 go 1.22.8
 
 require (
-	github.com/ava-labs/avalanchego v1.12.0-initial-poc.5
+	github.com/ava-labs/avalanchego v1.12.0-initial-poc.6
 	github.com/supranational/blst v0.3.11 // indirect
 )
 
 require (
 	github.com/ava-labs/awm-relayer v1.4.1-0.20241010161724-2db445c994d6
-	github.com/ava-labs/subnet-evm v0.6.11
+	github.com/ava-labs/subnet-evm v0.6.12-0.20241030152601-17be88218497
 	github.com/ethereum/go-ethereum v1.13.14
 	github.com/onsi/ginkgo/v2 v2.21.0
 	github.com/onsi/gomega v1.35.0
@@ -104,7 +104,7 @@ require (
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/rogpeppe/go-internal v1.10.0 // indirect
+	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
@@ -143,7 +143,7 @@ require (
 	golang.org/x/time v0.3.0 // indirect
 	gonum.org/v1/gonum v0.11.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240814211410-ddb44dafa142 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240827150818-7e3bb234dfed // indirect
 	google.golang.org/grpc v1.67.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
