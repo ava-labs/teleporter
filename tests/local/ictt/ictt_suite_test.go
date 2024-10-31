@@ -45,7 +45,7 @@ func TestValidatorManager(t *testing.T) {
 }
 
 // Define the Teleporter before and after suite functions.
-var _ = ginkgo.BeforeEach(func() {
+var _ = ginkgo.BeforeSuite(func() {
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction,
 		teleporterDeployedBytecode,
@@ -105,7 +105,7 @@ var _ = ginkgo.BeforeEach(func() {
 	}
 })
 
-var _ = ginkgo.AfterEach(func() {
+var _ = ginkgo.AfterSuite(func() {
 	LocalNetworkInstance.TearDownNetwork()
 	LocalNetworkInstance = nil
 })
