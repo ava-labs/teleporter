@@ -19,7 +19,18 @@ enum DelegatorStatus {
 }
 
 /**
- * @dev PoS Validator Manager settings, used to initialize the PoS Validator Manager
+ * @notice PoS Validator Manager settings, used to initialize the PoS Validator Manager
+ * @notice baseSettings specified the base settings for the Validator Manager. See {IValidatorManager-ValidatorManagerSettings}
+ * @notice minimumStakeAmount is the minimum amount of stake required to stake to a validator
+ * @notice maximumStakeAmount is the maximum amount of stake that can be staked to a validator
+ * @notice minimumStakeDuration is the minimum duration that validators must stake for
+ * @notice minimumDelegationFeeBips is the minimum delegation fee in basis points that validators can charge
+ * @notice maximumStakeMultiplier is  multiplier applied to validator's initial stake amount to determine
+ * the maximum amount of stake a validator can have with delegations.
+ * @notice weightToValueFactor is the factor used to convert validator weight to value
+ * @notice rewardCalculator is the reward calculator used to calculate rewards for this validator manager
+ * @notice uptimeBlockchainID is the ID of the blockchain that submits uptime proofs.
+ * This must be a blockchain validated by the subnetID that this contract manages.
  */
 struct PoSValidatorManagerSettings {
     ValidatorManagerSettings baseSettings;
@@ -30,6 +41,7 @@ struct PoSValidatorManagerSettings {
     uint8 maximumStakeMultiplier;
     uint256 weightToValueFactor;
     IRewardCalculator rewardCalculator;
+    bytes32 uptimeBlockchainID;
 }
 
 /**

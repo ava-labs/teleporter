@@ -224,6 +224,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 			MaximumStakeMultiplier:   utils.DefaultMaxStakeMultiplier,
 			WeightToValueFactor:      big.NewInt(0).SetUint64(utils.DefaultWeightToValueFactor),
 			RewardCalculator:         rewardCalculatorAddress,
+			UptimeBlockchainID:       subnetAInfo.BlockchainID,
 		},
 	)
 	Expect(err).Should(BeNil())

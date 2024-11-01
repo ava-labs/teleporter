@@ -57,6 +57,8 @@ abstract contract PoSValidatorManager is
         uint256 _weightToValueFactor;
         /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
+        /// @notice The ID of the blockchain that submits uptime proofs. This must be a blockchain validated by the subnetID that this contract manages.
+        bytes32 _uptimeBlockchainID;
         /// @notice Maps the validation ID to its requirements.
         mapping(bytes32 validationID => PoSValidatorInfo) _posValidatorInfo;
         /// @notice Maps the delegation ID to the delegator information.
@@ -92,6 +94,7 @@ abstract contract PoSValidatorManager is
     error ValidatorIneligibleForRewards(bytes32 validationID);
     error DelegatorIneligibleForRewards(bytes32 delegationID);
     error ZeroWeightToValueFactor();
+    error InvalidUptimeBlockchainID(bytes32 uptimeBlockchainID);
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
@@ -119,7 +122,8 @@ abstract contract PoSValidatorManager is
             minimumDelegationFeeBips: settings.minimumDelegationFeeBips,
             maximumStakeMultiplier: settings.maximumStakeMultiplier,
             weightToValueFactor: settings.weightToValueFactor,
-            rewardCalculator: settings.rewardCalculator
+            rewardCalculator: settings.rewardCalculator,
+            uptimeBlockchainID: settings.uptimeBlockchainID
         });
     }
 
@@ -131,7 +135,8 @@ abstract contract PoSValidatorManager is
         uint16 minimumDelegationFeeBips,
         uint8 maximumStakeMultiplier,
         uint256 weightToValueFactor,
-        IRewardCalculator rewardCalculator
+        IRewardCalculator rewardCalculator,
+        bytes32 uptimeBlockchainID
     ) internal onlyInitializing {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         if (minimumDelegationFeeBips == 0 || minimumDelegationFeeBips > MAXIMUM_DELEGATION_FEE_BIPS)
@@ -152,6 +157,9 @@ abstract contract PoSValidatorManager is
         if (weightToValueFactor == 0) {
             revert ZeroWeightToValueFactor();
         }
+        if (uptimeBlockchainID == bytes32(0)) {
+            revert InvalidUptimeBlockchainID(uptimeBlockchainID);
+        }
 
         $._minimumStakeAmount = minimumStakeAmount;
         $._maximumStakeAmount = maximumStakeAmount;
@@ -160,6 +168,7 @@ abstract contract PoSValidatorManager is
         $._maximumStakeMultiplier = maximumStakeMultiplier;
         $._weightToValueFactor = weightToValueFactor;
         $._rewardCalculator = rewardCalculator;
+        $._uptimeBlockchainID = uptimeBlockchainID;
     }
 
     /**
@@ -311,6 +320,12 @@ abstract contract PoSValidatorManager is
             revert InvalidWarpMessage();
         }
 
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        // The uptime proof must be from the specifed uptime blockchain
+        if (warpMessage.sourceChainID != $._uptimeBlockchainID) {
+            revert InvalidWarpSourceChainID(warpMessage.sourceChainID);
+        }
+
         // The sender is required to be the zero address so that we know the validator node
         // signed the proof directly, rather than as an arbitrary on-chain message
         if (warpMessage.originSenderAddress != address(0)) {
@@ -326,7 +341,6 @@ abstract contract PoSValidatorManager is
             revert InvalidValidationID(validationID);
         }
 
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         if (uptime > $._posValidatorInfo[validationID].uptimeSeconds) {
             $._posValidatorInfo[validationID].uptimeSeconds = uptime;
             emit UptimeUpdated(validationID, uptime);
