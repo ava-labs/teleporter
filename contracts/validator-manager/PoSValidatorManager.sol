@@ -311,8 +311,10 @@ abstract contract PoSValidatorManager is
             revert InvalidWarpMessage();
         }
 
-        if (warpMessage.sourceChainID != WARP_MESSENGER.getBlockchainID()) {
-            revert InvalidWarpSourceChainID(warpMessage.sourceChainID);
+        // The sender is required to be the zero address so that we know the validator node
+        // signed the proof directly, rather than as an arbitrary on-chain message
+        if (warpMessage.originSenderAddress != address(0)) {
+            revert InvalidWarpOriginSenderAddress(warpMessage.originSenderAddress);
         }
         if (warpMessage.originSenderAddress != address(0)) {
             revert InvalidWarpOriginSenderAddress(warpMessage.originSenderAddress);
