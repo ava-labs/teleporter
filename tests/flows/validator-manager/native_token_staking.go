@@ -109,6 +109,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		expiry,
 		nodes[0],
 	)
+	validatorStartTime := time.Now()
 
 	//
 	// Register a delegator
@@ -262,5 +263,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		expiry,
 		nodes[0],
 		1,
+		true,
+		validatorStartTime,
 	)
 }

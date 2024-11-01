@@ -108,6 +108,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		expiry,
 		nodes[0],
 	)
+	validatorStartTime := time.Now()
 
 	//
 	// Register a delegator
@@ -263,5 +264,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		expiry,
 		nodes[0],
 		1,
+		true,
+		validatorStartTime,
 	)
 }

@@ -251,6 +251,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		expiry,
 		nodes[0],
 		1,
+		false,
+		time.Time{},
 	)
 
 	expiry2 := uint64(time.Now().Add(24 * time.Hour).Unix())
@@ -266,6 +268,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		expiry2,
 		nodes[0],
 	)
+	validatorStartTime := time.Now()
 
 	// Delist the PoS validator
 	utils.InitializeAndCompleteEndNativeValidation(
@@ -281,5 +284,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		expiry2,
 		nodes[0],
 		1,
+		true,
+		validatorStartTime,
 	)
 }
