@@ -10,7 +10,7 @@ import {
     InitialValidator,
     IValidatorManager,
     PChainOwner,
-    SubnetConversionData,
+    ConversionData,
     Validator,
     ValidatorChurnPeriod,
     ValidatorManagerSettings,
@@ -74,9 +74,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     error InvalidMaximumChurnPercentage(uint8 maximumChurnPercentage);
     error InvalidBLSKeyLength(uint256 length);
     error InvalidNodeID(bytes nodeID);
-    error InvalidSubnetConversionID(
-        bytes32 encodedSubnetConversionID, bytes32 expectedSubnetConversionID
-    );
+    error InvalidConversionID(bytes32 encodedConversionID, bytes32 expectedConversionID);
     error InvalidTotalWeight(uint256 weight);
     error InvalidValidationID(bytes32 validationID);
     error InvalidValidatorStatus(ValidatorStatus status);
@@ -144,51 +142,45 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
      * @notice See {IValidatorManager-initializeValidatorSet}.
      */
     function initializeValidatorSet(
-        SubnetConversionData calldata subnetConversionData,
+        ConversionData calldata conversionData,
         uint32 messageIndex
     ) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         if ($._initializedValidatorSet) {
             revert InvalidInitializationStatus();
         }
-        // Check that the blockchainID and validator manager address in the subnetConversionData correspond to this contract.
+        // Check that the blockchainID and validator manager address in the ConversionData correspond to this contract.
         // Other validation checks are done by the P-Chain when converting the subnet, so are not required here.
-        if (subnetConversionData.validatorManagerBlockchainID != WARP_MESSENGER.getBlockchainID()) {
-            revert InvalidValidatorManagerBlockchainID(
-                subnetConversionData.validatorManagerBlockchainID
-            );
+        if (conversionData.validatorManagerBlockchainID != WARP_MESSENGER.getBlockchainID()) {
+            revert InvalidValidatorManagerBlockchainID(conversionData.validatorManagerBlockchainID);
         }
-        if (address(subnetConversionData.validatorManagerAddress) != address(this)) {
-            revert InvalidValidatorManagerAddress(
-                address(subnetConversionData.validatorManagerAddress)
-            );
+        if (address(conversionData.validatorManagerAddress) != address(this)) {
+            revert InvalidValidatorManagerAddress(address(conversionData.validatorManagerAddress));
         }
 
-        uint256 numInitialValidators = subnetConversionData.initialValidators.length;
+        uint256 numInitialValidators = conversionData.initialValidators.length;
 
         uint256 totalWeight;
         for (uint32 i; i < numInitialValidators; ++i) {
-            InitialValidator memory initialValidator = subnetConversionData.initialValidators[i];
+            InitialValidator memory initialValidator = conversionData.initialValidators[i];
             if ($._registeredValidators[initialValidator.nodeID] != bytes32(0)) {
                 revert NodeAlreadyRegistered(initialValidator.nodeID);
             }
 
             // Validation ID of the initial validators is the sha256 hash of the
             // convert Subnet tx ID and the index of the initial validator.
-            bytes32 validationID = sha256(abi.encodePacked(subnetConversionData.subnetID, i));
+            bytes32 validationID = sha256(abi.encodePacked(conversionData.subnetID, i));
 
             // Save the initial validator as an active validator.
 
             $._registeredValidators[initialValidator.nodeID] = validationID;
-            $._validationPeriods[validationID] = Validator({
-                status: ValidatorStatus.Active,
-                nodeID: initialValidator.nodeID,
-                startingWeight: initialValidator.weight,
-                messageNonce: 0,
-                weight: initialValidator.weight,
-                startedAt: uint64(block.timestamp),
-                endedAt: 0
-            });
+            $._validationPeriods[validationID].status = ValidatorStatus.Active;
+            $._validationPeriods[validationID].nodeID = initialValidator.nodeID;
+            $._validationPeriods[validationID].startingWeight = initialValidator.weight;
+            $._validationPeriods[validationID].messageNonce = 0;
+            $._validationPeriods[validationID].weight = initialValidator.weight;
+            $._validationPeriods[validationID].startedAt = uint64(block.timestamp);
+            $._validationPeriods[validationID].endedAt = 0;
             totalWeight += initialValidator.weight;
 
             emit InitialValidatorCreated(
@@ -203,15 +195,14 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             revert InvalidTotalWeight(totalWeight);
         }
 
-        // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's subnetConversionID.
-        bytes32 subnetConversionID = ValidatorMessages.unpackSubnetConversionMessage(
+        // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's conversionID.
+        bytes32 conversionID = ValidatorMessages.unpackSubnetToL1ConversionMessage(
             _getPChainWarpMessage(messageIndex).payload
         );
-        bytes memory encodedConversion =
-            ValidatorMessages.packSubnetConversionData(subnetConversionData);
-        bytes32 encodedSubnetConversionID = sha256(encodedConversion);
-        if (encodedSubnetConversionID != subnetConversionID) {
-            revert InvalidSubnetConversionID(encodedSubnetConversionID, subnetConversionID);
+        bytes memory encodedConversion = ValidatorMessages.packConversionData(conversionData);
+        bytes32 encodedConversionID = sha256(encodedConversion);
+        if (encodedConversionID != conversionID) {
+            revert InvalidConversionID(encodedConversionID, conversionID);
         }
 
         $._initializedValidatorSet = true;
@@ -274,7 +265,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         _checkAndUpdateChurnTracker(weight, 0);
 
         (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
-            .packRegisterSubnetValidatorMessage(
+            .packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 subnetID: $._subnetID,
                 nodeID: input.nodeID,
@@ -290,15 +281,13 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerSubnetValidatorMessage);
-        $._validationPeriods[validationID] = Validator({
-            status: ValidatorStatus.PendingAdded,
-            nodeID: input.nodeID,
-            startingWeight: weight,
-            messageNonce: 0,
-            weight: weight,
-            startedAt: 0, // The validation period only starts once the registration is acknowledged.
-            endedAt: 0
-        });
+        $._validationPeriods[validationID].status = ValidatorStatus.PendingAdded;
+        $._validationPeriods[validationID].nodeID = input.nodeID;
+        $._validationPeriods[validationID].startingWeight = weight;
+        $._validationPeriods[validationID].messageNonce = 0;
+        $._validationPeriods[validationID].weight = weight;
+        $._validationPeriods[validationID].startedAt = 0; // The validation period only starts once the registration is acknowledged.
+        $._validationPeriods[validationID].endedAt = 0;
 
         emit ValidationPeriodCreated(
             validationID, input.nodeID, messageID, weight, input.registrationExpiry
@@ -330,7 +319,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     function completeValidatorRegistration(uint32 messageIndex) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         (bytes32 validationID, bool validRegistration) = ValidatorMessages
-            .unpackSubnetValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
+            .unpackL1ValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
 
         if (!validRegistration) {
             revert UnexpectedRegistrationStatus(validRegistration);
@@ -421,9 +410,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         }
 
         WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSubnetValidatorWeightMessage(
-                validationID, validator.messageNonce, 0
-            )
+            ValidatorMessages.packL1ValidatorWeightMessage(validationID, validator.messageNonce, 0)
         );
     }
 
@@ -443,7 +430,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         // Get the Warp message.
         (bytes32 validationID, bool validRegistration) = ValidatorMessages
-            .unpackSubnetValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
+            .unpackL1ValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
         if (validRegistration) {
             revert UnexpectedRegistrationStatus(validRegistration);
         }
@@ -527,7 +514,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(
-            ValidatorMessages.packSubnetValidatorWeightMessage(validationID, nonce, newWeight)
+            ValidatorMessages.packL1ValidatorWeightMessage(validationID, nonce, newWeight)
         );
 
         emit ValidatorWeightUpdate({

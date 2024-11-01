@@ -14,14 +14,8 @@ import (
 )
 
 const (
-	teleporterByteCodeFile  = "./out/TeleporterMessenger.sol/TeleporterMessenger.json"
 	warpGenesisTemplateFile = "./tests/utils/warp-genesis-template.json"
-
-	teleporterMessengerLabel = "TeleporterMessenger"
-	upgradabilityLabel       = "upgradability"
-	utilsLabel               = "utils"
-	validatorSetSigLabel     = "ValidatorSetSig"
-	validatorManagerLabel    = "ValidatorManager"
+	validatorManagerLabel   = "ValidatorManager"
 )
 
 var (
@@ -34,17 +28,17 @@ func TestValidatorManager(t *testing.T) {
 	}
 
 	RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "Teleporter e2e test")
+	ginkgo.RunSpecs(t, "Validator Manager e2e test")
 }
 
-// Define the Teleporter before and after suite functions.
+// Define the before and after suite functions.
 var _ = ginkgo.BeforeEach(func() {
 	// Create the local network instance
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 	LocalNetworkInstance = local.NewLocalNetwork(
 		ctx,
-		"teleporter-test-local-network",
+		"validator-manager-test-local-network",
 		warpGenesisTemplateFile,
 		[]local.SubnetSpec{
 			{
