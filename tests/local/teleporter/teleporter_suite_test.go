@@ -42,12 +42,15 @@ func TestTeleporter(t *testing.T) {
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployedBytecode, teleporterDeployerAddress, teleporterContractAddress, err :=
-		deploymentUtils.ConstructKeylessTransaction(
-			teleporterByteCodeFile,
-			false,
-			deploymentUtils.GetDefaultContractCreationGasPrice(),
-		)
+	teleporterDeployerTransaction,
+		teleporterDeployedBytecode,
+		teleporterDeployerAddress,
+		teleporterContractAddress,
+		err := deploymentUtils.ConstructKeylessTransaction(
+		teleporterByteCodeFile,
+		false,
+		deploymentUtils.GetDefaultContractCreationGasPrice(),
+	)
 	Expect(err).Should(BeNil())
 
 	// Create the local network instance

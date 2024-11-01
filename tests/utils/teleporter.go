@@ -449,6 +449,12 @@ func AddProtocolVersionAndWaitForAcceptance(
 	Expect(versionUpdatedEvent.NewVersion.Cmp(expectedLatestVersion)).Should(Equal(0))
 }
 
+func (t TeleporterTestInfo) GetLatestTeleporterVersion(subnet interfaces.SubnetTestInfo) *big.Int {
+	version, err := t.TeleporterRegistry(subnet).LatestVersion(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	return version
+}
+
 func SendCrossChainMessageAndWaitForAcceptance(
 	ctx context.Context,
 	sourceTeleporterMessenger *teleportermessenger.TeleporterMessenger,
