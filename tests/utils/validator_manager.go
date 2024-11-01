@@ -984,7 +984,11 @@ func ConstructUptimeProofMessage(
 	Expect(err).Should(BeNil())
 	addressedCall, err := warpPayload.NewAddressedCall(nil, uptimePayload.Bytes())
 	Expect(err).Should(BeNil())
-	uptimeProofUnsignedMessage, err := avalancheWarp.NewUnsignedMessage(network.GetNetworkID(), subnet.BlockchainID, addressedCall.Bytes())
+	uptimeProofUnsignedMessage, err := avalancheWarp.NewUnsignedMessage(
+		network.GetNetworkID(),
+		subnet.BlockchainID,
+		addressedCall.Bytes(),
+	)
 	Expect(err).Should(BeNil())
 
 	uptimeProofSignedMessage, err := signatureAggregator.CreateSignedMessage(
