@@ -301,17 +301,16 @@ func DeployExampleERC20Decimals(
 
 func RegisterERC20TokenRemoteOnHome(
 	ctx context.Context,
-	network interfaces.Network,
 	teleporter TeleporterTestInfo,
 	homeSubnet interfaces.SubnetTestInfo,
 	homeAddress common.Address,
 	remoteSubnet interfaces.SubnetTestInfo,
 	remoteAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
 ) {
 	RegisterTokenRemoteOnHome(
 		ctx,
 		teleporter,
-		network,
 		homeSubnet,
 		homeAddress,
 		remoteSubnet,
@@ -319,13 +318,13 @@ func RegisterERC20TokenRemoteOnHome(
 		big.NewInt(0),
 		big.NewInt(1),
 		false,
+		fundedKey,
 	)
 }
 
 func RegisterTokenRemoteOnHome(
 	ctx context.Context,
 	teleporter TeleporterTestInfo,
-	network interfaces.Network,
 	homeSubnet interfaces.SubnetTestInfo,
 	homeAddress common.Address,
 	remoteSubnet interfaces.SubnetTestInfo,
@@ -333,6 +332,7 @@ func RegisterTokenRemoteOnHome(
 	expectedInitialReserveBalance *big.Int,
 	expectedTokenMultiplier *big.Int,
 	expectedmultiplyOnRemote bool,
+	fundedKey *ecdsa.PrivateKey,
 ) *big.Int {
 	// Call the remote to send a register message to the home
 	tokenRemote, err := tokenremote.NewTokenRemote(
@@ -340,7 +340,6 @@ func RegisterTokenRemoteOnHome(
 		remoteSubnet.RPCClient,
 	)
 	Expect(err).Should(BeNil())
-	_, fundedKey := network.GetFundedAccountInfo()
 
 	// Deploy a new ERC20 token for testing registering with fees
 	feeTokenAddress, feeToken := DeployExampleERC20Decimals(
@@ -825,7 +824,6 @@ func SendAndCallERC20TokenRemote(
 // with respect to the original asset on the C-Chain
 func SendNativeMultiHopAndVerify(
 	ctx context.Context,
-	network interfaces.Network,
 	teleporter TeleporterTestInfo,
 	sendingKey *ecdsa.PrivateKey,
 	recipientAddress common.Address,
@@ -861,8 +859,6 @@ func SendNativeMultiHopAndVerify(
 		sendingKey,
 	)
 
-	_, fundedKey := network.GetFundedAccountInfo()
-
 	// Relay the first message back to the home chain, in this case C-Chain,
 	// which then performs the multi-hop transfer to the destination TokenRemote instance.
 	intermediateReceipt := teleporter.RelayTeleporterMessage(
@@ -871,7 +867,7 @@ func SendNativeMultiHopAndVerify(
 		fromSubnet,
 		cChainInfo,
 		true,
-		fundedKey,
+		sendingKey,
 	)
 
 	initialBalance, err := toSubnet.RPCClient.BalanceAt(ctx, recipientAddress, nil)
@@ -886,7 +882,7 @@ func SendNativeMultiHopAndVerify(
 		cChainInfo,
 		toSubnet,
 		true,
-		fundedKey,
+		sendingKey,
 	)
 
 	transferredAmount := big.NewInt(0).Sub(amount, input.SecondaryFee)
@@ -900,7 +896,6 @@ func SendNativeMultiHopAndVerify(
 
 func SendERC20TokenMultiHopAndVerify(
 	ctx context.Context,
-	network interfaces.Network,
 	teleporter TeleporterTestInfo,
 	fundedKey *ecdsa.PrivateKey,
 	sendingKey *ecdsa.PrivateKey,

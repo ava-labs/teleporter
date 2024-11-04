@@ -6,7 +6,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
@@ -19,9 +19,9 @@ import (
  * Transfer tokens from Subnet A to Subnet B through multi-hop
  * Transfer back tokens from Subnet B to Subnet A through multi-hop
  */
-func ERC20TokenHomeERC20TokenRemoteMultiHop(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func ERC20TokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
+	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -89,21 +89,21 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network interfaces.Network, teleport
 	// Register both ERC20TokenRemote instances on the ERC20TokenHome
 	utils.RegisterERC20TokenRemoteOnHome(
 		ctx,
-		network,
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
 		subnetAInfo,
 		erc20TokenRemoteAddressA,
+		fundedKey,
 	)
 	utils.RegisterERC20TokenRemoteOnHome(
 		ctx,
-		network,
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
 		subnetBInfo,
 		erc20TokenRemoteAddressB,
+		fundedKey,
 	)
 
 	// Generate new recipient to receive transferred tokens
@@ -162,7 +162,6 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network interfaces.Network, teleport
 	secondaryFeeAmount := big.NewInt(0).Div(transferredAmount, big.NewInt(4))
 	utils.SendERC20TokenMultiHopAndVerify(
 		ctx,
-		network,
 		teleporter,
 		fundedKey,
 		recipientKey,
@@ -183,7 +182,6 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network interfaces.Network, teleport
 	secondaryFeeAmount = big.NewInt(0).Div(transferredAmount, big.NewInt(4))
 	utils.SendERC20TokenMultiHopAndVerify(
 		ctx,
-		network,
 		teleporter,
 		fundedKey,
 		recipientKey,

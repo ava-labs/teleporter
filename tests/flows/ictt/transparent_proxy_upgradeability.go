@@ -8,7 +8,7 @@ import (
 	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
 	erc20tokenhomeupgradeable "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHomeUpgradeable"
 	erc20tokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/ERC20TokenRemote"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -27,9 +27,9 @@ import (
  * Check that the transfer was successful, and expected balances are correct
  */
 
-func TransparentUpgradeableProxy(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
+	subnetAInfo, _ := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -99,12 +99,12 @@ func TransparentUpgradeableProxy(network interfaces.Network, teleporter utils.Te
 
 	utils.RegisterERC20TokenRemoteOnHome(
 		ctx,
-		network,
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
 		subnetAInfo,
 		erc20TokenRemoteAddress,
+		fundedKey,
 	)
 
 	// Send a transfer from primary network to Subnet A

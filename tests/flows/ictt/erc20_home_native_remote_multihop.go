@@ -6,7 +6,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
@@ -22,9 +22,9 @@ import (
   - Transfer tokens from Subnet A to Subnet B through multi-hop
   - Transfer back tokens from Subnet B to Subnet A through multi-hop
 */
-func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
+	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -82,7 +82,6 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, telepor
 	collateralAmountA := utils.RegisterTokenRemoteOnHome(
 		ctx,
 		teleporter,
-		network,
 		cChainInfo,
 		erc20TokenHomeAddress,
 		subnetAInfo,
@@ -90,12 +89,12 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, telepor
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
+		fundedKey,
 	)
 
 	collateralAmountB := utils.RegisterTokenRemoteOnHome(
 		ctx,
 		teleporter,
-		network,
 		cChainInfo,
 		erc20TokenHomeAddress,
 		subnetBInfo,
@@ -103,6 +102,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, telepor
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
+		fundedKey,
 	)
 
 	// Add collateral for both NativeTokenDestinations
@@ -214,7 +214,6 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, telepor
 
 	utils.SendNativeMultiHopAndVerify(
 		ctx,
-		network,
 		teleporter,
 		fundedKey,
 		recipientAddress,
@@ -233,7 +232,6 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, telepor
 	secondaryFeeAmount := new(big.Int).Div(amountToSend, big.NewInt(4))
 	utils.SendNativeMultiHopAndVerify(
 		ctx,
-		network,
 		teleporter,
 		fundedKey,
 		recipientAddress,

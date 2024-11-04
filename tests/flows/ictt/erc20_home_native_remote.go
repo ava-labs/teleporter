@@ -7,7 +7,7 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
 	nativetokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/NativeTokenRemote"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
@@ -31,9 +31,9 @@ var (
  * Transfers C-Chain example ERC20 tokens to Subnet A as Subnet A's native token
  * Transfer back tokens from Subnet A to C-Chain
  */
-func ERC20TokenHomeNativeTokenRemote(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := utils.GetTwoSubnets(network)
+	subnetAInfo, _ := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -77,7 +77,6 @@ func ERC20TokenHomeNativeTokenRemote(network interfaces.Network, teleporter util
 	collateralAmount := utils.RegisterTokenRemoteOnHome(
 		ctx,
 		teleporter,
-		network,
 		cChainInfo,
 		erc20TokenHomeAddress,
 		subnetAInfo,
@@ -85,6 +84,7 @@ func ERC20TokenHomeNativeTokenRemote(network interfaces.Network, teleporter util
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
+		fundedKey,
 	)
 
 	utils.AddCollateralToERC20TokenHome(

@@ -6,7 +6,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -21,9 +21,9 @@ import (
  * Transfer tokens from Subnet A to Subnet B through multi-hop
  * Brige back tokens from Subnet B to Subnet A through multi-hop
  */
-func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo := teleporterUtils.GetTwoSubnets(network)
+	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -85,22 +85,22 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network, telepor
 	// Register both ERC20Destinations on the NativeTokenHome
 	utils.RegisterERC20TokenRemoteOnHome(
 		ctx,
-		network,
 		teleporter,
 		cChainInfo,
 		nativeTokenHomeAddress,
 		subnetAInfo,
 		erc20TokenRemoteAddressA,
+		fundedKey,
 	)
 
 	utils.RegisterERC20TokenRemoteOnHome(
 		ctx,
-		network,
 		teleporter,
 		cChainInfo,
 		nativeTokenHomeAddress,
 		subnetBInfo,
 		erc20TokenRemoteAddressB,
+		fundedKey,
 	)
 
 	// Generate new recipient to receive transferred tokens
@@ -159,7 +159,6 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network, telepor
 	secondaryFeeAmount := new(big.Int).Div(transferredAmount, big.NewInt(4))
 	utils.SendERC20TokenMultiHopAndVerify(
 		ctx,
-		network,
 		teleporter,
 		fundedKey,
 		recipientKey,

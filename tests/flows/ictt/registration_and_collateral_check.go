@@ -6,7 +6,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
@@ -21,9 +21,9 @@ import (
  * Collateralize the remote
  * Check sending to collateralized remote succeeds and withdraws with correct scale.
  */
-func RegistrationAndCollateralCheck(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := utils.GetTwoSubnets(network)
+	subnetAInfo, _ := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -102,7 +102,6 @@ func RegistrationAndCollateralCheck(network interfaces.Network, teleporter utils
 	collateralNeeded := utils.RegisterTokenRemoteOnHome(
 		ctx,
 		teleporter,
-		network,
 		cChainInfo,
 		erc20TokenHomeAddress,
 		subnetAInfo,
@@ -110,6 +109,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network, teleporter utils
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
+		fundedKey,
 	)
 
 	// Try sending again and expect failure since remote is not collateralized

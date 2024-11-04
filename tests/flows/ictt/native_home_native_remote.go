@@ -6,7 +6,7 @@ import (
 
 	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
 	nativetokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/NativeTokenRemote"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
@@ -18,9 +18,9 @@ import (
  * Transfers C-Chain native tokens to Subnet A
  * Transfer back tokens from Subnet A to C-Chain
  */
-func NativeTokenHomeNativeDestination(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := utils.GetTwoSubnets(network)
+	subnetAInfo, _ := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -61,7 +61,6 @@ func NativeTokenHomeNativeDestination(network interfaces.Network, teleporter uti
 	collateralAmount := utils.RegisterTokenRemoteOnHome(
 		ctx,
 		teleporter,
-		network,
 		cChainInfo,
 		nativeTokenHomeAddress,
 		subnetAInfo,
@@ -69,6 +68,7 @@ func NativeTokenHomeNativeDestination(network interfaces.Network, teleporter uti
 		initialReserveImbalance,
 		big.NewInt(1),
 		multiplyOnRemote,
+		fundedKey,
 	)
 
 	utils.AddCollateralToNativeTokenHome(

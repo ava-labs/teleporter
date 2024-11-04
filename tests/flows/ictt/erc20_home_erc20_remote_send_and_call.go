@@ -7,7 +7,7 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
 	erc20tokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/ERC20TokenRemote"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
@@ -20,9 +20,12 @@ import (
  * Transfers C-Chain example ERC20 to EOA on Subnet A, and then transfer tokens from Subnet A back
  * C-Chain and calls contract on the C-Chain using sendAndCall
  */
-func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func ERC20TokenHomeERC20TokenRemoteSendAndCall(
+	network *localnetwork.LocalNetwork,
+	teleporter utils.TeleporterTestInfo,
+) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := utils.GetTwoSubnets(network)
+	subnetAInfo, _ := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -86,12 +89,12 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network, telep
 
 	utils.RegisterERC20TokenRemoteOnHome(
 		ctx,
-		network,
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
 		subnetAInfo,
 		erc20TokenRemoteAddress,
+		fundedKey,
 	)
 
 	// Generate new recipient to receive transferred tokens

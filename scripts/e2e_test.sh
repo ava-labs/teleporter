@@ -6,11 +6,11 @@ set -e
 
 TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
-  cd ../.. && pwd
+  cd ../ && pwd
 )
 
 function printHelp() {
-    echo "Usage: ./scripts/local/e2e_test.sh [--component component]"
+    echo "Usage: ./scripts/e2e_test.sh [--component component]"
     echo ""
     printUsage
 }
@@ -26,7 +26,7 @@ Options:
 EOF
 }
 
-valid_components=$(ls -d $TELEPORTER_PATH/tests/local/*/ | xargs -n 1 basename)
+valid_components=$(ls -d $TELEPORTER_PATH/tests/suites/*/ | xargs -n 1 basename)
 components=
 
 while [ $# -gt 0 ]; do
@@ -89,11 +89,11 @@ go install -v github.com/onsi/ginkgo/v2/ginkgo@${GINKGO_VERSION}
 
 for component in $(echo $components | tr ',' ' '); do
     echo "Building e2e tests for $component"
-    ginkgo build ./tests/local/$component
+    ginkgo build ./tests/suites/$component
 
     echo "Running e2e tests for $component"
 
-    RUN_E2E=true ./tests/local/$component/$component.test \
+    RUN_E2E=true ./tests/suites/$component/$component.test \
     --ginkgo.vv \
     --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""} \
     --ginkgo.focus=${GINKGO_FOCUS:-""} \

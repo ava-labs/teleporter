@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
@@ -21,9 +21,9 @@ import (
   - Transfer tokens from Subnet A to Subnet B through multi-hop
   - Transfer back tokens from Subnet B to Subnet A through multi-hop
 */
-func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
+	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -81,7 +81,6 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, telepo
 	collateralAmountA := utils.RegisterTokenRemoteOnHome(
 		ctx,
 		teleporter,
-		network,
 		cChainInfo,
 		nativeTokenHomeAddress,
 		subnetAInfo,
@@ -89,12 +88,12 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, telepo
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
+		fundedKey,
 	)
 
 	collateralAmountB := utils.RegisterTokenRemoteOnHome(
 		ctx,
 		teleporter,
-		network,
 		cChainInfo,
 		nativeTokenHomeAddress,
 		subnetBInfo,
@@ -102,6 +101,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, telepo
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
+		fundedKey,
 	)
 
 	// Add collateral for both NativeTokenDestinations
@@ -209,7 +209,6 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, telepo
 
 	utils.SendNativeMultiHopAndVerify(
 		ctx,
-		network,
 		teleporter,
 		fundedKey,
 		recipientAddress,
@@ -231,7 +230,6 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network, telepo
 	// Multi-hop transfer back to Subnet A
 	utils.SendNativeMultiHopAndVerify(
 		ctx,
-		network,
 		teleporter,
 		fundedKey,
 		recipientAddress,

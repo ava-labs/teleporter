@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
@@ -15,7 +15,7 @@ const (
 	teleporterByteCodeFile = "./out/TeleporterMessenger.sol/TeleporterMessenger.json"
 )
 
-func TeleporterRegistry(network interfaces.LocalNetwork, teleporter utils.TeleporterTestInfo) {
+func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	// Deploy dApp on both chains that use Teleporter Registry
 	// Deploy version 2 of Teleporter to both chains
 	// Construct AddProtocolVersion txs for both chains
@@ -28,7 +28,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporter utils.Telepo
 	// Retry the previously failed message execution, verify message is now able to be delivered to dApp
 
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
+	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -54,6 +54,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporter utils.Telepo
 	for _, subnet := range network.GetAllSubnetsInfo() {
 		newTeleporterAddress = utils.DeployNewTeleporterVersion(ctx, teleporter, subnet, fundedKey, teleporterByteCodeFile)
 	}
+
 	networkID := network.GetNetworkID()
 	// Create chain config file with off chain message for each chain
 	offchainMessageC, warpEnabledChainConfigC := utils.InitOffChainMessageChainConfig(
@@ -91,9 +92,9 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporter utils.Telepo
 	network.RestartNodes(restartCtx, nil)
 
 	// Call addProtocolVersion on subnetB to register the new Teleporter version
-	utils.AddProtocolVersionAndWaitForAcceptance(
+	network.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		*teleporter[subnetBInfo.BlockchainID],
+		teleporter,
 		subnetBInfo,
 		newTeleporterAddress,
 		fundedKey,
@@ -102,7 +103,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporter utils.Telepo
 
 	// Send a message using old Teleporter version to test messenger using new Teleporter version.
 	// Message should be received successfully since we haven't updated mininum Teleporter version yet.
-	utils.SendExampleCrossChainMessageAndVerify(
+	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		teleporter,
 		cChainInfo,
@@ -139,7 +140,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporter utils.Telepo
 
 	// Send a message using old Teleporter version to test messenger with updated minimum Teleporter version.
 	// Message should fail since we updated minimum Teleporter version.
-	utils.SendExampleCrossChainMessageAndVerify(
+	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		teleporter,
 		cChainInfo,
@@ -158,7 +159,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporter utils.Telepo
 		teleporter.InitializeBlockchainID(subnet, fundedKey)
 	}
 
-	utils.SendExampleCrossChainMessageAndVerify(
+	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		teleporter,
 		subnetBInfo,
@@ -172,9 +173,9 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporter utils.Telepo
 	)
 
 	// Call addProtocolVersion on subnetA to register the new Teleporter version
-	utils.AddProtocolVersionAndWaitForAcceptance(
+	network.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		*teleporter[cChainInfo.BlockchainID],
+		teleporter,
 		cChainInfo,
 		newTeleporterAddress,
 		fundedKey,
@@ -183,7 +184,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporter utils.Telepo
 
 	// Send a message from A->B, which previously failed, but now using the new Teleporter version.
 	// Teleporter versions should match, so message should be received successfully.
-	utils.SendExampleCrossChainMessageAndVerify(
+	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		teleporter,
 		subnetBInfo,
@@ -198,9 +199,9 @@ func TeleporterRegistry(network interfaces.LocalNetwork, teleporter utils.Telepo
 
 	// To make sure all subnets are using the same Teleporter version, call addProtocolVersion on subnetA
 	// to register the new Teleporter version
-	utils.AddProtocolVersionAndWaitForAcceptance(
+	network.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		*teleporter[subnetAInfo.BlockchainID],
+		teleporter,
 		subnetAInfo,
 		newTeleporterAddress,
 		fundedKey,

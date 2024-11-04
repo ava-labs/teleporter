@@ -6,14 +6,14 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/teleporter/tests/flows"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	. "github.com/onsi/gomega"
 )
 
-func CheckUpgradeAccess(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func CheckUpgradeAccess(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	subnetInfo := network.GetPrimaryNetworkInfo()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	governanceFlows "github.com/ava-labs/teleporter/tests/flows/governance"
-	"github.com/ava-labs/teleporter/tests/local"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	LocalNetworkInstance *local.LocalNetwork
+	LocalNetworkInstance *localnetwork.LocalNetwork
 )
 
 func TestGovernance(t *testing.T) {
@@ -36,11 +36,11 @@ var _ = ginkgo.BeforeSuite(func() {
 	// Create the local network instance
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
-	LocalNetworkInstance = local.NewLocalNetwork(
+	LocalNetworkInstance = localnetwork.NewLocalNetwork(
 		ctx,
 		"governance-test-local-network",
 		warpGenesisTemplateFile,
-		[]local.SubnetSpec{
+		[]localnetwork.SubnetSpec{
 			{
 				Name:       "A",
 				EVMChainID: 12345,

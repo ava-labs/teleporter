@@ -7,7 +7,7 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
 	erc20tokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/ERC20TokenRemote"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -20,9 +20,9 @@ import (
  * Transfers C-Chain native tokens to Subnet A
  * Transfer back tokens from Subnet A to C-Chain
  */
-func NativeTokenHomeERC20TokenRemote(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
+	subnetAInfo, _ := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -70,12 +70,12 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network, teleporter util
 
 	utils.RegisterERC20TokenRemoteOnHome(
 		ctx,
-		network,
 		teleporter,
 		cChainInfo,
 		nativeTokenHomeAddress,
 		subnetAInfo,
 		erc20TokenRemoteAddress,
+		fundedKey,
 	)
 
 	// Generate new recipient to receive transferred tokens
