@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"os"
 	"slices"
-	"sort"
 	"time"
 
 	"github.com/ava-labs/avalanchego/api/info"
@@ -16,7 +15,6 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
 	"github.com/ava-labs/avalanchego/upgrade"
-	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/vms/platformvm"
 	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
@@ -36,13 +34,11 @@ import (
 // Implements Network, pointing to the network setup in local_network_setup.go
 type LocalNetwork struct {
 	tmpnet.Network
-	primaryNetworkInfo *interfaces.SubnetTestInfo
-	subnetsInfo        map[ids.ID]*interfaces.SubnetTestInfo
 
-	extraNodes []*tmpnet.Node // to add as more subnet validators in the tests
-
-	globalFundedKey *ecdsa.PrivateKey
-	pChainWallet    pwallet.Wallet
+	extraNodes               []*tmpnet.Node // to add as more subnet validators in the tests
+	primaryNetworkValidators []ids.NodeID
+	globalFundedKey          *ecdsa.PrivateKey
+	pChainWallet             pwallet.Wallet
 }
 
 const (
@@ -144,17 +140,18 @@ func NewLocalNetwork(
 		utils.SetupProposerVM(ctx, globalFundedECDSAKey, network, subnet.SubnetID)
 	}
 
+	// All nodes are specified as bootstrap validators
+	var primaryNetworkValidators []ids.NodeID
+	for _, node := range network.Nodes {
+		primaryNetworkValidators = append(primaryNetworkValidators, node.NodeID)
+	}
+
 	localNetwork := &LocalNetwork{
-		Network:            *network,
-		primaryNetworkInfo: &interfaces.SubnetTestInfo{},
-		subnetsInfo:        make(map[ids.ID]*interfaces.SubnetTestInfo),
-		extraNodes:         extraNodes,
-		globalFundedKey:    globalFundedECDSAKey,
+		Network:                  *network,
+		extraNodes:               extraNodes,
+		globalFundedKey:          globalFundedECDSAKey,
+		primaryNetworkValidators: primaryNetworkValidators,
 	}
-	for _, subnet := range network.Subnets {
-		localNetwork.setSubnetValues(subnet)
-	}
-	localNetwork.setPrimaryNetworkValues()
 
 	// Create the P-Chain wallet to issue transactions
 	kc := secp256k1fx.NewKeychain(globalFundedKey)
@@ -175,103 +172,66 @@ func NewLocalNetwork(
 	return localNetwork
 }
 
-// Should be called after setSubnetValues for all subnets
-func (n *LocalNetwork) setPrimaryNetworkValues() {
-	// Get the C-Chain node URIs.
-	// All subnet nodes validate the C-Chain, so we can include them all here
+func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
 	var nodeURIs []string
-	for _, subnetInfo := range n.subnetsInfo {
-		nodeURIs = append(nodeURIs, subnetInfo.NodeURIs...)
-	}
-	for _, extraNode := range n.extraNodes {
-		uri, err := n.Network.GetURIForNodeID(extraNode.NodeID)
+	for _, nodeID := range n.primaryNetworkValidators {
+		uri, err := n.Network.GetURIForNodeID(nodeID)
 		Expect(err).Should(BeNil())
+
 		nodeURIs = append(nodeURIs, uri)
 	}
-
-	cChainBlockchainID, err := info.NewClient(nodeURIs[0]).GetBlockchainID(context.Background(), "C")
-	Expect(err).Should(BeNil())
-	Expect(cChainBlockchainID).ShouldNot(Equal(ids.Empty))
-
-	chainWSURI := utils.HttpToWebsocketURI(nodeURIs[0], cChainBlockchainID.String())
-	chainRPCURI := utils.HttpToRPCURI(nodeURIs[0], cChainBlockchainID.String())
-	if n.primaryNetworkInfo != nil && n.primaryNetworkInfo.WSClient != nil {
-		n.primaryNetworkInfo.WSClient.Close()
-	}
-	chainWSClient, err := ethclient.Dial(chainWSURI)
-	Expect(err).Should(BeNil())
-	if n.primaryNetworkInfo != nil && n.primaryNetworkInfo.RPCClient != nil {
-		n.primaryNetworkInfo.RPCClient.Close()
-	}
-	chainRPCClient, err := ethclient.Dial(chainRPCURI)
-	Expect(err).Should(BeNil())
-	chainIDInt, err := chainRPCClient.ChainID(context.Background())
+	infoClient := info.NewClient(nodeURIs[0])
+	cChainBlockchainID, err := infoClient.GetBlockchainID(context.Background(), "C")
 	Expect(err).Should(BeNil())
 
-	n.primaryNetworkInfo.SubnetID = constants.PrimaryNetworkID
-	n.primaryNetworkInfo.BlockchainID = cChainBlockchainID
-	n.primaryNetworkInfo.NodeURIs = nodeURIs
-	n.primaryNetworkInfo.WSClient = chainWSClient
-	n.primaryNetworkInfo.RPCClient = chainRPCClient
-	n.primaryNetworkInfo.EVMChainID = chainIDInt
-}
+	wsClient, err := ethclient.Dial(utils.HttpToWebsocketURI(nodeURIs[0], cChainBlockchainID.String()))
+	Expect(err).Should(BeNil())
 
-func (n *LocalNetwork) setSubnetValues(subnet *tmpnet.Subnet) {
-	blockchainID := subnet.Chains[0].ChainID
+	rpcClient, err := ethclient.Dial(utils.HttpToRPCURI(nodeURIs[0], cChainBlockchainID.String()))
+	Expect(err).Should(BeNil())
 
-	var chainNodeURIs []string
-	for _, validatorID := range subnet.ValidatorIDs {
-		uri, err := n.Network.GetURIForNodeID(validatorID)
-		Expect(err).Should(BeNil(), "failed to get URI for node ID %s", validatorID)
-		Expect(uri).ShouldNot(HaveLen(0))
-		chainNodeURIs = append(chainNodeURIs, uri)
+	evmChainID, err := rpcClient.ChainID(context.Background())
+	Expect(err).Should(BeNil())
+	return interfaces.SubnetTestInfo{
+		SubnetID:     ids.Empty,
+		BlockchainID: cChainBlockchainID,
+		NodeURIs:     nodeURIs,
+		WSClient:     wsClient,
+		RPCClient:    rpcClient,
+		EVMChainID:   evmChainID,
 	}
 
-	chainWSURI := utils.HttpToWebsocketURI(chainNodeURIs[0], blockchainID.String())
-	chainRPCURI := utils.HttpToRPCURI(chainNodeURIs[0], blockchainID.String())
-
-	subnetID := subnet.SubnetID
-
-	if n.subnetsInfo[subnetID] != nil && n.subnetsInfo[subnetID].WSClient != nil {
-		n.subnetsInfo[subnetID].WSClient.Close()
-	}
-	chainWSClient, err := ethclient.Dial(chainWSURI)
-	Expect(err).Should(BeNil())
-	if n.subnetsInfo[subnetID] != nil && n.subnetsInfo[subnetID].RPCClient != nil {
-		n.subnetsInfo[subnetID].RPCClient.Close()
-	}
-	chainRPCClient, err := ethclient.Dial(chainRPCURI)
-	Expect(err).Should(BeNil())
-	chainIDInt, err := chainRPCClient.ChainID(context.Background())
-	Expect(err).Should(BeNil())
-
-	// Set the new values in the subnetsInfo map
-	if n.subnetsInfo[subnetID] == nil {
-		n.subnetsInfo[subnetID] = &interfaces.SubnetTestInfo{}
-	}
-	n.subnetsInfo[subnetID].SubnetName = subnet.Name
-	n.subnetsInfo[subnetID].SubnetID = subnetID
-	n.subnetsInfo[subnetID].BlockchainID = blockchainID
-	n.subnetsInfo[subnetID].NodeURIs = chainNodeURIs
-	n.subnetsInfo[subnetID].WSClient = chainWSClient
-	n.subnetsInfo[subnetID].RPCClient = chainRPCClient
-	n.subnetsInfo[subnetID].EVMChainID = chainIDInt
 }
 
 // Returns all subnet info sorted in lexicographic order of SubnetName.
 func (n *LocalNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
-	subnetsInfo := make([]interfaces.SubnetTestInfo, 0, len(n.subnetsInfo))
-	for _, subnetInfo := range n.subnetsInfo {
-		subnetsInfo = append(subnetsInfo, *subnetInfo)
-	}
-	sort.Slice(subnetsInfo, func(i, j int) bool {
-		return subnetsInfo[i].SubnetName < subnetsInfo[j].SubnetName
-	})
-	return subnetsInfo
-}
+	subnets := make([]interfaces.SubnetTestInfo, len(n.Network.Subnets))
+	for i, subnet := range n.Network.Subnets {
+		var nodeURIs []string
+		for _, nodeID := range subnet.ValidatorIDs {
+			uri, err := n.Network.GetURIForNodeID(nodeID)
+			Expect(err).Should(BeNil())
 
-func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
-	return *n.primaryNetworkInfo
+			nodeURIs = append(nodeURIs, uri)
+		}
+		blockchainID := subnet.Chains[0].ChainID
+		wsClient, err := ethclient.Dial(utils.HttpToWebsocketURI(nodeURIs[0], blockchainID.String()))
+		Expect(err).Should(BeNil())
+
+		rpcClient, err := ethclient.Dial(utils.HttpToRPCURI(nodeURIs[0], blockchainID.String()))
+		Expect(err).Should(BeNil())
+		evmChainID, err := rpcClient.ChainID(context.Background())
+		Expect(err).Should(BeNil())
+		subnets[i] = interfaces.SubnetTestInfo{
+			SubnetID:     subnet.SubnetID,
+			BlockchainID: blockchainID,
+			NodeURIs:     nodeURIs,
+			WSClient:     wsClient,
+			RPCClient:    rpcClient,
+			EVMChainID:   evmChainID,
+		}
+	}
+	return subnets
 }
 
 // Returns subnet info for all subnets, including the primary network
@@ -283,19 +243,6 @@ func (n *LocalNetwork) GetAllSubnetsInfo() []interfaces.SubnetTestInfo {
 func (n *LocalNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
 	fundedAddress := crypto.PubkeyToAddress(n.globalFundedKey.PublicKey)
 	return fundedAddress, n.globalFundedKey
-}
-
-func (n *LocalNetwork) setAllSubnetValues() {
-	subnetIDs := n.GetSubnetsInfo()
-	Expect(len(subnetIDs)).Should(Equal(2))
-
-	for _, subnetInfo := range n.subnetsInfo {
-		subnet := n.Network.GetSubnet(subnetInfo.SubnetName)
-		Expect(subnet).ShouldNot(BeNil())
-		n.setSubnetValues(subnet)
-	}
-
-	n.setPrimaryNetworkValues()
 }
 
 func (n *LocalNetwork) TearDownNetwork() {
@@ -344,11 +291,10 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 
 	nodeIdsToRestart := make([]ids.NodeID, len(newValidatorNodes))
 	for i, node := range newValidatorNodes {
+		n.primaryNetworkValidators = append(n.primaryNetworkValidators, node.NodeID)
 		nodeIdsToRestart[i] = node.NodeID
 	}
 	n.RestartNodes(ctx, nodeIdsToRestart)
-
-	n.setAllSubnetValues()
 }
 
 // Restarts the nodes with the given nodeIDs. If nodeIDs is empty, restarts all nodes.
@@ -387,8 +333,6 @@ func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 		err := tmpnet.WaitForHealthy(ctx, node)
 		Expect(err).Should(BeNil())
 	}
-
-	n.setAllSubnetValues()
 }
 
 func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
