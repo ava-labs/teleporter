@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"math/big"
 	"os"
 	"slices"
 	"sort"
@@ -20,16 +19,11 @@ import (
 	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/vms/platformvm"
-	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
 	pwallet "github.com/ava-labs/avalanchego/wallet/chain/p/wallet"
 	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
-	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetEvmTestUtils "github.com/ava-labs/subnet-evm/tests/utils"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/tests/TestMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 
@@ -41,6 +35,7 @@ import (
 
 // Implements Network, pointing to the network setup in local_network_setup.go
 type LocalNetwork struct {
+	tmpnet.Network
 	primaryNetworkInfo *interfaces.SubnetTestInfo
 	subnetsInfo        map[ids.ID]*interfaces.SubnetTestInfo
 
@@ -48,9 +43,6 @@ type LocalNetwork struct {
 
 	globalFundedKey *ecdsa.PrivateKey
 	pChainWallet    pwallet.Wallet
-
-	// Internal vars only used to set up the local network
-	tmpnet *tmpnet.Network
 }
 
 const (
@@ -153,11 +145,11 @@ func NewLocalNetwork(
 	}
 
 	localNetwork := &LocalNetwork{
+		Network:            *network,
 		primaryNetworkInfo: &interfaces.SubnetTestInfo{},
 		subnetsInfo:        make(map[ids.ID]*interfaces.SubnetTestInfo),
 		extraNodes:         extraNodes,
 		globalFundedKey:    globalFundedECDSAKey,
-		tmpnet:             network,
 	}
 	for _, subnet := range network.Subnets {
 		localNetwork.setSubnetValues(subnet)
@@ -192,7 +184,7 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 		nodeURIs = append(nodeURIs, subnetInfo.NodeURIs...)
 	}
 	for _, extraNode := range n.extraNodes {
-		uri, err := n.tmpnet.GetURIForNodeID(extraNode.NodeID)
+		uri, err := n.Network.GetURIForNodeID(extraNode.NodeID)
 		Expect(err).Should(BeNil())
 		nodeURIs = append(nodeURIs, uri)
 	}
@@ -229,7 +221,7 @@ func (n *LocalNetwork) setSubnetValues(subnet *tmpnet.Subnet) {
 
 	var chainNodeURIs []string
 	for _, validatorID := range subnet.ValidatorIDs {
-		uri, err := n.tmpnet.GetURIForNodeID(validatorID)
+		uri, err := n.Network.GetURIForNodeID(validatorID)
 		Expect(err).Should(BeNil(), "failed to get URI for node ID %s", validatorID)
 		Expect(uri).ShouldNot(HaveLen(0))
 		chainNodeURIs = append(chainNodeURIs, uri)
@@ -298,7 +290,7 @@ func (n *LocalNetwork) setAllSubnetValues() {
 	Expect(len(subnetIDs)).Should(Equal(2))
 
 	for _, subnetInfo := range n.subnetsInfo {
-		subnet := n.tmpnet.GetSubnet(subnetInfo.SubnetName)
+		subnet := n.Network.GetSubnet(subnetInfo.SubnetName)
 		Expect(subnet).ShouldNot(BeNil())
 		n.setSubnetValues(subnet)
 	}
@@ -309,8 +301,8 @@ func (n *LocalNetwork) setAllSubnetValues() {
 func (n *LocalNetwork) TearDownNetwork() {
 	log.Info("Tearing down network")
 	Expect(n).ShouldNot(BeNil())
-	Expect(n.tmpnet).ShouldNot(BeNil())
-	Expect(n.tmpnet.Stop(context.Background())).Should(BeNil())
+	Expect(n.Network).ShouldNot(BeNil())
+	Expect(n.Network.Stop(context.Background())).Should(BeNil())
 }
 
 func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint) {
@@ -320,8 +312,8 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 		"not enough extra nodes to use",
 	)
 
-	subnet := n.tmpnet.Subnets[slices.IndexFunc(
-		n.tmpnet.Subnets,
+	subnet := n.Network.Subnets[slices.IndexFunc(
+		n.Network.Subnets,
 		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
 	)]
 
@@ -330,7 +322,7 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 	newValidatorNodes = append(newValidatorNodes, n.extraNodes[0:count]...)
 	n.extraNodes = n.extraNodes[count:]
 
-	apiURI, err := n.tmpnet.GetURIForNodeID(subnet.ValidatorIDs[0])
+	apiURI, err := n.Network.GetURIForNodeID(subnet.ValidatorIDs[0])
 	Expect(err).Should(BeNil())
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -348,7 +340,7 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 		node.Flags[config.TrackSubnetsKey] = subnetID.String()
 	}
 
-	tmpnet.WaitForActiveValidators(ctx, os.Stdout, platformvm.NewClient(n.tmpnet.Nodes[0].URI), subnet)
+	tmpnet.WaitForActiveValidators(ctx, os.Stdout, platformvm.NewClient(n.Network.Nodes[0].URI), subnet)
 
 	nodeIdsToRestart := make([]ids.NodeID, len(newValidatorNodes))
 	for i, node := range newValidatorNodes {
@@ -364,10 +356,10 @@ func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 	log.Info("Restarting nodes", "nodeIDs", nodeIDs)
 	var nodes []*tmpnet.Node
 	if len(nodeIDs) == 0 {
-		nodes = n.tmpnet.Nodes
+		nodes = n.Network.Nodes
 	} else {
 		for _, nodeID := range nodeIDs {
-			for _, node := range n.tmpnet.Nodes {
+			for _, node := range n.Network.Nodes {
 				if node.NodeID == nodeID {
 					nodes = append(nodes, node)
 				}
@@ -384,7 +376,7 @@ func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 		err = node.Stop(ctx)
 		Expect(err).Should(BeNil())
 
-		err = n.tmpnet.StartNode(ctx, os.Stdout, node)
+		err = n.Network.StartNode(ctx, os.Stdout, node)
 		Expect(err).Should(BeNil())
 	}
 
@@ -411,11 +403,11 @@ func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 					"chainConfig", chainConfig,
 				)
 			}
-			n.tmpnet.ChainConfigs[utils.CChainPathSpecifier] = cfg
+			n.Network.ChainConfigs[utils.CChainPathSpecifier] = cfg
 			continue
 		}
 
-		for _, subnet := range n.tmpnet.Subnets {
+		for _, subnet := range n.Network.Subnets {
 			for _, chain := range subnet.Chains {
 				if chain.ChainID.String() == chainIDStr {
 					chain.Config = chainConfig
@@ -423,12 +415,12 @@ func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 			}
 		}
 	}
-	err := n.tmpnet.Write()
+	err := n.Network.Write()
 	if err != nil {
 		log.Error("failed to write network", "error", err)
 	}
-	for _, subnet := range n.tmpnet.Subnets {
-		err := subnet.Write(n.tmpnet.GetSubnetDir(), n.tmpnet.GetChainConfigDir())
+	for _, subnet := range n.Network.Subnets {
+		err := subnet.Write(n.Network.GetSubnetDir(), n.Network.GetChainConfigDir())
 		if err != nil {
 			log.Error("failed to write subnets", "error", err)
 		}
@@ -436,122 +428,15 @@ func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 }
 
 func (n *LocalNetwork) GetNetworkID() uint32 {
-	return n.tmpnet.Genesis.NetworkID
+	return n.Network.Genesis.NetworkID
 }
 
 func (n *LocalNetwork) Dir() string {
-	return n.tmpnet.Dir
+	return n.Network.Dir
 }
 
 func (n *LocalNetwork) GetPChainWallet() pwallet.Wallet {
 	return n.pChainWallet
-}
-
-func (n *LocalNetwork) ClearReceiptQueue(
-	ctx context.Context,
-	teleporter utils.TeleporterTestInfo,
-	fundedKey *ecdsa.PrivateKey,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-) {
-	sourceTeleporterMessenger := teleporter.TeleporterMessenger(source)
-	outstandReceiptCount := utils.GetOutstandingReceiptCount(
-		teleporter.TeleporterMessenger(source),
-		destination.BlockchainID,
-	)
-	for outstandReceiptCount.Cmp(big.NewInt(0)) != 0 {
-		log.Info("Emptying receipt queue", "remainingReceipts", outstandReceiptCount.String())
-		// Send message from Subnet B to Subnet A to trigger the "regular" method of delivering receipts.
-		// The next message from B->A will contain the same receipts that were manually sent in the above steps,
-		// but they should not be processed again on Subnet A.
-		sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-			DestinationBlockchainID: destination.BlockchainID,
-			DestinationAddress:      common.HexToAddress("0x1111111111111111111111111111111111111111"),
-			RequiredGasLimit:        big.NewInt(1),
-			FeeInfo: teleportermessenger.TeleporterFeeInfo{
-				FeeTokenAddress: common.Address{},
-				Amount:          big.NewInt(0),
-			},
-			AllowedRelayerAddresses: []common.Address{},
-			Message:                 []byte{1, 2, 3, 4},
-		}
-
-		// This message will also have the same receipts as the previous message
-		receipt, _ := utils.SendCrossChainMessageAndWaitForAcceptance(
-			ctx, sourceTeleporterMessenger, source, destination, sendCrossChainMessageInput, fundedKey)
-
-		// Relay message
-		teleporter.RelayTeleporterMessage(ctx, receipt, source, destination, true, fundedKey)
-
-		outstandReceiptCount = utils.GetOutstandingReceiptCount(sourceTeleporterMessenger, destination.BlockchainID)
-	}
-	log.Info("Receipt queue emptied")
-}
-
-// Returns Receipt for the transaction unlike TeleporterRegistry version since this is a non-teleporter case
-// and we don't want to add the ValidatorSetSig ABI to the subnetInfo
-func (n *LocalNetwork) ExecuteValidatorSetSigCallAndVerify(
-	ctx context.Context,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-	validatorSetSigAddress common.Address,
-	senderKey *ecdsa.PrivateKey,
-	unsignedMessage *avalancheWarp.UnsignedMessage,
-	expectSuccess bool,
-) *types.Receipt {
-	signedWarpMsg := utils.GetSignedMessage(ctx, source, destination, unsignedMessage.ID())
-	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
-
-	signedPredicateTx := utils.CreateExecuteCallPredicateTransaction(
-		ctx,
-		signedWarpMsg,
-		validatorSetSigAddress,
-		senderKey,
-		destination,
-	)
-
-	// Wait for tx to be accepted and verify events emitted
-	if expectSuccess {
-		return utils.SendTransactionAndWaitForSuccess(ctx, destination, signedPredicateTx)
-	}
-	return utils.SendTransactionAndWaitForFailure(ctx, destination, signedPredicateTx)
-}
-
-func (n *LocalNetwork) AddProtocolVersionAndWaitForAcceptance(
-	ctx context.Context,
-	teleporter utils.TeleporterTestInfo,
-	subnet interfaces.SubnetTestInfo,
-	newTeleporterAddress common.Address,
-	senderKey *ecdsa.PrivateKey,
-	unsignedMessage *avalancheWarp.UnsignedMessage,
-) {
-	signedWarpMsg := utils.GetSignedMessage(ctx, subnet, subnet, unsignedMessage.ID())
-	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
-
-	// Construct tx to add protocol version and send to destination chain
-	signedTx := utils.CreateAddProtocolVersionTransaction(
-		ctx,
-		signedWarpMsg,
-		teleporter.TeleporterRegistryAddress(subnet),
-		senderKey,
-		subnet,
-	)
-
-	curLatestVersion := teleporter.GetLatestTeleporterVersion(subnet)
-	expectedLatestVersion := big.NewInt(curLatestVersion.Int64() + 1)
-
-	// Wait for tx to be accepted, and verify events emitted
-	receipt := utils.SendTransactionAndWaitForSuccess(ctx, subnet, signedTx)
-	teleporterRegistry := teleporter.TeleporterRegistry(subnet)
-	addProtocolVersionEvent, err := utils.GetEventFromLogs(receipt.Logs, teleporterRegistry.ParseAddProtocolVersion)
-	Expect(err).Should(BeNil())
-	Expect(addProtocolVersionEvent.Version.Cmp(expectedLatestVersion)).Should(Equal(0))
-	Expect(addProtocolVersionEvent.ProtocolAddress).Should(Equal(newTeleporterAddress))
-
-	versionUpdatedEvent, err := utils.GetEventFromLogs(receipt.Logs, teleporterRegistry.ParseLatestVersionUpdated)
-	Expect(err).Should(BeNil())
-	Expect(versionUpdatedEvent.OldVersion.Cmp(curLatestVersion)).Should(Equal(0))
-	Expect(versionUpdatedEvent.NewVersion.Cmp(expectedLatestVersion)).Should(Equal(0))
 }
 
 func (n *LocalNetwork) GetTwoSubnets() (
@@ -561,86 +446,4 @@ func (n *LocalNetwork) GetTwoSubnets() (
 	subnets := n.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))
 	return subnets[0], subnets[1]
-}
-
-func (n *LocalNetwork) SendExampleCrossChainMessageAndVerify(
-	ctx context.Context,
-	teleporter utils.TeleporterTestInfo,
-	source interfaces.SubnetTestInfo,
-	sourceExampleMessenger *testmessenger.TestMessenger,
-	destination interfaces.SubnetTestInfo,
-	destExampleMessengerAddress common.Address,
-	destExampleMessenger *testmessenger.TestMessenger,
-	senderKey *ecdsa.PrivateKey,
-	message string,
-	expectSuccess bool,
-) {
-	// Call the example messenger contract on Subnet A
-	optsA, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
-	Expect(err).Should(BeNil())
-	tx, err := sourceExampleMessenger.SendMessage(
-		optsA,
-		destination.BlockchainID,
-		destExampleMessengerAddress,
-		common.BigToAddress(common.Big0),
-		big.NewInt(0),
-		testmessenger.SendMessageRequiredGas,
-		message,
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	receipt := utils.WaitForTransactionSuccess(ctx, source, tx.Hash())
-
-	sourceTeleporterMessenger := teleporter.TeleporterMessenger(source)
-	destTeleporterMessenger := teleporter.TeleporterMessenger(destination)
-
-	event, err := utils.GetEventFromLogs(receipt.Logs, sourceTeleporterMessenger.ParseSendCrossChainMessage)
-	Expect(err).Should(BeNil())
-	Expect(event.DestinationBlockchainID[:]).Should(Equal(destination.BlockchainID[:]))
-
-	teleporterMessageID := event.MessageID
-
-	//
-	// Relay the message to the destination
-	//
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, source, destination, true, senderKey)
-
-	//
-	// Check Teleporter message received on the destination
-	//
-	delivered, err := destTeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, teleporterMessageID,
-	)
-	Expect(err).Should(BeNil())
-	Expect(delivered).Should(BeTrue())
-
-	if expectSuccess {
-		// Check that message execution was successful
-		messageExecutedEvent, err := utils.GetEventFromLogs(
-			receipt.Logs,
-			destTeleporterMessenger.ParseMessageExecuted,
-		)
-		Expect(err).Should(BeNil())
-		Expect(messageExecutedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
-	} else {
-		// Check that message execution failed
-		messageExecutionFailedEvent, err := utils.GetEventFromLogs(
-			receipt.Logs,
-			destTeleporterMessenger.ParseMessageExecutionFailed,
-		)
-		Expect(err).Should(BeNil())
-		Expect(messageExecutionFailedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
-	}
-
-	//
-	// Verify we received the expected string
-	//
-	_, currMessage, err := destExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, source.BlockchainID)
-	Expect(err).Should(BeNil())
-	if expectSuccess {
-		Expect(currMessage).Should(Equal(message))
-	} else {
-		Expect(currMessage).ShouldNot(Equal(message))
-	}
 }

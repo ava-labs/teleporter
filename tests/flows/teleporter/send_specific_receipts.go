@@ -27,7 +27,7 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 	ctx := context.Background()
 
 	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
-	network.ClearReceiptQueue(ctx, teleporter, fundedKey, subnetBInfo, subnetAInfo)
+	teleporter.ClearReceiptQueue(ctx, fundedKey, subnetBInfo, subnetAInfo)
 
 	// Use mock token as the fee token
 	mockTokenAddress, mockToken := utils.DeployExampleERC20(
