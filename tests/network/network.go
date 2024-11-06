@@ -14,6 +14,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/api/info"
 	"github.com/ava-labs/avalanchego/config"
+	"github.com/ava-labs/avalanchego/genesis"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
 	"github.com/ava-labs/avalanchego/upgrade"
@@ -93,9 +94,17 @@ func NewLocalNetwork(
 	Expect(err).Should(BeNil())
 
 	var subnets []*tmpnet.Subnet
+	var bootstrapNodes []*tmpnet.Node
 	for _, subnetSpec := range subnetSpecs {
-		nodes := subnetEvmTestUtils.NewTmpnetNodes(subnetSpec.NodeCount)
-		allNodes = append(allNodes, nodes...)
+		// Create a single bootstrap node. This will be removed from the subnet validator set after it is converted, but will remain a primary network validator
+		boostrapNodes := subnetEvmTestUtils.NewTmpnetNodes(1) // One bootstrap node per subnet
+		allNodes = append(allNodes, boostrapNodes...)
+		bootstrapNodes = append(bootstrapNodes, boostrapNodes...)
+
+		// Create validators to specify as the initial vdr set in the subnet conversion
+		initialVdrNodes := subnetEvmTestUtils.NewTmpnetNodes(subnetSpec.NodeCount)
+		allNodes = append(allNodes, initialVdrNodes...)
+		extraNodes = append(extraNodes, initialVdrNodes...)
 
 		subnet := subnetEvmTestUtils.NewTmpnetSubnet(
 			subnetSpec.Name,
@@ -107,7 +116,7 @@ func NewLocalNetwork(
 				subnetSpec.TeleporterDeployerAddress,
 			),
 			utils.WarpEnabledChainConfig,
-			nodes...,
+			boostrapNodes...,
 		)
 		subnet.OwningKey = globalFundedKey
 		subnets = append(subnets, subnet)
@@ -134,6 +143,17 @@ func NewLocalNetwork(
 
 	avalancheGoBuildPath, ok := os.LookupEnv("AVALANCHEGO_BUILD_PATH")
 	Expect(ok).Should(Equal(true))
+
+	// Specify only a subset of the nodes to be bootstrapped
+	keysToFund := []*secp256k1.PrivateKey{
+		genesis.VMRQKey,
+		genesis.EWOQKey,
+		tmpnet.HardhatKey,
+	}
+	keysToFund = append(keysToFund, network.PreFundedKeys...)
+	genesis, err := tmpnet.NewTestGenesis(88888, bootstrapNodes, keysToFund)
+	Expect(err).Should(BeNil())
+	network.Genesis = genesis
 
 	ctx, cancelBootstrap := context.WithCancel(ctx)
 	defer cancelBootstrap()
@@ -181,6 +201,17 @@ func NewLocalNetwork(
 	localNetwork.pChainWallet = wallet.P()
 
 	return localNetwork
+}
+
+func (n *LocalNetwork) GetExtraNodes(count uint) []*tmpnet.Node {
+	Expect(count > 0).Should(BeTrue(), "can't add 0 validators")
+	Expect(uint(len(n.extraNodes)) >= count).Should(
+		BeTrue(),
+		"not enough extra nodes to use",
+	)
+	nodes := n.extraNodes[0:count]
+	n.extraNodes = n.extraNodes[count:]
+	return nodes
 }
 
 // Should be called after setSubnetValues for all subnets
@@ -314,21 +345,13 @@ func (n *LocalNetwork) TearDownNetwork() {
 }
 
 func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint) {
-	Expect(count > 0).Should(BeTrue(), "can't add 0 validators")
-	Expect(uint(len(n.extraNodes)) >= count).Should(
-		BeTrue(),
-		"not enough extra nodes to use",
-	)
-
 	subnet := n.tmpnet.Subnets[slices.IndexFunc(
 		n.tmpnet.Subnets,
 		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
 	)]
 
 	// consume some of the extraNodes
-	var newValidatorNodes []*tmpnet.Node
-	newValidatorNodes = append(newValidatorNodes, n.extraNodes[0:count]...)
-	n.extraNodes = n.extraNodes[count:]
+	newValidatorNodes := n.GetExtraNodes(count)
 
 	apiURI, err := n.tmpnet.GetURIForNodeID(subnet.ValidatorIDs[0])
 	Expect(err).Should(BeNil())
