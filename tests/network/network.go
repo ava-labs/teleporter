@@ -32,6 +32,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+// TODO: Add a mapping of subnetID -> {ivalidatormanager, address}
 // Implements Network, pointing to the network setup in local_network_setup.go
 type LocalNetwork struct {
 	tmpnet.Network

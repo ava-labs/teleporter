@@ -222,17 +222,17 @@ var _ = ginkgo.BeforeSuite(func() {
 		utils.PChainProposerVMWorkaround(pChainWallet)
 		utils.AdvanceProposerVM(ctx, subnet, fundedKey, 5)
 
-		utils.InitializePoAValidatorSet(
+		utils.InitializeValidatorSet(
 			ctx,
 			fundedKey,
 			subnet,
 			utils.GetPChainInfo(cChainInfo),
-			vdrManager,
 			vdrManagerAddress,
 			LocalNetworkInstance.GetNetworkID(),
 			signatureAggregator,
 			nodes,
 		)
+		// TODO: Remove the bootstrap node as a subnet validator
 	}
 	log.Info("Set up ginkgo before suite")
 })

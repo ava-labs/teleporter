@@ -114,7 +114,6 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		poaValidatorManager,
 		proxyAddress,
 		network.GetNetworkID(),
 		signatureAggregator,
