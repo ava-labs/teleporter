@@ -52,7 +52,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	// Deploy the new version of Teleporter to both chains
 	var newTeleporterAddress common.Address
 	for _, subnet := range network.GetAllSubnetsInfo() {
-		newTeleporterAddress = utils.DeployNewTeleporterVersion(ctx, teleporter, subnet, fundedKey, teleporterByteCodeFile)
+		newTeleporterAddress = teleporter.DeployNewTeleporterVersion(ctx, subnet, fundedKey, teleporterByteCodeFile)
 	}
 
 	networkID := network.GetNetworkID()
