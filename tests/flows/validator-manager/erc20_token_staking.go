@@ -62,12 +62,11 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 
 	// Initialize the validator set on the subnet
 	log.Println("Initializing validator set")
-	initialValidationIDs := utils.InitializeERC20TokenValidatorSet(
+	initialValidationIDs := utils.InitializeValidatorSet(
 		ctx,
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		stakingManager,
 		stakingManagerAddress,
 		network.GetNetworkID(),
 		signatureAggregator,

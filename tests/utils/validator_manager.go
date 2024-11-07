@@ -57,32 +57,74 @@ const (
 	DefaultPChainAddress           string = "P-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u00z96u"
 )
 
+type ValidatorManagerConcreteType int
+
+const (
+	PoAValidatorManager ValidatorManagerConcreteType = iota
+	ERC20TokenStakingManager
+	NativeTokenStakingManager
+)
+
 //
 // Deployment utils
 //
 
-func DeployNativeTokenStakingManager(
+func DeployValidatorManager(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
-) (common.Address, *nativetokenstakingmanager.NativeTokenStakingManager) {
-	// Reset the global binary data for better test isolation
-	nativetokenstakingmanager.NativeTokenStakingManagerBin =
-		nativetokenstakingmanager.NativeTokenStakingManagerMetaData.Bin
-
+	managerType ValidatorManagerConcreteType,
+) (common.Address, *ivalidatormanager.IValidatorManager) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	address, tx, stakingManager, err := nativetokenstakingmanager.DeployNativeTokenStakingManager(
-		opts,
-		subnet.RPCClient,
-		0, // ICMInitializable.Allowed
+	var (
+		tx               *types.Transaction
+		address          common.Address
+		validatorManager *ivalidatormanager.IValidatorManager
 	)
+	switch managerType {
+	case PoAValidatorManager:
+		// Reset the global binary data for better test isolation
+		poavalidatormanager.PoAValidatorManagerBin = poavalidatormanager.PoAValidatorManagerMetaData.Bin
+
+		address, tx, _, err = poavalidatormanager.DeployPoAValidatorManager(
+			opts,
+			subnet.RPCClient,
+			0, // ICMInitializable.Allowed
+		)
+		Expect(err).Should(BeNil())
+	case ERC20TokenStakingManager:
+		// Reset the global binary data for better test isolation
+		erc20tokenstakingmanager.ERC20TokenStakingManagerBin =
+			erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.Bin
+
+		address, tx, _, err = erc20tokenstakingmanager.DeployERC20TokenStakingManager(
+			opts,
+			subnet.RPCClient,
+			0, // ICMInitializable.Allowed
+		)
+		Expect(err).Should(BeNil())
+	case NativeTokenStakingManager:
+		// Reset the global binary data for better test isolation
+		nativetokenstakingmanager.NativeTokenStakingManagerBin =
+			nativetokenstakingmanager.NativeTokenStakingManagerMetaData.Bin
+
+		opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+		Expect(err).Should(BeNil())
+		address, tx, _, err = nativetokenstakingmanager.DeployNativeTokenStakingManager(
+			opts,
+			subnet.RPCClient,
+			0, // ICMInitializable.Allowed
+		)
+		Expect(err).Should(BeNil())
+	}
+
+	validatorManager, err = ivalidatormanager.NewIValidatorManager(address, subnet.RPCClient)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
 	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
-	return address, stakingManager
+	return address, validatorManager
 }
 
 func DeployAndInitializeNativeTokenStakingManager(
@@ -91,10 +133,11 @@ func DeployAndInitializeNativeTokenStakingManager(
 	subnet interfaces.SubnetTestInfo,
 	pChainInfo interfaces.SubnetTestInfo,
 ) (common.Address, *nativetokenstakingmanager.NativeTokenStakingManager) {
-	stakingManagerContractAddress, stakingManager := DeployNativeTokenStakingManager(
+	stakingManagerContractAddress, _ := DeployValidatorManager(
 		ctx,
 		senderKey,
 		subnet,
+		NativeTokenStakingManager,
 	)
 	rewardCalculatorAddress, _ := DeployExampleRewardCalculator(
 		ctx,
@@ -103,6 +146,8 @@ func DeployAndInitializeNativeTokenStakingManager(
 		uint64(10),
 	)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	stakingManager, err := nativetokenstakingmanager.NewNativeTokenStakingManager(stakingManagerContractAddress, subnet.RPCClient)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.Initialize(
 		opts,
@@ -127,30 +172,6 @@ func DeployAndInitializeNativeTokenStakingManager(
 	return stakingManagerContractAddress, stakingManager
 }
 
-func DeployERC20TokenStakingManager(
-	ctx context.Context,
-	senderKey *ecdsa.PrivateKey,
-	subnet interfaces.SubnetTestInfo,
-) (common.Address, *erc20tokenstakingmanager.ERC20TokenStakingManager) {
-	// Reset the global binary data for better test isolation
-	erc20tokenstakingmanager.ERC20TokenStakingManagerBin =
-		erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.Bin
-
-	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
-	Expect(err).Should(BeNil())
-	address, tx, stakingManager, err := erc20tokenstakingmanager.DeployERC20TokenStakingManager(
-		opts,
-		subnet.RPCClient,
-		0, // ICMInitializable.Allowed
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
-	return address, stakingManager
-}
-
 func DeployAndInitializeERC20TokenStakingManager(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
@@ -162,10 +183,11 @@ func DeployAndInitializeERC20TokenStakingManager(
 	common.Address,
 	*exampleerc20.ExampleERC20,
 ) {
-	stakingManagerContractAddress, stakingManager := DeployERC20TokenStakingManager(
+	stakingManagerContractAddress, _ := DeployValidatorManager(
 		ctx,
 		senderKey,
 		subnet,
+		ERC20TokenStakingManager,
 	)
 
 	erc20Address, erc20 := DeployExampleERC20(ctx, senderKey, subnet)
@@ -176,6 +198,8 @@ func DeployAndInitializeERC20TokenStakingManager(
 		uint64(10),
 	)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	stakingManager, err := erc20tokenstakingmanager.NewERC20TokenStakingManager(stakingManagerContractAddress, subnet.RPCClient)
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.Initialize(
 		opts,
@@ -201,42 +225,21 @@ func DeployAndInitializeERC20TokenStakingManager(
 	return stakingManagerContractAddress, stakingManager, erc20Address, erc20
 }
 
-func DeployPoAValidatorManager(
-	ctx context.Context,
-	senderKey *ecdsa.PrivateKey,
-	subnet interfaces.SubnetTestInfo,
-) (common.Address, *poavalidatormanager.PoAValidatorManager) {
-	// Reset the global binary data for better test isolation
-	poavalidatormanager.PoAValidatorManagerBin = poavalidatormanager.PoAValidatorManagerMetaData.Bin
-
-	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
-	Expect(err).Should(BeNil())
-	address, tx, validatorManager, err := poavalidatormanager.DeployPoAValidatorManager(
-		opts,
-		subnet.RPCClient,
-		0, // ICMInitializable.Allowed
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
-	return address, validatorManager
-}
-
 func DeployAndInitializePoAValidatorManager(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
-	pChainInfo interfaces.SubnetTestInfo,
 	ownerAddress common.Address,
 ) (common.Address, *poavalidatormanager.PoAValidatorManager) {
-	validatorManagerAddress, validatorManager := DeployPoAValidatorManager(
+	validatorManagerAddress, _ := DeployValidatorManager(
 		ctx,
 		senderKey,
 		subnet,
+		PoAValidatorManager,
 	)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	validatorManager, err := poavalidatormanager.NewPoAValidatorManager(validatorManagerAddress, subnet.RPCClient)
 	Expect(err).Should(BeNil())
 	tx, err := validatorManager.Initialize(
 		opts,

@@ -17,8 +17,6 @@ import (
 	"github.com/ava-labs/avalanchego/utils/units"
 	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
 	warpMessage "github.com/ava-labs/avalanchego/vms/platformvm/warp/message"
-	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
 	teleporterFlows "github.com/ava-labs/teleporter/tests/flows/teleporter"
 	registryFlows "github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
@@ -123,28 +121,12 @@ var _ = ginkgo.BeforeSuite(func() {
 				subnet.SubnetID,
 			},
 		)
-		vdrManagerAddress, vdrManager := utils.DeployPoAValidatorManager(
+		vdrManagerAddress, _ := utils.DeployAndInitializePoAValidatorManager(
 			ctx,
 			fundedKey,
 			subnet,
-		)
-		opts, err := bind.NewKeyedTransactorWithChainID(
-			fundedKey,
-			subnet.EVMChainID,
-		)
-		Expect(err).Should(BeNil())
-
-		tx, err := vdrManager.Initialize(
-			opts,
-			poavalidatormanager.ValidatorManagerSettings{
-				SubnetID:               subnet.SubnetID,
-				ChurnPeriodSeconds:     uint64(0),
-				MaximumChurnPercentage: uint8(20),
-			},
 			fundedAddress,
 		)
-		Expect(err).Should(BeNil())
-		utils.WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
 
 		tmpnetNodes := LocalNetworkInstance.GetExtraNodes(2)
 		sort.Slice(tmpnetNodes, func(i, j int) bool {

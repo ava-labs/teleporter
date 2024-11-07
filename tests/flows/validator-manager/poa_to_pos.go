@@ -67,10 +67,11 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 	)
 
 	// Deploy PoAValidatorManager contract
-	implAddress, _ := utils.DeployPoAValidatorManager(
+	implAddress, _ := utils.DeployValidatorManager(
 		ctx,
 		fundedKey,
 		subnetAInfo,
+		utils.PoAValidatorManager,
 	)
 
 	// Deploy TransparentUpgradeableProxy contract pointing to PoAValidatorManager
@@ -109,7 +110,7 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 
 	// Initialize the validator set on the subnet
 	log.Println("Initializing validator set")
-	initialValidationIDs := utils.InitializePoAValidatorSet(
+	initialValidationIDs := utils.InitializeValidatorSet(
 		ctx,
 		fundedKey,
 		subnetAInfo,
@@ -183,10 +184,11 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 	 */
 
 	// Deploy PoSValidatorManager contract
-	newImplAddress, _ := utils.DeployNativeTokenStakingManager(
+	newImplAddress, _ := utils.DeployValidatorManager(
 		ctx,
 		fundedKey,
 		subnetAInfo,
+		utils.NativeTokenStakingManager,
 	)
 
 	// Upgrade the TransparentUpgradeableProxy contract to use the new logic contract

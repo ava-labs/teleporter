@@ -64,12 +64,11 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 
 	// Initialize the validator set on the subnet
 	log.Println("Initializing validator set")
-	initialValidationIDs := utils.InitializeNativeTokenValidatorSet(
+	initialValidationIDs := utils.InitializeValidatorSet(
 		ctx,
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		stakingManager,
 		stakingManagerAddress,
 		network.GetNetworkID(),
 		signatureAggregator,
