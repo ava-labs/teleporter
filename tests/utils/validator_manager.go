@@ -437,6 +437,7 @@ func InitializePoAValidatorSet(
 	signatureAggregator *aggregator.SignatureAggregator,
 	nodes []Node,
 ) []ids.ID {
+	log.Println("Initializing PoA validator set")
 	initialValidators := make([]warpMessage.SubnetConversionValidatorData, len(nodes))
 	initialValidatorsABI := make([]poavalidatormanager.InitialValidator, len(nodes))
 	for i, node := range nodes {
@@ -2203,6 +2204,7 @@ func AdvanceProposerVM(
 	fundedKey *ecdsa.PrivateKey,
 	blocks int,
 ) {
+	log.Println("Advancing proposer VM")
 	for i := 0; i < blocks; i++ {
 		err := subnetEvmUtils.IssueTxsToActivateProposerVMFork(
 			ctx, subnet.EVMChainID, fundedKey, subnet.WSClient,

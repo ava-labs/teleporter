@@ -12,6 +12,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/api/info"
 	"github.com/ava-labs/avalanchego/config"
+	"github.com/ava-labs/avalanchego/genesis"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
 	"github.com/ava-labs/avalanchego/upgrade"
@@ -37,8 +38,7 @@ type LocalNetwork struct {
 
 	extraNodes               []*tmpnet.Node // to add as more subnet validators in the tests
 	primaryNetworkValidators []ids.NodeID
-	globalFundedKey          *ecdsa.PrivateKey
-	pChainWallet             pwallet.Wallet
+	globalFundedKey          *secp256k1.PrivateKey
 }
 
 const (
@@ -69,8 +69,8 @@ func NewLocalNetwork(
 	// Create extra nodes to be used to add more validators later
 	extraNodes := subnetEvmTestUtils.NewTmpnetNodes(extraNodeCount)
 
-	var allNodes []*tmpnet.Node
-	allNodes = append(allNodes, extraNodes...) // to be appended w/ subnet validators
+	// var allNodes []*tmpnet.Node
+	// allNodes = append(allNodes, extraNodes...) // to be appended w/ subnet validators
 
 	fundedKey, err := hex.DecodeString(fundedKeyStr)
 	Expect(err).Should(BeNil())
@@ -81,9 +81,17 @@ func NewLocalNetwork(
 	Expect(err).Should(BeNil())
 
 	var subnets []*tmpnet.Subnet
+	var bootstrapNodes []*tmpnet.Node
 	for _, subnetSpec := range subnetSpecs {
-		nodes := subnetEvmTestUtils.NewTmpnetNodes(subnetSpec.NodeCount)
-		allNodes = append(allNodes, nodes...)
+		// Create a single bootstrap node. This will be removed from the subnet validator set after it is converted, but will remain a primary network validator
+		boostrapNodes := subnetEvmTestUtils.NewTmpnetNodes(1) // One bootstrap node per subnet
+		// allNodes = append(allNodes, boostrapNodes...)
+		bootstrapNodes = append(bootstrapNodes, boostrapNodes...)
+
+		// Create validators to specify as the initial vdr set in the subnet conversion, and store them as extra nodes
+		initialVdrNodes := subnetEvmTestUtils.NewTmpnetNodes(subnetSpec.NodeCount)
+		// allNodes = append(allNodes, initialVdrNodes...)
+		extraNodes = append(extraNodes, initialVdrNodes...)
 
 		subnet := subnetEvmTestUtils.NewTmpnetSubnet(
 			subnetSpec.Name,
@@ -95,7 +103,7 @@ func NewLocalNetwork(
 				subnetSpec.TeleporterDeployerAddress,
 			),
 			utils.WarpEnabledChainConfig,
-			nodes...,
+			bootstrapNodes...,
 		)
 		subnet.OwningKey = globalFundedKey
 		subnets = append(subnets, subnet)
@@ -103,7 +111,7 @@ func NewLocalNetwork(
 
 	network := subnetEvmTestUtils.NewTmpnetNetwork(
 		name,
-		allNodes,
+		bootstrapNodes,
 		utils.WarpEnabledChainConfig,
 		subnets...,
 	)
@@ -122,6 +130,18 @@ func NewLocalNetwork(
 
 	avalancheGoBuildPath, ok := os.LookupEnv("AVALANCHEGO_BUILD_PATH")
 	Expect(ok).Should(Equal(true))
+
+	// Specify only a subset of the nodes to be bootstrapped
+	// TODO: clean this up
+	keysToFund := []*secp256k1.PrivateKey{
+		genesis.VMRQKey,
+		genesis.EWOQKey,
+		tmpnet.HardhatKey,
+	}
+	keysToFund = append(keysToFund, network.PreFundedKeys...)
+	genesis, err := tmpnet.NewTestGenesis(88888, bootstrapNodes, keysToFund)
+	Expect(err).Should(BeNil())
+	network.Genesis = genesis
 
 	ctx, cancelBootstrap := context.WithCancel(ctx)
 	defer cancelBootstrap()
@@ -149,27 +169,22 @@ func NewLocalNetwork(
 	localNetwork := &LocalNetwork{
 		Network:                  *network,
 		extraNodes:               extraNodes,
-		globalFundedKey:          globalFundedECDSAKey,
+		globalFundedKey:          globalFundedKey,
 		primaryNetworkValidators: primaryNetworkValidators,
 	}
 
-	// Create the P-Chain wallet to issue transactions
-	kc := secp256k1fx.NewKeychain(globalFundedKey)
-	localNetwork.GetSubnetsInfo()
-	var subnetIDs []ids.ID
-	for _, subnet := range localNetwork.GetSubnetsInfo() {
-		subnetIDs = append(subnetIDs, subnet.SubnetID)
-	}
-	wallet, err := primary.MakeWallet(ctx, &primary.WalletConfig{
-		URI:          localNetwork.GetPrimaryNetworkInfo().NodeURIs[0],
-		AVAXKeychain: kc,
-		EthKeychain:  kc,
-		SubnetIDs:    subnetIDs,
-	})
-	Expect(err).Should(BeNil())
-	localNetwork.pChainWallet = wallet.P()
-
 	return localNetwork
+}
+
+func (n *LocalNetwork) GetExtraNodes(count uint) []*tmpnet.Node {
+	Expect(count > 0).Should(BeTrue(), "can't add 0 validators")
+	Expect(uint(len(n.extraNodes)) >= count).Should(
+		BeTrue(),
+		"not enough extra nodes to use",
+	)
+	nodes := n.extraNodes[0:count]
+	n.extraNodes = n.extraNodes[count:]
+	return nodes
 }
 
 func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
@@ -200,6 +215,37 @@ func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
 		RPCClient:    rpcClient,
 		EVMChainID:   evmChainID,
 	}
+}
+
+func (n *LocalNetwork) GetSubnetInfo(subnetID ids.ID) interfaces.SubnetTestInfo {
+	for _, subnet := range n.Network.Subnets {
+		if subnet.SubnetID == subnetID {
+			var nodeURIs []string
+			for _, nodeID := range subnet.ValidatorIDs {
+				uri, err := n.Network.GetURIForNodeID(nodeID)
+				Expect(err).Should(BeNil())
+
+				nodeURIs = append(nodeURIs, uri)
+			}
+			blockchainID := subnet.Chains[0].ChainID
+			wsClient, err := ethclient.Dial(utils.HttpToWebsocketURI(nodeURIs[0], blockchainID.String()))
+			Expect(err).Should(BeNil())
+
+			rpcClient, err := ethclient.Dial(utils.HttpToRPCURI(nodeURIs[0], blockchainID.String()))
+			Expect(err).Should(BeNil())
+			evmChainID, err := rpcClient.ChainID(context.Background())
+			Expect(err).Should(BeNil())
+			return interfaces.SubnetTestInfo{
+				SubnetID:     subnetID,
+				BlockchainID: blockchainID,
+				NodeURIs:     nodeURIs,
+				WSClient:     wsClient,
+				RPCClient:    rpcClient,
+				EVMChainID:   evmChainID,
+			}
+		}
+	}
+	return interfaces.SubnetTestInfo{}
 }
 
 // Returns all subnet info sorted in lexicographic order of SubnetName.
@@ -240,8 +286,9 @@ func (n *LocalNetwork) GetAllSubnetsInfo() []interfaces.SubnetTestInfo {
 }
 
 func (n *LocalNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
-	fundedAddress := crypto.PubkeyToAddress(n.globalFundedKey.PublicKey)
-	return fundedAddress, n.globalFundedKey
+	ecdsaKey := n.globalFundedKey.ToECDSA()
+	fundedAddress := crypto.PubkeyToAddress(ecdsaKey.PublicKey)
+	return fundedAddress, ecdsaKey
 }
 
 func (n *LocalNetwork) TearDownNetwork() {
@@ -252,21 +299,13 @@ func (n *LocalNetwork) TearDownNetwork() {
 }
 
 func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint) {
-	Expect(count > 0).Should(BeTrue(), "can't add 0 validators")
-	Expect(uint(len(n.extraNodes)) >= count).Should(
-		BeTrue(),
-		"not enough extra nodes to use",
-	)
-
 	subnet := n.Network.Subnets[slices.IndexFunc(
 		n.Network.Subnets,
 		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
 	)]
 
 	// consume some of the extraNodes
-	var newValidatorNodes []*tmpnet.Node
-	newValidatorNodes = append(newValidatorNodes, n.extraNodes[0:count]...)
-	n.extraNodes = n.extraNodes[count:]
+	newValidatorNodes := n.GetExtraNodes(count)
 
 	apiURI, err := n.Network.GetURIForNodeID(subnet.ValidatorIDs[0])
 	Expect(err).Should(BeNil())
@@ -379,7 +418,21 @@ func (n *LocalNetwork) Dir() string {
 }
 
 func (n *LocalNetwork) GetPChainWallet() pwallet.Wallet {
-	return n.pChainWallet
+	// Create the P-Chain wallet to issue transactions
+	kc := secp256k1fx.NewKeychain(n.globalFundedKey)
+	n.GetSubnetsInfo()
+	var subnetIDs []ids.ID
+	for _, subnet := range n.GetSubnetsInfo() {
+		subnetIDs = append(subnetIDs, subnet.SubnetID)
+	}
+	wallet, err := primary.MakeWallet(context.Background(), &primary.WalletConfig{
+		URI:          n.GetPrimaryNetworkInfo().NodeURIs[0],
+		AVAXKeychain: kc,
+		EthKeychain:  kc,
+		SubnetIDs:    subnetIDs,
+	})
+	Expect(err).Should(BeNil())
+	return wallet.P()
 }
 
 func (n *LocalNetwork) GetTwoSubnets() (
