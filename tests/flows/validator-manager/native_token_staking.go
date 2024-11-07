@@ -8,6 +8,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	iposvalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IPoSValidatorManager"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
@@ -78,13 +79,15 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 	//
 	// Delist one initial validator
 	//
-	utils.InitializeAndCompleteEndInitialNativeValidation(
+	posStakingManager, err := iposvalidatormanager.NewIPoSValidatorManager(stakingManagerAddress, subnetAInfo.RPCClient)
+	Expect(err).Should(BeNil())
+	utils.InitializeAndCompleteEndInitialPoSValidation(
 		ctx,
 		signatureAggregator,
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		stakingManager,
+		posStakingManager,
 		stakingManagerAddress,
 		initialValidationIDs[0],
 		0,
@@ -250,13 +253,13 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 	//
 	// Delist the validator
 	//
-	utils.InitializeAndCompleteEndNativeValidation(
+	utils.InitializeAndCompleteEndPoSValidation(
 		ctx,
 		signatureAggregator,
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		stakingManager,
+		posStakingManager,
 		stakingManagerAddress,
 		validationID,
 		expiry,

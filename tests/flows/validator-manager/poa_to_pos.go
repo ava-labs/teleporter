@@ -10,6 +10,7 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
 	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
+	iposvalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IPoSValidatorManager"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -197,7 +198,7 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 	utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
 	// Change the proxy contract type to NativeTokenStakingManager and initialize it
-	posValidatorManager, err := nativetokenstakingmanager.NewNativeTokenStakingManager(
+	nativeStakingManager, err := nativetokenstakingmanager.NewNativeTokenStakingManager(
 		proxyAddress,
 		subnetAInfo.RPCClient,
 	)
@@ -212,7 +213,7 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 		uint64(10),
 	)
 
-	tx, err = posValidatorManager.Initialize(
+	tx, err = nativeStakingManager.Initialize(
 		opts,
 		nativetokenstakingmanager.PoSValidatorManagerSettings{
 			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
@@ -233,21 +234,22 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 	utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
 
 	// Check that previous validator is still registered
-	validationID, err := posValidatorManager.RegisteredValidators(&bind.CallOpts{}, poaNodeID)
+	validationID, err := nativeStakingManager.RegisteredValidators(&bind.CallOpts{}, poaNodeID)
 	Expect(err).Should(BeNil())
 	Expect(validationID[:]).Should(Equal(poaValidationID[:]))
 
 	//
 	// Remove the PoA validator and re-register as a PoS validator
 	//
-
-	utils.InitializeAndCompleteEndNativeValidation(
+	posStakingManager, err := iposvalidatormanager.NewIPoSValidatorManager(proxyAddress, subnetAInfo.RPCClient)
+	Expect(err).Should(BeNil())
+	utils.InitializeAndCompleteEndPoSValidation(
 		ctx,
 		signatureAggregator,
 		ownerKey,
 		subnetAInfo,
 		pChainInfo,
-		posValidatorManager,
+		posStakingManager,
 		proxyAddress,
 		poaValidationID,
 		expiry,
@@ -264,7 +266,7 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		posValidatorManager,
+		nativeStakingManager,
 		proxyAddress,
 		expiry2,
 		nodes[0],
@@ -273,13 +275,13 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 	)
 
 	// Delist the PoS validator
-	utils.InitializeAndCompleteEndNativeValidation(
+	utils.InitializeAndCompleteEndPoSValidation(
 		ctx,
 		signatureAggregator,
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		posValidatorManager,
+		posStakingManager,
 		proxyAddress,
 		posValidationID,
 		expiry2,
