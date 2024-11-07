@@ -351,10 +351,6 @@ func (t TeleporterTestInfo) ClearReceiptQueue(
 	log.Info("Receipt queue emptied")
 }
 
-//
-// Deployment utils
-//
-
 // Deploys a new version of Teleporter and returns its address
 // Does NOT modify the global Teleporter contract address to provide greater testing flexibility.
 func (t TeleporterTestInfo) DeployNewTeleporterVersion(
@@ -386,6 +382,10 @@ func (t TeleporterTestInfo) DeployNewTeleporterVersion(
 
 	return teleporterContractAddress
 }
+
+//
+// Deployment utils
+//
 
 func DeployTestMessenger(
 	ctx context.Context,
@@ -620,85 +620,6 @@ func GetOutstandingReceiptCount(
 	size, err := teleporterMessenger.GetReceiptQueueSize(&bind.CallOpts{}, destinationBlockchainID)
 	Expect(err).Should(BeNil())
 	return size
-}
-
-func SendExampleCrossChainMessageAndVerify(
-	ctx context.Context,
-	teleporterInfo TeleporterTestInfo,
-	source interfaces.SubnetTestInfo,
-	sourceExampleMessenger *testmessenger.TestMessenger,
-	destination interfaces.SubnetTestInfo,
-	destExampleMessengerAddress common.Address,
-	destExampleMessenger *testmessenger.TestMessenger,
-	senderKey *ecdsa.PrivateKey,
-	message string,
-	expectSuccess bool,
-) {
-	// Call the example messenger contract on Subnet A
-	optsA, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
-	Expect(err).Should(BeNil())
-	tx, err := sourceExampleMessenger.SendMessage(
-		optsA,
-		destination.BlockchainID,
-		destExampleMessengerAddress,
-		common.BigToAddress(common.Big0),
-		big.NewInt(0),
-		testmessenger.SendMessageRequiredGas,
-		message,
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	receipt := WaitForTransactionSuccess(ctx, source, tx.Hash())
-
-	event, err := GetEventFromLogs(receipt.Logs, teleporterInfo.TeleporterMessenger(source).ParseSendCrossChainMessage)
-	Expect(err).Should(BeNil())
-	Expect(event.DestinationBlockchainID[:]).Should(Equal(destination.BlockchainID[:]))
-
-	teleporterMessageID := event.MessageID
-
-	//
-	// Relay the message to the destination
-	//
-	receipt = teleporterInfo.RelayTeleporterMessage(ctx, receipt, source, destination, true, senderKey)
-
-	//
-	// Check Teleporter message received on the destination
-	//
-	delivered, err := teleporterInfo.TeleporterMessenger(destination).MessageReceived(
-		&bind.CallOpts{}, teleporterMessageID,
-	)
-	Expect(err).Should(BeNil())
-	Expect(delivered).Should(BeTrue())
-
-	if expectSuccess {
-		// Check that message execution was successful
-		messageExecutedEvent, err := GetEventFromLogs(
-			receipt.Logs,
-			teleporterInfo.TeleporterMessenger(destination).ParseMessageExecuted,
-		)
-		Expect(err).Should(BeNil())
-		Expect(messageExecutedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
-	} else {
-		// Check that message execution failed
-		messageExecutionFailedEvent, err := GetEventFromLogs(
-			receipt.Logs,
-			teleporterInfo.TeleporterMessenger(destination).ParseMessageExecutionFailed,
-		)
-		Expect(err).Should(BeNil())
-		Expect(messageExecutionFailedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
-	}
-
-	//
-	// Verify we received the expected string
-	//
-	_, currMessage, err := destExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, source.BlockchainID)
-	Expect(err).Should(BeNil())
-	if expectSuccess {
-		Expect(currMessage).Should(Equal(message))
-	} else {
-		Expect(currMessage).ShouldNot(Equal(message))
-	}
 }
 
 //

@@ -8,7 +8,6 @@ import (
 	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
-	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	. "github.com/onsi/gomega"
@@ -128,7 +127,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		nativeTokenHomeAddress,
 		wavax,
 		input,
-		teleporterUtils.BigIntSub(amount, input.PrimaryFee),
+		utils.BigIntSub(amount, input.PrimaryFee),
 		fundedKey,
 	)
 

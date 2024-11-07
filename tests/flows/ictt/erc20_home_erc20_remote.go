@@ -9,7 +9,6 @@ import (
 	erc20tokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/ERC20TokenRemote"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
-	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -135,7 +134,7 @@ func ERC20TokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, teleport
 
 	// Transfer back to home chain
 	// Fund recipient with gas tokens on subnet A
-	teleporterUtils.SendNativeTransfer(
+	utils.SendNativeTransfer(
 		ctx,
 		subnetAInfo,
 		fundedKey,
@@ -158,7 +157,7 @@ func ERC20TokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, teleport
 		erc20TokenRemote,
 		erc20TokenRemoteAddress,
 		inputB,
-		teleporterUtils.BigIntSub(transferredAmount, inputB.PrimaryFee),
+		utils.BigIntSub(transferredAmount, inputB.PrimaryFee),
 		recipientKey,
 	)
 

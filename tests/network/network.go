@@ -200,7 +200,6 @@ func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
 		RPCClient:    rpcClient,
 		EVMChainID:   evmChainID,
 	}
-
 }
 
 // Returns all subnet info sorted in lexicographic order of SubnetName.
