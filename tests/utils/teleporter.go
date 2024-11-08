@@ -9,6 +9,7 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
+	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
@@ -154,12 +155,14 @@ func (t TeleporterTestInfo) RelayTeleporterMessage(
 	destination interfaces.SubnetTestInfo,
 	expectSuccess bool,
 	fundedKey *ecdsa.PrivateKey,
+	justification []byte,
+	signatureAggregator *aggregator.SignatureAggregator,
 ) *types.Receipt {
 	// Fetch the Teleporter message from the logs
 	sendEvent, err := GetEventFromLogs(sourceReceipt.Logs, t.TeleporterMessenger(source).ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessage := ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
+	signedWarpMessage := ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination, justification, signatureAggregator)
 
 	// Construct the transaction to send the Warp message to the destination chain
 	signedTx := CreateReceiveCrossChainMessageTransaction(
@@ -197,6 +200,7 @@ func (t TeleporterTestInfo) SendExampleCrossChainMessageAndVerify(
 	destExampleMessenger *testmessenger.TestMessenger,
 	senderKey *ecdsa.PrivateKey,
 	message string,
+	signatureAggregator *aggregator.SignatureAggregator,
 	expectSuccess bool,
 ) {
 	// Call the example messenger contract on Subnet A
@@ -228,7 +232,7 @@ func (t TeleporterTestInfo) SendExampleCrossChainMessageAndVerify(
 	//
 	// Relay the message to the destination
 	//
-	receipt = t.RelayTeleporterMessage(ctx, receipt, source, destination, true, senderKey)
+	receipt = t.RelayTeleporterMessage(ctx, receipt, source, destination, true, senderKey, nil, signatureAggregator)
 
 	//
 	// Check Teleporter message received on the destination
@@ -275,8 +279,9 @@ func (t TeleporterTestInfo) AddProtocolVersionAndWaitForAcceptance(
 	newTeleporterAddress common.Address,
 	senderKey *ecdsa.PrivateKey,
 	unsignedMessage *avalancheWarp.UnsignedMessage,
+	signatureAggregator *aggregator.SignatureAggregator,
 ) {
-	signedWarpMsg := GetSignedMessage(ctx, subnet, subnet, unsignedMessage.ID())
+	signedWarpMsg := GetSignedMessage(subnet, subnet, unsignedMessage, nil, signatureAggregator)
 	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
 
 	// Construct tx to add protocol version and send to destination chain
@@ -316,6 +321,7 @@ func (t TeleporterTestInfo) ClearReceiptQueue(
 	fundedKey *ecdsa.PrivateKey,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
+	signatureAggregator *aggregator.SignatureAggregator,
 ) {
 	sourceTeleporterMessenger := t.TeleporterMessenger(source)
 	outstandReceiptCount := GetOutstandingReceiptCount(
@@ -344,7 +350,7 @@ func (t TeleporterTestInfo) ClearReceiptQueue(
 			ctx, sourceTeleporterMessenger, source, destination, sendCrossChainMessageInput, fundedKey)
 
 		// Relay message
-		t.RelayTeleporterMessage(ctx, receipt, source, destination, true, fundedKey)
+		t.RelayTeleporterMessage(ctx, receipt, source, destination, true, fundedKey, nil, signatureAggregator)
 
 		outstandReceiptCount = GetOutstandingReceiptCount(sourceTeleporterMessenger, destination.BlockchainID)
 	}

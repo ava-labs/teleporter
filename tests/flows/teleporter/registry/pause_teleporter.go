@@ -60,6 +60,7 @@ func PauseTeleporter(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 		testMessengerB,
 		fundedKey,
 		"message_1",
+		network.GetSignatureAggregator(),
 		false,
 	)
 
@@ -86,6 +87,7 @@ func PauseTeleporter(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 		testMessengerB,
 		fundedKey,
 		"message_2",
+		network.GetSignatureAggregator(),
 		true,
 	)
 }

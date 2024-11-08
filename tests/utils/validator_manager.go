@@ -536,7 +536,7 @@ func InitializeAndCompleteNativeValidatorRegistration(
 
 	// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
 	// (Sending to the P-Chain will be skipped for now)
-	signedWarpMessage := ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo)
+	signedWarpMessage := ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo, nil, signatureAggregator)
 
 	_, err = pchainWallet.IssueRegisterSubnetValidatorTx(
 		100*units.Avax,
@@ -614,7 +614,7 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	)
 
 	// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
-	signedWarpMessage := ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo)
+	signedWarpMessage := ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo, nil, signatureAggregator)
 
 	_, err = pchainWallet.IssueRegisterSubnetValidatorTx(
 		100*units.Avax,
@@ -682,7 +682,7 @@ func InitializeAndCompletePoAValidatorRegistration(
 	)
 
 	// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
-	signedWarpMessage := ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo)
+	signedWarpMessage := ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo, nil, signatureAggregator)
 
 	_, err := pchainWallet.IssueRegisterSubnetValidatorTx(
 		100*units.Avax,
@@ -1260,7 +1260,7 @@ func InitializeAndCompleteEndPoAValidation(
 
 	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 	// (Sending to the P-Chain will be skipped for now)
-	signedWarpMessage := ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo)
+	signedWarpMessage := ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo, nil, signatureAggregator)
 	Expect(err).Should(BeNil())
 
 	// Validate the Warp message, (this will be done on the P-Chain in the future)

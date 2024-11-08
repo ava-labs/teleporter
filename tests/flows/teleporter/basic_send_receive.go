@@ -25,7 +25,7 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
 	// This is only done if the test non-external networks because external networks may have
 	// an arbitrarily high number of receipts to be cleared from a given queue from unrelated messages.
-	teleporter.ClearReceiptQueue(ctx, fundedKey, subnetBInfo, subnetAInfo)
+	teleporter.ClearReceiptQueue(ctx, fundedKey, subnetBInfo, subnetAInfo, network.GetSignatureAggregator())
 
 	feeAmount := big.NewInt(1)
 	feeTokenAddress, feeToken := utils.DeployExampleERC20(
@@ -66,7 +66,7 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	expectedReceiptID := teleporterMessageID
 
 	// Relay the message to the destination
-	deliveryReceipt := teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
+	deliveryReceipt := teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey, nil, network.GetSignatureAggregator())
 	receiveEvent, err := utils.GetEventFromLogs(
 		deliveryReceipt.Logs,
 		teleporter.TeleporterMessenger(subnetBInfo).ParseReceiveCrossChainMessage)
@@ -92,7 +92,7 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	)
 
 	// Relay the message to the destination
-	deliveryReceipt = teleporter.RelayTeleporterMessage(ctx, receipt, subnetBInfo, subnetAInfo, true, fundedKey)
+	deliveryReceipt = teleporter.RelayTeleporterMessage(ctx, receipt, subnetBInfo, subnetAInfo, true, fundedKey, nil, network.GetSignatureAggregator())
 
 	Expect(utils.CheckReceiptReceived(
 		deliveryReceipt,

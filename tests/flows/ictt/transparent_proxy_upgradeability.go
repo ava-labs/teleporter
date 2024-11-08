@@ -104,6 +104,7 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		subnetAInfo,
 		erc20TokenRemoteAddress,
 		fundedKey,
+		network.GetSignatureAggregator(),
 	)
 
 	// Send a transfer from primary network to Subnet A
@@ -142,6 +143,8 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		subnetAInfo,
 		true,
 		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
 	)
 
 	utils.CheckERC20TokenRemoteWithdrawal(
@@ -206,6 +209,8 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		cChainInfo,
 		true,
 		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
 	)
 
 	// Check that the transfer was successful, and expected balances are correct

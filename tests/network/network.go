@@ -46,7 +46,6 @@ type LocalNetwork struct {
 	primaryNetworkValidators []ids.NodeID
 	globalFundedKey          *secp256k1.PrivateKey
 	validatorManagers        map[ids.ID]common.Address
-	signatureAggregator      *aggregator.SignatureAggregator
 }
 
 const (
@@ -182,17 +181,6 @@ func NewLocalNetwork(
 		validatorManagers:        make(map[ids.ID]common.Address),
 	}
 
-	// Construct the signature aggregator
-	var subnetIDs []ids.ID
-	for _, subnet := range localNetwork.GetSubnetsInfo() {
-		subnetIDs = append(subnetIDs, subnet.SubnetID)
-	}
-	signatureAggregator := utils.NewSignatureAggregator(
-		localNetwork.GetPrimaryNetworkInfo().NodeURIs[0],
-		subnetIDs,
-	)
-	localNetwork.signatureAggregator = signatureAggregator
-
 	return localNetwork
 }
 
@@ -274,7 +262,7 @@ func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.Subn
 		utils.GetPChainInfo(cChainInfo),
 		vdrManagerAddress,
 		n.GetNetworkID(),
-		n.signatureAggregator,
+		n.GetSignatureAggregator(),
 		nodes,
 	)
 
@@ -324,7 +312,14 @@ func (n *LocalNetwork) GetValidatorManager(subnetID ids.ID) common.Address {
 }
 
 func (n *LocalNetwork) GetSignatureAggregator() *aggregator.SignatureAggregator {
-	return n.signatureAggregator
+	var subnetIDs []ids.ID
+	for _, subnet := range n.GetSubnetsInfo() {
+		subnetIDs = append(subnetIDs, subnet.SubnetID)
+	}
+	return utils.NewSignatureAggregator(
+		n.GetPrimaryNetworkInfo().NodeURIs[0],
+		subnetIDs,
+	)
 }
 
 func (n *LocalNetwork) GetExtraNodes(count uint) []*tmpnet.Node {

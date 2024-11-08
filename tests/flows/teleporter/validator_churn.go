@@ -59,7 +59,7 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	sentTeleporterMessage := sendEvent.Message
 
 	// Construct the signed warp message
-	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, receipt, subnetAInfo, subnetBInfo)
+	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, receipt, subnetAInfo, subnetBInfo, nil, network.GetSignatureAggregator())
 
 	//
 	// Modify the validator set on Subnet A
@@ -151,7 +151,7 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	// Wait for the transaction to be mined
 	receipt = utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
-	teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
+	teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey, nil, network.GetSignatureAggregator())
 
 	// Verify the message was delivered
 	delivered, err = teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(

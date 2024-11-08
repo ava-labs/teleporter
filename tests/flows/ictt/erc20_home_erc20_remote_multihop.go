@@ -95,6 +95,7 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork, 
 		subnetAInfo,
 		erc20TokenRemoteAddressA,
 		fundedKey,
+		network.GetSignatureAggregator(),
 	)
 	utils.RegisterERC20TokenRemoteOnHome(
 		ctx,
@@ -104,6 +105,7 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork, 
 		subnetBInfo,
 		erc20TokenRemoteAddressB,
 		fundedKey,
+		network.GetSignatureAggregator(),
 	)
 
 	// Generate new recipient to receive transferred tokens
@@ -142,6 +144,8 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork, 
 		subnetAInfo,
 		true,
 		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
 	)
 
 	utils.CheckERC20TokenRemoteWithdrawal(
@@ -175,6 +179,7 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork, 
 		cChainInfo,
 		transferredAmount,
 		secondaryFeeAmount,
+		network.GetSignatureAggregator(),
 	)
 
 	// Multi-hop transfer back to Subnet A
@@ -195,5 +200,6 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork, 
 		cChainInfo,
 		transferredAmount,
 		secondaryFeeAmount,
+		network.GetSignatureAggregator(),
 	)
 }

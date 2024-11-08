@@ -10,6 +10,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
@@ -307,6 +308,7 @@ func RegisterERC20TokenRemoteOnHome(
 	remoteSubnet interfaces.SubnetTestInfo,
 	remoteAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
+	signatureAggregator *aggregator.SignatureAggregator,
 ) {
 	RegisterTokenRemoteOnHome(
 		ctx,
@@ -319,6 +321,7 @@ func RegisterERC20TokenRemoteOnHome(
 		big.NewInt(1),
 		false,
 		fundedKey,
+		signatureAggregator,
 	)
 }
 
@@ -333,6 +336,7 @@ func RegisterTokenRemoteOnHome(
 	expectedTokenMultiplier *big.Int,
 	expectedmultiplyOnRemote bool,
 	fundedKey *ecdsa.PrivateKey,
+	signatureAggregator *aggregator.SignatureAggregator,
 ) *big.Int {
 	// Call the remote to send a register message to the home
 	tokenRemote, err := tokenremote.NewTokenRemote(
@@ -374,7 +378,7 @@ func RegisterTokenRemoteOnHome(
 	receipt := WaitForTransactionSuccess(ctx, remoteSubnet, sendRegisterTx.Hash())
 
 	// Relay the register message to the home
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, remoteSubnet, homeSubnet, true, fundedKey)
+	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, remoteSubnet, homeSubnet, true, fundedKey, nil, signatureAggregator)
 	_, err = GetEventFromLogs(
 		receipt.Logs,
 		teleporter.TeleporterMessenger(homeSubnet).ParseMessageExecuted,
@@ -836,6 +840,7 @@ func SendNativeMultiHopAndVerify(
 	cChainInfo interfaces.SubnetTestInfo,
 	amount *big.Int,
 	secondaryFeeAmount *big.Int,
+	signatureAggregator *aggregator.SignatureAggregator,
 ) {
 	input := nativetokenremote.SendTokensInput{
 		DestinationBlockchainID:            toSubnet.BlockchainID,
@@ -868,6 +873,8 @@ func SendNativeMultiHopAndVerify(
 		cChainInfo,
 		true,
 		sendingKey,
+		nil,
+		signatureAggregator,
 	)
 
 	initialBalance, err := toSubnet.RPCClient.BalanceAt(ctx, recipientAddress, nil)
@@ -883,6 +890,8 @@ func SendNativeMultiHopAndVerify(
 		toSubnet,
 		true,
 		sendingKey,
+		nil,
+		signatureAggregator,
 	)
 
 	transferredAmount := big.NewInt(0).Sub(amount, input.SecondaryFee)
@@ -909,6 +918,7 @@ func SendERC20TokenMultiHopAndVerify(
 	cChainInfo interfaces.SubnetTestInfo,
 	amount *big.Int,
 	secondaryFeeAmount *big.Int,
+	signatureAggregator *aggregator.SignatureAggregator,
 ) {
 	// Send tokens to the sender address to have gas for submitting the send tokens transaction
 	SendNativeTransfer(
@@ -949,6 +959,8 @@ func SendERC20TokenMultiHopAndVerify(
 		cChainInfo,
 		true,
 		fundedKey,
+		nil,
+		signatureAggregator,
 	)
 	_, err := GetEventFromLogs(
 		intermediateReceipt.Logs,
@@ -971,6 +983,8 @@ func SendERC20TokenMultiHopAndVerify(
 		toSubnet,
 		true,
 		fundedKey,
+		nil,
+		signatureAggregator,
 	)
 	_, err = GetEventFromLogs(remoteReceipt.Logs, teleporter.TeleporterMessenger(toSubnet).ParseMessageExecuted)
 	if err != nil {

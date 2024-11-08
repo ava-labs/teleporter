@@ -69,6 +69,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		big.NewInt(1),
 		multiplyOnRemote,
 		fundedKey,
+		network.GetSignatureAggregator(),
 	)
 
 	utils.AddCollateralToNativeTokenHome(
@@ -119,6 +120,8 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 			subnetAInfo,
 			true,
 			fundedKey,
+			nil,
+			network.GetSignatureAggregator(),
 		)
 
 		utils.CheckBalance(
@@ -160,6 +163,8 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 			cChainInfo,
 			true,
 			fundedKey,
+			nil,
+			network.GetSignatureAggregator(),
 		)
 
 		// Check that the recipient received the tokens

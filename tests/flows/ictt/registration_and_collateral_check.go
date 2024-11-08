@@ -110,6 +110,7 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
 		fundedKey,
+		network.GetSignatureAggregator(),
 	)
 
 	// Try sending again and expect failure since remote is not collateralized
@@ -188,6 +189,8 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 		subnetAInfo,
 		true,
 		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
 	)
 
 	// Verify the recipient received the tokens
