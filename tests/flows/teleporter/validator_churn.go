@@ -73,6 +73,9 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	validatorManager, err := poavalidatormanager.NewPoAValidatorManager(validatorManagerAddress, subnetAInfo.RPCClient)
 	pChainInfo := utils.GetPChainInfo(network.GetPrimaryNetworkInfo())
 	Expect(err).Should(BeNil())
+
+	subnetAInfo = network.AddSubnetValidators(newNodes, subnetAInfo)
+
 	for i := 0; i < newNodeCount; i++ {
 		expiry := uint64(time.Now().Add(24 * time.Hour).Unix())
 		pop, err := newNodes[i].GetProofOfPossession()

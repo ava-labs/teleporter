@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	goLog "log"
 	"os"
-	"slices"
 	"sort"
 	"time"
 
@@ -263,31 +262,7 @@ func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.Subn
 	)
 	Expect(err).Should(BeNil())
 
-	// Modify the each node's config to track the subnet
-	for _, node := range tmpnetNodes {
-		existingTrackedSubnets, err := node.Flags.GetStringVal(config.TrackSubnetsKey)
-		Expect(err).Should(BeNil())
-		if existingTrackedSubnets == subnet.SubnetID.String() {
-			goLog.Printf("Node %s @ %s already tracking subnet %s\n", node.NodeID, node.URI, subnet.SubnetID)
-			continue
-		}
-		node.Flags[config.TrackSubnetsKey] = subnet.SubnetID.String()
-
-		// Add the node to the network
-		n.Network.Nodes = append(n.Network.Nodes, node)
-	}
-	n.Network.StartNodes(context.Background(), os.Stdout, tmpnetNodes...)
-
-	// Update the tmpnet Subnet struct
-	for _, tmpnetSubnet := range n.Network.Subnets {
-		if tmpnetSubnet.SubnetID == subnet.SubnetID {
-			for _, tmpnetNode := range tmpnetNodes {
-				tmpnetSubnet.ValidatorIDs = append(tmpnetSubnet.ValidatorIDs, tmpnetNode.NodeID)
-			}
-		}
-	}
-	// Refresh the subnet info after restarting the nodes
-	subnet = n.GetSubnetInfo(subnet.SubnetID)
+	subnet = n.AddSubnetValidators(tmpnetNodes, subnet)
 
 	utils.PChainProposerVMWorkaround(pChainWallet)
 	utils.AdvanceProposerVM(ctx, subnet, fundedKey, 5)
@@ -310,6 +285,38 @@ func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.Subn
 	// 	Expect(err).Should(BeNil())
 	// 	utils.WaitForTransactionSuccess(ctx, subnet, common.BytesToHash(tx.TxID[:]))
 	// }
+}
+
+func (n *LocalNetwork) AddSubnetValidators(
+	nodes []*tmpnet.Node,
+	subnet interfaces.SubnetTestInfo,
+) interfaces.SubnetTestInfo {
+	// Modify the each node's config to track the subnet
+	for _, node := range nodes {
+		existingTrackedSubnets, err := node.Flags.GetStringVal(config.TrackSubnetsKey)
+		Expect(err).Should(BeNil())
+		if existingTrackedSubnets == subnet.SubnetID.String() {
+			goLog.Printf("Node %s @ %s already tracking subnet %s\n", node.NodeID, node.URI, subnet.SubnetID)
+			continue
+		}
+		node.Flags[config.TrackSubnetsKey] = subnet.SubnetID.String()
+
+		// Add the node to the network
+		n.Network.Nodes = append(n.Network.Nodes, node)
+	}
+	n.Network.StartNodes(context.Background(), os.Stdout, nodes...)
+
+	// Update the tmpnet Subnet struct
+	for _, tmpnetSubnet := range n.Network.Subnets {
+		if tmpnetSubnet.SubnetID == subnet.SubnetID {
+			for _, tmpnetNode := range nodes {
+				tmpnetSubnet.ValidatorIDs = append(tmpnetSubnet.ValidatorIDs, tmpnetNode.NodeID)
+			}
+		}
+	}
+
+	// Refresh the subnet info after restarting the nodes
+	return n.GetSubnetInfo(subnet.SubnetID)
 }
 
 func (n *LocalNetwork) GetValidatorManager(subnetID ids.ID) common.Address {
@@ -440,43 +447,6 @@ func (n *LocalNetwork) TearDownNetwork() {
 	Expect(n).ShouldNot(BeNil())
 	Expect(n.Network).ShouldNot(BeNil())
 	Expect(n.Network.Stop(context.Background())).Should(BeNil())
-}
-
-func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint) {
-	subnet := n.Network.Subnets[slices.IndexFunc(
-		n.Network.Subnets,
-		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
-	)]
-
-	// consume some of the extraNodes
-	newValidatorNodes := n.GetExtraNodes(count)
-
-	apiURI, err := n.Network.GetURIForNodeID(subnet.ValidatorIDs[0])
-	Expect(err).Should(BeNil())
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	err = subnet.AddValidators(
-		ctx,
-		os.Stdout,
-		apiURI,
-		newValidatorNodes...,
-	)
-	Expect(err).Should(BeNil())
-
-	for _, node := range newValidatorNodes {
-		subnet.ValidatorIDs = append(subnet.ValidatorIDs, node.NodeID)
-		node.Flags[config.TrackSubnetsKey] = subnetID.String()
-	}
-
-	tmpnet.WaitForActiveValidators(ctx, os.Stdout, platformvm.NewClient(n.Network.Nodes[0].URI), subnet)
-
-	nodeIdsToRestart := make([]ids.NodeID, len(newValidatorNodes))
-	for i, node := range newValidatorNodes {
-		n.primaryNetworkValidators = append(n.primaryNetworkValidators, node.NodeID)
-		nodeIdsToRestart[i] = node.NodeID
-	}
-	n.RestartNodes(ctx, nodeIdsToRestart)
 }
 
 // Restarts the nodes with the given nodeIDs. If nodeIDs is empty, restarts all nodes.
