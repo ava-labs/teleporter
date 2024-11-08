@@ -128,132 +128,98 @@ func DeployValidatorManager(
 	return address, validatorManager
 }
 
-func DeployAndInitializeNativeTokenStakingManager(
+func DeployAndInitializeValidatorManager(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
-	pChainInfo interfaces.SubnetTestInfo,
-) (common.Address, *nativetokenstakingmanager.NativeTokenStakingManager) {
-	stakingManagerContractAddress, _ := DeployValidatorManager(
+	managerType ValidatorManagerConcreteType,
+	args ...interface{},
+) (common.Address, *ivalidatormanager.IValidatorManager) {
+	validatorManagerAddress, validatorManager := DeployValidatorManager(
 		ctx,
 		senderKey,
 		subnet,
 		NativeTokenStakingManager,
 	)
-	rewardCalculatorAddress, _ := DeployExampleRewardCalculator(
-		ctx,
-		senderKey,
-		subnet,
-		uint64(10),
-	)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	stakingManager, err := nativetokenstakingmanager.NewNativeTokenStakingManager(stakingManagerContractAddress, subnet.RPCClient)
-	Expect(err).Should(BeNil())
-	tx, err := stakingManager.Initialize(
-		opts,
-		nativetokenstakingmanager.PoSValidatorManagerSettings{
-			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
+
+	var tx *types.Transaction
+	switch managerType {
+	case PoAValidatorManager:
+		Expect(len(args)).Should(Equal(1))
+		ownerAddress := args[0].(common.Address)
+		poaValidatorManager, err := poavalidatormanager.NewPoAValidatorManager(validatorManagerAddress, subnet.RPCClient)
+		Expect(err).Should(BeNil())
+		tx, err = poaValidatorManager.Initialize(
+			opts,
+			poavalidatormanager.ValidatorManagerSettings{
 				SubnetID:               subnet.SubnetID,
-				ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
-				MaximumChurnPercentage: DefaultMaxChurnPercentage,
+				ChurnPeriodSeconds:     uint64(0),
+				MaximumChurnPercentage: uint8(20),
 			},
-			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
-			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
-			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
-			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
-			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
-			WeightToValueFactor:      big.NewInt(0).SetUint64(DefaultWeightToValueFactor),
-			RewardCalculator:         rewardCalculatorAddress,
-		},
-	)
-	Expect(err).Should(BeNil())
-	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
-	return stakingManagerContractAddress, stakingManager
-}
-
-func DeployAndInitializeERC20TokenStakingManager(
-	ctx context.Context,
-	senderKey *ecdsa.PrivateKey,
-	subnet interfaces.SubnetTestInfo,
-	pChainInfo interfaces.SubnetTestInfo,
-) (
-	common.Address,
-	*erc20tokenstakingmanager.ERC20TokenStakingManager,
-	common.Address,
-	*exampleerc20.ExampleERC20,
-) {
-	stakingManagerContractAddress, _ := DeployValidatorManager(
-		ctx,
-		senderKey,
-		subnet,
-		ERC20TokenStakingManager,
-	)
-
-	erc20Address, erc20 := DeployExampleERC20(ctx, senderKey, subnet)
-	rewardCalculatorAddress, _ := DeployExampleRewardCalculator(
-		ctx,
-		senderKey,
-		subnet,
-		uint64(10),
-	)
-	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
-	Expect(err).Should(BeNil())
-	stakingManager, err := erc20tokenstakingmanager.NewERC20TokenStakingManager(stakingManagerContractAddress, subnet.RPCClient)
-	Expect(err).Should(BeNil())
-	tx, err := stakingManager.Initialize(
-		opts,
-		erc20tokenstakingmanager.PoSValidatorManagerSettings{
-			BaseSettings: erc20tokenstakingmanager.ValidatorManagerSettings{
-				SubnetID:               subnet.SubnetID,
-				ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
-				MaximumChurnPercentage: DefaultMaxChurnPercentage,
+			ownerAddress,
+		)
+		Expect(err).Should(BeNil())
+	case ERC20TokenStakingManager:
+		Expect(len(args)).Should(Equal(0))
+		erc20Address, _ := DeployExampleERC20(ctx, senderKey, subnet)
+		rewardCalculatorAddress, _ := DeployExampleRewardCalculator(
+			ctx,
+			senderKey,
+			subnet,
+			uint64(10),
+		)
+		erc20StakingManager, err := erc20tokenstakingmanager.NewERC20TokenStakingManager(validatorManagerAddress, subnet.RPCClient)
+		Expect(err).Should(BeNil())
+		tx, err = erc20StakingManager.Initialize(
+			opts,
+			erc20tokenstakingmanager.PoSValidatorManagerSettings{
+				BaseSettings: erc20tokenstakingmanager.ValidatorManagerSettings{
+					SubnetID:               subnet.SubnetID,
+					ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
+					MaximumChurnPercentage: DefaultMaxChurnPercentage,
+				},
+				MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
+				MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
+				MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
+				MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
+				MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
+				WeightToValueFactor:      big.NewInt(0).SetUint64(DefaultWeightToValueFactor),
+				RewardCalculator:         rewardCalculatorAddress,
 			},
-			MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
-			MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
-			MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
-			MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
-			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
-			WeightToValueFactor:      big.NewInt(0).SetUint64(DefaultWeightToValueFactor),
-			RewardCalculator:         rewardCalculatorAddress,
-		},
-		erc20Address,
-	)
-	Expect(err).Should(BeNil())
+			erc20Address,
+		)
+		Expect(err).Should(BeNil())
+	case NativeTokenStakingManager:
+		Expect(len(args)).Should(Equal(0))
+		rewardCalculatorAddress, _ := DeployExampleRewardCalculator(
+			ctx,
+			senderKey,
+			subnet,
+			uint64(10),
+		)
+		nativeStakingManager, err := nativetokenstakingmanager.NewNativeTokenStakingManager(validatorManagerAddress, subnet.RPCClient)
+		Expect(err).Should(BeNil())
+		tx, err = nativeStakingManager.Initialize(
+			opts,
+			nativetokenstakingmanager.PoSValidatorManagerSettings{
+				BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
+					SubnetID:               subnet.SubnetID,
+					ChurnPeriodSeconds:     DefaultChurnPeriodSeconds,
+					MaximumChurnPercentage: DefaultMaxChurnPercentage,
+				},
+				MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
+				MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
+				MinimumStakeDuration:     DefaultMinStakeDurationSeconds,
+				MinimumDelegationFeeBips: DefaultMinDelegateFeeBips,
+				MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
+				WeightToValueFactor:      big.NewInt(0).SetUint64(DefaultWeightToValueFactor),
+				RewardCalculator:         rewardCalculatorAddress,
+			},
+		)
+	}
 	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
-	return stakingManagerContractAddress, stakingManager, erc20Address, erc20
-}
-
-func DeployAndInitializePoAValidatorManager(
-	ctx context.Context,
-	senderKey *ecdsa.PrivateKey,
-	subnet interfaces.SubnetTestInfo,
-	ownerAddress common.Address,
-) (common.Address, *poavalidatormanager.PoAValidatorManager) {
-	validatorManagerAddress, _ := DeployValidatorManager(
-		ctx,
-		senderKey,
-		subnet,
-		PoAValidatorManager,
-	)
-	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
-	Expect(err).Should(BeNil())
-	validatorManager, err := poavalidatormanager.NewPoAValidatorManager(validatorManagerAddress, subnet.RPCClient)
-	Expect(err).Should(BeNil())
-	tx, err := validatorManager.Initialize(
-		opts,
-		poavalidatormanager.ValidatorManagerSettings{
-			SubnetID:               subnet.SubnetID,
-			ChurnPeriodSeconds:     uint64(0),
-			MaximumChurnPercentage: uint8(20),
-		},
-		ownerAddress,
-	)
-	Expect(err).Should(BeNil())
-	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
 	return validatorManagerAddress, validatorManager
 }
 
@@ -872,6 +838,7 @@ func InitializeERC20DelegatorRegistration(
 	return receipt
 }
 
+// TODO: Consolidate this with native function
 func CompleteERC20DelegatorRegistration(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
@@ -894,6 +861,7 @@ func CompleteERC20DelegatorRegistration(
 	)
 }
 
+// TODO: Consolidate this with native function
 func InitializeEndERC20Delegation(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
@@ -914,6 +882,7 @@ func InitializeEndERC20Delegation(
 	return WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 }
 
+// TODO: Consolidate this with native function
 func CompleteEndERC20Delegation(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,

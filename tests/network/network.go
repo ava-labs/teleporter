@@ -198,10 +198,11 @@ func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.Subn
 		},
 	)
 	// TODO: support other manager types, including deploying a proxy
-	vdrManagerAddress, _ := utils.DeployAndInitializePoAValidatorManager(
+	vdrManagerAddress, _ := utils.DeployAndInitializeValidatorManager(
 		ctx,
 		fundedKey,
 		subnet,
+		utils.PoAValidatorManager,
 		fundedAddress,
 	)
 	n.validatorManagers[subnet.SubnetID] = vdrManagerAddress

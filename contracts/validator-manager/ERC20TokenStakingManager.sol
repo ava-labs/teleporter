@@ -120,6 +120,13 @@ contract ERC20TokenStakingManager is
     }
 
     /**
+     * @notice Returns the ERC20 token being staked
+     */
+    function erc20() external view returns (IERC20Mintable) {
+        return _getERC20StakingManagerStorage()._token;
+    }
+
+    /**
      * @notice See {PoSValidatorManager-_lock}
      * Note: Must be guarded with reentrancy guard for safe transfer from.
      */

@@ -8,6 +8,8 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
+	erc20tokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20TokenStakingManager"
 	iposvalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IPoSValidatorManager"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -46,12 +48,18 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 	ctx := context.Background()
 
 	// Deploy the staking manager contract
-	stakingManagerAddress, stakingManager, _, erc20 := utils.DeployAndInitializeERC20TokenStakingManager(
+	stakingManagerAddress, _ := utils.DeployAndInitializeValidatorManager(
 		ctx,
 		fundedKey,
 		subnetAInfo,
-		pChainInfo,
+		utils.ERC20TokenStakingManager,
 	)
+	erc20StakingManager, err := erc20tokenstakingmanager.NewERC20TokenStakingManager(stakingManagerAddress, subnetAInfo.RPCClient)
+	Expect(err).Should(BeNil())
+	erc20Address, err := erc20StakingManager.Erc20(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	erc20, err := exampleerc20.NewExampleERC20(erc20Address, subnetAInfo.RPCClient)
+	Expect(err).Should(BeNil())
 
 	nodes := utils.ConvertSubnet(
 		ctx,
@@ -104,7 +112,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		stakingManager,
+		erc20StakingManager,
 		stakingManagerAddress,
 		erc20,
 		expiry,
@@ -119,13 +127,13 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 	var delegationID ids.ID
 	{
 		log.Println("Registering delegator")
-		delegatorStake, err := stakingManager.WeightToValue(
+		delegatorStake, err := erc20StakingManager.WeightToValue(
 			&bind.CallOpts{},
 			nodes[0].Weight,
 		)
 		Expect(err).Should(BeNil())
 		delegatorStake.Div(delegatorStake, big.NewInt(10))
-		delegatorWeight, err := stakingManager.ValueToWeight(
+		delegatorWeight, err := erc20StakingManager.ValueToWeight(
 			&bind.CallOpts{},
 			delegatorStake,
 		)
@@ -142,11 +150,11 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 			delegatorStake,
 			erc20,
 			stakingManagerAddress,
-			stakingManager,
+			erc20StakingManager,
 		)
 		initRegistrationEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			stakingManager.ParseDelegatorAdded,
+			erc20StakingManager.ParseDelegatorAdded,
 		)
 		Expect(err).Should(BeNil())
 		delegationID = initRegistrationEvent.DelegationID
@@ -182,7 +190,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		// Check that the validator is registered in the staking contract
 		registrationEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			stakingManager.ParseDelegatorRegistered,
+			erc20StakingManager.ParseDelegatorRegistered,
 		)
 		Expect(err).Should(BeNil())
 		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
@@ -199,12 +207,12 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 			ctx,
 			fundedKey,
 			subnetAInfo,
-			stakingManager,
+			erc20StakingManager,
 			delegationID,
 		)
 		delegatorRemovalEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			stakingManager.ParseDelegatorRemovalInitialized,
+			erc20StakingManager.ParseDelegatorRemovalInitialized,
 		)
 		Expect(err).Should(BeNil())
 		Expect(delegatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
@@ -244,7 +252,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		// Check that the delegator has been delisted from the staking contract
 		registrationEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			stakingManager.ParseDelegationEnded,
+			erc20StakingManager.ParseDelegationEnded,
 		)
 		Expect(err).Should(BeNil())
 		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))

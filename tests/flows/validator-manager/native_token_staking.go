@@ -8,6 +8,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
 	iposvalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IPoSValidatorManager"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -46,12 +47,14 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 	ctx := context.Background()
 
 	// Deploy the staking manager contract
-	stakingManagerAddress, stakingManager := utils.DeployAndInitializeNativeTokenStakingManager(
+	stakingManagerAddress, _ := utils.DeployAndInitializeValidatorManager(
 		ctx,
 		fundedKey,
 		subnetAInfo,
-		pChainInfo,
+		utils.NativeTokenStakingManager,
 	)
+	nativeStakingManager, err := nativetokenstakingmanager.NewNativeTokenStakingManager(stakingManagerAddress, subnetAInfo.RPCClient)
+	Expect(err).Should(BeNil())
 
 	utils.AddNativeMinterAdmin(ctx, subnetAInfo, fundedKey, stakingManagerAddress)
 
@@ -106,7 +109,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		stakingManager,
+		nativeStakingManager,
 		stakingManagerAddress,
 		expiry,
 		nodes[0],
@@ -120,13 +123,13 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 	var delegationID ids.ID
 	{
 		log.Println("Registering delegator")
-		delegatorStake, err := stakingManager.WeightToValue(
+		delegatorStake, err := nativeStakingManager.WeightToValue(
 			&bind.CallOpts{},
 			nodes[0].Weight,
 		)
 		Expect(err).Should(BeNil())
 		delegatorStake.Div(delegatorStake, big.NewInt(10))
-		delegatorWeight, err := stakingManager.ValueToWeight(
+		delegatorWeight, err := nativeStakingManager.ValueToWeight(
 			&bind.CallOpts{},
 			delegatorStake,
 		)
@@ -142,11 +145,11 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 			validationID,
 			delegatorStake,
 			stakingManagerAddress,
-			stakingManager,
+			nativeStakingManager,
 		)
 		initRegistrationEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			stakingManager.ParseDelegatorAdded,
+			nativeStakingManager.ParseDelegatorAdded,
 		)
 		Expect(err).Should(BeNil())
 		delegationID = initRegistrationEvent.DelegationID
@@ -182,7 +185,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		// Check that the validator is registered in the staking contract
 		registrationEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			stakingManager.ParseDelegatorRegistered,
+			nativeStakingManager.ParseDelegatorRegistered,
 		)
 		Expect(err).Should(BeNil())
 		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
@@ -198,12 +201,12 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 			ctx,
 			fundedKey,
 			subnetAInfo,
-			stakingManager,
+			nativeStakingManager,
 			delegationID,
 		)
 		delegatorRemovalEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			stakingManager.ParseDelegatorRemovalInitialized,
+			nativeStakingManager.ParseDelegatorRemovalInitialized,
 		)
 		Expect(err).Should(BeNil())
 		Expect(delegatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
@@ -243,7 +246,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		// Check that the delegator has been delisted from the staking contract
 		registrationEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			stakingManager.ParseDelegationEnded,
+			nativeStakingManager.ParseDelegationEnded,
 		)
 		Expect(err).Should(BeNil())
 		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
