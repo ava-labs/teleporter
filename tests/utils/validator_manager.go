@@ -139,7 +139,7 @@ func DeployAndInitializeValidatorManager(
 		ctx,
 		senderKey,
 		subnet,
-		NativeTokenStakingManager,
+		managerType,
 	)
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
