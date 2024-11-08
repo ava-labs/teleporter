@@ -160,7 +160,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		delegationID = initRegistrationEvent.DelegationID
 
 		// Gather subnet-evm Warp signatures for the SubnetValidatorWeightUpdateMessage & relay to the P-Chain
-		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo, nil, network.GetSignatureAggregator())
 
 		// Issue a tx to update the validator's weight on the P-Chain
 		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
@@ -179,7 +179,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CompleteERC20DelegatorRegistration(
+		receipt = utils.CompleteDelegatorRegistration(
 			ctx,
 			fundedKey,
 			delegationID,
@@ -203,11 +203,11 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 	{
 		log.Println("Delisting delegator")
 		nonce := uint64(2)
-		receipt := utils.InitializeEndERC20Delegation(
+		receipt := utils.InitializeEndDelegation(
 			ctx,
 			fundedKey,
 			subnetAInfo,
-			erc20StakingManager,
+			stakingManagerAddress,
 			delegationID,
 		)
 		delegatorRemovalEvent, err := utils.GetEventFromLogs(
@@ -220,7 +220,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 
 		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
-		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo, nil, network.GetSignatureAggregator())
 		Expect(err).Should(BeNil())
 
 		// Issue a tx to update the validator's weight on the P-Chain
@@ -240,7 +240,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CompleteEndERC20Delegation(
+		receipt = utils.CompleteEndDelegation(
 			ctx,
 			fundedKey,
 			delegationID,

@@ -155,7 +155,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		delegationID = initRegistrationEvent.DelegationID
 
 		// Gather subnet-evm Warp signatures for the SubnetValidatorWeightUpdateMessage & relay to the P-Chain
-		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo, nil, network.GetSignatureAggregator())
 
 		// Issue a tx to update the validator's weight on the P-Chain
 		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
@@ -174,7 +174,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CompleteNativeDelegatorRegistration(
+		receipt = utils.CompleteDelegatorRegistration(
 			ctx,
 			fundedKey,
 			delegationID,
@@ -197,11 +197,11 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 	{
 		log.Println("Delisting delegator")
 		nonce := uint64(2)
-		receipt := utils.InitializeEndNativeDelegation(
+		receipt := utils.InitializeEndDelegation(
 			ctx,
 			fundedKey,
 			subnetAInfo,
-			nativeStakingManager,
+			stakingManagerAddress,
 			delegationID,
 		)
 		delegatorRemovalEvent, err := utils.GetEventFromLogs(
@@ -214,7 +214,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 
 		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
-		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo, nil, network.GetSignatureAggregator())
 		Expect(err).Should(BeNil())
 
 		// Issue a tx to update the validator's weight on the P-Chain
@@ -234,7 +234,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CompleteEndNativeDelegation(
+		receipt = utils.CompleteEndDelegation(
 			ctx,
 			fundedKey,
 			delegationID,
