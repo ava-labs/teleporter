@@ -5,9 +5,11 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/ava-labs/avalanchego/utils/units"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
+	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -64,9 +66,37 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	//
 
 	// Add new nodes to the validator set
-	addValidatorsCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	addValidatorsCtx, cancel := context.WithTimeout(ctx, 60*newNodeCount*time.Second)
 	defer cancel()
-	network.AddSubnetValidators(addValidatorsCtx, subnetAInfo.SubnetID, newNodeCount)
+	newNodes := network.GetExtraNodes(newNodeCount)
+	validatorManagerAddress := network.GetValidatorManager(subnetAInfo.SubnetID)
+	validatorManager, err := poavalidatormanager.NewPoAValidatorManager(validatorManagerAddress, subnetAInfo.RPCClient)
+	pChainInfo := utils.GetPChainInfo(network.GetPrimaryNetworkInfo())
+	Expect(err).Should(BeNil())
+	for i := 0; i < newNodeCount; i++ {
+		expiry := uint64(time.Now().Add(24 * time.Hour).Unix())
+		pop, err := newNodes[i].GetProofOfPossession()
+		Expect(err).Should(BeNil())
+		node := utils.Node{
+			NodeID:  newNodes[i].NodeID,
+			NodePoP: pop,
+			Weight:  units.Schmeckle,
+		}
+		utils.InitializeAndCompletePoAValidatorRegistration(
+			addValidatorsCtx,
+			network.GetSignatureAggregator(),
+			fundedKey,
+			fundedKey,
+			subnetAInfo,
+			pChainInfo,
+			validatorManager,
+			validatorManagerAddress,
+			expiry,
+			node,
+			network.GetPChainWallet(),
+			network.GetNetworkID(),
+		)
+	}
 
 	// Refresh the subnet info
 	subnetAInfo, subnetBInfo = network.GetTwoSubnets()

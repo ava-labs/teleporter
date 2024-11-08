@@ -27,6 +27,7 @@ import (
 	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
 	pwallet "github.com/ava-labs/avalanchego/wallet/chain/p/wallet"
 	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
+	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetEvmTestUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -46,6 +47,7 @@ type LocalNetwork struct {
 	primaryNetworkValidators []ids.NodeID
 	globalFundedKey          *secp256k1.PrivateKey
 	validatorManagers        map[ids.ID]common.Address
+	signatureAggregator      *aggregator.SignatureAggregator
 }
 
 const (
@@ -181,6 +183,17 @@ func NewLocalNetwork(
 		validatorManagers:        make(map[ids.ID]common.Address),
 	}
 
+	// Construct the signature aggregator
+	var subnetIDs []ids.ID
+	for _, subnet := range localNetwork.GetSubnetsInfo() {
+		subnetIDs = append(subnetIDs, subnet.SubnetID)
+	}
+	signatureAggregator := utils.NewSignatureAggregator(
+		localNetwork.GetPrimaryNetworkInfo().NodeURIs[0],
+		subnetIDs,
+	)
+	localNetwork.signatureAggregator = signatureAggregator
+
 	return localNetwork
 }
 
@@ -191,12 +204,7 @@ func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.Subn
 	Expect(err).Should(BeNil())
 
 	fundedAddress, fundedKey := n.GetFundedAccountInfo()
-	signatureAggregator := utils.NewSignatureAggregator(
-		cChainInfo.NodeURIs[0],
-		[]ids.ID{
-			subnet.SubnetID,
-		},
-	)
+
 	// TODO: support other manager types, including deploying a proxy
 	vdrManagerAddress, _ := utils.DeployAndInitializeValidatorManager(
 		ctx,
@@ -291,7 +299,7 @@ func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.Subn
 		utils.GetPChainInfo(cChainInfo),
 		vdrManagerAddress,
 		n.GetNetworkID(),
-		signatureAggregator,
+		n.signatureAggregator,
 		nodes,
 	)
 
@@ -302,6 +310,14 @@ func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.Subn
 	// 	Expect(err).Should(BeNil())
 	// 	utils.WaitForTransactionSuccess(ctx, subnet, common.BytesToHash(tx.TxID[:]))
 	// }
+}
+
+func (n *LocalNetwork) GetValidatorManager(subnetID ids.ID) common.Address {
+	return n.validatorManagers[subnetID]
+}
+
+func (n *LocalNetwork) GetSignatureAggregator() *aggregator.SignatureAggregator {
+	return n.signatureAggregator
 }
 
 func (n *LocalNetwork) GetExtraNodes(count uint) []*tmpnet.Node {
