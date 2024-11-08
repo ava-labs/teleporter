@@ -5,18 +5,10 @@ package teleporter_test
 
 import (
 	"context"
-	goLog "log"
 	"os"
-	"sort"
 	"testing"
 	"time"
 
-	"github.com/ava-labs/avalanchego/config"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/formatting/address"
-	"github.com/ava-labs/avalanchego/utils/units"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
-	warpMessage "github.com/ava-labs/avalanchego/vms/platformvm/warp/message"
 	teleporterFlows "github.com/ava-labs/teleporter/tests/flows/teleporter"
 	registryFlows "github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
@@ -96,7 +88,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	log.Info("Started local network")
 
 	// Only need to deploy Teleporter on the C-Chain since it is included in the genesis of the subnet chains.
-	fundedAddress, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
+	_, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
 	TeleporterInfo.DeployTeleporterMessenger(
 		ctx,
 		LocalNetworkInstance.GetPrimaryNetworkInfo(),
@@ -112,110 +104,10 @@ var _ = ginkgo.BeforeSuite(func() {
 		TeleporterInfo.DeployTeleporterRegistry(subnet, fundedKey)
 	}
 
-	// Convert the subnets to be managed by a PoAValidatorManager
-	cChainInfo := LocalNetworkInstance.GetPrimaryNetworkInfo()
 	for _, subnet := range LocalNetworkInstance.GetSubnetsInfo() {
-		signatureAggregator := utils.NewSignatureAggregator(
-			cChainInfo.NodeURIs[0],
-			[]ids.ID{
-				subnet.SubnetID,
-			},
-		)
-		vdrManagerAddress, _ := utils.DeployAndInitializePoAValidatorManager(
-			ctx,
-			fundedKey,
-			subnet,
-			fundedAddress,
-		)
-
-		tmpnetNodes := LocalNetworkInstance.GetExtraNodes(2)
-		sort.Slice(tmpnetNodes, func(i, j int) bool {
-			return string(tmpnetNodes[i].NodeID.Bytes()) < string(tmpnetNodes[j].NodeID.Bytes())
-		})
-		totalWeight := uint64(len(tmpnetNodes)-1) * units.Schmeckle
-		var nodes []utils.Node
-		// Construct the convert subnet info
-		destAddr, err := address.ParseToID(utils.DefaultPChainAddress)
-		Expect(err).Should(BeNil())
-		vdrs := make([]*txs.ConvertSubnetValidator, len(tmpnetNodes))
-		for i, node := range tmpnetNodes {
-			weight := units.Schmeckle
-			if i == len(tmpnetNodes)-1 {
-				weight = 4 * totalWeight
-			}
-
-			signer, err := node.GetProofOfPossession()
-			Expect(err).Should(BeNil())
-			nodes = append(nodes, utils.Node{
-				NodeID:  node.NodeID,
-				NodePoP: signer,
-				Weight:  weight,
-			})
-			vdrs[i] = &txs.ConvertSubnetValidator{
-				NodeID:  node.NodeID.Bytes(),
-				Weight:  weight,
-				Balance: units.Avax * 100,
-				Signer:  *signer,
-				RemainingBalanceOwner: warpMessage.PChainOwner{
-					Threshold: 1,
-					Addresses: []ids.ShortID{destAddr},
-				},
-				DeactivationOwner: warpMessage.PChainOwner{
-					Threshold: 1,
-					Addresses: []ids.ShortID{destAddr},
-				},
-			}
-		}
-		pChainWallet := LocalNetworkInstance.GetPChainWallet()
-		_, err = pChainWallet.IssueConvertSubnetTx(
-			subnet.SubnetID,
-			subnet.BlockchainID,
-			vdrManagerAddress[:],
-			vdrs,
-		)
-		Expect(err).Should(BeNil())
-
-		// Modify the each node's config to track the subnet
-		for _, node := range tmpnetNodes {
-			existingTrackedSubnets, err := node.Flags.GetStringVal(config.TrackSubnetsKey)
-			Expect(err).Should(BeNil())
-			if existingTrackedSubnets == subnet.SubnetID.String() {
-				goLog.Printf("Node %s @ %s already tracking subnet %s\n", node.NodeID, node.URI, subnet.SubnetID)
-				continue
-			}
-			node.Flags[config.TrackSubnetsKey] = subnet.SubnetID.String()
-
-			// Add the node to the network
-			LocalNetworkInstance.Network.Nodes = append(LocalNetworkInstance.Network.Nodes, node)
-		}
-		LocalNetworkInstance.Network.StartNodes(context.Background(), os.Stdout, tmpnetNodes...)
-
-		// Update the tmpnet Subnet struct
-		for _, tmpnetSubnet := range LocalNetworkInstance.Network.Subnets {
-			if tmpnetSubnet.SubnetID == subnet.SubnetID {
-				for _, tmpnetNode := range tmpnetNodes {
-					tmpnetSubnet.ValidatorIDs = append(tmpnetSubnet.ValidatorIDs, tmpnetNode.NodeID)
-				}
-			}
-		}
-		// Refresh the subnet info after restarting the nodes
-		subnet = LocalNetworkInstance.GetSubnetInfo(subnet.SubnetID)
-
-		utils.PChainProposerVMWorkaround(pChainWallet)
-		utils.AdvanceProposerVM(ctx, subnet, fundedKey, 5)
-
-		utils.InitializeValidatorSet(
-			ctx,
-			fundedKey,
-			subnet,
-			utils.GetPChainInfo(cChainInfo),
-			vdrManagerAddress,
-			LocalNetworkInstance.GetNetworkID(),
-			signatureAggregator,
-			nodes,
-		)
-		// TODO: Remove the bootstrap node as a subnet validator
+		LocalNetworkInstance.ConvertSubnet(ctx, subnet)
 	}
+
 	log.Info("Set up ginkgo before suite")
 })
 

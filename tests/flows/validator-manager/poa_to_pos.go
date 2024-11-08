@@ -75,6 +75,7 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 		utils.PoAValidatorManager,
 	)
 
+	// TODDO: check if it's valid to initialize the PoA contract before deploying the proxy
 	// Deploy TransparentUpgradeableProxy contract pointing to PoAValidatorManager
 	proxyAddress, proxyAdmin, poaValidatorManager := utils.DeployTransparentUpgradeableProxy(
 		ctx,

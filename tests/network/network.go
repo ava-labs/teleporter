@@ -6,8 +6,10 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	goLog "log"
 	"os"
 	"slices"
+	"sort"
 	"time"
 
 	"github.com/ava-labs/avalanchego/api/info"
@@ -17,7 +19,11 @@ import (
 	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
 	"github.com/ava-labs/avalanchego/upgrade"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
+	"github.com/ava-labs/avalanchego/utils/formatting/address"
+	"github.com/ava-labs/avalanchego/utils/units"
 	"github.com/ava-labs/avalanchego/vms/platformvm"
+	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
+	warpMessage "github.com/ava-labs/avalanchego/vms/platformvm/warp/message"
 	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
 	pwallet "github.com/ava-labs/avalanchego/wallet/chain/p/wallet"
 	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
@@ -32,7 +38,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// TODO: Add a mapping of subnetID -> {ivalidatormanager, address}
 // Implements Network, pointing to the network setup in local_network_setup.go
 type LocalNetwork struct {
 	tmpnet.Network
@@ -40,6 +45,7 @@ type LocalNetwork struct {
 	extraNodes               []*tmpnet.Node // to add as more subnet validators in the tests
 	primaryNetworkValidators []ids.NodeID
 	globalFundedKey          *secp256k1.PrivateKey
+	validatorManagers        map[ids.ID]common.Address
 }
 
 const (
@@ -109,7 +115,6 @@ func NewLocalNetwork(
 		subnet.OwningKey = globalFundedKey
 		subnets = append(subnets, subnet)
 	}
-
 	network := subnetEvmTestUtils.NewTmpnetNetwork(
 		name,
 		bootstrapNodes,
@@ -155,6 +160,7 @@ func NewLocalNetwork(
 		avalancheGoBuildPath+"/plugins",
 	)
 	Expect(err).Should(BeNil())
+	goLog.Println("Network bootstrapped")
 
 	// Issue transactions to activate the proposerVM fork on the chains
 	for _, subnet := range network.Subnets {
@@ -172,9 +178,129 @@ func NewLocalNetwork(
 		extraNodes:               extraNodes,
 		globalFundedKey:          globalFundedKey,
 		primaryNetworkValidators: primaryNetworkValidators,
+		validatorManagers:        make(map[ids.ID]common.Address),
 	}
 
 	return localNetwork
+}
+
+func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.SubnetTestInfo) {
+	cChainInfo := n.GetPrimaryNetworkInfo()
+	pClient := platformvm.NewClient(cChainInfo.NodeURIs[0])
+	currentValidators, err := pClient.GetCurrentValidators(ctx, subnet.SubnetID, nil)
+	Expect(err).Should(BeNil())
+
+	fundedAddress, fundedKey := n.GetFundedAccountInfo()
+	signatureAggregator := utils.NewSignatureAggregator(
+		cChainInfo.NodeURIs[0],
+		[]ids.ID{
+			subnet.SubnetID,
+		},
+	)
+	// TODO: support other manager types, including deploying a proxy
+	vdrManagerAddress, _ := utils.DeployAndInitializePoAValidatorManager(
+		ctx,
+		fundedKey,
+		subnet,
+		fundedAddress,
+	)
+	n.validatorManagers[subnet.SubnetID] = vdrManagerAddress
+
+	// TODO: parameterize the number of nodes
+	tmpnetNodes := n.GetExtraNodes(2)
+	sort.Slice(tmpnetNodes, func(i, j int) bool {
+		return string(tmpnetNodes[i].NodeID.Bytes()) < string(tmpnetNodes[j].NodeID.Bytes())
+	})
+	totalWeight := uint64(len(tmpnetNodes)-1) * units.Schmeckle
+	var nodes []utils.Node
+	// Construct the convert subnet info
+	destAddr, err := address.ParseToID(utils.DefaultPChainAddress)
+	Expect(err).Should(BeNil())
+	vdrs := make([]*txs.ConvertSubnetValidator, len(tmpnetNodes))
+	for i, node := range tmpnetNodes {
+		weight := units.Schmeckle
+		if i == len(tmpnetNodes)-1 {
+			weight = 4 * totalWeight
+		}
+
+		signer, err := node.GetProofOfPossession()
+		Expect(err).Should(BeNil())
+		nodes = append(nodes, utils.Node{
+			NodeID:  node.NodeID,
+			NodePoP: signer,
+			Weight:  weight,
+		})
+		vdrs[i] = &txs.ConvertSubnetValidator{
+			NodeID:  node.NodeID.Bytes(),
+			Weight:  weight,
+			Balance: units.Avax * 100,
+			Signer:  *signer,
+			RemainingBalanceOwner: warpMessage.PChainOwner{
+				Threshold: 1,
+				Addresses: []ids.ShortID{destAddr},
+			},
+			DeactivationOwner: warpMessage.PChainOwner{
+				Threshold: 1,
+				Addresses: []ids.ShortID{destAddr},
+			},
+		}
+	}
+	pChainWallet := n.GetPChainWallet()
+	_, err = pChainWallet.IssueConvertSubnetTx(
+		subnet.SubnetID,
+		subnet.BlockchainID,
+		vdrManagerAddress[:],
+		vdrs,
+	)
+	Expect(err).Should(BeNil())
+
+	// Modify the each node's config to track the subnet
+	for _, node := range tmpnetNodes {
+		existingTrackedSubnets, err := node.Flags.GetStringVal(config.TrackSubnetsKey)
+		Expect(err).Should(BeNil())
+		if existingTrackedSubnets == subnet.SubnetID.String() {
+			goLog.Printf("Node %s @ %s already tracking subnet %s\n", node.NodeID, node.URI, subnet.SubnetID)
+			continue
+		}
+		node.Flags[config.TrackSubnetsKey] = subnet.SubnetID.String()
+
+		// Add the node to the network
+		n.Network.Nodes = append(n.Network.Nodes, node)
+	}
+	n.Network.StartNodes(context.Background(), os.Stdout, tmpnetNodes...)
+
+	// Update the tmpnet Subnet struct
+	for _, tmpnetSubnet := range n.Network.Subnets {
+		if tmpnetSubnet.SubnetID == subnet.SubnetID {
+			for _, tmpnetNode := range tmpnetNodes {
+				tmpnetSubnet.ValidatorIDs = append(tmpnetSubnet.ValidatorIDs, tmpnetNode.NodeID)
+			}
+		}
+	}
+	// Refresh the subnet info after restarting the nodes
+	subnet = n.GetSubnetInfo(subnet.SubnetID)
+
+	utils.PChainProposerVMWorkaround(pChainWallet)
+	utils.AdvanceProposerVM(ctx, subnet, fundedKey, 5)
+
+	utils.InitializeValidatorSet(
+		ctx,
+		fundedKey,
+		subnet,
+		utils.GetPChainInfo(cChainInfo),
+		vdrManagerAddress,
+		n.GetNetworkID(),
+		signatureAggregator,
+		nodes,
+	)
+
+	// Remove the bootstrap node as a subnet validator
+	// TODO: This is not currently supported by the poc tag
+	// for _, vdr := range currentValidators {
+	// 	tx, err := pChainWallet.IssueRemoveSubnetValidatorTx(vdr.NodeID, subnet.SubnetID)
+	// 	Expect(err).Should(BeNil())
+	// 	utils.WaitForTransactionSuccess(ctx, subnet, common.BytesToHash(tx.TxID[:]))
+	// }
 }
 
 func (n *LocalNetwork) GetExtraNodes(count uint) []*tmpnet.Node {
