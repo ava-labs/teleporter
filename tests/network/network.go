@@ -187,7 +187,7 @@ func NewLocalNetwork(
 func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.SubnetTestInfo) {
 	cChainInfo := n.GetPrimaryNetworkInfo()
 	pClient := platformvm.NewClient(cChainInfo.NodeURIs[0])
-	currentValidators, err := pClient.GetCurrentValidators(ctx, subnet.SubnetID, nil)
+	_, err := pClient.GetCurrentValidators(ctx, subnet.SubnetID, nil)
 	Expect(err).Should(BeNil())
 
 	fundedAddress, fundedKey := n.GetFundedAccountInfo()
