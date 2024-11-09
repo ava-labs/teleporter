@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/utils/units"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
 	iposvalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IPoSValidatorManager"
@@ -50,7 +51,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		ctx,
 		subnetAInfo,
 		utils.NativeTokenStakingManager,
-		2,
+		[]uint64{units.Schmeckle, 1000 * units.Schmeckle}, // Choose weights to avoid validator churn limits
 		fundedKey,
 		false,
 	)

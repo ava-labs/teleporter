@@ -189,7 +189,7 @@ func (n *LocalNetwork) ConvertSubnet(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
 	managerType utils.ValidatorManagerConcreteType,
-	numInitialNodes int,
+	weights []uint64,
 	senderKey *ecdsa.PrivateKey,
 	proxy bool,
 ) ([]utils.Node, []ids.ID, *proxyadmin.ProxyAdmin) {
@@ -207,7 +207,7 @@ func (n *LocalNetwork) ConvertSubnet(
 	)
 	n.validatorManagers[subnet.SubnetID] = vdrManagerAddress
 
-	tmpnetNodes := n.GetExtraNodes(numInitialNodes)
+	tmpnetNodes := n.GetExtraNodes(len(weights))
 	sort.Slice(tmpnetNodes, func(i, j int) bool {
 		return string(tmpnetNodes[i].NodeID.Bytes()) < string(tmpnetNodes[j].NodeID.Bytes())
 	})
@@ -218,22 +218,16 @@ func (n *LocalNetwork) ConvertSubnet(
 	Expect(err).Should(BeNil())
 	vdrs := make([]*txs.ConvertSubnetValidator, len(tmpnetNodes))
 	for i, node := range tmpnetNodes {
-		weight := units.Schmeckle
-		if i == len(tmpnetNodes)-1 {
-			// Give one validator a higher weight so churn limits aren't violated
-			weight = 1000 * weight
-		}
-
 		signer, err := node.GetProofOfPossession()
 		Expect(err).Should(BeNil())
 		nodes = append(nodes, utils.Node{
 			NodeID:  node.NodeID,
 			NodePoP: signer,
-			Weight:  weight,
+			Weight:  weights[i],
 		})
 		vdrs[i] = &txs.ConvertSubnetValidator{
 			NodeID:  node.NodeID.Bytes(),
-			Weight:  weight,
+			Weight:  weights[i],
 			Balance: units.Avax * 100,
 			Signer:  *signer,
 			RemainingBalanceOwner: warpMessage.PChainOwner{

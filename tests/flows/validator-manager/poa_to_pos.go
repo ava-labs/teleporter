@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/utils/units"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
 	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
@@ -71,7 +72,7 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 		ctx,
 		subnetAInfo,
 		utils.PoAValidatorManager,
-		2,
+		[]uint64{units.Schmeckle, 1000 * units.Schmeckle}, // Choose weights to avoid validator churn limits
 		ownerKey,
 		true,
 	)

@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ava-labs/avalanchego/utils/units"
 	teleporterFlows "github.com/ava-labs/teleporter/tests/flows/teleporter"
 	registryFlows "github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
@@ -71,7 +72,7 @@ var _ = ginkgo.BeforeSuite(func() {
 				TeleporterContractAddress:  teleporterContractAddress,
 				TeleporterDeployedBytecode: teleporterDeployedBytecode,
 				TeleporterDeployerAddress:  teleporterDeployerAddress,
-				NodeCount:                  2,
+				NodeCount:                  5,
 			},
 			{
 				Name:                       "B",
@@ -79,7 +80,7 @@ var _ = ginkgo.BeforeSuite(func() {
 				TeleporterContractAddress:  teleporterContractAddress,
 				TeleporterDeployedBytecode: teleporterDeployedBytecode,
 				TeleporterDeployerAddress:  teleporterDeployerAddress,
-				NodeCount:                  2,
+				NodeCount:                  5,
 			},
 		},
 		2,
@@ -105,7 +106,14 @@ var _ = ginkgo.BeforeSuite(func() {
 	}
 
 	for _, subnet := range LocalNetworkInstance.GetSubnetsInfo() {
-		LocalNetworkInstance.ConvertSubnet(ctx, subnet, utils.PoAValidatorManager, 2, fundedKey, false)
+		// Choose weights such that we can test validator churn
+		LocalNetworkInstance.ConvertSubnet(
+			ctx,
+			subnet,
+			utils.PoAValidatorManager,
+			[]uint64{units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle},
+			fundedKey,
+			false)
 	}
 
 	log.Info("Set up ginkgo before suite")
