@@ -106,6 +106,8 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 			network.GetPChainWallet(),
 			network.GetNetworkID(),
 		)
+		// Sleep to ensure the validator manager uses a new churn tracking period
+		time.Sleep(5 * time.Second)
 	}
 
 	// Refresh the subnet info
