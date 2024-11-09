@@ -3,7 +3,6 @@ package governance
 import (
 	"context"
 	"math/big"
-	"os"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
@@ -141,7 +140,6 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 
 	// Restart nodes with new chain config
 	network.SetChainConfigs(chainConfigs)
-	network.Network.Restart(ctx, os.Stdout)
 
 	// ************************************************************************************************
 	// Test Case 1: validatorChain (subnetB) != targetChain (subnetA)

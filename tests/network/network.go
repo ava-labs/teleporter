@@ -29,6 +29,7 @@ import (
 	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetEvmTestUtils "github.com/ava-labs/subnet-evm/tests/utils"
+	proxyadmin "github.com/ava-labs/teleporter/abi-bindings/go/ProxyAdmin"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 
@@ -138,7 +139,6 @@ func NewLocalNetwork(
 	Expect(ok).Should(Equal(true))
 
 	// Specify only a subset of the nodes to be bootstrapped
-	// TODO: clean this up
 	keysToFund := []*secp256k1.PrivateKey{
 		genesis.VMRQKey,
 		genesis.EWOQKey,
@@ -184,30 +184,33 @@ func NewLocalNetwork(
 	return localNetwork
 }
 
-func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.SubnetTestInfo) {
+func (n *LocalNetwork) ConvertSubnet(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	managerType utils.ValidatorManagerConcreteType,
+	numInitialNodes int,
+	senderKey *ecdsa.PrivateKey,
+	proxy bool,
+) ([]utils.Node, []ids.ID, *proxyadmin.ProxyAdmin) {
 	cChainInfo := n.GetPrimaryNetworkInfo()
 	pClient := platformvm.NewClient(cChainInfo.NodeURIs[0])
 	_, err := pClient.GetCurrentValidators(ctx, subnet.SubnetID, nil)
 	Expect(err).Should(BeNil())
 
-	fundedAddress, fundedKey := n.GetFundedAccountInfo()
-
-	// TODO: support other manager types, including deploying a proxy
-	vdrManagerAddress, _ := utils.DeployAndInitializeValidatorManager(
+	vdrManagerAddress, proxyAdmin := utils.DeployAndInitializeValidatorManager(
 		ctx,
-		fundedKey,
+		senderKey,
 		subnet,
-		utils.PoAValidatorManager,
-		fundedAddress,
+		managerType,
+		proxy,
 	)
 	n.validatorManagers[subnet.SubnetID] = vdrManagerAddress
 
-	// TODO: parameterize the number of nodes
-	tmpnetNodes := n.GetExtraNodes(2)
+	tmpnetNodes := n.GetExtraNodes(numInitialNodes)
 	sort.Slice(tmpnetNodes, func(i, j int) bool {
 		return string(tmpnetNodes[i].NodeID.Bytes()) < string(tmpnetNodes[j].NodeID.Bytes())
 	})
-	totalWeight := uint64(len(tmpnetNodes)-1) * units.Schmeckle
+
 	var nodes []utils.Node
 	// Construct the convert subnet info
 	destAddr, err := address.ParseToID(utils.DefaultPChainAddress)
@@ -216,7 +219,8 @@ func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.Subn
 	for i, node := range tmpnetNodes {
 		weight := units.Schmeckle
 		if i == len(tmpnetNodes)-1 {
-			weight = 4 * totalWeight
+			// Give one validator a higher weight so churn limits aren't violated
+			weight = 1000 * weight
 		}
 
 		signer, err := node.GetProofOfPossession()
@@ -253,11 +257,11 @@ func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.Subn
 	subnet = n.AddSubnetValidators(tmpnetNodes, subnet)
 
 	utils.PChainProposerVMWorkaround(pChainWallet)
-	utils.AdvanceProposerVM(ctx, subnet, fundedKey, 5)
+	utils.AdvanceProposerVM(ctx, subnet, senderKey, 5)
 
-	utils.InitializeValidatorSet(
+	validationIDs := utils.InitializeValidatorSet(
 		ctx,
-		fundedKey,
+		senderKey,
 		subnet,
 		utils.GetPChainInfo(cChainInfo),
 		vdrManagerAddress,
@@ -273,6 +277,7 @@ func (n *LocalNetwork) ConvertSubnet(ctx context.Context, subnet interfaces.Subn
 	// 	Expect(err).Should(BeNil())
 	// 	utils.WaitForTransactionSuccess(ctx, subnet, common.BytesToHash(tx.TxID[:]))
 	// }
+	return nodes, validationIDs, proxyAdmin
 }
 
 func (n *LocalNetwork) AddSubnetValidators(
@@ -281,6 +286,7 @@ func (n *LocalNetwork) AddSubnetValidators(
 ) interfaces.SubnetTestInfo {
 	// Modify the each node's config to track the subnet
 	for _, node := range nodes {
+		goLog.Printf("Adding node %s @ %s to subnet %s", node.NodeID, node.URI, subnet.SubnetID)
 		existingTrackedSubnets, err := node.Flags.GetStringVal(config.TrackSubnetsKey)
 		Expect(err).Should(BeNil())
 		if existingTrackedSubnets == subnet.SubnetID.String() {
@@ -322,9 +328,9 @@ func (n *LocalNetwork) GetSignatureAggregator() *aggregator.SignatureAggregator 
 	)
 }
 
-func (n *LocalNetwork) GetExtraNodes(count uint) []*tmpnet.Node {
+func (n *LocalNetwork) GetExtraNodes(count int) []*tmpnet.Node {
 	Expect(count > 0).Should(BeTrue(), "can't add 0 validators")
-	Expect(uint(len(n.extraNodes)) >= count).Should(
+	Expect(len(n.extraNodes) >= count).Should(
 		BeTrue(),
 		"not enough extra nodes to use",
 	)
@@ -516,6 +522,12 @@ func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 			log.Error("failed to write subnets", "error", err)
 		}
 	}
+
+	// Restart the network to apply the new chain configs
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	err = n.Network.Restart(ctx, os.Stdout)
+	Expect(err).Should(BeNil())
 }
 
 func (n *LocalNetwork) GetNetworkID() uint32 {

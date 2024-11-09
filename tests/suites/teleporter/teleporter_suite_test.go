@@ -105,7 +105,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	}
 
 	for _, subnet := range LocalNetworkInstance.GetSubnetsInfo() {
-		LocalNetworkInstance.ConvertSubnet(ctx, subnet)
+		LocalNetworkInstance.ConvertSubnet(ctx, subnet, utils.PoAValidatorManager, 2, fundedKey, false)
 	}
 
 	log.Info("Set up ginkgo before suite")

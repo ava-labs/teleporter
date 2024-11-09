@@ -2,7 +2,6 @@ package staking
 
 import (
 	"context"
-	"log"
 	"math/big"
 	"time"
 
@@ -67,61 +66,18 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 		fundAmount,
 	)
 
-	// Deploy PoAValidatorManager contract
-	implAddress, _ := utils.DeployValidatorManager(
+	// Deploy PoAValidatorManager contract with a proxy
+	nodes, initialValidationIDs, proxyAdmin := network.ConvertSubnet(
 		ctx,
-		fundedKey,
 		subnetAInfo,
 		utils.PoAValidatorManager,
+		2,
+		ownerKey,
+		true,
 	)
-
-	// TODDO: check if it's valid to initialize the PoA contract before deploying the proxy
-	// Deploy TransparentUpgradeableProxy contract pointing to PoAValidatorManager
-	proxyAddress, proxyAdmin, poaValidatorManager := utils.DeployTransparentUpgradeableProxy(
-		ctx,
-		subnetAInfo,
-		fundedKey,
-		implAddress,
-		poavalidatormanager.NewPoAValidatorManager,
-	)
-	opts, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey,
-		subnetAInfo.EVMChainID,
-	)
+	proxyAddress := network.GetValidatorManager(subnetAInfo.SubnetID)
+	poaValidatorManager, err := poavalidatormanager.NewPoAValidatorManager(proxyAddress, subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
-
-	tx, err := poaValidatorManager.Initialize(
-		opts,
-		poavalidatormanager.ValidatorManagerSettings{
-			SubnetID:               subnetAInfo.SubnetID,
-			ChurnPeriodSeconds:     uint64(0),
-			MaximumChurnPercentage: uint8(20),
-		},
-		ownerAddress,
-	)
-	Expect(err).Should(BeNil())
-	utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
-
-	nodes := utils.ConvertSubnet(
-		ctx,
-		subnetAInfo,
-		network.GetPChainWallet(),
-		proxyAddress,
-		fundedKey,
-	)
-
-	// Initialize the validator set on the subnet
-	log.Println("Initializing validator set")
-	initialValidationIDs := utils.InitializeValidatorSet(
-		ctx,
-		fundedKey,
-		subnetAInfo,
-		pChainInfo,
-		proxyAddress,
-		network.GetNetworkID(),
-		signatureAggregator,
-		nodes,
-	)
 
 	//
 	// Delist one initial validator
@@ -143,7 +99,7 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 	)
 
 	// Try to call with invalid owner
-	opts, err = bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	_, err = poaValidatorManager.InitializeValidatorRegistration(
@@ -194,7 +150,9 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 	)
 
 	// Upgrade the TransparentUpgradeableProxy contract to use the new logic contract
-	tx, err = proxyAdmin.UpgradeAndCall(opts, proxyAddress, newImplAddress, []byte{})
+	opts, err = bind.NewKeyedTransactorWithChainID(ownerKey, subnetAInfo.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := proxyAdmin.UpgradeAndCall(opts, proxyAddress, newImplAddress, []byte{})
 	Expect(err).Should(BeNil())
 	utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 

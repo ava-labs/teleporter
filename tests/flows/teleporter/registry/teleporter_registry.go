@@ -90,8 +90,6 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 
 	// Restart nodes with new chain config
 	network.SetChainConfigs(chainConfigs)
-	err := network.Network.Restart(ctx, os.Stdout)
-	Expect(err).Should(BeNil())
 
 	// Call addProtocolVersion on subnetB to register the new Teleporter version
 	teleporter.AddProtocolVersionAndWaitForAcceptance(

@@ -47,40 +47,21 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 	)
 	ctx := context.Background()
 
-	// Deploy the staking manager contract
-	stakingManagerAddress, _ := utils.DeployAndInitializeValidatorManager(
+	nodes, initialValidationIDs, _ := network.ConvertSubnet(
 		ctx,
-		fundedKey,
 		subnetAInfo,
 		utils.ERC20TokenStakingManager,
+		2,
+		fundedKey,
+		false,
 	)
+	stakingManagerAddress := network.GetValidatorManager(subnetAInfo.SubnetID)
 	erc20StakingManager, err := erc20tokenstakingmanager.NewERC20TokenStakingManager(stakingManagerAddress, subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
 	erc20Address, err := erc20StakingManager.Erc20(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	erc20, err := exampleerc20.NewExampleERC20(erc20Address, subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
-
-	nodes := utils.ConvertSubnet(
-		ctx,
-		subnetAInfo,
-		network.GetPChainWallet(),
-		stakingManagerAddress,
-		fundedKey,
-	)
-
-	// Initialize the validator set on the subnet
-	log.Println("Initializing validator set")
-	initialValidationIDs := utils.InitializeValidatorSet(
-		ctx,
-		fundedKey,
-		subnetAInfo,
-		pChainInfo,
-		stakingManagerAddress,
-		network.GetNetworkID(),
-		signatureAggregator,
-		nodes,
-	)
 
 	//
 	// Delist one initial validator

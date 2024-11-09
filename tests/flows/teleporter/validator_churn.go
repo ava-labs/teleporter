@@ -66,7 +66,7 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	//
 
 	// Add new nodes to the validator set
-	addValidatorsCtx, cancel := context.WithTimeout(ctx, 60*newNodeCount*time.Second)
+	addValidatorsCtx, cancel := context.WithTimeout(ctx, 90*newNodeCount*time.Second)
 	defer cancel()
 	newNodes := network.GetExtraNodes(newNodeCount)
 	validatorManagerAddress := network.GetValidatorManager(subnetAInfo.SubnetID)

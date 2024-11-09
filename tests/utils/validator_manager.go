@@ -9,10 +9,8 @@ import (
 	"log"
 	"math/big"
 	"reflect"
-	"sort"
 	"time"
 
-	"github.com/ava-labs/avalanchego/api/info"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/proto/pb/platformvm"
 	"github.com/ava-labs/avalanchego/utils/crypto/bls"
@@ -20,7 +18,6 @@ import (
 	"github.com/ava-labs/avalanchego/utils/units"
 	"github.com/ava-labs/avalanchego/vms/components/avax"
 	"github.com/ava-labs/avalanchego/vms/platformvm/stakeable"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	warpMessage "github.com/ava-labs/avalanchego/vms/platformvm/warp/message"
 	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
@@ -32,6 +29,7 @@ import (
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
+	proxyadmin "github.com/ava-labs/teleporter/abi-bindings/go/ProxyAdmin"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
 	erc20tokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20TokenStakingManager"
 	examplerewardcalculator "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ExampleRewardCalculator"
@@ -128,14 +126,15 @@ func DeployValidatorManager(
 	return address, validatorManager
 }
 
+// The senderKey is used as the owner of proxy and PoAValidatorManager contracts
 func DeployAndInitializeValidatorManager(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	managerType ValidatorManagerConcreteType,
-	args ...interface{},
-) (common.Address, *ivalidatormanager.IValidatorManager) {
-	validatorManagerAddress, validatorManager := DeployValidatorManager(
+	proxy bool,
+) (common.Address, *proxyadmin.ProxyAdmin) {
+	validatorManagerAddress, _ := DeployValidatorManager(
 		ctx,
 		senderKey,
 		subnet,
@@ -144,11 +143,22 @@ func DeployAndInitializeValidatorManager(
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 
-	var tx *types.Transaction
+	var (
+		tx         *types.Transaction
+		proxyAdmin *proxyadmin.ProxyAdmin
+	)
+	if proxy {
+		// Overwrite the manager address with the proxy address
+		validatorManagerAddress, proxyAdmin = DeployTransparentUpgradeableProxy(
+			ctx,
+			subnet,
+			senderKey,
+			validatorManagerAddress,
+		)
+	}
+
 	switch managerType {
 	case PoAValidatorManager:
-		Expect(len(args)).Should(Equal(1))
-		ownerAddress := args[0].(common.Address)
 		poaValidatorManager, err := poavalidatormanager.NewPoAValidatorManager(validatorManagerAddress, subnet.RPCClient)
 		Expect(err).Should(BeNil())
 		tx, err = poaValidatorManager.Initialize(
@@ -158,11 +168,10 @@ func DeployAndInitializeValidatorManager(
 				ChurnPeriodSeconds:     uint64(0),
 				MaximumChurnPercentage: uint8(20),
 			},
-			ownerAddress,
+			PrivateKeyToAddress(senderKey),
 		)
 		Expect(err).Should(BeNil())
 	case ERC20TokenStakingManager:
-		Expect(len(args)).Should(Equal(0))
 		erc20Address, _ := DeployExampleERC20(ctx, senderKey, subnet)
 		rewardCalculatorAddress, _ := DeployExampleRewardCalculator(
 			ctx,
@@ -192,7 +201,6 @@ func DeployAndInitializeValidatorManager(
 		)
 		Expect(err).Should(BeNil())
 	case NativeTokenStakingManager:
-		Expect(len(args)).Should(Equal(0))
 		rewardCalculatorAddress, _ := DeployExampleRewardCalculator(
 			ctx,
 			senderKey,
@@ -221,7 +229,7 @@ func DeployAndInitializeValidatorManager(
 		Expect(err).Should(BeNil())
 	}
 	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	return validatorManagerAddress, validatorManager
+	return validatorManagerAddress, proxyAdmin
 }
 
 func DeployExampleRewardCalculator(
@@ -259,7 +267,7 @@ func InitializeValidatorSet(
 	signatureAggregator *aggregator.SignatureAggregator,
 	nodes []Node,
 ) []ids.ID {
-	log.Println("Initializing PoA validator set")
+	log.Println("Initializing validator set")
 	initialValidators := make([]warpMessage.SubnetConversionValidatorData, len(nodes))
 	initialValidatorsABI := make([]ivalidatormanager.InitialValidator, len(nodes))
 	for i, node := range nodes {
@@ -1651,78 +1659,4 @@ func AdvanceProposerVM(
 		)
 		Expect(err).Should(BeNil())
 	}
-}
-
-func ConvertSubnet(
-	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
-	pchainWallet pwallet.Wallet,
-	stakingManagerAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
-) []Node {
-	// Remove the current validators before converting the subnet
-	var nodes []Node
-	for _, uri := range subnetInfo.NodeURIs {
-		infoClient := info.NewClient(uri)
-		nodeID, nodePoP, err := infoClient.GetNodeID(ctx)
-		Expect(err).Should(BeNil())
-		nodes = append(nodes, Node{
-			NodeID:  nodeID,
-			NodePoP: nodePoP,
-		})
-
-		_, err = pchainWallet.IssueRemoveSubnetValidatorTx(
-			nodeID,
-			subnetInfo.SubnetID,
-		)
-		Expect(err).Should(BeNil())
-	}
-
-	// Sort the nodeIDs so that the subnet conversion ID matches the P-Chain
-	sort.Slice(nodes, func(i, j int) bool {
-		return string(nodes[i].NodeID.Bytes()) < string(nodes[j].NodeID.Bytes())
-	})
-
-	totalWeight := uint64(len(nodes)-1) * units.Schmeckle
-	for i := 0; i < len(nodes)-1; i++ {
-		nodes[i].Weight = units.Schmeckle
-		totalWeight += units.Schmeckle
-	}
-	// Set the last node's weight such that removing any other node will not violate the churn limit
-	nodes[len(nodes)-1].Weight = 4 * totalWeight
-
-	// Construct the convert subnet info
-	destAddr, err := address.ParseToID(DefaultPChainAddress)
-	Expect(err).Should(BeNil())
-	vdrs := make([]*txs.ConvertSubnetValidator, len(nodes))
-	for i, node := range nodes {
-		vdrs[i] = &txs.ConvertSubnetValidator{
-			NodeID:  node.NodeID.Bytes(),
-			Weight:  nodes[i].Weight,
-			Balance: units.Avax * 100,
-			Signer:  *node.NodePoP,
-			RemainingBalanceOwner: warpMessage.PChainOwner{
-				Threshold: 1,
-				Addresses: []ids.ShortID{destAddr},
-			},
-			DeactivationOwner: warpMessage.PChainOwner{
-				Threshold: 1,
-				Addresses: []ids.ShortID{destAddr},
-			},
-		}
-	}
-
-	log.Println("Issuing ConvertSubnetTx")
-	_, err = pchainWallet.IssueConvertSubnetTx(
-		subnetInfo.SubnetID,
-		subnetInfo.BlockchainID,
-		stakingManagerAddress[:],
-		vdrs,
-	)
-	Expect(err).Should(BeNil())
-
-	PChainProposerVMWorkaround(pchainWallet)
-	AdvanceProposerVM(ctx, subnetInfo, fundedKey, 5)
-
-	return nodes
 }
