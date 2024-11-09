@@ -91,7 +91,8 @@ func NewLocalNetwork(
 	var subnets []*tmpnet.Subnet
 	var bootstrapNodes []*tmpnet.Node
 	for _, subnetSpec := range subnetSpecs {
-		// Create a single bootstrap node. This will be removed from the subnet validator set after it is converted, but will remain a primary network validator
+		// Create a single bootstrap node. This will be removed from the subnet validator set after it is converted,
+		// but will remain a primary network validator
 		boostrapNodes := subnetEvmTestUtils.NewTmpnetNodes(1) // One bootstrap node per subnet
 		// allNodes = append(allNodes, boostrapNodes...)
 		bootstrapNodes = append(bootstrapNodes, boostrapNodes...)

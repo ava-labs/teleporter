@@ -57,7 +57,16 @@ func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.Te
 		fundedKey,
 	)
 
-	teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetCInfo, false, fundedKey, nil, network.GetSignatureAggregator())
+	teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		subnetAInfo,
+		subnetCInfo,
+		false,
+		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
+	)
 
 	//
 	// Check that the message was not received on the Subnet C

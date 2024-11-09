@@ -179,7 +179,10 @@ func DeployAndInitializeValidatorManager(
 			subnet,
 			uint64(10),
 		)
-		erc20StakingManager, err := erc20tokenstakingmanager.NewERC20TokenStakingManager(validatorManagerAddress, subnet.RPCClient)
+		erc20StakingManager, err := erc20tokenstakingmanager.NewERC20TokenStakingManager(
+			validatorManagerAddress,
+			subnet.RPCClient,
+		)
 		Expect(err).Should(BeNil())
 		tx, err = erc20StakingManager.Initialize(
 			opts,
@@ -207,7 +210,10 @@ func DeployAndInitializeValidatorManager(
 			subnet,
 			uint64(10),
 		)
-		nativeStakingManager, err := nativetokenstakingmanager.NewNativeTokenStakingManager(validatorManagerAddress, subnet.RPCClient)
+		nativeStakingManager, err := nativetokenstakingmanager.NewNativeTokenStakingManager(
+			validatorManagerAddress,
+			subnet.RPCClient,
+		)
 		Expect(err).Should(BeNil())
 		tx, err = nativeStakingManager.Initialize(
 			opts,

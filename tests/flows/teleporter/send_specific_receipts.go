@@ -133,7 +133,16 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 
 	// Relay message from Subnet B to Subnet A
 	goLog.Println("Relaying the specific receipts from Subnet B to Subnet A")
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, subnetBInfo, subnetAInfo, true, fundedKey, nil, network.GetSignatureAggregator())
+	receipt = teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		subnetBInfo,
+		subnetAInfo,
+		true,
+		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
+	)
 
 	// Check that the message back to Subnet A was delivered
 	delivered, err = subnetATeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
@@ -178,7 +187,16 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 
 	goLog.Println("Relaying the message from Subnet B to Subnet A")
 	// Relay message from Subnet B to Subnet A
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, subnetBInfo, subnetAInfo, true, fundedKey, nil, network.GetSignatureAggregator())
+	receipt = teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		subnetBInfo,
+		subnetAInfo,
+		true,
+		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
+	)
 	// Check delivered
 	delivered, err = subnetATeleporterMessenger.MessageReceived(
 		&bind.CallOpts{},

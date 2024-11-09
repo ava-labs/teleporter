@@ -378,7 +378,16 @@ func RegisterTokenRemoteOnHome(
 	receipt := WaitForTransactionSuccess(ctx, remoteSubnet, sendRegisterTx.Hash())
 
 	// Relay the register message to the home
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, remoteSubnet, homeSubnet, true, fundedKey, nil, signatureAggregator)
+	receipt = teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		remoteSubnet,
+		homeSubnet,
+		true,
+		fundedKey,
+		nil,
+		signatureAggregator,
+	)
 	_, err = GetEventFromLogs(
 		receipt.Logs,
 		teleporter.TeleporterMessenger(homeSubnet).ParseMessageExecuted,

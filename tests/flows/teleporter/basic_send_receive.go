@@ -66,7 +66,16 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	expectedReceiptID := teleporterMessageID
 
 	// Relay the message to the destination
-	deliveryReceipt := teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey, nil, network.GetSignatureAggregator())
+	deliveryReceipt := teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		subnetAInfo,
+		subnetBInfo,
+		true,
+		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
+	)
 	receiveEvent, err := utils.GetEventFromLogs(
 		deliveryReceipt.Logs,
 		teleporter.TeleporterMessenger(subnetBInfo).ParseReceiveCrossChainMessage)
@@ -92,7 +101,16 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	)
 
 	// Relay the message to the destination
-	deliveryReceipt = teleporter.RelayTeleporterMessage(ctx, receipt, subnetBInfo, subnetAInfo, true, fundedKey, nil, network.GetSignatureAggregator())
+	deliveryReceipt = teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		subnetBInfo,
+		subnetAInfo,
+		true,
+		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
+	)
 
 	Expect(utils.CheckReceiptReceived(
 		deliveryReceipt,

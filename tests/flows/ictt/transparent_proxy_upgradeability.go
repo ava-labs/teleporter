@@ -69,7 +69,7 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		implAddress,
 	)
 	erc20TokenHome, err := erc20tokenhome.NewERC20TokenHome(erc20TokenHomeAddress, cChainInfo.RPCClient)
-	Expect(err).Should(BeNil()
+	Expect(err).Should(BeNil())
 
 	tx, err = erc20TokenHome.Initialize(
 		opts,

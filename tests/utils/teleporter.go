@@ -162,7 +162,14 @@ func (t TeleporterTestInfo) RelayTeleporterMessage(
 	sendEvent, err := GetEventFromLogs(sourceReceipt.Logs, t.TeleporterMessenger(source).ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessage := ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination, justification, signatureAggregator)
+	signedWarpMessage := ConstructSignedWarpMessage(
+		ctx,
+		sourceReceipt,
+		source,
+		destination,
+		justification,
+		signatureAggregator,
+	)
 
 	// Construct the transaction to send the Warp message to the destination chain
 	signedTx := CreateReceiveCrossChainMessageTransaction(
