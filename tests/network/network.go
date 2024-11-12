@@ -195,7 +195,7 @@ func (n *LocalNetwork) ConvertSubnet(
 ) ([]utils.Node, []ids.ID, *proxyadmin.ProxyAdmin) {
 	cChainInfo := n.GetPrimaryNetworkInfo()
 	pClient := platformvm.NewClient(cChainInfo.NodeURIs[0])
-	_, err := pClient.GetCurrentValidators(ctx, subnet.SubnetID, nil)
+	currentValidators, err := pClient.GetCurrentValidators(ctx, subnet.SubnetID, nil)
 	Expect(err).Should(BeNil())
 
 	vdrManagerAddress, proxyAdmin := utils.DeployAndInitializeValidatorManager(
@@ -265,13 +265,12 @@ func (n *LocalNetwork) ConvertSubnet(
 		nodes,
 	)
 
-	// Remove the bootstrap node as a subnet validator
-	// TODO: This is not currently supported by the poc tag
-	// for _, vdr := range currentValidators {
-	// 	tx, err := pChainWallet.IssueRemoveSubnetValidatorTx(vdr.NodeID, subnet.SubnetID)
-	// 	Expect(err).Should(BeNil())
-	// 	utils.WaitForTransactionSuccess(ctx, subnet, common.BytesToHash(tx.TxID[:]))
-	// }
+	// Remove the bootstrap nodes as subnet validators
+	for _, vdr := range currentValidators {
+		_, err := pChainWallet.IssueRemoveSubnetValidatorTx(vdr.NodeID, subnet.SubnetID)
+		Expect(err).Should(BeNil())
+	}
+
 	return nodes, validationIDs, proxyAdmin
 }
 
@@ -519,7 +518,7 @@ func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 	}
 
 	// Restart the network to apply the new chain configs
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(60*len(n.Network.Nodes))*time.Second)
 	defer cancel()
 	err = n.Network.Restart(ctx, os.Stdout)
 	Expect(err).Should(BeNil())
