@@ -77,9 +77,6 @@ func NewLocalNetwork(
 	// Create extra nodes to be used to add more validators later
 	extraNodes := subnetEvmTestUtils.NewTmpnetNodes(extraNodeCount)
 
-	// var allNodes []*tmpnet.Node
-	// allNodes = append(allNodes, extraNodes...) // to be appended w/ subnet validators
-
 	fundedKey, err := hex.DecodeString(fundedKeyStr)
 	Expect(err).Should(BeNil())
 	globalFundedKey, err := secp256k1.ToPrivateKey(fundedKey)
@@ -94,12 +91,10 @@ func NewLocalNetwork(
 		// Create a single bootstrap node. This will be removed from the subnet validator set after it is converted,
 		// but will remain a primary network validator
 		boostrapNodes := subnetEvmTestUtils.NewTmpnetNodes(1) // One bootstrap node per subnet
-		// allNodes = append(allNodes, boostrapNodes...)
 		bootstrapNodes = append(bootstrapNodes, boostrapNodes...)
 
 		// Create validators to specify as the initial vdr set in the subnet conversion, and store them as extra nodes
 		initialVdrNodes := subnetEvmTestUtils.NewTmpnetNodes(subnetSpec.NodeCount)
-		// allNodes = append(allNodes, initialVdrNodes...)
 		extraNodes = append(extraNodes, initialVdrNodes...)
 
 		subnet := subnetEvmTestUtils.NewTmpnetSubnet(
@@ -323,7 +318,6 @@ func (n *LocalNetwork) GetSignatureAggregator() *aggregator.SignatureAggregator 
 }
 
 func (n *LocalNetwork) GetExtraNodes(count int) []*tmpnet.Node {
-	Expect(count > 0).Should(BeTrue(), "can't add 0 validators")
 	Expect(len(n.extraNodes) >= count).Should(
 		BeTrue(),
 		"not enough extra nodes to use",
