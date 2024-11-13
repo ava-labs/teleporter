@@ -2,16 +2,13 @@ module github.com/ava-labs/teleporter
 
 go 1.22.8
 
-// TODONOW: remove this
-replace github.com/ava-labs/awm-relayer => /Users/cameron.schultz/awm-relayer
-
 require (
 	github.com/ava-labs/avalanchego v1.12.0-initial-poc.8
 	github.com/supranational/blst v0.3.13 // indirect
 )
 
 require (
-	github.com/ava-labs/awm-relayer v1.4.1-0.20241112172851-472c76dde821
+	github.com/ava-labs/awm-relayer v1.4.1-0.20241113220127-99c58e925a75
 	github.com/ava-labs/subnet-evm v0.6.11
 	github.com/ethereum/go-ethereum v1.13.14
 	github.com/onsi/ginkgo/v2 v2.21.0
