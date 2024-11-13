@@ -60,6 +60,8 @@ github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 h1:0CwZNZbxp69SHPd
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
 github.com/ava-labs/avalanchego v1.12.0-initial-poc.8 h1:UuCN1CYPZgf2FGGaO4XURVPWHjbv2U++VkarrADeT64=
 github.com/ava-labs/avalanchego v1.12.0-initial-poc.8/go.mod h1:86tO6F1FT8emclUwdQ2WCwAtAerqjm5A4IbV6XxNUyM=
+github.com/ava-labs/awm-relayer v1.4.1-0.20241113220127-99c58e925a75 h1:NHB3Br/TCFYZocy/DpQ1a/gx39JYcs4maWZ0fqgPazs=
+github.com/ava-labs/awm-relayer v1.4.1-0.20241113220127-99c58e925a75/go.mod h1:OoI7lXzWjq6jAxnroOg588s7meyTl+ezVYIMjsP23BM=
 github.com/ava-labs/coreth v0.13.8 h1:f14X3KgwHl9LwzfxlN6S4bbn5VA2rhEsNnHaRLSTo/8=
 github.com/ava-labs/coreth v0.13.8/go.mod h1:t3BSv/eQv0AlDPMfEDCMMoD/jq1RkUsbFzQAFg5qBcE=
 github.com/ava-labs/subnet-evm v0.6.11 h1:XgIAn9ihPyGjrBFD2rXg2H76HFl6htliHabN0fjciaQ=
