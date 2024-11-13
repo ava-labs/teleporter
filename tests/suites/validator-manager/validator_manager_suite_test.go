@@ -53,6 +53,7 @@ var _ = ginkgo.BeforeEach(func() {
 			},
 		},
 		2,
+		2,
 	)
 	log.Info("Started local network")
 })

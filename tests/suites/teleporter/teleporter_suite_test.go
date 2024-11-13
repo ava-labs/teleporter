@@ -84,6 +84,7 @@ var _ = ginkgo.BeforeSuite(func() {
 			},
 		},
 		2,
+		2,
 	)
 	TeleporterInfo = utils.NewTeleporterTestInfo(LocalNetworkInstance.GetAllSubnetsInfo())
 	log.Info("Started local network")

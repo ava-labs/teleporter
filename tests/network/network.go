@@ -70,9 +70,11 @@ func NewLocalNetwork(
 	name string,
 	warpGenesisTemplateFile string,
 	subnetSpecs []SubnetSpec,
+	numPrimaryNetworkValidators int,
 	extraNodeCount int, // for use by tests, eg to add new subnet validators
 ) *LocalNetwork {
-	var err error
+	// There must be at least one primary network validator per subnet
+	Expect(numPrimaryNetworkValidators).Should(BeNumerically(">=", len(subnetSpecs)))
 
 	// Create extra nodes to be used to add more validators later
 	extraNodes := subnetEvmTestUtils.NewTmpnetNodes(extraNodeCount)
@@ -86,12 +88,11 @@ func NewLocalNetwork(
 	Expect(err).Should(BeNil())
 
 	var subnets []*tmpnet.Subnet
-	var bootstrapNodes []*tmpnet.Node
-	for _, subnetSpec := range subnetSpecs {
+	bootstrapNodes := subnetEvmTestUtils.NewTmpnetNodes(numPrimaryNetworkValidators)
+	for i, subnetSpec := range subnetSpecs {
 		// Create a single bootstrap node. This will be removed from the subnet validator set after it is converted,
 		// but will remain a primary network validator
-		boostrapNodes := subnetEvmTestUtils.NewTmpnetNodes(1) // One bootstrap node per subnet
-		bootstrapNodes = append(bootstrapNodes, boostrapNodes...)
+		initialSubnetBootstrapper := bootstrapNodes[i] // One bootstrap node per subnet
 
 		// Create validators to specify as the initial vdr set in the subnet conversion, and store them as extra nodes
 		initialVdrNodes := subnetEvmTestUtils.NewTmpnetNodes(subnetSpec.NodeCount)
@@ -107,7 +108,7 @@ func NewLocalNetwork(
 				subnetSpec.TeleporterDeployerAddress,
 			),
 			utils.WarpEnabledChainConfig,
-			bootstrapNodes...,
+			initialSubnetBootstrapper,
 		)
 		subnet.OwningKey = globalFundedKey
 		subnets = append(subnets, subnet)
