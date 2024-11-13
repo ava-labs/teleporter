@@ -438,44 +438,6 @@ func (n *LocalNetwork) TearDownNetwork() {
 	Expect(n.Network.Stop(context.Background())).Should(BeNil())
 }
 
-// Restarts the nodes with the given nodeIDs. If nodeIDs is empty, restarts all nodes.
-func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
-	log.Info("Restarting nodes", "nodeIDs", nodeIDs)
-	var nodes []*tmpnet.Node
-	if len(nodeIDs) == 0 {
-		nodes = n.Network.Nodes
-	} else {
-		for _, nodeID := range nodeIDs {
-			for _, node := range n.Network.Nodes {
-				if node.NodeID == nodeID {
-					nodes = append(nodes, node)
-				}
-			}
-		}
-	}
-
-	for _, node := range nodes {
-		ctx, cancel := context.WithCancel(ctx)
-		defer cancel()
-		err := node.SaveAPIPort()
-		Expect(err).Should(BeNil())
-
-		err = node.Stop(ctx)
-		Expect(err).Should(BeNil())
-
-		err = n.Network.StartNode(ctx, os.Stdout, node)
-		Expect(err).Should(BeNil())
-	}
-
-	log.Info("Waiting for all nodes to report healthy")
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-	for _, node := range nodes {
-		err := tmpnet.WaitForHealthy(ctx, node)
-		Expect(err).Should(BeNil())
-	}
-}
-
 func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 	for chainIDStr, chainConfig := range chainConfigs {
 		if chainIDStr == utils.CChainPathSpecifier {
