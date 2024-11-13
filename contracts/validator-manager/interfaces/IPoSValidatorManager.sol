@@ -152,6 +152,17 @@ interface IPoSValidatorManager is IValidatorManager {
     ) external;
 
     /**
+     * @notice See {IPoSValidatorManager-initializeEndValidation} for details of the first three parameters
+     * @param recipientAddress The address to receive the rewards
+     */
+    function initializeEndValidation(
+        bytes32 validationID,
+        bool includeUptimeProof,
+        uint32 messageIndex,
+        address recipientAddress
+    ) external;
+
+    /**
      * @notice Begins the process of ending an active validation period, but does not revert if the latest known uptime
      * is not sufficient to collect uptime-based rewards. This function is used to exit the validator set when rewards are
      * not expected.

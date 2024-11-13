@@ -497,6 +497,28 @@ abstract contract ValidatorManagerTest is Test {
         }
     }
 
+    function _initializeEndValidation(
+        bytes32 validationID,
+        uint64 completionTimestamp,
+        bytes memory setWeightMessage,
+        bool includeUptime,
+        bytes memory uptimeMessage,
+        bool force,
+        address recipientAddress
+    ) internal {
+        _mockSendWarpMessage(setWeightMessage, bytes32(0));
+        if (includeUptime) {
+            _mockGetUptimeWarpMessage(uptimeMessage, true);
+        }
+
+        vm.warp(completionTimestamp);
+        if (force) {
+            _forceInitializeEndValidation(validationID, includeUptime, recipientAddress);
+        } else {
+            _initializeEndValidation(validationID, includeUptime, recipientAddress);
+        }
+    }
+
     function _registerDefaultValidator() internal returns (bytes32 validationID) {
         return _registerValidator({
             nodeID: DEFAULT_NODE_ID,
@@ -583,9 +605,21 @@ abstract contract ValidatorManagerTest is Test {
 
     function _initializeEndValidation(bytes32 validationID, bool includeUptime) internal virtual;
 
+    function _initializeEndValidation(
+        bytes32 validationID,
+        bool includeUptime,
+        address rewardRecipient
+    ) internal virtual;
+
     function _forceInitializeEndValidation(
         bytes32 validationID,
         bool includeUptime
+    ) internal virtual;
+
+    function _forceInitializeEndValidation(
+        bytes32 validationID,
+        bool includeUptime,
+        address rewardRecipient
     ) internal virtual;
 
     function _setUp() internal virtual returns (IValidatorManager);
