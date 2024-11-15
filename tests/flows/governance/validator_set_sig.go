@@ -8,12 +8,12 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
 
-func ValidatorSetSig(network interfaces.LocalNetwork) {
+func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	// ************************************************************************************************
 	// Setup
 	// ************************************************************************************************
@@ -36,7 +36,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// ************************************************************************************************
 	// Setup
 	// ************************************************************************************************
-	subnetA, subnetB := utils.GetTwoSubnets(network)
+	subnetA, subnetB := network.GetTwoSubnets()
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -152,7 +152,6 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// Execute the ValidatorSetSig executeCall and wait for acceptance
 	receipt := utils.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
 		subnetB,
 		subnetA,
 		validatorSetSigContractAddress,
@@ -175,7 +174,6 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 
 	_ = utils.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
 		subnetB,
 		subnetA,
 		validatorSetSigContractAddress,
@@ -192,7 +190,6 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// Send another valid transaction with the incremented nonce
 	receipt2 := utils.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
 		subnetB,
 		subnetA,
 		validatorSetSigContractAddress,
@@ -224,7 +221,6 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// from the same chain that it is deployed on.
 	receipt3 := utils.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
 		subnetB,
 		subnetB,
 		validatorSetSigContractAddress2,

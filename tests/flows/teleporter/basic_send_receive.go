@@ -6,16 +6,16 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )
 
 // Tests basic one-way send from Subnet A to Subnet B and vice versa
-func BasicSendReceive(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := utils.GetTwoSubnets(network)
+	subnetBInfo, _ := network.GetTwoSubnets()
 	teleporterContractAddress := teleporter.TeleporterMessengerAddress(subnetAInfo)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
@@ -25,9 +25,7 @@ func BasicSendReceive(network interfaces.Network, teleporter utils.TeleporterTes
 	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
 	// This is only done if the test non-external networks because external networks may have
 	// an arbitrarily high number of receipts to be cleared from a given queue from unrelated messages.
-	if !network.IsExternalNetwork() {
-		utils.ClearReceiptQueue(ctx, teleporter, subnetBInfo, subnetAInfo, fundedKey)
-	}
+	teleporter.ClearReceiptQueue(ctx, fundedKey, subnetBInfo, subnetAInfo)
 
 	feeAmount := big.NewInt(1)
 	feeTokenAddress, feeToken := utils.DeployExampleERC20(
@@ -96,15 +94,10 @@ func BasicSendReceive(network interfaces.Network, teleporter utils.TeleporterTes
 	// Relay the message to the destination
 	deliveryReceipt = teleporter.RelayTeleporterMessage(ctx, receipt, subnetBInfo, subnetAInfo, true, fundedKey)
 
-	// Check that the receipt was received for expected Teleporter message ID
-	// This check is not performed for external networks because the specific receipt for this message
-	// may not have been included if the receipt queue had an existing build up of more than 5 messages.
-	if !network.IsExternalNetwork() {
-		Expect(utils.CheckReceiptReceived(
-			deliveryReceipt,
-			expectedReceiptID,
-			teleporter.TeleporterMessenger(subnetAInfo))).Should(BeTrue())
-	}
+	Expect(utils.CheckReceiptReceived(
+		deliveryReceipt,
+		expectedReceiptID,
+		teleporter.TeleporterMessenger(subnetAInfo))).Should(BeTrue())
 
 	// Check Teleporter message received on the destination
 	delivered, err = teleporter.TeleporterMessenger(subnetAInfo).MessageReceived(
@@ -114,9 +107,8 @@ func BasicSendReceive(network interfaces.Network, teleporter utils.TeleporterTes
 	Expect(delivered).Should(BeTrue())
 
 	// If the reward address of the message from A->B is the funded address, which is able to send
-	// transactions on subnet A, then redeem the rewards. This check is not performed for external
-	// networks since the specific receipt may not have been included in the message, as noted above.
-	if !network.IsExternalNetwork() && receiveEvent.RewardRedeemer == fundedAddress {
+	// transactions on subnet A, then redeem the rewards.
+	if receiveEvent.RewardRedeemer == fundedAddress {
 		utils.RedeemRelayerRewardsAndConfirm(
 			ctx, teleporter.TeleporterMessenger(subnetAInfo), subnetAInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
 		)

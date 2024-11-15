@@ -188,15 +188,173 @@ func (t TeleporterTestInfo) RelayTeleporterMessage(
 	return receipt
 }
 
-//
-// Deployment utils
-//
+func (t TeleporterTestInfo) SendExampleCrossChainMessageAndVerify(
+	ctx context.Context,
+	source interfaces.SubnetTestInfo,
+	sourceExampleMessenger *testmessenger.TestMessenger,
+	destination interfaces.SubnetTestInfo,
+	destExampleMessengerAddress common.Address,
+	destExampleMessenger *testmessenger.TestMessenger,
+	senderKey *ecdsa.PrivateKey,
+	message string,
+	expectSuccess bool,
+) {
+	// Call the example messenger contract on Subnet A
+	optsA, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := sourceExampleMessenger.SendMessage(
+		optsA,
+		destination.BlockchainID,
+		destExampleMessengerAddress,
+		common.BigToAddress(common.Big0),
+		big.NewInt(0),
+		testmessenger.SendMessageRequiredGas,
+		message,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt := WaitForTransactionSuccess(ctx, source, tx.Hash())
+
+	sourceTeleporterMessenger := t.TeleporterMessenger(source)
+	destTeleporterMessenger := t.TeleporterMessenger(destination)
+
+	event, err := GetEventFromLogs(receipt.Logs, sourceTeleporterMessenger.ParseSendCrossChainMessage)
+	Expect(err).Should(BeNil())
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(destination.BlockchainID[:]))
+
+	teleporterMessageID := event.MessageID
+
+	//
+	// Relay the message to the destination
+	//
+	receipt = t.RelayTeleporterMessage(ctx, receipt, source, destination, true, senderKey)
+
+	//
+	// Check Teleporter message received on the destination
+	//
+	delivered, err := destTeleporterMessenger.MessageReceived(
+		&bind.CallOpts{}, teleporterMessageID,
+	)
+	Expect(err).Should(BeNil())
+	Expect(delivered).Should(BeTrue())
+
+	if expectSuccess {
+		// Check that message execution was successful
+		messageExecutedEvent, err := GetEventFromLogs(
+			receipt.Logs,
+			destTeleporterMessenger.ParseMessageExecuted,
+		)
+		Expect(err).Should(BeNil())
+		Expect(messageExecutedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
+	} else {
+		// Check that message execution failed
+		messageExecutionFailedEvent, err := GetEventFromLogs(
+			receipt.Logs,
+			destTeleporterMessenger.ParseMessageExecutionFailed,
+		)
+		Expect(err).Should(BeNil())
+		Expect(messageExecutionFailedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
+	}
+
+	//
+	// Verify we received the expected string
+	//
+	_, currMessage, err := destExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, source.BlockchainID)
+	Expect(err).Should(BeNil())
+	if expectSuccess {
+		Expect(currMessage).Should(Equal(message))
+	} else {
+		Expect(currMessage).ShouldNot(Equal(message))
+	}
+}
+
+func (t TeleporterTestInfo) AddProtocolVersionAndWaitForAcceptance(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	newTeleporterAddress common.Address,
+	senderKey *ecdsa.PrivateKey,
+	unsignedMessage *avalancheWarp.UnsignedMessage,
+) {
+	signedWarpMsg := GetSignedMessage(ctx, subnet, subnet, unsignedMessage.ID())
+	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
+
+	// Construct tx to add protocol version and send to destination chain
+	signedTx := CreateAddProtocolVersionTransaction(
+		ctx,
+		signedWarpMsg,
+		t.TeleporterRegistryAddress(subnet),
+		senderKey,
+		subnet,
+	)
+
+	curLatestVersion := t.GetLatestTeleporterVersion(subnet)
+	expectedLatestVersion := big.NewInt(curLatestVersion.Int64() + 1)
+
+	// Wait for tx to be accepted, and verify events emitted
+	receipt := SendTransactionAndWaitForSuccess(ctx, subnet, signedTx)
+	teleporterRegistry := t.TeleporterRegistry(subnet)
+	addProtocolVersionEvent, err := GetEventFromLogs(receipt.Logs, teleporterRegistry.ParseAddProtocolVersion)
+	Expect(err).Should(BeNil())
+	Expect(addProtocolVersionEvent.Version.Cmp(expectedLatestVersion)).Should(Equal(0))
+	Expect(addProtocolVersionEvent.ProtocolAddress).Should(Equal(newTeleporterAddress))
+
+	versionUpdatedEvent, err := GetEventFromLogs(receipt.Logs, teleporterRegistry.ParseLatestVersionUpdated)
+	Expect(err).Should(BeNil())
+	Expect(versionUpdatedEvent.OldVersion.Cmp(curLatestVersion)).Should(Equal(0))
+	Expect(versionUpdatedEvent.NewVersion.Cmp(expectedLatestVersion)).Should(Equal(0))
+}
+
+func (t TeleporterTestInfo) GetLatestTeleporterVersion(subnet interfaces.SubnetTestInfo) *big.Int {
+	version, err := t.TeleporterRegistry(subnet).LatestVersion(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	return version
+}
+
+func (t TeleporterTestInfo) ClearReceiptQueue(
+	ctx context.Context,
+	fundedKey *ecdsa.PrivateKey,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
+) {
+	sourceTeleporterMessenger := t.TeleporterMessenger(source)
+	outstandReceiptCount := GetOutstandingReceiptCount(
+		t.TeleporterMessenger(source),
+		destination.BlockchainID,
+	)
+	for outstandReceiptCount.Cmp(big.NewInt(0)) != 0 {
+		log.Info("Emptying receipt queue", "remainingReceipts", outstandReceiptCount.String())
+		// Send message from Subnet B to Subnet A to trigger the "regular" method of delivering receipts.
+		// The next message from B->A will contain the same receipts that were manually sent in the above steps,
+		// but they should not be processed again on Subnet A.
+		sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
+			DestinationBlockchainID: destination.BlockchainID,
+			DestinationAddress:      common.HexToAddress("0x1111111111111111111111111111111111111111"),
+			RequiredGasLimit:        big.NewInt(1),
+			FeeInfo: teleportermessenger.TeleporterFeeInfo{
+				FeeTokenAddress: common.Address{},
+				Amount:          big.NewInt(0),
+			},
+			AllowedRelayerAddresses: []common.Address{},
+			Message:                 []byte{1, 2, 3, 4},
+		}
+
+		// This message will also have the same receipts as the previous message
+		receipt, _ := SendCrossChainMessageAndWaitForAcceptance(
+			ctx, sourceTeleporterMessenger, source, destination, sendCrossChainMessageInput, fundedKey)
+
+		// Relay message
+		t.RelayTeleporterMessage(ctx, receipt, source, destination, true, fundedKey)
+
+		outstandReceiptCount = GetOutstandingReceiptCount(sourceTeleporterMessenger, destination.BlockchainID)
+	}
+	log.Info("Receipt queue emptied")
+}
 
 // Deploys a new version of Teleporter and returns its address
 // Does NOT modify the global Teleporter contract address to provide greater testing flexibility.
-func DeployNewTeleporterVersion(
+func (t TeleporterTestInfo) DeployNewTeleporterVersion(
 	ctx context.Context,
-	teleporterInfo TeleporterTestInfo,
 	subnet interfaces.SubnetTestInfo,
 	fundedKey *ecdsa.PrivateKey,
 	teleporterByteCodeFile string,
@@ -213,7 +371,7 @@ func DeployNewTeleporterVersion(
 	)
 	Expect(err).Should(BeNil())
 
-	teleporterInfo.DeployTeleporterMessenger(
+	t.DeployTeleporterMessenger(
 		ctx,
 		subnet,
 		teleporterDeployerTransaction,
@@ -224,6 +382,10 @@ func DeployNewTeleporterVersion(
 
 	return teleporterContractAddress
 }
+
+//
+// Deployment utils
+//
 
 func DeployTestMessenger(
 	ctx context.Context,
@@ -406,49 +568,6 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	return receipt, event.MessageID
 }
 
-func AddProtocolVersionAndWaitForAcceptance(
-	ctx context.Context,
-	sourceTeleporterInfo ChainTeleporterInfo,
-	subnet interfaces.SubnetTestInfo,
-	newTeleporterAddress common.Address,
-	senderKey *ecdsa.PrivateKey,
-	unsignedMessage *avalancheWarp.UnsignedMessage,
-) {
-	signedWarpMsg := GetSignedMessage(ctx, subnet, subnet, unsignedMessage.ID())
-	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
-
-	// Construct tx to add protocol version and send to destination chain
-	signedTx := CreateAddProtocolVersionTransaction(
-		ctx,
-		signedWarpMsg,
-		sourceTeleporterInfo.TeleporterRegistryAddress,
-		senderKey,
-		subnet,
-	)
-
-	curLatestVersion, err := sourceTeleporterInfo.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
-	Expect(err).Should(BeNil())
-	expectedLatestVersion := big.NewInt(curLatestVersion.Int64() + 1)
-
-	// Wait for tx to be accepted, and verify events emitted
-	receipt := SendTransactionAndWaitForSuccess(ctx, subnet, signedTx)
-	addProtocolVersionEvent, err := GetEventFromLogs(
-		receipt.Logs,
-		sourceTeleporterInfo.TeleporterRegistry.ParseAddProtocolVersion,
-	)
-	Expect(err).Should(BeNil())
-	Expect(addProtocolVersionEvent.Version.Cmp(expectedLatestVersion)).Should(Equal(0))
-	Expect(addProtocolVersionEvent.ProtocolAddress).Should(Equal(newTeleporterAddress))
-
-	versionUpdatedEvent, err := GetEventFromLogs(
-		receipt.Logs,
-		sourceTeleporterInfo.TeleporterRegistry.ParseLatestVersionUpdated,
-	)
-	Expect(err).Should(BeNil())
-	Expect(versionUpdatedEvent.OldVersion.Cmp(curLatestVersion)).Should(Equal(0))
-	Expect(versionUpdatedEvent.NewVersion.Cmp(expectedLatestVersion)).Should(Equal(0))
-}
-
 func SendCrossChainMessageAndWaitForAcceptance(
 	ctx context.Context,
 	sourceTeleporterMessenger *teleportermessenger.TeleporterMessenger,
@@ -494,49 +613,6 @@ func CheckReceiptReceived(
 	return false
 }
 
-func ClearReceiptQueue(
-	ctx context.Context,
-	teleporterInfo TeleporterTestInfo,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-	fundedKey *ecdsa.PrivateKey,
-) {
-	outstandReceiptCount := GetOutstandingReceiptCount(
-		teleporterInfo.TeleporterMessenger(source),
-		destination.BlockchainID,
-	)
-	for outstandReceiptCount.Cmp(big.NewInt(0)) != 0 {
-		log.Info("Emptying receipt queue", "remainingReceipts", outstandReceiptCount.String())
-		// Send message from Subnet B to Subnet A to trigger the "regular" method of delivering receipts.
-		// The next message from B->A will contain the same receipts that were manually sent in the above steps,
-		// but they should not be processed again on Subnet A.
-		sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-			DestinationBlockchainID: destination.BlockchainID,
-			DestinationAddress:      common.HexToAddress("0x1111111111111111111111111111111111111111"),
-			RequiredGasLimit:        big.NewInt(1),
-			FeeInfo: teleportermessenger.TeleporterFeeInfo{
-				FeeTokenAddress: common.Address{},
-				Amount:          big.NewInt(0),
-			},
-			AllowedRelayerAddresses: []common.Address{},
-			Message:                 []byte{1, 2, 3, 4},
-		}
-
-		// This message will also have the same receipts as the previous message
-		receipt, _ := SendCrossChainMessageAndWaitForAcceptance(
-			ctx, teleporterInfo.TeleporterMessenger(source), source, destination, sendCrossChainMessageInput, fundedKey)
-
-		// Relay message
-		teleporterInfo.RelayTeleporterMessage(ctx, receipt, source, destination, true, fundedKey)
-
-		outstandReceiptCount = GetOutstandingReceiptCount(
-			teleporterInfo.TeleporterMessenger(source),
-			destination.BlockchainID,
-		)
-	}
-	log.Info("Receipt queue emptied")
-}
-
 func GetOutstandingReceiptCount(
 	teleporterMessenger *teleportermessenger.TeleporterMessenger,
 	destinationBlockchainID ids.ID,
@@ -544,85 +620,6 @@ func GetOutstandingReceiptCount(
 	size, err := teleporterMessenger.GetReceiptQueueSize(&bind.CallOpts{}, destinationBlockchainID)
 	Expect(err).Should(BeNil())
 	return size
-}
-
-func SendExampleCrossChainMessageAndVerify(
-	ctx context.Context,
-	teleporterInfo TeleporterTestInfo,
-	source interfaces.SubnetTestInfo,
-	sourceExampleMessenger *testmessenger.TestMessenger,
-	destination interfaces.SubnetTestInfo,
-	destExampleMessengerAddress common.Address,
-	destExampleMessenger *testmessenger.TestMessenger,
-	senderKey *ecdsa.PrivateKey,
-	message string,
-	expectSuccess bool,
-) {
-	// Call the example messenger contract on Subnet A
-	optsA, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
-	Expect(err).Should(BeNil())
-	tx, err := sourceExampleMessenger.SendMessage(
-		optsA,
-		destination.BlockchainID,
-		destExampleMessengerAddress,
-		common.BigToAddress(common.Big0),
-		big.NewInt(0),
-		testmessenger.SendMessageRequiredGas,
-		message,
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	receipt := WaitForTransactionSuccess(ctx, source, tx.Hash())
-
-	event, err := GetEventFromLogs(receipt.Logs, teleporterInfo.TeleporterMessenger(source).ParseSendCrossChainMessage)
-	Expect(err).Should(BeNil())
-	Expect(event.DestinationBlockchainID[:]).Should(Equal(destination.BlockchainID[:]))
-
-	teleporterMessageID := event.MessageID
-
-	//
-	// Relay the message to the destination
-	//
-	receipt = teleporterInfo.RelayTeleporterMessage(ctx, receipt, source, destination, true, senderKey)
-
-	//
-	// Check Teleporter message received on the destination
-	//
-	delivered, err := teleporterInfo.TeleporterMessenger(destination).MessageReceived(
-		&bind.CallOpts{}, teleporterMessageID,
-	)
-	Expect(err).Should(BeNil())
-	Expect(delivered).Should(BeTrue())
-
-	if expectSuccess {
-		// Check that message execution was successful
-		messageExecutedEvent, err := GetEventFromLogs(
-			receipt.Logs,
-			teleporterInfo.TeleporterMessenger(destination).ParseMessageExecuted,
-		)
-		Expect(err).Should(BeNil())
-		Expect(messageExecutedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
-	} else {
-		// Check that message execution failed
-		messageExecutionFailedEvent, err := GetEventFromLogs(
-			receipt.Logs,
-			teleporterInfo.TeleporterMessenger(destination).ParseMessageExecutionFailed,
-		)
-		Expect(err).Should(BeNil())
-		Expect(messageExecutionFailedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
-	}
-
-	//
-	// Verify we received the expected string
-	//
-	_, currMessage, err := destExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, source.BlockchainID)
-	Expect(err).Should(BeNil())
-	if expectSuccess {
-		Expect(currMessage).Should(Equal(message))
-	} else {
-		Expect(currMessage).ShouldNot(Equal(message))
-	}
 }
 
 //

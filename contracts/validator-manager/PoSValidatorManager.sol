@@ -202,9 +202,7 @@ abstract contract PoSValidatorManager is
             revert UnauthorizedOwner(_msgSender());
         }
 
-        uint256 rewards = $._redeemableValidatorRewards[validationID];
-        delete $._redeemableValidatorRewards[validationID];
-        _reward($._posValidatorInfo[validationID].owner, rewards);
+        _withdrawValidationRewards($._posValidatorInfo[validationID].owner, validationID);
     }
 
     /**
@@ -300,9 +298,7 @@ abstract contract PoSValidatorManager is
         address owner = $._posValidatorInfo[validationID].owner;
         // The validator can either be Completed or Invalidated here. We only grant rewards for Completed.
         if (validator.status == ValidatorStatus.Completed) {
-            uint256 rewards = $._redeemableValidatorRewards[validationID];
-            delete $._redeemableValidatorRewards[validationID];
-            _reward(owner, rewards);
+            _withdrawValidationRewards(owner, validationID);
         }
 
         // The stake is unlocked whether the validation period is completed or invalidated.
@@ -740,27 +736,15 @@ abstract contract PoSValidatorManager is
         // Once this function completes, the delegation is completed so we can clear it from state now.
         delete $._delegatorStakes[delegationID];
 
-        uint256 rewards = $._redeemableDelegatorRewards[delegationID];
-        delete $._redeemableDelegatorRewards[delegationID];
+        address rewardRecipient = delegator.owner;
 
-        uint256 validatorFees;
-        uint256 delegatorRewards;
-        if (rewards > 0) {
-            validatorFees = (rewards * $._posValidatorInfo[validationID].delegationFeeBips)
-                / BIPS_CONVERSION_FACTOR;
-
-            // Allocate the delegation fees to the validator.
-            $._redeemableValidatorRewards[validationID] += validatorFees;
-
-            // Reward the remaining tokens to the delegator.
-            delegatorRewards = rewards - validatorFees;
-            _reward(delegator.owner, delegatorRewards);
-        }
+        (uint256 delegationRewards, uint256 validatorFees) =
+            _withdrawDelegationRewards(rewardRecipient, delegationID, validationID);
 
         // Unlock the delegator's stake.
         _unlock(delegator.owner, weightToValue(delegator.weight));
 
-        emit DelegationEnded(delegationID, validationID, delegatorRewards, validatorFees);
+        emit DelegationEnded(delegationID, validationID, delegationRewards, validatorFees);
     }
 
     /**
@@ -775,5 +759,42 @@ abstract contract PoSValidatorManager is
     function _isPoSValidator(bytes32 validationID) internal view returns (bool) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         return $._posValidatorInfo[validationID].owner != address(0);
+    }
+
+    function _withdrawValidationRewards(address rewardRecipient, bytes32 validationID) internal {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        uint256 rewards = $._redeemableValidatorRewards[validationID];
+        delete $._redeemableValidatorRewards[validationID];
+
+        _reward(rewardRecipient, rewards);
+    }
+
+    function _withdrawDelegationRewards(
+        address rewardRecipient,
+        bytes32 delegationID,
+        bytes32 validationID
+    ) internal returns (uint256, uint256) {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        uint256 delegationRewards;
+        uint256 validatorFees;
+
+        uint256 rewards = $._redeemableDelegatorRewards[delegationID];
+        delete $._redeemableDelegatorRewards[delegationID];
+
+        if (rewards > 0) {
+            validatorFees = (rewards * $._posValidatorInfo[validationID].delegationFeeBips)
+                / BIPS_CONVERSION_FACTOR;
+
+            // Allocate the delegation fees to the validator.
+            $._redeemableValidatorRewards[validationID] += validatorFees;
+
+            // Reward the remaining tokens to the delegator.
+            delegationRewards = rewards - validatorFees;
+            _reward(rewardRecipient, delegationRewards);
+        }
+
+        return (delegationRewards, validatorFees);
     }
 }

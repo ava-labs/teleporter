@@ -10,7 +10,7 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
 	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 
@@ -36,9 +36,9 @@ import (
  * - Delist the previous PoA validator properly
  * - Delist the PoS validator
  */
-func PoAMigrationToPoS(network interfaces.LocalNetwork) {
+func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := utils.GetTwoSubnets(network)
+	subnetAInfo, _ := network.GetTwoSubnets()
 	_, fundedKey := network.GetFundedAccountInfo()
 	pChainInfo := utils.GetPChainInfo(cChainInfo)
 
@@ -102,7 +102,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	nodes := utils.ConvertSubnet(
 		ctx,
 		subnetAInfo,
-		network,
+		network.GetPChainWallet(),
 		proxyAddress,
 		fundedKey,
 	)
@@ -116,7 +116,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		pChainInfo,
 		poaValidatorManager,
 		proxyAddress,
-		network,
+		network.GetNetworkID(),
 		signatureAggregator,
 		nodes,
 	)
@@ -126,7 +126,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	//
 	utils.InitializeAndCompleteEndInitialPoAValidation(
 		ctx,
-		network,
 		signatureAggregator,
 		ownerKey,
 		fundedKey,
@@ -137,6 +136,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		initialValidationIDs[0],
 		0,
 		nodes[0].Weight,
+		network.GetPChainWallet(),
+		network.GetNetworkID(),
 	)
 
 	// Try to call with invalid owner
@@ -160,7 +161,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	expiry := uint64(time.Now().Add(24 * time.Hour).Unix())
 	poaValidationID := utils.InitializeAndCompletePoAValidatorRegistration(
 		ctx,
-		network,
 		signatureAggregator,
 		ownerKey,
 		fundedKey,
@@ -170,6 +170,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		proxyAddress,
 		expiry,
 		nodes[0],
+		network.GetPChainWallet(),
+		network.GetNetworkID(),
 	)
 	poaValidator, err := poaValidatorManager.GetValidator(&bind.CallOpts{}, poaValidationID)
 	Expect(err).Should(BeNil())
@@ -241,7 +243,6 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 
 	utils.InitializeAndCompleteEndNativeValidation(
 		ctx,
-		network,
 		signatureAggregator,
 		ownerKey,
 		subnetAInfo,
@@ -254,12 +255,13 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		1,
 		false,
 		time.Time{},
+		network.GetPChainWallet(),
+		network.GetNetworkID(),
 	)
 
 	expiry2 := uint64(time.Now().Add(24 * time.Hour).Unix())
 	posValidationID := utils.InitializeAndCompleteNativeValidatorRegistration(
 		ctx,
-		network,
 		signatureAggregator,
 		fundedKey,
 		subnetAInfo,
@@ -268,13 +270,14 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		proxyAddress,
 		expiry2,
 		nodes[0],
+		network.GetPChainWallet(),
+		network.GetNetworkID(),
 	)
 	validatorStartTime := time.Now()
 
 	// Delist the PoS validator
 	utils.InitializeAndCompleteEndNativeValidation(
 		ctx,
-		network,
 		signatureAggregator,
 		fundedKey,
 		subnetAInfo,
@@ -287,5 +290,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		1,
 		true,
 		validatorStartTime,
+		network.GetPChainWallet(),
+		network.GetNetworkID(),
 	)
 }

@@ -8,7 +8,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
@@ -29,10 +29,10 @@ import (
  * - Deliver the Warp message to the subnet
  * - Verify that the validator is delisted from the staking contract
  */
-func NativeTokenStakingManager(network interfaces.LocalNetwork) {
+func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 	// Get the subnets info
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := utils.GetTwoSubnets(network)
+	subnetAInfo, _ := network.GetTwoSubnets()
 	_, fundedKey := network.GetFundedAccountInfo()
 	pChainInfo := utils.GetPChainInfo(cChainInfo)
 
@@ -57,7 +57,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	nodes := utils.ConvertSubnet(
 		ctx,
 		subnetAInfo,
-		network,
+		network.GetPChainWallet(),
 		stakingManagerAddress,
 		fundedKey,
 	)
@@ -71,7 +71,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		pChainInfo,
 		stakingManager,
 		stakingManagerAddress,
-		network,
+		network.GetNetworkID(),
 		signatureAggregator,
 		nodes,
 	)
@@ -81,7 +81,6 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	//
 	utils.InitializeAndCompleteEndInitialNativeValidation(
 		ctx,
-		network,
 		signatureAggregator,
 		fundedKey,
 		subnetAInfo,
@@ -91,6 +90,8 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		initialValidationIDs[0],
 		0,
 		nodes[0].Weight,
+		network.GetPChainWallet(),
+		network.GetNetworkID(),
 	)
 
 	//
@@ -99,7 +100,6 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	expiry := uint64(time.Now().Add(24 * time.Hour).Unix())
 	validationID := utils.InitializeAndCompleteNativeValidatorRegistration(
 		ctx,
-		network,
 		signatureAggregator,
 		fundedKey,
 		subnetAInfo,
@@ -108,6 +108,8 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		stakingManagerAddress,
 		expiry,
 		nodes[0],
+		network.GetPChainWallet(),
+		network.GetNetworkID(),
 	)
 	validatorStartTime := time.Now()
 
@@ -153,7 +155,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 
 		// Issue a tx to update the validator's weight on the P-Chain
 		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
-		utils.PChainProposerVMWorkaround(network)
+		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
 		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
 
 		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
@@ -163,8 +165,8 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 			newValidatorWeight,
 			subnetAInfo,
 			pChainInfo,
-			network,
 			signatureAggregator,
+			network.GetNetworkID(),
 		)
 
 		// Deliver the Warp message to the subnet
@@ -213,7 +215,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 
 		// Issue a tx to update the validator's weight on the P-Chain
 		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
-		utils.PChainProposerVMWorkaround(network)
+		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
 		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
 
 		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
@@ -223,8 +225,8 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 			nodes[0].Weight,
 			subnetAInfo,
 			pChainInfo,
-			network,
 			signatureAggregator,
+			network.GetNetworkID(),
 		)
 
 		// Deliver the Warp message to the subnet
@@ -252,7 +254,6 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	//
 	utils.InitializeAndCompleteEndNativeValidation(
 		ctx,
-		network,
 		signatureAggregator,
 		fundedKey,
 		subnetAInfo,
@@ -265,5 +266,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		1,
 		true,
 		validatorStartTime,
+		network.GetPChainWallet(),
+		network.GetNetworkID(),
 	)
 }

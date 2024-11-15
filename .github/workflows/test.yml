@@ -42,7 +42,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
+          go-version-file: "go.mod"
 
       - name: Run Go unit tests
         run: |
@@ -61,7 +61,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
+          go-version-file: "go.mod"
 
       - name: Install Foundry
         run: ./scripts/install_foundry.sh
@@ -71,7 +71,7 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
-          ./scripts/local/e2e_test.sh --components teleporter
+          ./scripts/e2e_test.sh --components teleporter
 
   governance_e2e:
     name: governance-e2e-tests
@@ -95,7 +95,7 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
-          ./scripts/local/e2e_test.sh --components governance
+          ./scripts/e2e_test.sh --components governance
 
   validator_manager_e2e:
     name: validator-manager-e2e-tests
@@ -119,4 +119,28 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
-          ./scripts/local/e2e_test.sh --components validator-manager
+          ./scripts/e2e_test.sh --components validator-manager
+
+  ictt_e2e:
+    name: ictt-e2e-tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repositories and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Install Foundry
+        run: ./scripts/install_foundry.sh
+
+      - name: Run E2E Tests
+        # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          export PATH="$PATH:$GOPATH/bin"
+          ./scripts/e2e_test.sh --components ictt

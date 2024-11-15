@@ -8,7 +8,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
@@ -29,10 +29,10 @@ import (
  * - Deliver the Warp message to the subnet
  * - Verify that the validator is delisted from the staking contract
  */
-func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
+func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 	// Get the subnets info
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := utils.GetTwoSubnets(network)
+	subnetAInfo, _ := network.GetTwoSubnets()
 	_, fundedKey := network.GetFundedAccountInfo()
 	pChainInfo := utils.GetPChainInfo(cChainInfo)
 
@@ -55,7 +55,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	nodes := utils.ConvertSubnet(
 		ctx,
 		subnetAInfo,
-		network,
+		network.GetPChainWallet(),
 		stakingManagerAddress,
 		fundedKey,
 	)
@@ -69,7 +69,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		pChainInfo,
 		stakingManager,
 		stakingManagerAddress,
-		network,
+		network.GetNetworkID(),
 		signatureAggregator,
 		nodes,
 	)
@@ -79,7 +79,6 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	//
 	utils.InitializeAndCompleteEndInitialERC20Validation(
 		ctx,
-		network,
 		signatureAggregator,
 		fundedKey,
 		subnetAInfo,
@@ -89,6 +88,8 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		initialValidationIDs[0],
 		0,
 		nodes[0].Weight,
+		network.GetPChainWallet(),
+		network.GetNetworkID(),
 	)
 
 	//
@@ -97,7 +98,6 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	expiry := uint64(time.Now().Add(24 * time.Hour).Unix())
 	validationID := utils.InitializeAndCompleteERC20ValidatorRegistration(
 		ctx,
-		network,
 		signatureAggregator,
 		fundedKey,
 		subnetAInfo,
@@ -107,6 +107,8 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		erc20,
 		expiry,
 		nodes[0],
+		network.GetPChainWallet(),
+		network.GetNetworkID(),
 	)
 	validatorStartTime := time.Now()
 
@@ -153,7 +155,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 
 		// Issue a tx to update the validator's weight on the P-Chain
 		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
-		utils.PChainProposerVMWorkaround(network)
+		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
 		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
 
 		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
@@ -163,8 +165,8 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 			newValidatorWeight,
 			subnetAInfo,
 			pChainInfo,
-			network,
 			signatureAggregator,
+			network.GetNetworkID(),
 		)
 
 		// Deliver the Warp message to the subnet
@@ -214,7 +216,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 
 		// Issue a tx to update the validator's weight on the P-Chain
 		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
-		utils.PChainProposerVMWorkaround(network)
+		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
 		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
 
 		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
@@ -224,8 +226,8 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 			nodes[0].Weight,
 			subnetAInfo,
 			pChainInfo,
-			network,
 			signatureAggregator,
+			network.GetNetworkID(),
 		)
 
 		// Deliver the Warp message to the subnet
@@ -253,7 +255,6 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	//
 	utils.InitializeAndCompleteEndERC20Validation(
 		ctx,
-		network,
 		signatureAggregator,
 		fundedKey,
 		subnetAInfo,
@@ -266,5 +267,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		1,
 		true,
 		validatorStartTime,
+		network.GetPChainWallet(),
+		network.GetNetworkID(),
 	)
 }

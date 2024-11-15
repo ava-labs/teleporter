@@ -16,7 +16,8 @@ export ARCH=$(uname -m)
 [ $ARCH = x86_64 ] && ARCH=amd64
 echo "ARCH set to $ARCH"
 
-DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 ExampleRewardCalculator TestMessenger ValidatorSetSig NativeTokenStakingManager ERC20TokenStakingManager PoAValidatorManager"
+DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 ExampleRewardCalculator TestMessenger ValidatorSetSig NativeTokenStakingManager ERC20TokenStakingManager PoAValidatorManager
+TokenHome TokenRemote ERC20TokenHome ERC20TokenHomeUpgradeable ERC20TokenRemote ERC20TokenRemoteUpgradeable NativeTokenHome NativeTokenHomeUpgradeable NativeTokenRemote NativeTokenRemoteUpgradeable WrappedNativeToken MockERC20SendAndCallReceiver MockNativeSendAndCallReceiver ExampleERC20Decimals"
 
 PROXY_LIST="TransparentUpgradeableProxy ProxyAdmin"
 
@@ -64,8 +65,25 @@ if ! [[ "$extracted_version" == "$SOLIDITY_VERSION" ]]; then
     echo "Expected solc version $SOLIDITY_VERSION, but found $extracted_version. Please install the correct version." && exit 1
 fi
 
+# Install abigen
 echo "Building subnet-evm abigen"
 go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
+
+# Solc does not recursively expand remappings, so we must construct them manually
+remappings=$(cat $TELEPORTER_PATH/remappings.txt)
+
+# Recursively search for all remappings.txt files in the lib directory.
+# For each file, prepend the remapping with the relative path to the file.
+while read -r filepath; do
+    relative_path="${filepath#$TELEPORTER_PATH/}"
+    dir_path=$(dirname "$relative_path")
+    echo $dir_path
+  
+    # Use sed to transform each line with the relative path if it matches the @token=remapping pattern,
+    # so that each remapping is of the form @token=lib/path/to/remapping
+    transformed_lines=$(sed -n "s|^\(@[^=]*=\)\(.*\)|\1$dir_path/\2|p" "$filepath")
+    remappings+=" $transformed_lines "
+done < <(find "$TELEPORTER_PATH/lib" -type f -name "remappings.txt" )
 
 function convertToLower() {
     if [ "$ARCH" = 'arm64' ]; then
@@ -113,7 +131,7 @@ function generate_bindings() {
 
         cwd=$(pwd)
         cd $TELEPORTER_PATH
-        solc --optimize --evm-version $EVM_VERSION --combined-json abi,bin,metadata,ast,devdoc,userdoc --pretty-json $cwd/$dir/$contract_name.sol $(cat $TELEPORTER_PATH/remappings.txt) > $combined_json
+        solc --optimize --evm-version $EVM_VERSION --combined-json abi,bin,metadata,ast,devdoc,userdoc --pretty-json $cwd/$dir/$contract_name.sol $remappings > $combined_json
         cd $cwd
 
         # construct the exclude list
