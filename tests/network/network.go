@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	goLog "log"
 	"os"
 	"sort"
@@ -44,7 +45,7 @@ type LocalNetwork struct {
 	tmpnet.Network
 
 	extraNodes               []*tmpnet.Node // to add as more subnet validators in the tests
-	primaryNetworkValidators []ids.NodeID
+	primaryNetworkValidators []*tmpnet.Node
 	globalFundedKey          *secp256k1.PrivateKey
 	validatorManagers        map[ids.ID]common.Address
 }
@@ -165,9 +166,11 @@ func NewLocalNetwork(
 	}
 
 	// All nodes are specified as bootstrap validators
-	var primaryNetworkValidators []ids.NodeID
+	var primaryNetworkValidators []*tmpnet.Node
+	fmt.Println("Primary Network Validators")
 	for _, node := range network.Nodes {
-		primaryNetworkValidators = append(primaryNetworkValidators, node.NodeID)
+		fmt.Println(node.NodeID, node.URI)
+		primaryNetworkValidators = append(primaryNetworkValidators, node)
 	}
 
 	localNetwork := &LocalNetwork{
@@ -265,6 +268,12 @@ func (n *LocalNetwork) ConvertSubnet(
 	for _, vdr := range currentValidators {
 		_, err := pChainWallet.IssueRemoveSubnetValidatorTx(vdr.NodeID, subnet.SubnetID)
 		Expect(err).Should(BeNil())
+		for _, node := range n.Network.Nodes {
+			if node.NodeID == vdr.NodeID {
+				fmt.Println("Restarting bootstrap node", node.NodeID)
+				n.Network.RestartNode(ctx, os.Stdout, node)
+			}
+		}
 	}
 
 	return nodes, validationIDs, proxyAdmin
@@ -328,13 +337,14 @@ func (n *LocalNetwork) GetExtraNodes(count int) []*tmpnet.Node {
 	return nodes
 }
 
+func (n *LocalNetwork) GetPrimaryNetworkValidators() []*tmpnet.Node {
+	return n.primaryNetworkValidators
+}
+
 func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
 	var nodeURIs []string
-	for _, nodeID := range n.primaryNetworkValidators {
-		uri, err := n.Network.GetURIForNodeID(nodeID)
-		Expect(err).Should(BeNil())
-
-		nodeURIs = append(nodeURIs, uri)
+	for _, node := range n.primaryNetworkValidators {
+		nodeURIs = append(nodeURIs, node.URI)
 	}
 	infoClient := info.NewClient(nodeURIs[0])
 	cChainBlockchainID, err := infoClient.GetBlockchainID(context.Background(), "C")
@@ -492,7 +502,6 @@ func (n *LocalNetwork) Dir() string {
 func (n *LocalNetwork) GetPChainWallet() pwallet.Wallet {
 	// Create the P-Chain wallet to issue transactions
 	kc := secp256k1fx.NewKeychain(n.globalFundedKey)
-	n.GetSubnetsInfo()
 	var subnetIDs []ids.ID
 	for _, subnet := range n.GetSubnetsInfo() {
 		subnetIDs = append(subnetIDs, subnet.SubnetID)
