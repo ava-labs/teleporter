@@ -565,10 +565,11 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	Expect(err).Should(BeNil())
 
 	appRequestNetwork, err := peers.NewNetwork(
-		logging.Info,
+		logging.Off,
 		registry,
 		trackedSubnets,
 		messageCreator,
+		nil,
 		&cfg,
 	)
 	Expect(err).Should(BeNil())
