@@ -111,6 +111,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		network.GetPChainWallet(),
 		network.GetNetworkID(),
 	)
+	validatorStartTime := time.Now()
 
 	//
 	// Register a delegator
@@ -263,6 +264,8 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		expiry,
 		nodes[0],
 		1,
+		true,
+		validatorStartTime,
 		network.GetPChainWallet(),
 		network.GetNetworkID(),
 	)
