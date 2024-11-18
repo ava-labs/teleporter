@@ -86,6 +86,7 @@ abstract contract PoSValidatorManager is
     error InvalidDelegationID(bytes32 delegationID);
     error InvalidDelegatorStatus(DelegatorStatus status);
     error InvalidNonce(uint64 nonce);
+    error InvalidRewardRecipient(address rewardRecipient);
     error InvalidStakeAmount(uint256 stakeAmount);
     error InvalidMinStakeDuration(uint64 minStakeDuration);
     error InvalidStakeMultiplier(uint8 maximumStakeMultiplier);
@@ -272,6 +273,48 @@ abstract contract PoSValidatorManager is
     ) external {
         // Ignore the return value here to force end validation, regardless of possible missed rewards
         _initializeEndPoSValidation(validationID, includeUptimeProof, messageIndex, rewardRecipient);
+    }
+
+    function changeValidatorRewardRecipient(
+        bytes32 validationID,
+        address rewardRecipient
+    ) external {
+        if (rewardRecipient == address(0)) {
+            revert InvalidRewardRecipient(rewardRecipient);
+        }
+
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        if ($._posValidatorInfo[validationID].owner != _msgSender()) {
+            revert UnauthorizedOwner(_msgSender());
+        }
+
+        if (rewardRecipient == _msgSender()) {
+            delete $._rewardRecipients[validationID];
+        } else {
+            $._rewardRecipients[validationID] = rewardRecipient;
+        }
+    }
+
+    function changeDelegatorRewardRecipient(
+        bytes32 delegationID,
+        address rewardRecipient
+    ) external {
+        if (rewardRecipient == address(0)) {
+            revert InvalidRewardRecipient(rewardRecipient);
+        }
+
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        if ($._delegatorStakes[delegationID].owner != _msgSender()) {
+            revert UnauthorizedOwner(_msgSender());
+        }
+
+        if (rewardRecipient == _msgSender()) {
+            delete $._delegatorRewardRecipients[delegationID];
+        } else {
+            $._delegatorRewardRecipients[delegationID] = rewardRecipient;
+        }
     }
 
     /**
