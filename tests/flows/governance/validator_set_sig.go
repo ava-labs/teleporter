@@ -17,63 +17,63 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	// ************************************************************************************************
 	// Setup
 	// ************************************************************************************************
-	// Deploy ValidatorSetSig expecting signatures from subnetB instances to both subnets
-	// Deploy exampleERC20 instance to both subnets
+	// Deploy ValidatorSetSig expecting signatures from L1B instances to both L1s
+	// Deploy exampleERC20 instance to both L1s
 	// Construct ValidatorSetSig message with mock ERC20 as the target contract
-	// Create off-chain Warp messages using the ValidatorSetSig message to be signed by the subnetB
+	// Create off-chain Warp messages using the ValidatorSetSig message to be signed by the L1B
 	// ************************************************************************************************
-	// Test Case 1: validatorChain (subnetB) != targetChain (subnetA)
+	// Test Case 1: validatorChain (L1B) != targetChain (L1A)
 	// ************************************************************************************************
-	// Send the off-chain message to subnetA instance of ValidatorSetSig and confirm it is accepted.
+	// Send the off-chain message to L1A instance of ValidatorSetSig and confirm it is accepted.
 	// Confirm the event is emitted
 	// Retry the same message and confirm it fails
 	// Send a new message with incremented nonce and confirm it is accepted.
 	// ************************************************************************************************
-	// Test Case 2: validatorChain (subnetB) == targetChain (subnetB)
+	// Test Case 2: validatorChain (L1B) == targetChain (L1B)
 	// ************************************************************************************************
-	// Send a new message to subnetB instance of ValidatorSetSig and confirm it is accepted
+	// Send a new message to L1B instance of ValidatorSetSig and confirm it is accepted
 
 	// ************************************************************************************************
 	// Setup
 	// ************************************************************************************************
-	subnetA, subnetB := network.GetTwoSubnets()
+	L1A, L1B := network.GetTwoL1s()
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
-	// Deploy a ValidatorSetSigContract to subnetA
+	// Deploy a ValidatorSetSigContract to L1A
 	validatorSetSigContractAddress, validatorSetSig := utils.DeployValidatorSetSig(
 		ctx,
 		fundedKey,
-		subnetA,
-		subnetB,
+		L1A,
+		L1B,
 	)
-	// Deploy a ValidatorSetSigContract to subnetB
+	// Deploy a ValidatorSetSigContract to L1B
 	validatorSetSigContractAddress2, validatorSetSig2 := utils.DeployValidatorSetSig(
 		ctx,
 		fundedKey,
-		subnetB,
-		subnetB,
+		L1B,
+		L1B,
 	)
 
-	// Deploy a mock ERC20 contract to subnetA
+	// Deploy a mock ERC20 contract to L1A
 	exampleERC20ContractAddressA, exampleERC20A := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
-		subnetA,
+		L1A,
 	)
 
-	// Deploy a new example ERC20 contract this time to the same subnet as the validator.
+	// Deploy a new example ERC20 contract this time to the same L1 as the validator.
 	exampleERC20ContractAddressB, exampleERC20B := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
-		subnetB,
+		L1B,
 	)
 
 	erc20ABI, err := exampleerc20.ExampleERC20MetaData.GetAbi()
 	Expect(err).Should(BeNil())
 
-	// Confirm that the validatorContract has a balance of 0 on the example erc20 contracts on both subnets
+	// Confirm that the validatorContract has a balance of 0 on the example erc20 contracts on both L1s
 	startingBalanceA, err := exampleERC20A.BalanceOf(
 		&bind.CallOpts{}, validatorSetSigContractAddress)
 	Expect(err).Should(BeNil())
@@ -92,7 +92,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	vssMessage1 := validatorsetsig.ValidatorSetSigMessage{
 		ValidatorSetSigAddress: validatorSetSigContractAddress,
 		TargetContractAddress:  exampleERC20ContractAddressA,
-		TargetBlockchainID:     subnetA.BlockchainID,
+		TargetBlockchainID:     L1A.BlockchainID,
 		Nonce:                  big.NewInt(0),
 		Value:                  big.NewInt(0),
 		Payload:                callData,
@@ -105,7 +105,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	vssMessage2 := validatorsetsig.ValidatorSetSigMessage{
 		ValidatorSetSigAddress: validatorSetSigContractAddress,
 		TargetContractAddress:  exampleERC20ContractAddressA,
-		TargetBlockchainID:     subnetA.BlockchainID,
+		TargetBlockchainID:     L1A.BlockchainID,
 		Nonce:                  big.NewInt(1),
 		Value:                  big.NewInt(0),
 		Payload:                callData2,
@@ -120,7 +120,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	vssMessage3 := validatorsetsig.ValidatorSetSigMessage{
 		ValidatorSetSigAddress: validatorSetSigContractAddress2,
 		TargetContractAddress:  exampleERC20ContractAddressB,
-		TargetBlockchainID:     subnetB.BlockchainID,
+		TargetBlockchainID:     L1B.BlockchainID,
 		Nonce:                  big.NewInt(0),
 		Value:                  big.NewInt(0),
 		Payload:                callData3,
@@ -130,14 +130,14 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	networkID := network.GetNetworkID()
 	offchainMessages, warpEnabledChainConfigWithMsg := utils.InitOffChainMessageChainConfigValidatorSetSig(
 		networkID,
-		subnetB,
+		L1B,
 		validatorSetSigContractAddress,
 		[]validatorsetsig.ValidatorSetSigMessage{vssMessage1, vssMessage2, vssMessage3},
 	)
 
 	// Create chain config with off-chain messages
 	chainConfigs := make(utils.ChainConfigMap)
-	chainConfigs.Add(subnetB, warpEnabledChainConfigWithMsg)
+	chainConfigs.Add(L1B, warpEnabledChainConfigWithMsg)
 
 	// Restart nodes with new chain config
 	network.SetChainConfigs(chainConfigs)
@@ -146,14 +146,14 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	network.RestartNodes(restartCtx, nil)
 
 	// ************************************************************************************************
-	// Test Case 1: validatorChain (subnetB) != targetChain (subnetA)
+	// Test Case 1: validatorChain (L1B) != targetChain (L1A)
 	// ************************************************************************************************
 
 	// Execute the ValidatorSetSig executeCall and wait for acceptance
 	receipt := network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		subnetB,
-		subnetA,
+		L1B,
+		L1A,
 		validatorSetSigContractAddress,
 		fundedKey,
 		&offchainMessages[0],
@@ -174,8 +174,8 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 
 	_ = network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		subnetB,
-		subnetA,
+		L1B,
+		L1A,
 		validatorSetSigContractAddress,
 		fundedKey,
 		&offchainMessages[0],
@@ -190,8 +190,8 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	// Send another valid transaction with the incremented nonce
 	receipt2 := network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		subnetB,
-		subnetA,
+		L1B,
+		L1A,
 		validatorSetSigContractAddress,
 		fundedKey,
 		&offchainMessages[1],
@@ -214,15 +214,15 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	Expect(startingBalanceB.Cmp(big.NewInt(0))).Should(BeZero())
 
 	// ************************************************************************************************
-	// Test Case 2: validatorChain (subnetB) == targetChain (subnetB)
+	// Test Case 2: validatorChain (L1B) == targetChain (L1B)
 	// ************************************************************************************************
 
 	// Send the third transaction where the validatorSetSig contract expects validator signatures
 	// from the same chain that it is deployed on.
 	receipt3 := network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		subnetB,
-		subnetB,
+		L1B,
+		L1B,
 		validatorSetSigContractAddress2,
 		fundedKey,
 		&offchainMessages[2],

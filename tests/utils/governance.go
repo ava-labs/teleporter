@@ -18,30 +18,30 @@ import (
 func DeployValidatorSetSig(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
-	contractSubnet interfaces.SubnetTestInfo,
-	validatorSubnet interfaces.SubnetTestInfo,
+	contractL1 interfaces.L1TestInfo,
+	validatorL1 interfaces.L1TestInfo,
 ) (common.Address, *validatorsetsig.ValidatorSetSig) {
-	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, contractSubnet.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, contractL1.EVMChainID)
 	Expect(err).Should(BeNil())
 	address, tx, validatorSetSig, err := validatorsetsig.DeployValidatorSetSig(
 		opts,
-		contractSubnet.RPCClient,
-		validatorSubnet.BlockchainID,
+		contractL1.RPCClient,
+		validatorL1.BlockchainID,
 	)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	WaitForTransactionSuccess(ctx, contractSubnet, tx.Hash())
+	WaitForTransactionSuccess(ctx, contractL1, tx.Hash())
 
 	return address, validatorSetSig
 }
 
 // Returns Receipt for the transaction unlike TeleporterRegistry version since this is a non-teleporter case
-// and we don't want to add the ValidatorSetSig ABI to the subnetInfo
+// and we don't want to add the ValidatorSetSig ABI to the l1Info
 func ExecuteValidatorSetSigCallAndVerify(
 	ctx context.Context,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
+	source interfaces.L1TestInfo,
+	destination interfaces.L1TestInfo,
 	validatorSetSigAddress common.Address,
 	senderKey *ecdsa.PrivateKey,
 	unsignedMessage *avalancheWarp.UnsignedMessage,
@@ -67,17 +67,17 @@ func ExecuteValidatorSetSigCallAndVerify(
 
 func InitOffChainMessageChainConfigValidatorSetSig(
 	networkID uint32,
-	subnet interfaces.SubnetTestInfo,
+	l1 interfaces.L1TestInfo,
 	validatorSetSigAddress common.Address,
 	validatorSetSigMessages []validatorsetsig.ValidatorSetSigMessage,
 ) ([]avalancheWarp.UnsignedMessage, string) {
 	unsignedMessages := []avalancheWarp.UnsignedMessage{}
 	for _, message := range validatorSetSigMessages {
-		unsignedMessage := CreateOffChainValidatorSetSigMessage(networkID, subnet, message)
+		unsignedMessage := CreateOffChainValidatorSetSigMessage(networkID, l1, message)
 		unsignedMessages = append(unsignedMessages, *unsignedMessage)
 		log.Info("Adding validatorSetSig off-chain message to Warp chain config",
 			"messageID", unsignedMessage.ID(),
-			"blockchainID", subnet.BlockchainID.String())
+			"blockchainID", l1.BlockchainID.String())
 	}
 	return unsignedMessages, GetChainConfigWithOffChainMessages(unsignedMessages)
 }
@@ -86,7 +86,7 @@ func InitOffChainMessageChainConfigValidatorSetSig(
 // if the validator set signs this message
 func CreateOffChainValidatorSetSigMessage(
 	networkID uint32,
-	subnet interfaces.SubnetTestInfo,
+	l1 interfaces.L1TestInfo,
 	message validatorsetsig.ValidatorSetSigMessage,
 ) *avalancheWarp.UnsignedMessage {
 	sourceAddress := []byte{}
@@ -98,7 +98,7 @@ func CreateOffChainValidatorSetSigMessage(
 
 	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(
 		networkID,
-		subnet.BlockchainID,
+		l1.BlockchainID,
 		addressedPayload.Bytes(),
 	)
 	Expect(err).Should(BeNil())

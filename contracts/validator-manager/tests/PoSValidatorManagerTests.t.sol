@@ -1156,7 +1156,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     }
 
     function testInitializeEndValidationPoAValidator() public {
-        bytes32 defaultInitialValidationID = sha256(abi.encodePacked(DEFAULT_SUBNET_ID, uint32(1)));
+        bytes32 defaultInitialValidationID = sha256(abi.encodePacked(DEFAULT_L1_ID, uint32(1)));
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
         bytes memory setValidatorWeightPayload =

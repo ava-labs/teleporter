@@ -14,13 +14,13 @@ import (
 
 /**
  * Deploy a NativeTokenHome on the primary network
- * Deploys a NativeTokenRemote to Subnet A
- * Transfers C-Chain native tokens to Subnet A
- * Transfer back tokens from Subnet A to C-Chain
+ * Deploys a NativeTokenRemote to L1 A
+ * Transfers C-Chain native tokens to L1 A
+ * Transfer back tokens from L1 A to C-Chain
  */
 func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := network.GetTwoSubnets()
+	L1AInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -43,11 +43,11 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		cChainWAVAXAddress,
 	)
 
-	// Deploy a NativeTokenRemote to Subnet A
+	// Deploy a NativeTokenRemote to L1 A
 	nativeTokenRemoteAddress, nativeTokenRemote := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		subnetAInfo,
+		L1AInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -63,7 +63,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		teleporter,
 		cChainInfo,
 		nativeTokenHomeAddress,
-		subnetAInfo,
+		L1AInfo,
 		nativeTokenRemoteAddress,
 		initialReserveImbalance,
 		big.NewInt(1),
@@ -76,7 +76,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		cChainInfo,
 		nativeTokenHome,
 		nativeTokenHomeAddress,
-		subnetAInfo.BlockchainID,
+		L1AInfo.BlockchainID,
 		nativeTokenRemoteAddress,
 		collateralAmount,
 		fundedKey,
@@ -87,11 +87,11 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from C-Chain to recipient on subnet A that fully collateralize token transferrer with leftover tokens.
+	// Send tokens from C-Chain to recipient on L1 A that fully collateralize token transferrer with leftover tokens.
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 	{
 		input := nativetokenhome.SendTokensInput{
-			DestinationBlockchainID:            subnetAInfo.BlockchainID,
+			DestinationBlockchainID:            L1AInfo.BlockchainID,
 			DestinationTokenTransferrerAddress: nativeTokenRemoteAddress,
 			Recipient:                          recipientAddress,
 			PrimaryFeeTokenAddress:             cChainWAVAXAddress,
@@ -116,7 +116,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 			ctx,
 			receipt,
 			cChainInfo,
-			subnetAInfo,
+			L1AInfo,
 			true,
 			fundedKey,
 		)
@@ -125,11 +125,11 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 			ctx,
 			recipientAddress,
 			amount,
-			subnetAInfo.RPCClient,
+			L1AInfo.RPCClient,
 		)
 	}
 
-	// Send tokens on Subnet A back for native tokens on C-Chain
+	// Send tokens on L1 A back for native tokens on C-Chain
 	{
 		input_A := nativetokenremote.SendTokensInput{
 			DestinationBlockchainID:            cChainInfo.BlockchainID,
@@ -145,7 +145,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		amount := big.NewInt(0).Div(amount, big.NewInt(2))
 		receipt, transferredAmount := utils.SendNativeTokenRemote(
 			ctx,
-			subnetAInfo,
+			L1AInfo,
 			nativeTokenRemote,
 			nativeTokenRemoteAddress,
 			input_A,
@@ -156,7 +156,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		receipt = teleporter.RelayTeleporterMessage(
 			ctx,
 			receipt,
-			subnetAInfo,
+			L1AInfo,
 			cChainInfo,
 			true,
 			fundedKey,

@@ -14,25 +14,25 @@ import (
 )
 
 func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, subnetCInfo := network.GetTwoSubnets()
+	L1AInfo := network.GetPrimaryNetworkInfo()
+	L1BInfo, L1CInfo := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
-	// Get the expected teleporter message ID for Subnet C
+	// Get the expected teleporter message ID for L1 C
 	//
-	expectedAtoCMessageID, err := teleporter.TeleporterMessenger(subnetAInfo).GetNextMessageID(
+	expectedAtoCMessageID, err := teleporter.TeleporterMessenger(L1AInfo).GetNextMessageID(
 		&bind.CallOpts{},
-		subnetCInfo.BlockchainID,
+		L1CInfo.BlockchainID,
 	)
 	Expect(err).Should(BeNil())
 
 	//
-	// Submit a message to be sent from SubnetA to SubnetB
+	// Submit a message to be sent from L1A to L1B
 	//
 	ctx := context.Background()
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: subnetBInfo.BlockchainID, // Message intended for SubnetB
+		DestinationBlockchainID: L1BInfo.BlockchainID, // Message intended for L1B
 		DestinationAddress:      common.HexToAddress("0x1111111111111111111111111111111111111111"),
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
@@ -45,24 +45,24 @@ func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.Te
 
 	log.Info(
 		"Sending Teleporter transaction on source chain",
-		"destinationBlockchainID", subnetBInfo.BlockchainID,
+		"destinationBlockchainID", L1BInfo.BlockchainID,
 	)
 
 	receipt, _ := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporter.TeleporterMessenger(subnetAInfo),
-		subnetAInfo,
-		subnetBInfo,
+		teleporter.TeleporterMessenger(L1AInfo),
+		L1AInfo,
+		L1BInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
 
-	teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetCInfo, false, fundedKey)
+	teleporter.RelayTeleporterMessage(ctx, receipt, L1AInfo, L1CInfo, false, fundedKey)
 
 	//
-	// Check that the message was not received on the Subnet C
+	// Check that the message was not received on the L1 C
 	//
-	delivered, err := teleporter.TeleporterMessenger(subnetCInfo).MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(L1CInfo).MessageReceived(
 		&bind.CallOpts{}, expectedAtoCMessageID,
 	)
 	Expect(err).Should(BeNil())

@@ -1,6 +1,6 @@
 # Upgrading Teleporter 
 
-This document outlines the high-level steps necessary to upgrade Teleporter as a subnet operator, a relayer operator, and a dApp admin. As a reference, the [Teleporter Registry test suite](../../../tests/flows/teleporter_registry.go) implements the steps described in a test environment.
+This document outlines the high-level steps necessary to upgrade Teleporter as an Avalanche L1 operator, a relayer operator, and a dApp admin. As a reference, the [Teleporter Registry test suite](../../../tests/flows/teleporter_registry.go) implements the steps described in a test environment.
 
 ## Register a New Teleporter Version
 

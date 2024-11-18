@@ -14,16 +14,16 @@ import (
 /*
 *
   - Deploy a NativeTokenHome on the primary network
-  - Deploys NativeTokenRemote to Subnet A and Subnet B
-  - Transfers native tokens from the C-Chain to Subnet A as Subnet A's native token
-  - Transfers native tokens from the C-Chain to Subnet B as Subnet B's native token
-    to collateralize the Subnet B token transferrer
-  - Transfer tokens from Subnet A to Subnet B through multi-hop
-  - Transfer back tokens from Subnet B to Subnet A through multi-hop
+  - Deploys NativeTokenRemote to L1 A and L1 B
+  - Transfers native tokens from the C-Chain to L1 A as L1 A's native token
+  - Transfers native tokens from the C-Chain to L1 B as L1 B's native token
+    to collateralize the L1 B token transferrer
+  - Transfer tokens from L1 A to L1 B through multi-hop
+  - Transfer back tokens from L1 B to L1 A through multi-hop
 */
 func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
+	L1AInfo, L1BInfo := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -49,11 +49,11 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		wavaxAddress,
 	)
 
-	// Deploy a NativeTokenRemote to Subnet A
+	// Deploy a NativeTokenRemote to L1 A
 	nativeTokenRemoteAddressA, nativeTokenRemoteA := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		subnetAInfo,
+		L1AInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -63,11 +63,11 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		burnedFeesReportingRewardPercentage,
 	)
 
-	// Deploy a NativeTokenRemote to Subnet B
+	// Deploy a NativeTokenRemote to L1 B
 	nativeTokenRemoteAddressB, nativeTokenRemoteB := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		subnetBInfo,
+		L1BInfo,
 		"SUBB",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -83,7 +83,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		teleporter,
 		cChainInfo,
 		nativeTokenHomeAddress,
-		subnetAInfo,
+		L1AInfo,
 		nativeTokenRemoteAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
@@ -96,7 +96,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		teleporter,
 		cChainInfo,
 		nativeTokenHomeAddress,
-		subnetBInfo,
+		L1BInfo,
 		nativeTokenRemoteAddressB,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
@@ -110,7 +110,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		cChainInfo,
 		nativeTokenHome,
 		nativeTokenHomeAddress,
-		subnetAInfo.BlockchainID,
+		L1AInfo.BlockchainID,
 		nativeTokenRemoteAddressA,
 		collateralAmountA,
 		fundedKey,
@@ -121,7 +121,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		cChainInfo,
 		nativeTokenHome,
 		nativeTokenHomeAddress,
-		subnetBInfo.BlockchainID,
+		L1BInfo.BlockchainID,
 		nativeTokenRemoteAddressB,
 		collateralAmountB,
 		fundedKey,
@@ -134,9 +134,9 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
 
-	// Send tokens from C-Chain to Subnet A
+	// Send tokens from C-Chain to L1 A
 	inputA := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationBlockchainID:            L1AInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressA,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             wavaxAddress,
@@ -156,22 +156,22 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		fundedKey,
 	)
 
-	// Relay the message to subnet A and check for a native token mint withdrawal
+	// Relay the message to L1 A and check for a native token mint withdrawal
 	teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
 		cChainInfo,
-		subnetAInfo,
+		L1AInfo,
 		true,
 		fundedKey,
 	)
 
 	// Verify the recipient received the tokens
-	utils.CheckBalance(ctx, recipientAddress, transferredAmountA, subnetAInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmountA, L1AInfo.RPCClient)
 
-	// Send tokens from C-Chain to Subnet B
+	// Send tokens from C-Chain to L1 B
 	inputB := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:            subnetBInfo.BlockchainID,
+		DestinationBlockchainID:            L1BInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressB,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             wavaxAddress,
@@ -190,20 +190,20 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		fundedKey,
 	)
 
-	// Relay the message to subnet B and check for a native token mint withdrawal
+	// Relay the message to L1 B and check for a native token mint withdrawal
 	teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
 		cChainInfo,
-		subnetBInfo,
+		L1BInfo,
 		true,
 		fundedKey,
 	)
 
 	// Verify the recipient received the tokens
-	utils.CheckBalance(ctx, recipientAddress, transferredAmountB, subnetBInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmountB, L1BInfo.RPCClient)
 
-	// Multi-hop transfer to Subnet B
+	// Multi-hop transfer to L1 B
 	// Send half of the received amount to account for gas expenses
 	amountToSendA := new(big.Int).Div(transferredAmountA, big.NewInt(2))
 
@@ -212,10 +212,10 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		teleporter,
 		fundedKey,
 		recipientAddress,
-		subnetAInfo,
+		L1AInfo,
 		nativeTokenRemoteA,
 		nativeTokenRemoteAddressA,
-		subnetBInfo,
+		L1BInfo,
 		nativeTokenRemoteB,
 		nativeTokenRemoteAddressB,
 		cChainInfo,
@@ -227,16 +227,16 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 	amountToSendB := new(big.Int).Div(amountToSendA, big.NewInt(2))
 	secondaryFeeAmount := new(big.Int).Div(amountToSendB, big.NewInt(4))
 
-	// Multi-hop transfer back to Subnet A
+	// Multi-hop transfer back to L1 A
 	utils.SendNativeMultiHopAndVerify(
 		ctx,
 		teleporter,
 		fundedKey,
 		recipientAddress,
-		subnetBInfo,
+		L1BInfo,
 		nativeTokenRemoteB,
 		nativeTokenRemoteAddressB,
-		subnetAInfo,
+		L1AInfo,
 		nativeTokenRemoteA,
 		nativeTokenRemoteAddressA,
 		cChainInfo,

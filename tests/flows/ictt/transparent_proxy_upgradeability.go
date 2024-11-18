@@ -19,17 +19,17 @@ import (
  * Deploy an upgradeable ERC20TokenHome on the primary network
  * Deploys a transparent upgradeable proxy that uses the ERC20TokenHome logic contract
  * Deploys a proxy admin contract to manage the upgradeable proxy
- * Deploy an ERC20TokenRemote to Subnet A
- * Transfers example erc20 tokens from the primary network to Subnet A
+ * Deploy an ERC20TokenRemote to L1 A
+ * Transfers example erc20 tokens from the primary network to L1 A
  * Deploy a new ERC20TokenHome logic contract on the primary network
  * Upgrade the transparent upgradeable proxy to use the new logic contract
- * Transfer tokens from Subnet A back to the primary network
+ * Transfer tokens from L1 A back to the primary network
  * Check that the transfer was successful, and expected balances are correct
  */
 
 func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := network.GetTwoSubnets()
+	L1AInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -82,12 +82,12 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
 
-	// Deploy the ERC20TokenRemote contract on Subnet A
+	// Deploy the ERC20TokenRemote contract on L1 A
 	erc20TokenRemoteAddress, erc20TokenRemote := utils.DeployERC20TokenRemote(
 		ctx,
 		teleporter,
 		fundedKey,
-		subnetAInfo,
+		L1AInfo,
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20TokenHomeAddress,
@@ -102,19 +102,19 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
-		subnetAInfo,
+		L1AInfo,
 		erc20TokenRemoteAddress,
 		fundedKey,
 	)
 
-	// Send a transfer from primary network to Subnet A
+	// Send a transfer from primary network to L1 A
 	// Generate new recipient to receive transferred tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
 	input := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationBlockchainID:            L1AInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             exampleERC20Address,
@@ -140,7 +140,7 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		ctx,
 		receipt,
 		cChainInfo,
-		subnetAInfo,
+		L1AInfo,
 		true,
 		fundedKey,
 	)
@@ -172,10 +172,10 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
 
-	// Send a transfer from Subnet A back to primary network
+	// Send a transfer from L1 A back to primary network
 	teleporterUtils.SendNativeTransfer(
 		ctx,
-		subnetAInfo,
+		L1AInfo,
 		fundedKey,
 		recipientAddress,
 		big.NewInt(1e18),
@@ -192,7 +192,7 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 
 	receipt, transferredAmount = utils.SendERC20TokenRemote(
 		ctx,
-		subnetAInfo,
+		L1AInfo,
 		erc20TokenRemote,
 		erc20TokenRemoteAddress,
 		inputB,
@@ -203,7 +203,7 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 	receipt = teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
-		subnetAInfo,
+		L1AInfo,
 		cChainInfo,
 		true,
 		fundedKey,

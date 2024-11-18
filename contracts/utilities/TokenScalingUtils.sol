@@ -59,7 +59,7 @@ library TokenScalingUtils {
     /**
      * @dev Scales {value} based on {tokenMultiplier} and if the amount is applying or
      * removing the TokenRemote instance's token scale.
-     * Should be used for all tokens and fees being transferred to/from other subnets.
+     * Should be used for all tokens and fees being transferred to/from other L1s.
      * @param tokenMultiplier The token multiplier of the TokenRemote instance.
      * @param multiplyOnRemote Whether the amount of home tokens will be multiplied on the remote, or divided.
      * @param amount The amount of tokens to scale.

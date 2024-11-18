@@ -15,34 +15,34 @@ import (
 
 func DeployTransparentUpgradeableProxy[T any](
 	ctx context.Context,
-	subnet interfaces.SubnetTestInfo,
+	l1 interfaces.L1TestInfo,
 	senderKey *ecdsa.PrivateKey,
 	implAddress common.Address,
 	newInstance func(address common.Address, backend bind.ContractBackend) (*T, error),
 ) (common.Address, *proxyadmin.ProxyAdmin, *T) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
-		subnet.EVMChainID,
+		l1.EVMChainID,
 	)
 	Expect(err).Should((BeNil()))
 
 	senderAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
 	proxyAddress, tx, proxy, err := transparentupgradeableproxy.DeployTransparentUpgradeableProxy(
 		opts,
-		subnet.RPCClient,
+		l1.RPCClient,
 		implAddress,
 		senderAddress,
 		[]byte{},
 	)
 	Expect(err).Should(BeNil())
-	receipt := WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	receipt := WaitForTransactionSuccess(ctx, l1, tx.Hash())
 	proxyAdminEvent, err := GetEventFromLogs(receipt.Logs, proxy.ParseAdminChanged)
 	Expect(err).Should(BeNil())
 
-	proxyAdmin, err := proxyadmin.NewProxyAdmin(proxyAdminEvent.NewAdmin, subnet.RPCClient)
+	proxyAdmin, err := proxyadmin.NewProxyAdmin(proxyAdminEvent.NewAdmin, l1.RPCClient)
 	Expect(err).Should(BeNil())
 
-	contract, err := newInstance(proxyAddress, subnet.RPCClient)
+	contract, err := newInstance(proxyAddress, l1.RPCClient)
 	Expect(err).Should(BeNil())
 
 	return proxyAddress, proxyAdmin, contract

@@ -4,13 +4,13 @@
 
 To get started with building applications on top of Teleporter, refer to [the avalanche-starter-kit repository](https://github.com/ava-labs/avalanche-starter-kit). This README is focused on the development of the Teleporter protocol itself.
 
-Teleporter is an EVM compatible cross-subnet communication protocol built on top of [Avalanche Warp Messaging (AWM)](https://docs.avax.network/learn/avalanche/awm), and implemented as a Solidity smart contract. It provides a mechanism to asynchronously invoke smart contract functions on other EVM blockchains within Avalanche. Teleporter provides a handful of useful features on top of AWM, such as specifying relayer incentives for message delivery, replay protection, message delivery and execution retries, and a standard interface for sending and receiving messages within a dApp deployed across multiple subnets.
+Teleporter is an EVM compatible cross-L1 communication protocol built on top of [Avalanche Warp Messaging (AWM)](https://docs.avax.network/learn/avalanche/awm), and implemented as a Solidity smart contract. It provides a mechanism to asynchronously invoke smart contract functions on other EVM blockchains within Avalanche. Teleporter provides a handful of useful features on top of AWM, such as specifying relayer incentives for message delivery, replay protection, message delivery and execution retries, and a standard interface for sending and receiving messages within a dApp deployed across multiple Avalanche L1s.
 
-It's important to understand the distinction between Avalanche Warp Messaging and Teleporter. AWM allows subnets to communicate with each other via authenticated messages by providing signing and verification primitives in Avalanchego. These are used by the blockchain VMs to sign outgoing messages and verify incoming messages.
+It's important to understand the distinction between Avalanche Warp Messaging and Teleporter. AWM allows Avalanche L1s to communicate with each other via authenticated messages by providing signing and verification primitives in Avalanchego. These are used by the blockchain VMs to sign outgoing messages and verify incoming messages.
 
-The Teleporter protocol, on the other hand, is implemented at the smart contract level, and is a user-friendly interface to AWM, aimed at dApp developers. All of the message signing and verification is abstracted away from developers. Instead, developers simply call `sendCrossChainMessage` on the `TeleporterMessenger` contract to send a message invoking a smart contract on another subnet, and implement the `ITeleporterReceiver` interface to receive messages on the destination subnet. Teleporter handles all of the Warp message construction and sending, as well as the message delivery and execution.
+The Teleporter protocol, on the other hand, is implemented at the smart contract level, and is a user-friendly interface to AWM, aimed at dApp developers. All of the message signing and verification is abstracted away from developers. Instead, developers simply call `sendCrossChainMessage` on the `TeleporterMessenger` contract to send a message invoking a smart contract on another Avalanche L1, and implement the `ITeleporterReceiver` interface to receive messages on the destination Avalanche L!. Teleporter handles all of the Warp message construction and sending, as well as the message delivery and execution.
 
-To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subnets on a Local Network](https://docs.avax.network/tooling/cli-cross-chain/teleporter-on-local-networks)
+To get started with using Teleporter, see [How to Deploy Teleporter Enabled Avalanche L1s on a Local Network](https://docs.avax.network/tooling/cli-cross-chain/teleporter-on-local-networks)
 
 - [Deployed Addresses](#deployed-addresses)
 - [A Note on Versioning](#a-note-on-versioning)
@@ -21,8 +21,8 @@ To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subn
 - [E2E tests](#e2e-tests)
   - [Run specific E2E tests](#run-specific-e2e-tests)
 - [Upgradability](#upgradability)
-- [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet)
-- [Deploy TeleporterRegistry to a Subnet](#deploy-teleporterregistry-to-a-subnet)
+- [Deploy Teleporter to an L1](#deploy-teleporter-to-an-avalanche-l1)
+- [Deploy TeleporterRegistry to an L1](#deploy-teleporterregistry-to-an-avalanche-l1)
 - [ABI Bindings](#abi-bindings)
 - [Docs](#docs)
 - [Resources](#resources)
@@ -35,9 +35,9 @@ To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subn
 | `TeleporterRegistry`  | **0x7C43605E14F391720e1b37E49C78C4b03A488d98** | Mainnet C-Chain          |
 | `TeleporterRegistry`  | **0xF86Cb19Ad8405AEFa7d09C778215D2Cb6eBfB228** | Fuji C-Chain             |
 
-- Using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#), `TeleporterMessenger` deploys at a universal address across all chains, varying with each `teleporter` Major release. **Compatibility exists only between same-version `TeleporterMessenger` instances.** See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet) for more details.
+- Using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#), `TeleporterMessenger` deploys at a universal address across all chains, varying with each `teleporter` Major release. **Compatibility exists only between same-version `TeleporterMessenger` instances.** See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to an Avalanche L1](#deploy-teleporter-to-an-avalanche-l1) for more details.
 
-- `TeleporterRegistry` can be deployed to any address. See [Deploy TeleporterRegistry to a Subnet](#deploy-teleporterregistry-to-a-subnet) for details. The table above enumerates the canonical registry addresses on the Mainnet and Fuji C-Chains.
+- `TeleporterRegistry` can be deployed to any address. See [Deploy TeleporterRegistry to an Avalanche L1](#deploy-teleporterregistry-to-an-avalanche-l1) for details. The table above enumerates the canonical registry addresses on the Mainnet and Fuji C-Chains.
 
 ## A Note on Versioning
 
@@ -98,7 +98,7 @@ GINKGO_FOCUS="Calculate Teleporter" ./scripts/e2e_test.sh
 The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test cases and run them together. For example, to run all E2E tests for the example cross chain applications:
 
 ```bash
-	ginkgo.It("Send native tokens from subnet A to B and back",
+	ginkgo.It("Send native tokens from L1 A to B and back",
 		ginkgo.Label("cross chain apps"),
 		func() {
 			flows.NativeTokenBridge(LocalNetworkInstance)
@@ -113,11 +113,11 @@ GINKGO_LABEL_FILTER="cross chain apps" ./scripts/e2e_test.sh
 
 The Teleporter contract is non-upgradeable and can not be changed once it is deployed. This provides immutability to the contracts, and ensures that the contract's behavior at each address is unchanging. However, to allow for new features and potential bug fixes, new versions of the Teleporter contract can be deployed to different addresses. The [TeleporterRegistry](./contracts/teleporter/TeleporterRegistry.sol) is used to keep track of the deployed versions of Teleporter, and to provide a standard interface for dApps to interact with the different Teleporter versions.
 
-`TeleporterRegistry` **is not mandatory** for dApps built on top of Teleporter, but dApp's are recommended to leverage the registry to ensure they use the latest Teleporter version available. Another recommendation standard is to have a single canonical `TeleporterRegistry` for each Subnet chain, and unlike the Teleporter contract, the registry does not need to be deployed to the same address on every chain. This means the registry does not need a Nick's method deployment, and can be at different contract addresses on different chains.
+`TeleporterRegistry` **is not mandatory** for dApps built on top of Teleporter, but dApp's are recommended to leverage the registry to ensure they use the latest Teleporter version available. Another recommendation standard is to have a single canonical `TeleporterRegistry` for each Avalanche L1, and unlike the Teleporter contract, the registry does not need to be deployed to the same address on every chain. This means the registry does not need a Nick's method deployment, and can be at different contract addresses on different chains.
 
 For more information on the registry and how to integrate with Teleporter dApps, see the [Upgradability doc](./contracts/teleporter/registry/README.md).
 
-## Deploy Teleporter to a Subnet
+## Deploy Teleporter to an Avalanche L1
 
 From the root of the repo, the TeleporterMessenger contract can be deployed by calling
 
@@ -134,13 +134,13 @@ Options:
 
 - `--private-key <private_key>` Funds the deployer address with the account held by `<private_key>`
 
-To ensure that Teleporter can be deployed to the same address on every EVM based chain, it uses [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c) to deploy from a static deployer address. Teleporter costs exactly `10eth` in the subnet's native gas token to deploy, which must be sent to the deployer address.
+To ensure that Teleporter can be deployed to the same address on every EVM based chain, it uses [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c) to deploy from a static deployer address. Teleporter costs exactly `10eth` in the Avalanche L1's native gas token to deploy, which must be sent to the deployer address.
 
 `deploy_teleporter.sh` will send the necessary native tokens to the deployer address if it is provided with a private key for an account with sufficient funds. Alternatively, the deployer address can be funded externally. The deployer address for each version can be found by looking up the appropriate version at https://github.com/ava-labs/teleporter/releases and downloading `TeleporterMessenger_Deployer_Address_<VERSION>.txt`.
 
-Alternatively for new Subnets, the `TeleporterMessenger` contract can be directly included in the genesis file as documented [here](./contracts/teleporter/README.md#teleporter-messenger-contract-deployment).
+Alternatively for new Avalanche L1s, the `TeleporterMessenger` contract can be directly included in the genesis file as documented [here](./contracts/teleporter/README.md#teleporter-messenger-contract-deployment).
 
-## Deploy TeleporterRegistry to a Subnet
+## Deploy TeleporterRegistry to an Avalanche L1
 
 There should only be one canonical `TeleporterRegistry` deployed for each chain, but if one does not exist, it is recommended to deploy the registry so Teleporter dApps can always use the most recent Teleporter version available. The registry does not need to be deployed to the same address on every chain, and therefore does not need a Nick's method transaction. To deploy, run the following command from the root of the repository:
 

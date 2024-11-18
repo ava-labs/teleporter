@@ -53,7 +53,7 @@ struct ValidatorChurnPeriod {
  * @dev Validator Manager settings, used to initialize the Validator Manager
  */
 struct ValidatorManagerSettings {
-    bytes32 subnetID;
+    bytes32 l1ID;
     uint64 churnPeriodSeconds;
     uint8 maximumChurnPercentage;
 }
@@ -65,7 +65,7 @@ struct ValidatorManagerSettings {
  * and verified by the Validator Manager.
  */
 struct ConversionData {
-    bytes32 subnetID;
+    bytes32 l1ID;
     bytes32 validatorManagerBlockchainID;
     address validatorManagerAddress;
     InitialValidator[] initialValidators;

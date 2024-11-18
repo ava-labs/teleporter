@@ -40,7 +40,7 @@ var _ = ginkgo.BeforeSuite(func() {
 		ctx,
 		"governance-test-local-network",
 		warpGenesisTemplateFile,
-		[]localnetwork.SubnetSpec{
+		[]localnetwork.L1Spec{
 			{
 				Name:       "A",
 				EVMChainID: 12345,

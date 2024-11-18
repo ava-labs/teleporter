@@ -8,9 +8,9 @@ import (
 )
 
 // Tracks information about a test subnet used for executing tests against.
-type SubnetTestInfo struct {
-	SubnetName   string
-	SubnetID     ids.ID
+type L1TestInfo struct {
+	L1Name       string
+	L1ID         ids.ID
 	BlockchainID ids.ID
 	NodeURIs     []string
 	WSClient     ethclient.Client

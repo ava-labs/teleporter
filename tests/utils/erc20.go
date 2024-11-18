@@ -21,7 +21,7 @@ var (
 func DeployExampleERC20(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
-	source interfaces.SubnetTestInfo,
+	source interfaces.L1TestInfo,
 ) (common.Address, *exampleerc20.ExampleERC20) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
@@ -48,7 +48,7 @@ func ERC20Approve(
 	token *exampleerc20.ExampleERC20,
 	spender common.Address,
 	amount *big.Int,
-	source interfaces.SubnetTestInfo,
+	source interfaces.L1TestInfo,
 	senderKey *ecdsa.PrivateKey,
 ) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)

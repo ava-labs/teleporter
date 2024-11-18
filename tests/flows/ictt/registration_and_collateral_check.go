@@ -14,7 +14,7 @@ import (
 
 /**
  * Deploys an ERC20TokenHome contract on the C-Chain
- * Deploys an ERC20TokenRemote contract on Subnet A
+ * Deploys an ERC20TokenRemote contract on L1 A
  * Check sending to  unregistered remote fails
  * Register the ERC20TokenRemote to home contract
  * Check sending to non-collateralized remote fails
@@ -23,12 +23,12 @@ import (
  */
 func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := network.GetTwoSubnets()
+	L1AInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
-	// Deploy an ExampleERC20 on subnet A as the token to be transferred
+	// Deploy an ExampleERC20 on L1 A as the token to be transferred
 	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20Decimals(
 		ctx,
 		fundedKey,
@@ -47,11 +47,11 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 		erc20TokenHomeDecimals,
 	)
 
-	// Deploy a NativeTokenRemote to Subnet A
+	// Deploy a NativeTokenRemote to L1 A
 	nativeTokenRemoteAddressA, _ := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		subnetAInfo,
+		L1AInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -66,9 +66,9 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from C-Chain to Subnet A
+	// Send tokens from C-Chain to L1 A
 	input := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationBlockchainID:            L1AInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressA,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             exampleERC20Address,
@@ -104,7 +104,7 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
-		subnetAInfo,
+		L1AInfo,
 		nativeTokenRemoteAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
@@ -133,7 +133,7 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 		erc20TokenHome,
 		erc20TokenHomeAddress,
 		exampleERC20,
-		subnetAInfo.BlockchainID,
+		L1AInfo.BlockchainID,
 		nativeTokenRemoteAddressA,
 		collateralNeeded,
 		fundedKey,
@@ -180,16 +180,16 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 	Expect(err).Should(BeNil())
 	utils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, amount))
 
-	// Relay the message to subnet A and check for a native token mint withdrawal
+	// Relay the message to L1 A and check for a native token mint withdrawal
 	teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
 		cChainInfo,
-		subnetAInfo,
+		L1AInfo,
 		true,
 		fundedKey,
 	)
 
 	// Verify the recipient received the tokens
-	utils.CheckBalance(ctx, recipientAddress, scaledAmount, subnetAInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, scaledAmount, L1AInfo.RPCClient)
 }

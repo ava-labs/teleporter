@@ -41,7 +41,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
+                    l1ID: DEFAULT_L1_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
@@ -67,7 +67,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
+                    l1ID: DEFAULT_L1_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
@@ -92,7 +92,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
+                    l1ID: DEFAULT_L1_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
@@ -115,7 +115,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
+                    l1ID: DEFAULT_L1_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
@@ -141,7 +141,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
+                    l1ID: DEFAULT_L1_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
@@ -164,7 +164,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
+                    l1ID: DEFAULT_L1_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
@@ -190,7 +190,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
+                    l1ID: DEFAULT_L1_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),
@@ -272,7 +272,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         app.initialize(
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
+                    l1ID: DEFAULT_L1_ID,
                     churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                     maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
                 }),

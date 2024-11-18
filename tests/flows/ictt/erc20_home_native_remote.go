@@ -27,18 +27,18 @@ var (
 
 /**
  * Deploy a ERC20Token on the primary network
- * Deploys NativeTokenRemote to Subnet A and Subnet B
- * Transfers C-Chain example ERC20 tokens to Subnet A as Subnet A's native token
- * Transfer back tokens from Subnet A to C-Chain
+ * Deploys NativeTokenRemote to L1 A and L1 B
+ * Transfers C-Chain example ERC20 tokens to L1 A as L1 A's native token
+ * Transfer back tokens from L1 A to C-Chain
  */
 func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := network.GetTwoSubnets()
+	L1AInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
-	// Deploy an ExampleERC20 on subnet A as the token to be transferred
+	// Deploy an ExampleERC20 on L1 A as the token to be transferred
 	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20Decimals(
 		ctx,
 		fundedKey,
@@ -60,11 +60,11 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 		exampleERC20Decimals,
 	)
 
-	// Deploy a NativeTokenRemote to Subnet A
+	// Deploy a NativeTokenRemote to L1 A
 	nativeTokenRemoteAddressA, nativeTokenRemoteA := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		subnetAInfo,
+		L1AInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -79,7 +79,7 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
-		subnetAInfo,
+		L1AInfo,
 		nativeTokenRemoteAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
@@ -93,7 +93,7 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 		erc20TokenHome,
 		erc20TokenHomeAddress,
 		exampleERC20,
-		subnetAInfo.BlockchainID,
+		L1AInfo.BlockchainID,
 		nativeTokenRemoteAddressA,
 		collateralAmount,
 		fundedKey,
@@ -105,9 +105,9 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from C-Chain to Subnet A
+	// Send tokens from C-Chain to L1 A
 	input := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationBlockchainID:            L1AInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressA,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             exampleERC20Address,
@@ -128,18 +128,18 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 		fundedKey,
 	)
 
-	// Relay the message to subnet A and check for a native token mint withdrawal
+	// Relay the message to L1 A and check for a native token mint withdrawal
 	teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
 		cChainInfo,
-		subnetAInfo,
+		L1AInfo,
 		true,
 		fundedKey,
 	)
 
 	// Verify the recipient received the tokens
-	utils.CheckBalance(ctx, recipientAddress, transferredAmount, subnetAInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmount, L1AInfo.RPCClient)
 
 	// Send back to the home chain and check that ERC20TokenHome received the tokens
 	input_A := nativetokenremote.SendTokensInput{
@@ -155,7 +155,7 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 	amountToSendA := new(big.Int).Div(transferredAmount, big.NewInt(2))
 	receipt, transferredAmount = utils.SendNativeTokenRemote(
 		ctx,
-		subnetAInfo,
+		L1AInfo,
 		nativeTokenRemoteA,
 		nativeTokenRemoteAddressA,
 		input_A,
@@ -166,7 +166,7 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 	receipt = teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
-		subnetAInfo,
+		L1AInfo,
 		cChainInfo,
 		true,
 		fundedKey,

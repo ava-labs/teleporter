@@ -15,8 +15,8 @@ import (
 )
 
 func DeliverToNonExistentContract(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := network.GetTwoSubnets()
+	L1AInfo := network.GetPrimaryNetworkInfo()
+	L1BInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	deployerKey, err := crypto.GenerateKey()
@@ -24,46 +24,46 @@ func DeliverToNonExistentContract(network *localnetwork.LocalNetwork, teleporter
 	deployerAddress := crypto.PubkeyToAddress(deployerKey.PublicKey)
 
 	//
-	// Fund the deployer address on Subnet B
+	// Fund the deployer address on L1 B
 	//
 	ctx := context.Background()
-	log.Info("Funding address on subnet B", "address", deployerAddress.Hex())
+	log.Info("Funding address on L1 B", "address", deployerAddress.Hex())
 
 	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
 	fundDeployerTx := utils.CreateNativeTransferTransaction(
-		ctx, subnetBInfo, fundedKey, deployerAddress, fundAmount,
+		ctx, L1BInfo, fundedKey, deployerAddress, fundAmount,
 	)
-	utils.SendTransactionAndWaitForSuccess(ctx, subnetBInfo, fundDeployerTx)
+	utils.SendTransactionAndWaitForSuccess(ctx, L1BInfo, fundDeployerTx)
 
 	//
-	// Deploy ExampleMessenger to Subnet A, but not to Subnet B
-	// Send a message that should fail to be executed on Subnet B
+	// Deploy ExampleMessenger to L1 A, but not to L1 B
+	// Send a message that should fail to be executed on L1 B
 	//
-	log.Info("Deploying ExampleMessenger to Subnet A")
-	_, subnetAExampleMessenger := utils.DeployTestMessenger(
+	log.Info("Deploying ExampleMessenger to L1 A")
+	_, L1AExampleMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
-		teleporter.TeleporterRegistryAddress(subnetAInfo),
-		subnetAInfo,
+		teleporter.TeleporterRegistryAddress(L1AInfo),
+		L1AInfo,
 	)
 
-	// Derive the eventual address of the destination contract on Subnet B
-	nonce, err := subnetBInfo.RPCClient.NonceAt(ctx, deployerAddress, nil)
+	// Derive the eventual address of the destination contract on L1 B
+	nonce, err := L1BInfo.RPCClient.NonceAt(ctx, deployerAddress, nil)
 	Expect(err).Should(BeNil())
 	destinationContractAddress := crypto.CreateAddress(deployerAddress, nonce)
 
 	//
-	// Call the example messenger contract on Subnet A
+	// Call the example messenger contract on L1 A
 	//
-	log.Info("Calling ExampleMessenger on Subnet A")
+	log.Info("Calling ExampleMessenger on L1 A")
 	message := "Hello, world!"
 	optsA, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, subnetAInfo.EVMChainID)
+		fundedKey, L1AInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := subnetAExampleMessenger.SendMessage(
+	tx, err := L1AExampleMessenger.SendMessage(
 		optsA,
-		subnetBInfo.BlockchainID,
+		L1BInfo.BlockchainID,
 		destinationContractAddress,
 		common.BigToAddress(common.Big0),
 		big.NewInt(0),
@@ -73,14 +73,14 @@ func DeliverToNonExistentContract(network *localnetwork.LocalNetwork, teleporter
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
+	receipt := utils.WaitForTransactionSuccess(ctx, L1AInfo, tx.Hash())
 
 	sendEvent, err := utils.GetEventFromLogs(
 		receipt.Logs,
-		teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage,
+		teleporter.TeleporterMessenger(L1AInfo).ParseSendCrossChainMessage,
 	)
 	Expect(err).Should(BeNil())
-	Expect(sendEvent.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
+	Expect(sendEvent.DestinationBlockchainID[:]).Should(Equal(L1BInfo.BlockchainID[:]))
 
 	teleporterMessageID := sendEvent.MessageID
 
@@ -88,16 +88,16 @@ func DeliverToNonExistentContract(network *localnetwork.LocalNetwork, teleporter
 	// Relay the message to the destination
 	//
 	log.Info("Relaying the message to the destination")
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
+	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, L1AInfo, L1BInfo, true, fundedKey)
 	receiveEvent, err :=
-		utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(subnetAInfo).ParseReceiveCrossChainMessage)
+		utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(L1AInfo).ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 
 	//
 	// Check that the message was successfully relayed
 	//
 	log.Info("Checking the message was successfully relayed")
-	delivered, err := teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(L1BInfo).MessageReceived(
 		&bind.CallOpts{},
 		teleporterMessageID,
 	)
@@ -110,42 +110,42 @@ func DeliverToNonExistentContract(network *localnetwork.LocalNetwork, teleporter
 	log.Info("Checking the message was not successfully executed")
 	executionFailedEvent, err := utils.GetEventFromLogs(
 		receipt.Logs,
-		teleporter.TeleporterMessenger(subnetAInfo).ParseMessageExecutionFailed,
+		teleporter.TeleporterMessenger(L1AInfo).ParseMessageExecutionFailed,
 	)
 	Expect(err).Should(BeNil())
 	Expect(executionFailedEvent.MessageID).Should(Equal(receiveEvent.MessageID))
 
 	//
-	// Deploy the contract on Subnet B
+	// Deploy the contract on L1 B
 	//
-	log.Info("Deploying the contract on Subnet B")
-	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployTestMessenger(
+	log.Info("Deploying the contract on L1 B")
+	exampleMessengerContractB, L1BExampleMessenger := utils.DeployTestMessenger(
 		ctx,
 		deployerKey,
 		deployerAddress,
-		teleporter.TeleporterRegistryAddress(subnetBInfo),
-		subnetBInfo,
+		teleporter.TeleporterRegistryAddress(L1BInfo),
+		L1BInfo,
 	)
 
 	// Confirm that it was deployed at the expected address
 	Expect(exampleMessengerContractB).Should(Equal(destinationContractAddress))
 
 	//
-	// Call retryMessageExecution on Subnet B
+	// Call retryMessageExecution on L1 B
 	//
-	log.Info("Calling retryMessageExecution on Subnet B")
+	log.Info("Calling retryMessageExecution on L1 B")
 	receipt = utils.RetryMessageExecutionAndWaitForAcceptance(
 		ctx,
-		subnetAInfo.BlockchainID,
-		teleporter.TeleporterMessenger(subnetBInfo),
-		subnetBInfo,
+		L1AInfo.BlockchainID,
+		teleporter.TeleporterMessenger(L1BInfo),
+		L1BInfo,
 		receiveEvent.Message,
 		fundedKey,
 	)
 	log.Info("Checking the message was successfully executed")
 	messageExecutedEvent, err := utils.GetEventFromLogs(
 		receipt.Logs,
-		teleporter.TeleporterMessenger(subnetAInfo).ParseMessageExecuted,
+		teleporter.TeleporterMessenger(L1AInfo).ParseMessageExecuted,
 	)
 	Expect(err).Should(BeNil())
 	Expect(messageExecutedEvent.MessageID).Should(Equal(receiveEvent.MessageID))
@@ -154,7 +154,7 @@ func DeliverToNonExistentContract(network *localnetwork.LocalNetwork, teleporter
 	// Verify we received the expected string
 	//
 	log.Info("Verifying we received the expected string")
-	_, currMessage, err := subnetBExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
+	_, currMessage, err := L1BExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, L1AInfo.BlockchainID)
 	Expect(err).Should(BeNil())
 	Expect(currMessage).Should(Equal(message))
 }

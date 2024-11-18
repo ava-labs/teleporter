@@ -14,32 +14,32 @@ import (
 )
 
 /*
- * Registers a erc20 token staking validator on a subnet. The steps are as follows:
+ * Registers a erc20 token staking validator on a L1. The steps are as follows:
  * - Deploy the ERCTokenStakingManager
  * - Initiate validator registration
  * - Deliver the Warp message to the P-Chain (not implemented)
  * - Aggregate P-Chain signatures on the response Warp message
- * - Deliver the Warp message to the subnet
+ * - Deliver the Warp message to the L1
  * - Verify that the validator is registered in the staking contract
  *
- * Delists the validator from the subnet. The steps are as follows:
+ * Delists the validator from the L1. The steps are as follows:
  * - Initiate validator delisting
  * - Deliver the Warp message to the P-Chain (not implemented)
  * - Aggregate P-Chain signatures on the response Warp message
- * - Deliver the Warp message to the subnet
+ * - Deliver the Warp message to the L1
  * - Verify that the validator is delisted from the staking contract
  */
 func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
-	// Get the subnets info
+	// Get the L1s info
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := network.GetTwoSubnets()
+	L1AInfo, _ := network.GetTwoL1s()
 	_, fundedKey := network.GetFundedAccountInfo()
 	pChainInfo := utils.GetPChainInfo(cChainInfo)
 
 	signatureAggregator := utils.NewSignatureAggregator(
 		cChainInfo.NodeURIs[0],
 		[]ids.ID{
-			subnetAInfo.SubnetID,
+			L1AInfo.L1ID,
 		},
 	)
 	ctx := context.Background()
@@ -48,24 +48,24 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 	stakingManagerAddress, stakingManager, _, erc20 := utils.DeployAndInitializeERC20TokenStakingManager(
 		ctx,
 		fundedKey,
-		subnetAInfo,
+		L1AInfo,
 		pChainInfo,
 	)
 
 	nodes := utils.ConvertSubnet(
 		ctx,
-		subnetAInfo,
+		L1AInfo,
 		network.GetPChainWallet(),
 		stakingManagerAddress,
 		fundedKey,
 	)
 
-	// Initialize the validator set on the subnet
+	// Initialize the validator set on the L1
 	log.Println("Initializing validator set")
 	initialValidationIDs := utils.InitializeERC20TokenValidatorSet(
 		ctx,
 		fundedKey,
-		subnetAInfo,
+		L1AInfo,
 		pChainInfo,
 		stakingManager,
 		stakingManagerAddress,
@@ -81,7 +81,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		ctx,
 		signatureAggregator,
 		fundedKey,
-		subnetAInfo,
+		L1AInfo,
 		pChainInfo,
 		stakingManager,
 		stakingManagerAddress,
@@ -100,7 +100,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		ctx,
 		signatureAggregator,
 		fundedKey,
-		subnetAInfo,
+		L1AInfo,
 		pChainInfo,
 		stakingManager,
 		stakingManagerAddress,
@@ -135,7 +135,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		receipt := utils.InitializeERC20DelegatorRegistration(
 			ctx,
 			fundedKey,
-			subnetAInfo,
+			L1AInfo,
 			validationID,
 			delegatorStake,
 			erc20,
@@ -150,30 +150,30 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		delegationID = initRegistrationEvent.DelegationID
 
 		// Gather subnet-evm Warp signatures for the SubnetValidatorWeightUpdateMessage & relay to the P-Chain
-		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, L1AInfo, pChainInfo)
 
 		// Issue a tx to update the validator's weight on the P-Chain
 		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
 		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
-		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
+		utils.AdvanceProposerVM(ctx, L1AInfo, fundedKey, 5)
 
 		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
 		registrationSignedMessage := utils.ConstructSubnetValidatorWeightUpdateMessage(
 			validationID,
 			nonce,
 			newValidatorWeight,
-			subnetAInfo,
+			L1AInfo,
 			pChainInfo,
 			signatureAggregator,
 			network.GetNetworkID(),
 		)
 
-		// Deliver the Warp message to the subnet
+		// Deliver the Warp message to the L1
 		receipt = utils.CompleteERC20DelegatorRegistration(
 			ctx,
 			fundedKey,
 			delegationID,
-			subnetAInfo,
+			L1AInfo,
 			stakingManagerAddress,
 			registrationSignedMessage,
 		)
@@ -196,7 +196,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		receipt := utils.InitializeEndERC20Delegation(
 			ctx,
 			fundedKey,
-			subnetAInfo,
+			L1AInfo,
 			stakingManager,
 			delegationID,
 		)
@@ -210,31 +210,31 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 
 		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
-		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+		signedWarpMessage := utils.ConstructSignedWarpMessage(context.Background(), receipt, L1AInfo, pChainInfo)
 		Expect(err).Should(BeNil())
 
 		// Issue a tx to update the validator's weight on the P-Chain
 		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
 		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
-		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
+		utils.AdvanceProposerVM(ctx, L1AInfo, fundedKey, 5)
 
 		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
 		signedMessage := utils.ConstructSubnetValidatorWeightUpdateMessage(
 			validationID,
 			nonce,
 			nodes[0].Weight,
-			subnetAInfo,
+			L1AInfo,
 			pChainInfo,
 			signatureAggregator,
 			network.GetNetworkID(),
 		)
 
-		// Deliver the Warp message to the subnet
+		// Deliver the Warp message to the L1
 		receipt = utils.CompleteEndERC20Delegation(
 			ctx,
 			fundedKey,
 			delegationID,
-			subnetAInfo,
+			L1AInfo,
 			stakingManagerAddress,
 			signedMessage,
 		)
@@ -256,7 +256,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		ctx,
 		signatureAggregator,
 		fundedKey,
-		subnetAInfo,
+		L1AInfo,
 		pChainInfo,
 		stakingManager,
 		stakingManagerAddress,

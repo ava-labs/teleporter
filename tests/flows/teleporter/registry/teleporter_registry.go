@@ -28,7 +28,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	// Retry the previously failed message execution, verify message is now able to be delivered to dApp
 
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
+	L1AInfo, L1BInfo := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -45,14 +45,14 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		ctx,
 		fundedKey,
 		fundedAddress,
-		teleporter.TeleporterRegistryAddress(subnetBInfo),
-		subnetBInfo,
+		teleporter.TeleporterRegistryAddress(L1BInfo),
+		L1BInfo,
 	)
 
 	// Deploy the new version of Teleporter to both chains
 	var newTeleporterAddress common.Address
-	for _, subnet := range network.GetAllSubnetsInfo() {
-		newTeleporterAddress = utils.DeployNewTeleporterVersion(ctx, teleporter, subnet, fundedKey, teleporterByteCodeFile)
+	for _, l1 := range network.GetAllL1Infos() {
+		newTeleporterAddress = utils.DeployNewTeleporterVersion(ctx, teleporter, l1, fundedKey, teleporterByteCodeFile)
 	}
 
 	networkID := network.GetNetworkID()
@@ -66,15 +66,15 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	)
 	offchainMessageB, warpEnabledChainConfigB := utils.InitOffChainMessageChainConfig(
 		networkID,
-		subnetBInfo,
-		teleporter.TeleporterRegistryAddress(subnetBInfo),
+		L1BInfo,
+		teleporter.TeleporterRegistryAddress(L1BInfo),
 		newTeleporterAddress,
 		2,
 	)
 	offchainMessageA, warpEnabledChainConfigA := utils.InitOffChainMessageChainConfig(
 		networkID,
-		subnetAInfo,
-		teleporter.TeleporterRegistryAddress(subnetAInfo),
+		L1AInfo,
+		teleporter.TeleporterRegistryAddress(L1AInfo),
 		newTeleporterAddress,
 		2,
 	)
@@ -82,8 +82,8 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	// Create chain config with off chain messages
 	chainConfigs := make(utils.ChainConfigMap)
 	chainConfigs.Add(cChainInfo, warpEnabledChainConfigC)
-	chainConfigs.Add(subnetBInfo, warpEnabledChainConfigB)
-	chainConfigs.Add(subnetAInfo, warpEnabledChainConfigA)
+	chainConfigs.Add(L1BInfo, warpEnabledChainConfigB)
+	chainConfigs.Add(L1AInfo, warpEnabledChainConfigA)
 
 	// Restart nodes with new chain config
 	network.SetChainConfigs(chainConfigs)
@@ -91,11 +91,11 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	defer cancel()
 	network.RestartNodes(restartCtx, nil)
 
-	// Call addProtocolVersion on subnetB to register the new Teleporter version
+	// Call addProtocolVersion on L1B to register the new Teleporter version
 	network.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
 		teleporter,
-		subnetBInfo,
+		L1BInfo,
 		newTeleporterAddress,
 		fundedKey,
 		offchainMessageB,
@@ -108,7 +108,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		teleporter,
 		cChainInfo,
 		testMessengerC,
-		subnetBInfo,
+		L1BInfo,
 		testMessengerContractB,
 		testMessengerB,
 		fundedKey,
@@ -117,17 +117,17 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	)
 
 	// Update minimum Teleporter version on destination chain
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, L1BInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 
-	latestVersionB, err := teleporter.TeleporterRegistry(subnetBInfo).LatestVersion(&bind.CallOpts{})
+	latestVersionB, err := teleporter.TeleporterRegistry(L1BInfo).LatestVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	minTeleporterVersion, err := testMessengerB.GetMinTeleporterVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	tx, err := testMessengerB.UpdateMinTeleporterVersion(opts, latestVersionB)
 	Expect(err).Should(BeNil())
 
-	receipt := utils.WaitForTransactionSuccess(ctx, subnetBInfo, tx.Hash())
+	receipt := utils.WaitForTransactionSuccess(ctx, L1BInfo, tx.Hash())
 
 	// Verify that minTeleporterVersion updated
 	minTeleporterVersionUpdatedEvent, err := utils.GetEventFromLogs(
@@ -145,7 +145,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		teleporter,
 		cChainInfo,
 		testMessengerC,
-		subnetBInfo,
+		L1BInfo,
 		testMessengerContractB,
 		testMessengerB,
 		fundedKey,
@@ -154,15 +154,15 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	)
 
 	// Update teleporter with the new TeleporterMessengers
-	for _, subnet := range network.GetAllSubnetsInfo() {
-		teleporter.SetTeleporter(newTeleporterAddress, subnet)
-		teleporter.InitializeBlockchainID(subnet, fundedKey)
+	for _, l1 := range network.GetAllL1Infos() {
+		teleporter.SetTeleporter(newTeleporterAddress, l1)
+		teleporter.InitializeBlockchainID(l1, fundedKey)
 	}
 
 	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		teleporter,
-		subnetBInfo,
+		L1BInfo,
 		testMessengerB,
 		cChainInfo,
 		testMessengerContractC,
@@ -172,7 +172,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		false,
 	)
 
-	// Call addProtocolVersion on subnetA to register the new Teleporter version
+	// Call addProtocolVersion on L1A to register the new Teleporter version
 	network.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
 		teleporter,
@@ -187,7 +187,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		teleporter,
-		subnetBInfo,
+		L1BInfo,
 		testMessengerB,
 		cChainInfo,
 		testMessengerContractC,
@@ -197,18 +197,18 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		true,
 	)
 
-	// To make sure all subnets are using the same Teleporter version, call addProtocolVersion on subnetA
+	// To make sure all L1s are using the same Teleporter version, call addProtocolVersion on L1A
 	// to register the new Teleporter version
 	network.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
 		teleporter,
-		subnetAInfo,
+		L1AInfo,
 		newTeleporterAddress,
 		fundedKey,
 		offchainMessageA,
 	)
 
-	latestVersionA, err := teleporter.TeleporterRegistry(subnetAInfo).LatestVersion(&bind.CallOpts{})
+	latestVersionA, err := teleporter.TeleporterRegistry(L1AInfo).LatestVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	Expect(latestVersionA.Cmp(latestVersionB)).Should(Equal(0))
 
