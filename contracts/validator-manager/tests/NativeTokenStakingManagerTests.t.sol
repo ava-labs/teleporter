@@ -5,6 +5,7 @@
 
 pragma solidity 0.8.25;
 
+import {Test} from "@forge-std/Test.sol";
 import {PoSValidatorManagerTest} from "./PoSValidatorManagerTests.t.sol";
 import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
 import {PoSValidatorManager} from "../PoSValidatorManager.sol";
@@ -256,25 +257,15 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     }
 
     function _expectRewardIssuance(address account, uint256 amount) internal override {
-        vm.mockCall(
-            address(app.NATIVE_MINTER()),
-            abi.encodeCall(INativeMinter.mintNativeCoin, (account, amount)),
-            ""
-        );
-        // empty calldata implies the receive function will be called:
-        vm.mockCall({
-            callee: account,
-            msgValue: amount,
-            data: "", // implies receive()
-            returnData: ""
-        });
-        // Units tests don't have access to the native minter precompile, so use vm.deal instead.
-        vm.deal(account, account.balance + amount);
+        address nativeMinter = address(app.NATIVE_MINTER());
+        bytes memory callData = abi.encodeCall(INativeMinter.mintNativeCoin, (account, amount));
+        vm.mockCall(nativeMinter, callData, "");
+        vm.expectCall(nativeMinter, callData);
     }
 
     function _setUp() internal override returns (IValidatorManager) {
         // Construct the object under test
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new TestableNativeTokenStakingManager(ICMInitializable.Allowed);
         rewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_RATE);
         app.initialize(
             PoSValidatorManagerSettings({
@@ -300,5 +291,15 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function _getStakeAssetBalance(address account) internal view override returns (uint256) {
         return account.balance;
+    }
+}
+
+contract TestableNativeTokenStakingManager is NativeTokenStakingManager, Test {
+    constructor(ICMInitializable init) NativeTokenStakingManager(init) {}
+
+    function _reward(address account, uint256 amount) internal virtual override {
+        super._reward(account, amount);
+        // Units tests don't have access to the native minter precompile, so use vm.deal instead.
+        vm.deal(account, account.balance + amount);
     }
 }
