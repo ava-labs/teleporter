@@ -76,7 +76,7 @@ contract ValidatorMessagesTest is Test {
         assertEq(weight, DEFAULT_WEIGHT);
     }
 
-    function testSubnetValidatorWeightUpdateMessag() public pure {
+    function testSubnetValidatorWeightUpdateMessage() public pure {
         bytes memory packed = ValidatorMessages.packL1ValidatorWeightMessage(
             DEFAULT_VALIDATION_ID, 100, DEFAULT_WEIGHT
         );

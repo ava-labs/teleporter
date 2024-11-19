@@ -61,7 +61,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     event ValidatorWeightUpdate(
         bytes32 indexed validationID,
         uint64 indexed nonce,
-        uint64 validatorWeight,
+        uint64 weight,
         bytes32 setWeightMessageID
     );
 
@@ -1417,7 +1417,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         emit ValidatorWeightUpdate({
             validationID: validationID,
             nonce: expectedNonce,
-            validatorWeight: expectedValidatorWeight,
+            weight: expectedValidatorWeight,
             setWeightMessageID: bytes32(0)
         });
 
