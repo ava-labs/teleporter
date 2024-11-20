@@ -9,7 +9,7 @@ import {Test} from "@forge-std/Test.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
 import {
     PChainOwner,
-    SubnetConversionData,
+    ConversionData,
     InitialValidator
 } from "../interfaces/IValidatorManager.sol";
 
@@ -39,7 +39,7 @@ contract ValidatorMessagesTest is Test {
 
     function testSubnetConversionMessageInvalidInputLength() public {
         bytes memory packed =
-            ValidatorMessages.packSubnetConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
+            ValidatorMessages.packSubnetToL1ConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
         // Invalid length
         bytes memory invalidPacked = new bytes(packed.length - 1);
         for (uint256 i = 0; i < packed.length - 1; i++) {
@@ -48,12 +48,12 @@ contract ValidatorMessagesTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(ValidatorMessages.InvalidMessageLength.selector, 37, 38)
         );
-        ValidatorMessages.unpackSubnetConversionMessage(invalidPacked);
+        ValidatorMessages.unpackSubnetToL1ConversionMessage(invalidPacked);
     }
 
     function testSubnetConversionMessageInvalidCodecID() public {
         bytes memory packed =
-            ValidatorMessages.packSubnetConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
+            ValidatorMessages.packSubnetToL1ConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
 
         // Invalid codec ID
         bytes memory invalidPacked2 = packed;
@@ -61,17 +61,17 @@ contract ValidatorMessagesTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(ValidatorMessages.InvalidCodecID.selector, uint32(1))
         );
-        ValidatorMessages.unpackSubnetConversionMessage(invalidPacked2);
+        ValidatorMessages.unpackSubnetToL1ConversionMessage(invalidPacked2);
     }
 
     function testSubnetConversionMessageInvalidTypeID() public {
         bytes memory packed =
-            ValidatorMessages.packSubnetConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
+            ValidatorMessages.packSubnetToL1ConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
         // Invalid message type
         bytes memory invalidPacked3 = packed;
         invalidPacked3[5] = 0x01;
         vm.expectRevert(ValidatorMessages.InvalidMessageType.selector);
-        ValidatorMessages.unpackSubnetConversionMessage(invalidPacked3);
+        ValidatorMessages.unpackSubnetToL1ConversionMessage(invalidPacked3);
     }
 
     function testRegisterSubnetValidatorMessageInvalidBLSKey() public {
@@ -80,7 +80,7 @@ contract ValidatorMessagesTest is Test {
         bytes memory invalidBLSKey = bytes(
             hex"3456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
         );
-        ValidatorMessages.packRegisterSubnetValidatorMessage(
+        ValidatorMessages.packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 subnetID: DEFAULT_SUBNET_ID,
                 nodeID: DEFAULT_NODE_ID,
@@ -94,7 +94,7 @@ contract ValidatorMessagesTest is Test {
     }
 
     function testRegisterSubnetValidatorMessageInvalidInputLength() public {
-        (, bytes memory packed) = ValidatorMessages.packRegisterSubnetValidatorMessage(
+        (, bytes memory packed) = ValidatorMessages.packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 subnetID: DEFAULT_SUBNET_ID,
                 nodeID: DEFAULT_NODE_ID,
@@ -115,7 +115,7 @@ contract ValidatorMessagesTest is Test {
                 ValidatorMessages.InvalidMessageLength.selector, uint32(193), uint32(194)
             )
         );
-        ValidatorMessages.unpackRegisterSubnetValidatorMessage(invalidPacked);
+        ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked);
 
         // Invalid codec ID
         bytes memory invalidPacked2 = packed;
@@ -123,17 +123,17 @@ contract ValidatorMessagesTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(ValidatorMessages.InvalidCodecID.selector, uint32(1))
         );
-        ValidatorMessages.unpackRegisterSubnetValidatorMessage(invalidPacked2);
+        ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked2);
 
         // Invalid message type
         bytes memory invalidPacked3 = packed;
         invalidPacked3[5] = 0x00;
         vm.expectRevert(ValidatorMessages.InvalidMessageType.selector);
-        ValidatorMessages.unpackRegisterSubnetValidatorMessage(invalidPacked3);
+        ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked3);
     }
 
     function testRegisterSubnetValidatorMessageInvalidCodecID() public {
-        (, bytes memory packed) = ValidatorMessages.packRegisterSubnetValidatorMessage(
+        (, bytes memory packed) = ValidatorMessages.packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 subnetID: DEFAULT_SUBNET_ID,
                 nodeID: DEFAULT_NODE_ID,
@@ -151,11 +151,11 @@ contract ValidatorMessagesTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(ValidatorMessages.InvalidCodecID.selector, uint32(1))
         );
-        ValidatorMessages.unpackRegisterSubnetValidatorMessage(invalidPacked2);
+        ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked2);
     }
 
     function testRegisterSubnetValidatorMessageInvalidTypeID() public {
-        (, bytes memory packed) = ValidatorMessages.packRegisterSubnetValidatorMessage(
+        (, bytes memory packed) = ValidatorMessages.packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 subnetID: DEFAULT_SUBNET_ID,
                 nodeID: DEFAULT_NODE_ID,
@@ -171,12 +171,12 @@ contract ValidatorMessagesTest is Test {
         bytes memory invalidPacked3 = packed;
         invalidPacked3[5] = 0x00;
         vm.expectRevert(ValidatorMessages.InvalidMessageType.selector);
-        ValidatorMessages.unpackRegisterSubnetValidatorMessage(invalidPacked3);
+        ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked3);
     }
 
     function testSubnetValidatorRegistrationMessageInvalidInputLength() public {
         bytes memory packed =
-            ValidatorMessages.packSubnetValidatorRegistrationMessage(DEFAULT_VALIDATION_ID, true);
+            ValidatorMessages.packL1ValidatorRegistrationMessage(DEFAULT_VALIDATION_ID, true);
 
         // Invalid length
         bytes memory invalidPacked = new bytes(packed.length - 1);
@@ -186,12 +186,12 @@ contract ValidatorMessagesTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(ValidatorMessages.InvalidMessageLength.selector, 38, 39)
         );
-        ValidatorMessages.unpackSubnetValidatorRegistrationMessage(invalidPacked);
+        ValidatorMessages.unpackL1ValidatorRegistrationMessage(invalidPacked);
     }
 
     function testSubnetValidatorRegistrationMessageInvalidCodecID() public {
         bytes memory packed =
-            ValidatorMessages.packSubnetValidatorRegistrationMessage(DEFAULT_VALIDATION_ID, true);
+            ValidatorMessages.packL1ValidatorRegistrationMessage(DEFAULT_VALIDATION_ID, true);
 
         // Invalid codec ID
         bytes memory invalidPacked2 = packed;
@@ -199,18 +199,18 @@ contract ValidatorMessagesTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(ValidatorMessages.InvalidCodecID.selector, uint32(1))
         );
-        ValidatorMessages.unpackSubnetValidatorRegistrationMessage(invalidPacked2);
+        ValidatorMessages.unpackL1ValidatorRegistrationMessage(invalidPacked2);
     }
 
     function testSubnetValidatorRegistrationMessageInvalidTypeID() public {
         bytes memory packed =
-            ValidatorMessages.packSubnetValidatorRegistrationMessage(DEFAULT_VALIDATION_ID, true);
+            ValidatorMessages.packL1ValidatorRegistrationMessage(DEFAULT_VALIDATION_ID, true);
 
         // Invalid message type
         bytes memory invalidPacked3 = packed;
         invalidPacked3[5] = 0x01;
         vm.expectRevert(ValidatorMessages.InvalidMessageType.selector);
-        ValidatorMessages.unpackSubnetValidatorRegistrationMessage(invalidPacked3);
+        ValidatorMessages.unpackL1ValidatorRegistrationMessage(invalidPacked3);
     }
 
     function testValidationUptimeMessageInvalidInputLength() public {
@@ -253,7 +253,7 @@ contract ValidatorMessagesTest is Test {
     }
 
     function testSetSubnetValidatorWeightMessageInvalidInputLength() public {
-        bytes memory packed = ValidatorMessages.packSubnetValidatorWeightMessage(
+        bytes memory packed = ValidatorMessages.packL1ValidatorWeightMessage(
             DEFAULT_VALIDATION_ID, 100, DEFAULT_WEIGHT
         );
 
@@ -265,11 +265,11 @@ contract ValidatorMessagesTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(ValidatorMessages.InvalidMessageLength.selector, 53, 54)
         );
-        ValidatorMessages.unpackSubnetValidatorWeightMessage(invalidPacked);
+        ValidatorMessages.unpackL1ValidatorWeightMessage(invalidPacked);
     }
 
     function testSetSubnetValidatorWeightMessageInvalidCodecID() public {
-        bytes memory packed = ValidatorMessages.packSubnetValidatorWeightMessage(
+        bytes memory packed = ValidatorMessages.packL1ValidatorWeightMessage(
             DEFAULT_VALIDATION_ID, 100, DEFAULT_WEIGHT
         );
 
@@ -279,11 +279,11 @@ contract ValidatorMessagesTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(ValidatorMessages.InvalidCodecID.selector, uint32(1))
         );
-        ValidatorMessages.unpackSubnetValidatorWeightMessage(invalidPacked2);
+        ValidatorMessages.unpackL1ValidatorWeightMessage(invalidPacked2);
     }
 
     function testSetSubnetValidatorWeightMessageInvalidTypeID() public {
-        bytes memory packed = ValidatorMessages.packSubnetValidatorWeightMessage(
+        bytes memory packed = ValidatorMessages.packL1ValidatorWeightMessage(
             DEFAULT_VALIDATION_ID, 100, DEFAULT_WEIGHT
         );
 
@@ -291,7 +291,7 @@ contract ValidatorMessagesTest is Test {
         bytes memory invalidPacked3 = packed;
         invalidPacked3[5] = 0x01;
         vm.expectRevert(ValidatorMessages.InvalidMessageType.selector);
-        ValidatorMessages.unpackSubnetValidatorWeightMessage(invalidPacked3);
+        ValidatorMessages.unpackL1ValidatorWeightMessage(invalidPacked3);
     }
 
     function testRegisterSubnetValidatorMessage() public view {
@@ -322,20 +322,20 @@ contract ValidatorMessagesTest is Test {
 
     function testSubnetConversionMessage() public pure {
         bytes memory packed =
-            ValidatorMessages.packSubnetConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
-        bytes32 conversionID = ValidatorMessages.unpackSubnetConversionMessage(packed);
+            ValidatorMessages.packSubnetToL1ConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
+        bytes32 conversionID = ValidatorMessages.unpackSubnetToL1ConversionMessage(packed);
         assertEq(conversionID, DEFAULT_SUBNET_CONVERSION_ID);
     }
 
-    function testPackSubnetConversionData() public pure {
+    function testPackL1ConversionData() public pure {
         InitialValidator[] memory initialValidators = new InitialValidator[](1);
         initialValidators[0] = InitialValidator({
             nodeID: DEFAULT_NODE_ID,
             weight: DEFAULT_WEIGHT,
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
         });
-        bytes memory packed = ValidatorMessages.packSubnetConversionData(
-            SubnetConversionData({
+        bytes memory packed = ValidatorMessages.packConversionData(
+            ConversionData({
                 subnetID: DEFAULT_SUBNET_ID,
                 validatorManagerBlockchainID: DEFAULT_SUBNET_CONVERSION_ID,
                 validatorManagerAddress: DEFAULT_OWNER,
