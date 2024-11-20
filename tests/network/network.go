@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -17,7 +16,6 @@ import (
 	"github.com/ava-labs/avalanchego/genesis"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
-	"github.com/ava-labs/avalanchego/upgrade"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/utils/formatting/address"
 	"github.com/ava-labs/avalanchego/utils/units"
@@ -123,15 +121,15 @@ func NewLocalNetwork(
 	Expect(network).ShouldNot(BeNil())
 
 	// Activate Etna
-	upgrades := upgrade.Default
-	upgrades.EtnaTime = time.Now().Add(-1 * time.Minute)
-	upgradeJSON, err := json.Marshal(upgrades)
-	Expect(err).Should(BeNil())
+	// upgrades := upgrade.Default
+	// upgrades.EtnaTime = time.Now().Add(-1 * time.Minute)
+	// upgradeJSON, err := json.Marshal(upgrades)
+	// Expect(err).Should(BeNil())
 
-	upgradeBase64 := base64.StdEncoding.EncodeToString(upgradeJSON)
-	network.DefaultFlags.SetDefaults(tmpnet.FlagsMap{
-		config.UpgradeFileContentKey: upgradeBase64,
-	})
+	// upgradeBase64 := base64.StdEncoding.EncodeToString(upgradeJSON)
+	// network.DefaultFlags.SetDefaults(tmpnet.FlagsMap{
+	// 	config.UpgradeFileContentKey: upgradeBase64,
+	// })
 
 	avalancheGoBuildPath, ok := os.LookupEnv("AVALANCHEGO_BUILD_PATH")
 	Expect(ok).Should(Equal(true))
@@ -192,6 +190,7 @@ func (n *LocalNetwork) ConvertSubnet(
 	senderKey *ecdsa.PrivateKey,
 	proxy bool,
 ) ([]utils.Node, []ids.ID, *proxyadmin.ProxyAdmin) {
+	goLog.Println("Converting subnet", subnet.SubnetID)
 	cChainInfo := n.GetPrimaryNetworkInfo()
 	pClient := platformvm.NewClient(cChainInfo.NodeURIs[0])
 	currentValidators, err := pClient.GetCurrentValidators(ctx, subnet.SubnetID, nil)
@@ -215,7 +214,7 @@ func (n *LocalNetwork) ConvertSubnet(
 	// Construct the convert subnet info
 	destAddr, err := address.ParseToID(utils.DefaultPChainAddress)
 	Expect(err).Should(BeNil())
-	vdrs := make([]*txs.ConvertSubnetValidator, len(tmpnetNodes))
+	vdrs := make([]*txs.ConvertSubnetToL1Validator, len(tmpnetNodes))
 	for i, node := range tmpnetNodes {
 		signer, err := node.GetProofOfPossession()
 		Expect(err).Should(BeNil())
@@ -224,7 +223,7 @@ func (n *LocalNetwork) ConvertSubnet(
 			NodePoP: signer,
 			Weight:  weights[i],
 		})
-		vdrs[i] = &txs.ConvertSubnetValidator{
+		vdrs[i] = &txs.ConvertSubnetToL1Validator{
 			NodeID:  node.NodeID.Bytes(),
 			Weight:  weights[i],
 			Balance: units.Avax * 100,
@@ -240,7 +239,7 @@ func (n *LocalNetwork) ConvertSubnet(
 		}
 	}
 	pChainWallet := n.GetPChainWallet()
-	_, err = pChainWallet.IssueConvertSubnetTx(
+	_, err = pChainWallet.IssueConvertSubnetToL1Tx(
 		subnet.SubnetID,
 		subnet.BlockchainID,
 		vdrManagerAddress[:],
@@ -253,6 +252,7 @@ func (n *LocalNetwork) ConvertSubnet(
 	utils.PChainProposerVMWorkaround(pChainWallet)
 	utils.AdvanceProposerVM(ctx, subnet, senderKey, 5)
 
+	aggregator := n.GetSignatureAggregator()
 	validationIDs := utils.InitializeValidatorSet(
 		ctx,
 		senderKey,
@@ -260,9 +260,10 @@ func (n *LocalNetwork) ConvertSubnet(
 		utils.GetPChainInfo(cChainInfo),
 		vdrManagerAddress,
 		n.GetNetworkID(),
-		n.GetSignatureAggregator(),
+		aggregator,
 		nodes,
 	)
+	aggregator.Shutdown()
 
 	// Remove the bootstrap nodes as subnet validators
 	for _, vdr := range currentValidators {

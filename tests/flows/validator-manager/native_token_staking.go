@@ -149,7 +149,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		)
 
 		// Issue a tx to update the validator's weight on the P-Chain
-		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
+		network.GetPChainWallet().IssueSetL1ValidatorWeightTx(signedWarpMessage.Bytes())
 		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
 		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
 
@@ -216,7 +216,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		Expect(err).Should(BeNil())
 
 		// Issue a tx to update the validator's weight on the P-Chain
-		network.GetPChainWallet().IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
+		network.GetPChainWallet().IssueSetL1ValidatorWeightTx(signedWarpMessage.Bytes())
 		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
 		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
 

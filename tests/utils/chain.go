@@ -565,7 +565,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	Expect(err).Should(BeNil())
 
 	appRequestNetwork, err := peers.NewNetwork(
-		logging.Off,
+		logging.Verbo,
 		registry,
 		trackedSubnets,
 		messageCreator,
@@ -576,7 +576,11 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 
 	agg, err := aggregator.NewSignatureAggregator(
 		appRequestNetwork,
-		logging.NoLog{},
+		logging.NewLogger("dbg-sig-agg", logging.NewWrappedCore(
+			logging.Verbo,
+			os.Stdout,
+			logging.JSON.ConsoleEncoder(),
+		)),
 		1024,
 		metrics.NewSignatureAggregatorMetrics(prometheus.NewRegistry()),
 		// Setting the etnaTime to a minute ago so that the post-etna code path is used in the test
