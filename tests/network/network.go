@@ -155,7 +155,6 @@ func NewLocalNetwork(
 
 	// Create the P-Chain wallet to issue transactions
 	kc := secp256k1fx.NewKeychain(globalFundedKey)
-	localNetwork.GetAllL1Infos()
 	var l1IDs []ids.ID
 	for _, l1 := range localNetwork.GetAllL1Infos() {
 		l1IDs = append(l1IDs, l1.L1ID)
@@ -203,7 +202,7 @@ func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.L1TestInfo {
 }
 
 // Returns all subnet info sorted in lexicographic order of SubnetName.
-func (n *LocalNetwork) GetSubnetsInfo() []interfaces.L1TestInfo {
+func (n *LocalNetwork) GetL1Infos() []interfaces.L1TestInfo {
 	subnets := make([]interfaces.L1TestInfo, len(n.Network.Subnets))
 	for i, subnet := range n.Network.Subnets {
 		var nodeURIs []string
@@ -235,7 +234,7 @@ func (n *LocalNetwork) GetSubnetsInfo() []interfaces.L1TestInfo {
 
 // Returns L1 info for all L1s, including the primary network
 func (n *LocalNetwork) GetAllL1Infos() []interfaces.L1TestInfo {
-	l1s := n.GetAllL1Infos()
+	l1s := n.GetL1Infos()
 	return append(l1s, n.GetPrimaryNetworkInfo())
 }
 
@@ -387,7 +386,7 @@ func (n *LocalNetwork) GetTwoL1s() (
 	interfaces.L1TestInfo,
 	interfaces.L1TestInfo,
 ) {
-	l1s := n.GetAllL1Infos()
+	l1s := n.GetL1Infos()
 	Expect(len(l1s)).Should(BeNumerically(">=", 2))
 	return l1s[0], l1s[1]
 }
