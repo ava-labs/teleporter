@@ -9,7 +9,6 @@ import (
 	erc20tokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/ERC20TokenRemote"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
-	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -22,7 +21,7 @@ import (
  */
 func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	L1AInfo, _ := network.GetTwoL1s()
+	l1AInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -58,7 +57,7 @@ func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, telepor
 		ctx,
 		teleporter,
 		fundedKey,
-		L1AInfo,
+		l1AInfo,
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenHomeAddress,
@@ -73,7 +72,7 @@ func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, telepor
 		teleporter,
 		cChainInfo,
 		nativeTokenHomeAddress,
-		L1AInfo,
+		l1AInfo,
 		erc20TokenRemoteAddress,
 		fundedKey,
 	)
@@ -85,7 +84,7 @@ func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, telepor
 
 	// Send tokens from C-Chain to recipient on L1 A
 	input := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:            L1AInfo.BlockchainID,
+		DestinationBlockchainID:            l1AInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             wavaxAddress,
@@ -112,7 +111,7 @@ func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, telepor
 		ctx,
 		receipt,
 		cChainInfo,
-		L1AInfo,
+		l1AInfo,
 		true,
 		fundedKey,
 	)
@@ -131,9 +130,9 @@ func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, telepor
 	Expect(balance).Should(Equal(transferredAmount))
 
 	// Fund recipient with gas tokens on L1 A
-	teleporterUtils.SendNativeTransfer(
+	utils.SendNativeTransfer(
 		ctx,
-		L1AInfo,
+		l1AInfo,
 		fundedKey,
 		recipientAddress,
 		big.NewInt(1e18),
@@ -151,18 +150,18 @@ func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, telepor
 	// Send tokens on L1 A back for native tokens on C-Chain
 	receipt, transferredAmount = utils.SendERC20TokenRemote(
 		ctx,
-		L1AInfo,
+		l1AInfo,
 		erc20TokenRemote,
 		erc20TokenRemoteAddress,
 		inputA,
-		teleporterUtils.BigIntSub(transferredAmount, inputA.PrimaryFee),
+		utils.BigIntSub(transferredAmount, inputA.PrimaryFee),
 		recipientKey,
 	)
 
 	receipt = teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
-		L1AInfo,
+		l1AInfo,
 		cChainInfo,
 		true,
 		fundedKey,
@@ -177,5 +176,5 @@ func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, telepor
 		transferredAmount,
 	)
 
-	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmount, cChainInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmount, cChainInfo.RPCClient)
 }

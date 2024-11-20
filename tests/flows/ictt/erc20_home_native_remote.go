@@ -33,7 +33,7 @@ var (
  */
 func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	L1AInfo, _ := network.GetTwoL1s()
+	l1AInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -64,7 +64,7 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 	nativeTokenRemoteAddressA, nativeTokenRemoteA := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		L1AInfo,
+		l1AInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -79,7 +79,7 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
-		L1AInfo,
+		l1AInfo,
 		nativeTokenRemoteAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
@@ -93,7 +93,7 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 		erc20TokenHome,
 		erc20TokenHomeAddress,
 		exampleERC20,
-		L1AInfo.BlockchainID,
+		l1AInfo.BlockchainID,
 		nativeTokenRemoteAddressA,
 		collateralAmount,
 		fundedKey,
@@ -107,7 +107,7 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 
 	// Send tokens from C-Chain to L1 A
 	input := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:            L1AInfo.BlockchainID,
+		DestinationBlockchainID:            l1AInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressA,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             exampleERC20Address,
@@ -133,13 +133,13 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 		ctx,
 		receipt,
 		cChainInfo,
-		L1AInfo,
+		l1AInfo,
 		true,
 		fundedKey,
 	)
 
 	// Verify the recipient received the tokens
-	utils.CheckBalance(ctx, recipientAddress, transferredAmount, L1AInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmount, l1AInfo.RPCClient)
 
 	// Send back to the home chain and check that ERC20TokenHome received the tokens
 	input_A := nativetokenremote.SendTokensInput{
@@ -155,7 +155,7 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 	amountToSendA := new(big.Int).Div(transferredAmount, big.NewInt(2))
 	receipt, transferredAmount = utils.SendNativeTokenRemote(
 		ctx,
-		L1AInfo,
+		l1AInfo,
 		nativeTokenRemoteA,
 		nativeTokenRemoteAddressA,
 		input_A,
@@ -166,7 +166,7 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 	receipt = teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
-		L1AInfo,
+		l1AInfo,
 		cChainInfo,
 		true,
 		fundedKey,

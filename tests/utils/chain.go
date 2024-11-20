@@ -561,6 +561,7 @@ func NewSignatureAggregator(apiUri string, l1IDs []ids.ID) *aggregator.Signature
 		logging.Info,
 		registry,
 		trackedL1s,
+		nil,
 		&cfg,
 	)
 	Expect(err).Should(BeNil())

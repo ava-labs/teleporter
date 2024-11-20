@@ -23,7 +23,7 @@ import (
  */
 func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	L1AInfo, _ := network.GetTwoL1s()
+	l1AInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -51,7 +51,7 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 	nativeTokenRemoteAddressA, _ := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		L1AInfo,
+		l1AInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -68,7 +68,7 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 
 	// Send tokens from C-Chain to L1 A
 	input := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:            L1AInfo.BlockchainID,
+		DestinationBlockchainID:            l1AInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressA,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             exampleERC20Address,
@@ -104,7 +104,7 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
-		L1AInfo,
+		l1AInfo,
 		nativeTokenRemoteAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
@@ -133,7 +133,7 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 		erc20TokenHome,
 		erc20TokenHomeAddress,
 		exampleERC20,
-		L1AInfo.BlockchainID,
+		l1AInfo.BlockchainID,
 		nativeTokenRemoteAddressA,
 		collateralNeeded,
 		fundedKey,
@@ -185,11 +185,11 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 		ctx,
 		receipt,
 		cChainInfo,
-		L1AInfo,
+		l1AInfo,
 		true,
 		fundedKey,
 	)
 
 	// Verify the recipient received the tokens
-	utils.CheckBalance(ctx, recipientAddress, scaledAmount, L1AInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, scaledAmount, l1AInfo.RPCClient)
 }

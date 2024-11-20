@@ -18,8 +18,8 @@ import (
 const newNodeCount = 2
 
 func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	L1AInfo, L1BInfo := network.GetTwoL1s()
-	teleporterContractAddress := teleporter.TeleporterMessengerAddress(L1AInfo)
+	l1AInfo, l1BInfo := network.GetTwoL1s()
+	teleporterContractAddress := teleporter.TeleporterMessengerAddress(l1AInfo)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -27,9 +27,9 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	//
 	// Send a Teleporter message on L1 A
 	//
-	log.Info("Sending Teleporter message on source chain", "destinationBlockchainID", L1BInfo.BlockchainID)
+	log.Info("Sending Teleporter message on source chain", "destinationBlockchainID", l1BInfo.BlockchainID)
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: L1BInfo.BlockchainID,
+		DestinationBlockchainID: l1BInfo.BlockchainID,
 		DestinationAddress:      fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
@@ -42,22 +42,22 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporter.TeleporterMessenger(L1AInfo),
-		L1AInfo,
-		L1BInfo,
+		teleporter.TeleporterMessenger(l1AInfo),
+		l1AInfo,
+		l1BInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
 
 	sendEvent, err := utils.GetEventFromLogs(
 		receipt.Logs,
-		teleporter.TeleporterMessenger(L1AInfo).ParseSendCrossChainMessage,
+		teleporter.TeleporterMessenger(l1AInfo).ParseSendCrossChainMessage,
 	)
 	Expect(err).Should(BeNil())
 	sentTeleporterMessage := sendEvent.Message
 
 	// Construct the signed warp message
-	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, receipt, L1AInfo, L1BInfo)
+	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, receipt, l1AInfo, l1BInfo)
 
 	//
 	// Modify the validator set on L1 A
@@ -66,15 +66,15 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	// Add new nodes to the validator set
 	addValidatorsCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
-	network.AddL1Validators(addValidatorsCtx, L1AInfo.L1ID, newNodeCount)
+	network.AddL1Validators(addValidatorsCtx, l1AInfo.L1ID, newNodeCount)
 
 	// Refresh the L1 info
-	L1AInfo, L1BInfo = network.GetTwoL1s()
+	l1AInfo, l1BInfo = network.GetTwoL1s()
 
 	// Trigger the proposer VM to update its height so that the inner VM can see the new validator set
 	// We have to update all L1s, not just the ones directly involved in this test to ensure that the
 	// proposer VM is updated on all L1s.
-	for _, l1Info := range network.GetL1Infos() {
+	for _, l1Info := range network.GetAllL1Infos() {
 		err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
 			ctx, l1Info.EVMChainID, fundedKey, l1Info.WSClient,
 		)
@@ -91,14 +91,14 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 		sendEvent.Message.RequiredGasLimit,
 		teleporterContractAddress,
 		fundedKey,
-		L1BInfo,
+		l1BInfo,
 	)
 
 	log.Info("Sending transaction to destination chain")
-	utils.SendTransactionAndWaitForFailure(ctx, L1BInfo, signedTx)
+	utils.SendTransactionAndWaitForFailure(ctx, l1BInfo, signedTx)
 
 	// Verify the message was not delivered
-	delivered, err := teleporter.TeleporterMessenger(L1BInfo).MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(l1BInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -108,20 +108,20 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	// Retry sending the message, and attempt to relay again. This should succeed.
 	//
 	log.Info("Retrying message sending on source chain")
-	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, L1AInfo.EVMChainID)
+	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, l1AInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := teleporter.TeleporterMessenger(L1AInfo).RetrySendCrossChainMessage(
+	tx, err := teleporter.TeleporterMessenger(l1AInfo).RetrySendCrossChainMessage(
 		optsA, sentTeleporterMessage,
 	)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt = utils.WaitForTransactionSuccess(ctx, L1AInfo, tx.Hash())
+	receipt = utils.WaitForTransactionSuccess(ctx, l1AInfo, tx.Hash())
 
-	teleporter.RelayTeleporterMessage(ctx, receipt, L1AInfo, L1BInfo, true, fundedKey)
+	teleporter.RelayTeleporterMessage(ctx, receipt, l1AInfo, l1BInfo, true, fundedKey)
 
 	// Verify the message was delivered
-	delivered, err = teleporter.TeleporterMessenger(L1BInfo).MessageReceived(
+	delivered, err = teleporter.TeleporterMessenger(l1BInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())

@@ -24,15 +24,15 @@ import (
 
 // Disallow this test from being run on anything but a local network, since it requires special behavior by the relayer
 func RelayerModifiesMessage(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	L1AInfo := network.GetPrimaryNetworkInfo()
-	L1BInfo, _ := network.GetTwoL1s()
+	l1AInfo := network.GetPrimaryNetworkInfo()
+	l1BInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	// Send a transaction to L1 A to issue a Warp Message from the Teleporter contract to L1 B
 	ctx := context.Background()
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: L1BInfo.BlockchainID,
+		DestinationBlockchainID: l1BInfo.BlockchainID,
 		DestinationAddress:      fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
@@ -44,7 +44,7 @@ func RelayerModifiesMessage(network *localnetwork.LocalNetwork, teleporter utils
 	}
 
 	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, teleporter.TeleporterMessenger(L1AInfo), L1AInfo, L1BInfo, sendCrossChainMessageInput, fundedKey)
+		ctx, teleporter.TeleporterMessenger(l1AInfo), l1AInfo, l1BInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message to the destination
 	// Relayer modifies the message in flight
@@ -52,13 +52,13 @@ func RelayerModifiesMessage(network *localnetwork.LocalNetwork, teleporter utils
 		ctx,
 		teleporter,
 		receipt,
-		L1AInfo,
-		L1BInfo,
+		l1AInfo,
+		l1BInfo,
 		network,
 	)
 
 	// Check Teleporter message was not received on the destination
-	delivered, err := teleporter.TeleporterMessenger(L1BInfo).MessageReceived(&bind.CallOpts{}, messageID)
+	delivered, err := teleporter.TeleporterMessenger(l1BInfo).MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())
 }

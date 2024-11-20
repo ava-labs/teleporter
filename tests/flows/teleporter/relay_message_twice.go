@@ -15,8 +15,8 @@ import (
 )
 
 func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	L1AInfo := network.GetPrimaryNetworkInfo()
-	L1BInfo, _ := network.GetTwoL1s()
+	l1AInfo := network.GetPrimaryNetworkInfo()
+	l1BInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
@@ -25,7 +25,7 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 	ctx := context.Background()
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: L1BInfo.BlockchainID,
+		DestinationBlockchainID: l1BInfo.BlockchainID,
 		DestinationAddress:      fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
@@ -38,22 +38,22 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 
 	log.Info(
 		"Sending Teleporter transaction on source chain",
-		"destinationBlockchainID", L1BInfo.BlockchainID,
+		"destinationBlockchainID", l1BInfo.BlockchainID,
 	)
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, teleporter.TeleporterMessenger(L1AInfo), L1AInfo, L1BInfo, sendCrossChainMessageInput, fundedKey,
+		ctx, teleporter.TeleporterMessenger(l1AInfo), l1AInfo, l1BInfo, sendCrossChainMessageInput, fundedKey,
 	)
 
 	//
 	// Relay the message to the destination
 	//
-	teleporter.RelayTeleporterMessage(ctx, receipt, L1AInfo, L1BInfo, true, fundedKey)
+	teleporter.RelayTeleporterMessage(ctx, receipt, l1AInfo, l1BInfo, true, fundedKey)
 
 	//
 	// Check Teleporter message received on the destination
 	//
 	log.Info("Checking the message was received on the destination")
-	delivered, err := teleporter.TeleporterMessenger(L1BInfo).MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(l1BInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -63,5 +63,5 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 	// Attempt to send the same message again, should fail
 	//
 	log.Info("Relaying the same Teleporter message again on the destination")
-	teleporter.RelayTeleporterMessage(ctx, receipt, L1AInfo, L1BInfo, false, fundedKey)
+	teleporter.RelayTeleporterMessage(ctx, receipt, l1AInfo, l1BInfo, false, fundedKey)
 }

@@ -14,9 +14,9 @@ import (
 
 // Tests basic one-way send from L1 A to L1 B and vice versa
 func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	L1AInfo := network.GetPrimaryNetworkInfo()
-	L1BInfo, _ := network.GetTwoL1s()
-	teleporterContractAddress := teleporter.TeleporterMessengerAddress(L1AInfo)
+	l1AInfo := network.GetPrimaryNetworkInfo()
+	l1BInfo, _ := network.GetTwoL1s()
+	teleporterContractAddress := teleporter.TeleporterMessengerAddress(l1AInfo)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	// Send a transaction to L1 A to issue a ICM Message from the Teleporter contract to L1 B
@@ -25,13 +25,13 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	// Clear the receipt queue from L1 B -> L1 A to have a clean slate for the test flow.
 	// This is only done if the test non-external networks because external networks may have
 	// an arbitrarily high number of receipts to be cleared from a given queue from unrelated messages.
-	network.ClearReceiptQueue(ctx, teleporter, fundedKey, L1BInfo, L1AInfo)
+	teleporter.ClearReceiptQueue(ctx, fundedKey, l1BInfo, l1AInfo)
 
 	feeAmount := big.NewInt(1)
 	feeTokenAddress, feeToken := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
-		L1AInfo,
+		l1AInfo,
 	)
 	utils.ERC20Approve(
 		ctx,
@@ -39,12 +39,12 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 		teleporterContractAddress,
 		big.NewInt(0).Mul(big.NewInt(1e18),
 			big.NewInt(10)),
-		L1AInfo,
+		l1AInfo,
 		fundedKey,
 	)
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: L1BInfo.BlockchainID,
+		DestinationBlockchainID: l1BInfo.BlockchainID,
 		DestinationAddress:      fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: feeTokenAddress,
@@ -57,50 +57,50 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporter.TeleporterMessenger(L1AInfo),
-		L1AInfo,
-		L1BInfo,
+		teleporter.TeleporterMessenger(l1AInfo),
+		l1AInfo,
+		l1BInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
 	expectedReceiptID := teleporterMessageID
 
 	// Relay the message to the destination
-	deliveryReceipt := teleporter.RelayTeleporterMessage(ctx, receipt, L1AInfo, L1BInfo, true, fundedKey)
+	deliveryReceipt := teleporter.RelayTeleporterMessage(ctx, receipt, l1AInfo, l1BInfo, true, fundedKey)
 	receiveEvent, err := utils.GetEventFromLogs(
 		deliveryReceipt.Logs,
-		teleporter.TeleporterMessenger(L1BInfo).ParseReceiveCrossChainMessage)
+		teleporter.TeleporterMessenger(l1BInfo).ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 
 	// Check Teleporter message received on the destination
-	delivered, err := teleporter.TeleporterMessenger(L1BInfo).MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(l1BInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Send a transaction to L1 B to issue a ICM Message from the Teleporter contract to L1 A
-	sendCrossChainMessageInput.DestinationBlockchainID = L1AInfo.BlockchainID
+	sendCrossChainMessageInput.DestinationBlockchainID = l1AInfo.BlockchainID
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporter.TeleporterMessenger(L1BInfo),
-		L1BInfo,
-		L1AInfo,
+		teleporter.TeleporterMessenger(l1BInfo),
+		l1BInfo,
+		l1AInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
 
 	// Relay the message to the destination
-	deliveryReceipt = teleporter.RelayTeleporterMessage(ctx, receipt, L1BInfo, L1AInfo, true, fundedKey)
+	deliveryReceipt = teleporter.RelayTeleporterMessage(ctx, receipt, l1BInfo, l1AInfo, true, fundedKey)
 
 	Expect(utils.CheckReceiptReceived(
 		deliveryReceipt,
 		expectedReceiptID,
-		teleporter.TeleporterMessenger(L1AInfo))).Should(BeTrue())
+		teleporter.TeleporterMessenger(l1AInfo))).Should(BeTrue())
 
 	// Check Teleporter message received on the destination
-	delivered, err = teleporter.TeleporterMessenger(L1AInfo).MessageReceived(
+	delivered, err = teleporter.TeleporterMessenger(l1AInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -110,7 +110,7 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	// transactions on L1 A, then redeem the rewards.
 	if receiveEvent.RewardRedeemer == fundedAddress {
 		utils.RedeemRelayerRewardsAndConfirm(
-			ctx, teleporter.TeleporterMessenger(L1AInfo), L1AInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
+			ctx, teleporter.TeleporterMessenger(l1AInfo), l1AInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
 		)
 	}
 }

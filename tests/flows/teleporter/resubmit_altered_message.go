@@ -14,15 +14,15 @@ import (
 )
 
 func ResubmitAlteredMessage(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	L1AInfo := network.GetPrimaryNetworkInfo()
-	L1BInfo, _ := network.GetTwoL1s()
+	l1AInfo := network.GetPrimaryNetworkInfo()
+	l1BInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	// Send a transaction to L1 A to issue a ICM Message from the Teleporter contract to L1 B
 	ctx := context.Background()
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: L1BInfo.BlockchainID,
+		DestinationBlockchainID: l1BInfo.BlockchainID,
 		DestinationAddress:      fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
@@ -34,20 +34,20 @@ func ResubmitAlteredMessage(network *localnetwork.LocalNetwork, teleporter utils
 	}
 
 	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, teleporter.TeleporterMessenger(L1AInfo), L1AInfo, L1BInfo, sendCrossChainMessageInput, fundedKey)
+		ctx, teleporter.TeleporterMessenger(l1AInfo), l1AInfo, l1BInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message to the destination
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, L1AInfo, L1BInfo, true, fundedKey)
+	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, l1AInfo, l1BInfo, true, fundedKey)
 
 	log.Info("Checking the message was received on the destination")
-	delivered, err := teleporter.TeleporterMessenger(L1BInfo).MessageReceived(&bind.CallOpts{}, messageID)
+	delivered, err := teleporter.TeleporterMessenger(l1BInfo).MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Get the Teleporter message from receive event
 	event, err := utils.GetEventFromLogs(
 		receipt.Logs,
-		teleporter.TeleporterMessenger(L1BInfo).ParseReceiveCrossChainMessage,
+		teleporter.TeleporterMessenger(l1BInfo).ParseReceiveCrossChainMessage,
 	)
 	Expect(err).Should(BeNil())
 	Expect(event.MessageID[:]).Should(Equal(messageID[:]))
@@ -62,9 +62,9 @@ func ResubmitAlteredMessage(network *localnetwork.LocalNetwork, teleporter utils
 
 	// Resubmit the altered message
 	log.Info("Submitting the altered Teleporter message on the source chain")
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, L1AInfo.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, l1AInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := teleporter.TeleporterMessenger(L1AInfo).RetrySendCrossChainMessage(opts, teleporterMessage)
+	tx, err := teleporter.TeleporterMessenger(l1AInfo).RetrySendCrossChainMessage(opts, teleporterMessage)
 	Expect(err).ShouldNot(BeNil())
 
 	// We expect the tx to be nil because the ICM message failed verification, which happens in the predicate

@@ -20,7 +20,7 @@ import (
  */
 func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	L1AInfo, _ := network.GetTwoL1s()
+	l1AInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -47,7 +47,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 	nativeTokenRemoteAddress, nativeTokenRemote := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		L1AInfo,
+		l1AInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -63,7 +63,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		teleporter,
 		cChainInfo,
 		nativeTokenHomeAddress,
-		L1AInfo,
+		l1AInfo,
 		nativeTokenRemoteAddress,
 		initialReserveImbalance,
 		big.NewInt(1),
@@ -76,7 +76,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		cChainInfo,
 		nativeTokenHome,
 		nativeTokenHomeAddress,
-		L1AInfo.BlockchainID,
+		l1AInfo.BlockchainID,
 		nativeTokenRemoteAddress,
 		collateralAmount,
 		fundedKey,
@@ -91,7 +91,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 	{
 		input := nativetokenhome.SendTokensInput{
-			DestinationBlockchainID:            L1AInfo.BlockchainID,
+			DestinationBlockchainID:            l1AInfo.BlockchainID,
 			DestinationTokenTransferrerAddress: nativeTokenRemoteAddress,
 			Recipient:                          recipientAddress,
 			PrimaryFeeTokenAddress:             cChainWAVAXAddress,
@@ -116,7 +116,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 			ctx,
 			receipt,
 			cChainInfo,
-			L1AInfo,
+			l1AInfo,
 			true,
 			fundedKey,
 		)
@@ -125,7 +125,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 			ctx,
 			recipientAddress,
 			amount,
-			L1AInfo.RPCClient,
+			l1AInfo.RPCClient,
 		)
 	}
 
@@ -145,7 +145,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		amount := big.NewInt(0).Div(amount, big.NewInt(2))
 		receipt, transferredAmount := utils.SendNativeTokenRemote(
 			ctx,
-			L1AInfo,
+			l1AInfo,
 			nativeTokenRemote,
 			nativeTokenRemoteAddress,
 			input_A,
@@ -156,7 +156,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		receipt = teleporter.RelayTeleporterMessage(
 			ctx,
 			receipt,
-			L1AInfo,
+			l1AInfo,
 			cChainInfo,
 			true,
 			fundedKey,

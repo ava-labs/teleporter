@@ -25,7 +25,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 	teleporter utils.TeleporterTestInfo,
 ) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	L1AInfo, _ := network.GetTwoL1s()
+	l1AInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -61,7 +61,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 	remoteMockERC20SACRAddress, remoteMockERC20SACR := utils.DeployMockERC20SendAndCallReceiver(
 		ctx,
 		fundedKey,
-		L1AInfo,
+		l1AInfo,
 	)
 
 	// Token representation on L1 A will have same name, symbol, and decimals
@@ -77,7 +77,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 		ctx,
 		teleporter,
 		fundedKey,
-		L1AInfo,
+		l1AInfo,
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20TokenHomeAddress,
@@ -92,7 +92,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
-		L1AInfo,
+		l1AInfo,
 		erc20TokenRemoteAddress,
 		fundedKey,
 	)
@@ -114,7 +114,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 	// Send tokens from C-Chain to Mock contract on L1 A
 	{
 		input := erc20tokenhome.SendAndCallInput{
-			DestinationBlockchainID:            L1AInfo.BlockchainID,
+			DestinationBlockchainID:            l1AInfo.BlockchainID,
 			DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
 			RecipientContract:                  remoteMockERC20SACRAddress,
 			RecipientPayload:                   []byte{1},
@@ -142,7 +142,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 			ctx,
 			receipt,
 			cChainInfo,
-			L1AInfo,
+			l1AInfo,
 			true,
 			fundedKey,
 		)
@@ -167,7 +167,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 	{
 		// Send ERC20 tokens from C-Chain to recipient on L1 A
 		input := erc20tokenhome.SendTokensInput{
-			DestinationBlockchainID:            L1AInfo.BlockchainID,
+			DestinationBlockchainID:            l1AInfo.BlockchainID,
 			DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
 			Recipient:                          recipientAddress,
 			PrimaryFeeTokenAddress:             exampleERC20Address,
@@ -192,7 +192,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 			ctx,
 			receipt,
 			cChainInfo,
-			L1AInfo,
+			l1AInfo,
 			true,
 			fundedKey,
 		)
@@ -216,7 +216,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 		// Fund recipient with gas tokens on L1 A
 		utils.SendNativeTransfer(
 			ctx,
-			L1AInfo,
+			l1AInfo,
 			fundedKey,
 			recipientAddress,
 			big.NewInt(1e18),
@@ -237,7 +237,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 
 		receipt, transferredAmount := utils.SendAndCallERC20TokenRemote(
 			ctx,
-			L1AInfo,
+			l1AInfo,
 			erc20TokenRemote,
 			erc20TokenRemoteAddress,
 			inputB,
@@ -248,7 +248,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 		receipt = teleporter.RelayTeleporterMessage(
 			ctx,
 			receipt,
-			L1AInfo,
+			l1AInfo,
 			cChainInfo,
 			true,
 			fundedKey,

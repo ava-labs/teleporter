@@ -11,8 +11,8 @@ import (
 )
 
 func InsufficientGas(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	L1AInfo := network.GetPrimaryNetworkInfo()
-	L1BInfo, _ := network.GetTwoL1s()
+	l1AInfo := network.GetPrimaryNetworkInfo()
+	l1BInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
 
@@ -21,79 +21,79 @@ func InsufficientGas(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 		ctx,
 		fundedKey,
 		fundedAddress,
-		teleporter.TeleporterRegistryAddress(L1AInfo),
-		L1AInfo,
+		teleporter.TeleporterRegistryAddress(l1AInfo),
+		l1AInfo,
 	)
 	// Deploy TestMessenger to L1s B
 	testMessengerContractB, l1BTestMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
-		teleporter.TeleporterRegistryAddress(L1BInfo),
-		L1BInfo,
+		teleporter.TeleporterRegistryAddress(l1BInfo),
+		l1BInfo,
 	)
 
 	// Send message from L1A to L1B with 0 execution gas, which should fail to execute
 	message := "Hello, world!"
 	optsA, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, L1AInfo.EVMChainID)
+		fundedKey, l1AInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := l1ATestMessenger.SendMessage(
-		optsA, L1BInfo.BlockchainID, testMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message,
+		optsA, l1BInfo.BlockchainID, testMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message,
 	)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt := utils.WaitForTransactionSuccess(ctx, L1AInfo, tx.Hash())
+	receipt := utils.WaitForTransactionSuccess(ctx, l1AInfo, tx.Hash())
 
 	event, err := utils.GetEventFromLogs(
 		receipt.Logs,
-		teleporter.TeleporterMessenger(L1AInfo).ParseSendCrossChainMessage,
+		teleporter.TeleporterMessenger(l1AInfo).ParseSendCrossChainMessage,
 	)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationBlockchainID[:]).Should(Equal(L1BInfo.BlockchainID[:]))
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(l1BInfo.BlockchainID[:]))
 
 	messageID := event.MessageID
 
 	// Relay message from L1A to L1B
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, L1AInfo, L1BInfo, true, fundedKey)
+	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, l1AInfo, l1BInfo, true, fundedKey)
 
 	// Check Teleporter message received on the destination
 	delivered, err :=
-		teleporter.TeleporterMessenger(L1BInfo).MessageReceived(&bind.CallOpts{}, messageID)
+		teleporter.TeleporterMessenger(l1BInfo).MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Check message execution failed event
 	failedMessageExecutionEvent, err := utils.GetEventFromLogs(
-		receipt.Logs, teleporter.TeleporterMessenger(L1BInfo).ParseMessageExecutionFailed,
+		receipt.Logs, teleporter.TeleporterMessenger(l1BInfo).ParseMessageExecutionFailed,
 	)
 	Expect(err).Should(BeNil())
 	Expect(failedMessageExecutionEvent.MessageID[:]).Should(Equal(messageID[:]))
-	Expect(failedMessageExecutionEvent.SourceBlockchainID[:]).Should(Equal(L1AInfo.BlockchainID[:]))
+	Expect(failedMessageExecutionEvent.SourceBlockchainID[:]).Should(Equal(l1AInfo.BlockchainID[:]))
 
 	// Retry message execution. This will execute the message with as much gas as needed
 	// (up to the transaction gas limit), rather than using the required gas specified in the message itself.
 	receipt = utils.RetryMessageExecutionAndWaitForAcceptance(
 		ctx,
-		L1AInfo.BlockchainID,
-		teleporter.TeleporterMessenger(L1BInfo),
-		L1BInfo,
+		l1AInfo.BlockchainID,
+		teleporter.TeleporterMessenger(l1BInfo),
+		l1BInfo,
 		failedMessageExecutionEvent.Message,
 		fundedKey,
 	)
 	executedEvent, err := utils.GetEventFromLogs(
 		receipt.Logs,
-		teleporter.TeleporterMessenger(L1BInfo).ParseMessageExecuted,
+		teleporter.TeleporterMessenger(l1BInfo).ParseMessageExecuted,
 	)
 	Expect(err).Should(BeNil())
 	Expect(executedEvent.MessageID[:]).Should(Equal(messageID[:]))
-	Expect(executedEvent.SourceBlockchainID[:]).Should(Equal(L1AInfo.BlockchainID[:]))
+	Expect(executedEvent.SourceBlockchainID[:]).Should(Equal(l1AInfo.BlockchainID[:]))
 
 	//
 	// Verify we received the expected string
 	//
-	_, currMessage, err := l1BTestMessenger.GetCurrentMessage(&bind.CallOpts{}, L1AInfo.BlockchainID)
+	_, currMessage, err := l1BTestMessenger.GetCurrentMessage(&bind.CallOpts{}, l1AInfo.BlockchainID)
 	Expect(err).Should(BeNil())
 	Expect(currMessage).Should(Equal(message))
 }

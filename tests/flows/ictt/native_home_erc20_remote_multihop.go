@@ -8,7 +8,6 @@ import (
 	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
-	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	. "github.com/onsi/gomega"
@@ -23,7 +22,7 @@ import (
  */
 func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	L1AInfo, L1BInfo := network.GetTwoL1s()
+	l1AInfo, l1BInfo := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -57,7 +56,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		ctx,
 		teleporter,
 		fundedKey,
-		L1AInfo,
+		l1AInfo,
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenHomeAddress,
@@ -72,7 +71,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		ctx,
 		teleporter,
 		fundedKey,
-		L1BInfo,
+		l1BInfo,
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenHomeAddress,
@@ -88,7 +87,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		teleporter,
 		cChainInfo,
 		nativeTokenHomeAddress,
-		L1AInfo,
+		l1AInfo,
 		erc20TokenRemoteAddressA,
 		fundedKey,
 	)
@@ -98,7 +97,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		teleporter,
 		cChainInfo,
 		nativeTokenHomeAddress,
-		L1BInfo,
+		l1BInfo,
 		erc20TokenRemoteAddressB,
 		fundedKey,
 	)
@@ -110,7 +109,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 
 	// Send tokens from C-Chain to recipient on L1 A
 	input := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:            L1AInfo.BlockchainID,
+		DestinationBlockchainID:            l1AInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: erc20TokenRemoteAddressA,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             wavaxAddress,
@@ -128,7 +127,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		nativeTokenHomeAddress,
 		wavax,
 		input,
-		teleporterUtils.BigIntSub(amount, input.PrimaryFee),
+		utils.BigIntSub(amount, input.PrimaryFee),
 		fundedKey,
 	)
 
@@ -137,7 +136,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		ctx,
 		receipt,
 		cChainInfo,
-		L1AInfo,
+		l1AInfo,
 		true,
 		fundedKey,
 	)
@@ -163,10 +162,10 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		fundedKey,
 		recipientKey,
 		recipientAddress,
-		L1AInfo,
+		l1AInfo,
 		erc20TokenRemoteA,
 		erc20TokenRemoteAddressA,
-		L1BInfo,
+		l1BInfo,
 		erc20TokenRemoteB,
 		erc20TokenRemoteAddressB,
 		cChainInfo,

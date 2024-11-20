@@ -14,14 +14,14 @@ import (
 )
 
 func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	L1AInfo := network.GetPrimaryNetworkInfo()
-	L1BInfo, L1CInfo := network.GetTwoL1s()
+	l1AInfo := network.GetPrimaryNetworkInfo()
+	l1BInfo, L1CInfo := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
 	// Get the expected teleporter message ID for L1 C
 	//
-	expectedAtoCMessageID, err := teleporter.TeleporterMessenger(L1AInfo).GetNextMessageID(
+	expectedAtoCMessageID, err := teleporter.TeleporterMessenger(l1AInfo).GetNextMessageID(
 		&bind.CallOpts{},
 		L1CInfo.BlockchainID,
 	)
@@ -32,7 +32,7 @@ func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.Te
 	//
 	ctx := context.Background()
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: L1BInfo.BlockchainID, // Message intended for L1B
+		DestinationBlockchainID: l1BInfo.BlockchainID, // Message intended for L1B
 		DestinationAddress:      common.HexToAddress("0x1111111111111111111111111111111111111111"),
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
@@ -45,19 +45,19 @@ func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.Te
 
 	log.Info(
 		"Sending Teleporter transaction on source chain",
-		"destinationBlockchainID", L1BInfo.BlockchainID,
+		"destinationBlockchainID", l1BInfo.BlockchainID,
 	)
 
 	receipt, _ := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporter.TeleporterMessenger(L1AInfo),
-		L1AInfo,
-		L1BInfo,
+		teleporter.TeleporterMessenger(l1AInfo),
+		l1AInfo,
+		l1BInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
 
-	teleporter.RelayTeleporterMessage(ctx, receipt, L1AInfo, L1CInfo, false, fundedKey)
+	teleporter.RelayTeleporterMessage(ctx, receipt, l1AInfo, L1CInfo, false, fundedKey)
 
 	//
 	// Check that the message was not received on the L1 C

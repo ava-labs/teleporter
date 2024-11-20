@@ -475,7 +475,6 @@ abstract contract ValidatorManagerTest is Test {
         _mockSendWarpMessage(setWeightMessage, bytes32(0));
         if (includeUptime) {
             _mockGetUptimeWarpMessage(uptimeMessage, true);
-            _mockGetBlockchainID();
         }
 
         vm.warp(completionTimestamp);

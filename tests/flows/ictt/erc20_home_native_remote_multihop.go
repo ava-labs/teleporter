@@ -24,7 +24,7 @@ import (
 */
 func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	L1AInfo, L1BInfo := network.GetTwoL1s()
+	l1AInfo, l1BInfo := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 	nativeTokenRemoteAddressA, nativeTokenRemoteA := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		L1AInfo,
+		l1AInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -68,7 +68,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 	nativeTokenRemoteAddressB, nativeTokenRemoteB := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		L1BInfo,
+		l1BInfo,
 		"SUBB",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -84,7 +84,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
-		L1AInfo,
+		l1AInfo,
 		nativeTokenRemoteAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
@@ -97,7 +97,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
-		L1BInfo,
+		l1BInfo,
 		nativeTokenRemoteAddressB,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
@@ -112,7 +112,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		erc20TokenHome,
 		erc20TokenHomeAddress,
 		exampleERC20,
-		L1AInfo.BlockchainID,
+		l1AInfo.BlockchainID,
 		nativeTokenRemoteAddressA,
 		collateralAmountA,
 		fundedKey,
@@ -124,7 +124,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		erc20TokenHome,
 		erc20TokenHomeAddress,
 		exampleERC20,
-		L1BInfo.BlockchainID,
+		l1BInfo.BlockchainID,
 		nativeTokenRemoteAddressB,
 		collateralAmountB,
 		fundedKey,
@@ -140,7 +140,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 
 	// Send tokens from C-Chain to L1 A
 	inputA := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:            L1AInfo.BlockchainID,
+		DestinationBlockchainID:            l1AInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressA,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             exampleERC20Address,
@@ -165,17 +165,17 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		ctx,
 		receipt,
 		cChainInfo,
-		L1AInfo,
+		l1AInfo,
 		true,
 		fundedKey,
 	)
 
 	// Verify the recipient received the tokens
-	utils.CheckBalance(ctx, recipientAddress, transferredAmountA, L1AInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmountA, l1AInfo.RPCClient)
 
 	// Send tokens from C-Chain to L1 B
 	inputB := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:            L1BInfo.BlockchainID,
+		DestinationBlockchainID:            l1BInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressB,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             exampleERC20Address,
@@ -200,13 +200,13 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		ctx,
 		receipt,
 		cChainInfo,
-		L1BInfo,
+		l1BInfo,
 		true,
 		fundedKey,
 	)
 
 	// Verify the recipient received the tokens
-	utils.CheckBalance(ctx, recipientAddress, transferredAmountB, L1BInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmountB, l1BInfo.RPCClient)
 
 	// Multi-hop transfer to L1 B
 	// Send half of the received amount to account for gas expenses
@@ -217,10 +217,10 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		teleporter,
 		fundedKey,
 		recipientAddress,
-		L1AInfo,
+		l1AInfo,
 		nativeTokenRemoteA,
 		nativeTokenRemoteAddressA,
-		L1BInfo,
+		l1BInfo,
 		nativeTokenRemoteB,
 		nativeTokenRemoteAddressB,
 		cChainInfo,
@@ -235,10 +235,10 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		teleporter,
 		fundedKey,
 		recipientAddress,
-		L1BInfo,
+		l1BInfo,
 		nativeTokenRemoteB,
 		nativeTokenRemoteAddressB,
-		L1AInfo,
+		l1AInfo,
 		nativeTokenRemoteA,
 		nativeTokenRemoteAddressA,
 		cChainInfo,

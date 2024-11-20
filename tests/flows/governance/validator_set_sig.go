@@ -150,7 +150,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	// ************************************************************************************************
 
 	// Execute the ValidatorSetSig executeCall and wait for acceptance
-	receipt := network.ExecuteValidatorSetSigCallAndVerify(
+	receipt := utils.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
 		L1B,
 		L1A,
@@ -172,7 +172,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 
 	// Resend the same message again and it should fail due to nonce being consumed
 
-	_ = network.ExecuteValidatorSetSigCallAndVerify(
+	_ = utils.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
 		L1B,
 		L1A,
@@ -188,7 +188,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	Expect(endingBalance).Should(Equal(big.NewInt(100)))
 
 	// Send another valid transaction with the incremented nonce
-	receipt2 := network.ExecuteValidatorSetSigCallAndVerify(
+	receipt2 := utils.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
 		L1B,
 		L1A,
@@ -219,7 +219,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 
 	// Send the third transaction where the validatorSetSig contract expects validator signatures
 	// from the same chain that it is deployed on.
-	receipt3 := network.ExecuteValidatorSetSigCallAndVerify(
+	receipt3 := utils.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
 		L1B,
 		L1B,
