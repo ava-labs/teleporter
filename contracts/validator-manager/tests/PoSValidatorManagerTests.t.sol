@@ -1524,7 +1524,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validationID, bytes32(0), DEFAULT_WEIGHT, DEFAULT_COMPLETION_TIMESTAMP
         );
 
-        _initializeEndValidation(validationID, true);
+        _initializeEndValidation(validationID, true, address(0));
     }
 
     function testInitializeEndValidationInsufficientUptime() public {
@@ -1548,7 +1548,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             )
         );
 
-        _initializeEndValidation(validationID, true);
+        _initializeEndValidation(validationID, true, address(0));
     }
 
     function testInitializeEndValidationPoAValidator() public {
@@ -1563,7 +1563,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             defaultInitialValidationID, bytes32(0), DEFAULT_WEIGHT, DEFAULT_COMPLETION_TIMESTAMP
         );
 
-        _initializeEndValidation(defaultInitialValidationID, false);
+        _initializeEndValidation(defaultInitialValidationID, false, address(0));
     }
 
     function testForceInitializeEndValidation() public {
@@ -1603,7 +1603,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validationID, bytes32(0), DEFAULT_WEIGHT, DEFAULT_COMPLETION_TIMESTAMP
         );
 
-        _forceInitializeEndValidation(validationID, true);
+        _forceInitializeEndValidation(validationID, true, address(0));
     }
 
     function testValueToWeightTruncated() public {
@@ -1658,26 +1658,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     function _initializeEndValidation(
         bytes32 validationID,
-        bool includeUptime
-    ) internal virtual override {
-        posValidatorManager.initializeEndValidation(validationID, includeUptime, 0);
-    }
-
-    function _initializeEndValidation(
-        bytes32 validationID,
         bool includeUptime,
         address recipientAddress
     ) internal virtual override {
         posValidatorManager.initializeEndValidation(
             validationID, includeUptime, 0, recipientAddress
         );
-    }
-
-    function _forceInitializeEndValidation(
-        bytes32 validationID,
-        bool includeUptime
-    ) internal virtual override {
-        posValidatorManager.forceInitializeEndValidation(validationID, includeUptime, 0);
     }
 
     function _forceInitializeEndValidation(
