@@ -10,7 +10,6 @@ import (
 	erc20tokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/ERC20TokenRemote"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
-	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -60,7 +59,7 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		uint8(1),
 	)
 	Expect(err).Should(BeNil())
-	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
+	utils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
 
 	// Deploy a TransparentUpgradeableProxy contract on primary network for the ERC20TokenHome logic contract
 	erc20TokenHomeAddress, proxyAdmin, erc20TokenHome := utils.DeployTransparentUpgradeableProxy(
@@ -80,7 +79,7 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		tokenDecimals,
 	)
 	Expect(err).Should(BeNil())
-	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
+	utils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
 
 	// Deploy the ERC20TokenRemote contract on Subnet A
 	erc20TokenRemoteAddress, erc20TokenRemote := utils.DeployERC20TokenRemote(
@@ -165,15 +164,15 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		uint8(1),
 	)
 	Expect(err).Should(BeNil())
-	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
+	utils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
 
 	// Upgrade the TransparentUpgradeableProxy contract to use the new logic contract
 	tx, err = proxyAdmin.UpgradeAndCall(opts, erc20TokenHomeAddress, newLogic, []byte{})
 	Expect(err).Should(BeNil())
-	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
+	utils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
 
 	// Send a transfer from Subnet A back to primary network
-	teleporterUtils.SendNativeTransfer(
+	utils.SendNativeTransfer(
 		ctx,
 		subnetAInfo,
 		fundedKey,
@@ -196,7 +195,7 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		erc20TokenRemote,
 		erc20TokenRemoteAddress,
 		inputB,
-		teleporterUtils.BigIntSub(transferredAmount, inputB.PrimaryFee),
+		utils.BigIntSub(transferredAmount, inputB.PrimaryFee),
 		recipientKey,
 	)
 

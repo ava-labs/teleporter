@@ -51,9 +51,8 @@ func PauseTeleporter(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 	Expect(isPaused).Should(BeTrue())
 
 	// Send a message from subnet A to subnet B, which should fail
-	network.SendExampleCrossChainMessageAndVerify(
+	teleporter.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporter,
 		subnetAInfo,
 		testMessengerA,
 		subnetBInfo,
@@ -78,9 +77,8 @@ func PauseTeleporter(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 	Expect(isPaused).Should(BeFalse())
 
 	// Send a message from subnet A to subnet B again, which should now succeed
-	network.SendExampleCrossChainMessageAndVerify(
+	teleporter.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporter,
 		subnetAInfo,
 		testMessengerA,
 		subnetBInfo,

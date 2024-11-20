@@ -9,7 +9,6 @@ import (
 	erc20tokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/ERC20TokenRemote"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
-	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -131,7 +130,7 @@ func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, telepor
 	Expect(balance).Should(Equal(transferredAmount))
 
 	// Fund recipient with gas tokens on subnet A
-	teleporterUtils.SendNativeTransfer(
+	utils.SendNativeTransfer(
 		ctx,
 		subnetAInfo,
 		fundedKey,
@@ -155,7 +154,7 @@ func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, telepor
 		erc20TokenRemote,
 		erc20TokenRemoteAddress,
 		inputA,
-		teleporterUtils.BigIntSub(transferredAmount, inputA.PrimaryFee),
+		utils.BigIntSub(transferredAmount, inputA.PrimaryFee),
 		recipientKey,
 	)
 
@@ -177,5 +176,5 @@ func NativeTokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, telepor
 		transferredAmount,
 	)
 
-	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmount, cChainInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmount, cChainInfo.RPCClient)
 }
