@@ -7,7 +7,7 @@ pragma solidity 0.8.25;
 import {PChainOwner, ConversionData} from "./interfaces/IValidatorManager.sol";
 
 /**
- * @dev Packing utilities for the Warp message types used by the Validator Manager contracts, as specified in ACP-77:
+ * @dev Packing utilities for the ICM message types used by the Validator Manager contracts, as specified in ACP-77:
  * https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets
  */
 library ValidatorMessages {
@@ -148,7 +148,7 @@ library ValidatorMessages {
      *                           +------------------------+
      *
      * @dev Input validation is skipped, since the returned value is intended to be compared
-     * directly with an authenticated Warp message.
+     * directly with an authenticated ICM message.
      * @param conversionData The struct representing data to pack into the message.
      * @return The packed message.
      */

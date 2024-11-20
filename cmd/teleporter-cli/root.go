@@ -22,7 +22,7 @@ var rootCmd = &cobra.Command{
 	Short: "A CLI that integrates with the Teleporter protocol",
 	Long: `A CLI that integrates with the Teleporter protocol, and allows you
 to debug Teleporter on chain activity. The CLI can help decode
-Teleporter and Warp events, as well as parsing Teleporter messages.`,
+TeleporterMessenger and ICM events, as well as parsing Teleporter messages.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

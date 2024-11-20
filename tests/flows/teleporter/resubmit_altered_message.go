@@ -18,7 +18,7 @@ func ResubmitAlteredMessage(network *localnetwork.LocalNetwork, teleporter utils
 	L1BInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	// Send a transaction to L1 A to issue a Warp Message from the Teleporter contract to L1 B
+	// Send a transaction to L1 A to issue a ICM Message from the Teleporter contract to L1 B
 	ctx := context.Background()
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
@@ -67,7 +67,7 @@ func ResubmitAlteredMessage(network *localnetwork.LocalNetwork, teleporter utils
 	tx, err := teleporter.TeleporterMessenger(L1AInfo).RetrySendCrossChainMessage(opts, teleporterMessage)
 	Expect(err).ShouldNot(BeNil())
 
-	// We expect the tx to be nil because the Warp message failed verification, which happens in the predicate
+	// We expect the tx to be nil because the ICM message failed verification, which happens in the predicate
 	// In that case, the block is never built, and the transaction is never mined
 	Expect(tx).Should(BeNil())
 }

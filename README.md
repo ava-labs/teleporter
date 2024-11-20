@@ -2,13 +2,13 @@
   <img width="85%" alt="teleporter" src="resources/TeleporterLogo.png?raw=true"/>
 </p>
 
-To get started with building applications on top of Teleporter, refer to [the avalanche-starter-kit repository](https://github.com/ava-labs/avalanche-starter-kit). This README is focused on the development of the Teleporter protocol itself.
+To get started with building ICM contracts, refer to [the avalanche-starter-kit repository](https://github.com/ava-labs/avalanche-starter-kit). This README is focused on the development of the `TeleporterMessenger` contract itself.
 
-Teleporter is an EVM compatible cross-L1 communication protocol built on top of [Avalanche Warp Messaging (AWM)](https://docs.avax.network/learn/avalanche/awm), and implemented as a Solidity smart contract. It provides a mechanism to asynchronously invoke smart contract functions on other EVM blockchains within Avalanche. Teleporter provides a handful of useful features on top of AWM, such as specifying relayer incentives for message delivery, replay protection, message delivery and execution retries, and a standard interface for sending and receiving messages within a dApp deployed across multiple Avalanche L1s.
+`TeleporterMessenger` is an EVM compatible cross-L1 communication protocol built on top of [Avalanche Interchain Messaging (ICM)](https://academy.avax.network/course/interchain-messaging/04-icm-basics/01-icm-basics), and implemented as a Solidity smart contract. It provides a mechanism to asynchronously invoke smart contract functions on other EVM blockchains within Avalanche. `TeleporterMessenger` provides a handful of useful features of ICM, such as specifying relayer incentives for message delivery, replay protection, message delivery and execution retries, and a standard interface for sending and receiving messages within a dApp deployed across multiple Avalanche L1s.
 
-It's important to understand the distinction between Avalanche Warp Messaging and Teleporter. AWM allows Avalanche L1s to communicate with each other via authenticated messages by providing signing and verification primitives in Avalanchego. These are used by the blockchain VMs to sign outgoing messages and verify incoming messages.
+It's important to understand the distinction between Avalanche I Messaging and Teleporter. AWM allows Avalanche L1s to communicate with each other via authenticated messages by providing signing and verification primitives in Avalanchego. These are used by the blockchain VMs to sign outgoing messages and verify incoming messages.
 
-The Teleporter protocol, on the other hand, is implemented at the smart contract level, and is a user-friendly interface to AWM, aimed at dApp developers. All of the message signing and verification is abstracted away from developers. Instead, developers simply call `sendCrossChainMessage` on the `TeleporterMessenger` contract to send a message invoking a smart contract on another Avalanche L1, and implement the `ITeleporterReceiver` interface to receive messages on the destination Avalanche L!. Teleporter handles all of the Warp message construction and sending, as well as the message delivery and execution.
+The `TeleporterMessenger` contract is a user-friendly interface to ICM, aimed at dApp developers. All of the message signing and verification is abstracted away from developers. Instead, developers simply call `sendCrossChainMessage` on the `TeleporterMessenger` contract to send a message invoking a smart contract on another Avalanche L1, and implement the `ITeleporterReceiver` interface to receive messages on the destination Avalanche L1. Teleporter handles all of the ICM message construction and sending, as well as the message delivery and execution.
 
 To get started with using Teleporter, see [How to Deploy Teleporter Enabled Avalanche L1s on a Local Network](https://docs.avax.network/tooling/cli-cross-chain/teleporter-on-local-networks)
 
@@ -21,7 +21,7 @@ To get started with using Teleporter, see [How to Deploy Teleporter Enabled Aval
 - [E2E tests](#e2e-tests)
   - [Run specific E2E tests](#run-specific-e2e-tests)
 - [Upgradability](#upgradability)
-- [Deploy Teleporter to an L1](#deploy-teleporter-to-an-avalanche-l1)
+- [Deploy TeleporterMessenger to an L1](#deploy-teleportermessenger-to-an-avalanche-l1)
 - [Deploy TeleporterRegistry to an L1](#deploy-teleporterregistry-to-an-avalanche-l1)
 - [ABI Bindings](#abi-bindings)
 - [Docs](#docs)
@@ -35,7 +35,7 @@ To get started with using Teleporter, see [How to Deploy Teleporter Enabled Aval
 | `TeleporterRegistry`  | **0x7C43605E14F391720e1b37E49C78C4b03A488d98** | Mainnet C-Chain          |
 | `TeleporterRegistry`  | **0xF86Cb19Ad8405AEFa7d09C778215D2Cb6eBfB228** | Fuji C-Chain             |
 
-- Using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#), `TeleporterMessenger` deploys at a universal address across all chains, varying with each `teleporter` Major release. **Compatibility exists only between same-version `TeleporterMessenger` instances.** See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to an Avalanche L1](#deploy-teleporter-to-an-avalanche-l1) for more details.
+- Using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#), `TeleporterMessenger` deploys at a universal address across all chains, varying with each `teleporter` Major release. **Compatibility exists only between same-version `TeleporterMessenger` instances.** See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to an Avalanche L1](#deploy-teleportermessenger-to-an-avalanche-l1) for more details.
 
 - `TeleporterRegistry` can be deployed to any address. See [Deploy TeleporterRegistry to an Avalanche L1](#deploy-teleporterregistry-to-an-avalanche-l1) for details. The table above enumerates the canonical registry addresses on the Mainnet and Fuji C-Chains.
 
@@ -117,7 +117,7 @@ The Teleporter contract is non-upgradeable and can not be changed once it is dep
 
 For more information on the registry and how to integrate with Teleporter dApps, see the [Upgradability doc](./contracts/teleporter/registry/README.md).
 
-## Deploy Teleporter to an Avalanche L1
+## Deploy TeleporterMessenger to an Avalanche L1
 
 From the root of the repo, the TeleporterMessenger contract can be deployed by calling
 

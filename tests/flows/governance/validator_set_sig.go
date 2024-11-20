@@ -20,7 +20,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	// Deploy ValidatorSetSig expecting signatures from L1B instances to both L1s
 	// Deploy exampleERC20 instance to both L1s
 	// Construct ValidatorSetSig message with mock ERC20 as the target contract
-	// Create off-chain Warp messages using the ValidatorSetSig message to be signed by the L1B
+	// Create off-chain ICM messages using the ValidatorSetSig message to be signed by the L1B
 	// ************************************************************************************************
 	// Test Case 1: validatorChain (L1B) != targetChain (L1A)
 	// ************************************************************************************************
@@ -128,7 +128,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 
 	// Create chain config file with off-chain validatorsetsig message
 	networkID := network.GetNetworkID()
-	offchainMessages, warpEnabledChainConfigWithMsg := utils.InitOffChainMessageChainConfigValidatorSetSig(
+	offchainMessages, icmEnabledChainConfigWithMsg := utils.InitOffChainMessageChainConfigValidatorSetSig(
 		networkID,
 		L1B,
 		validatorSetSigContractAddress,
@@ -137,7 +137,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 
 	// Create chain config with off-chain messages
 	chainConfigs := make(utils.ChainConfigMap)
-	chainConfigs.Add(L1B, warpEnabledChainConfigWithMsg)
+	chainConfigs.Add(L1B, icmEnabledChainConfigWithMsg)
 
 	// Restart nodes with new chain config
 	network.SetChainConfigs(chainConfigs)

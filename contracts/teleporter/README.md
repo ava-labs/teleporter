@@ -2,7 +2,7 @@
 
 ## Overview
 
-Teleporter is a messaging protocol built on top of [Avalanche Warp Messaging (AWM)](https://docs.avax.network/learn/avalanche/awm) that provides a developer-friendly interface for sending and receiving cross-chain messages from within the EVM.
+Teleporter is a messaging protocol built on top of [Avalanche Interchain Messaging (ICM)](https://docs.avax.network/learn/avalanche/awm) that provides a developer-friendly interface for sending and receiving cross-chain messages from within the EVM.
 
 The `ITeleporterMessenger` interface provides two primary methods:
 
@@ -23,17 +23,17 @@ The `ITeleporterReceiver` interface provides a single method. All contracts that
 
 ## Properties
 
-Teleporter provides a handful of useful properties to cross-chain applications that Avalanche Warp Messages do not provide by default. These include:
+TeleporterMessenger provides a handful of useful properties to cross-chain applications that ICM messages do not provide by default. These include:
 
 1. Replay protection: Teleporter ensures that a cross-chain message is not delivered multiple times.
-2. Retries: In certain edge cases when there is significant validator churn, it is possible for an Avalanche Warp Message to be dropped before a valid aggregate signature is created for it. Teleporter ensures that messages can still be delivered even in this event by allowing for retries of previously submitted messages.
+2. Retries: In certain edge cases when there is significant validator churn, it is possible for an ICM Message to be dropped before a valid aggregate signature is created for it. Teleporter ensures that messages can still be delivered even in this event by allowing for retries of previously submitted messages.
 3. Relay incentivization: Teleporter provides a mechanism for messages to optionally incentivize relayers to perform the necessary signature aggregation and pay the transaction fee to broadcast the signed message on the destination chain.
 4. Allowed relayers: Teleporter allows users to specify a list of `allowedRelayerAddresses`, where only the specified addresses can relay and deliver the Teleporter message. Leaving this list empty allows all relayers to deliver.
 5. Message execution: Teleporter enables cross-chain messages to have direct effect on their destination chain by using `evm.Call()` to invoke the `receiveTeleporterMessage` function of destination contracts that implement the `ITeleporterReceiver` interface.
 
 ## Fees
 
-Fees can be paid on a per message basis by specifing the ERC20 asset and amount to be used to incentivize a relayer to deliver the message in the call to `sendCrossChainMessage`. The fee amount is transferred into the control of the Teleporter contract (i.e. locked) before the Warp message is sent. The Teleporter contract tracks the fee amount for each message ID it creates. When it subsequently receives a message back from the destination chain of the original message, the new message will have a list of receipts identifying the relayer that delivered the given message ID. At this point, the fee amount originally locked by Teleporter for the given message will be redeemable by the relayer identified in the receipt. If the initial fee amount was not sufficient to incentivize a relayer, it can be added to by using `addFeeAmount`.
+Fees can be paid on a per message basis by specifing the ERC20 asset and amount to be used to incentivize a relayer to deliver the message in the call to `sendCrossChainMessage`. The fee amount is transferred into the control of the Teleporter contract (i.e. locked) before the ICM message is sent. The Teleporter contract tracks the fee amount for each message ID it creates. When it subsequently receives a message back from the destination chain of the original message, the new message will have a list of receipts identifying the relayer that delivered the given message ID. At this point, the fee amount originally locked by Teleporter for the given message will be redeemable by the relayer identified in the receipt. If the initial fee amount was not sufficient to incentivize a relayer, it can be added to by using `addFeeAmount`.
 
 ### Message Receipts and Fee Redemption
 
@@ -61,9 +61,9 @@ Note that due to [EIP-150](https://eips.ethereum.org/EIPS/eip-150), the lesser o
 
 ## Resending a Message
 
-If the sending Avalanche L1's validator set changes, then it's possible for the receiving Avalanche L1 to reject the underlying Warp message due to insufficient signing stake. For example, suppose L1 A has 5 validators with equal stake weight who all sign a Teleporter message sent to L1 B. 100% of L1 A's stake has signed the message. Also suppose L1 B requires 67% of the sending L1's stake to have signed a given Warp message in order for it to be accepted. Before the message can be delivered, however, 5 _more_ validators are added to L1 A's validator set (all with the same stake weight as the original validators), meaning that the Teleporter message was signed by _only 50%_ of L1 A's stake. L1 B will reject this message.
+If the sending Avalanche L1's validator set changes, then it's possible for the receiving Avalanche L1 to reject the underlying ICM message due to insufficient signing stake. For example, suppose L1 A has 5 validators with equal stake weight who all sign a Teleporter message sent to L1 B. 100% of L1 A's stake has signed the message. Also suppose L1 B requires 67% of the sending L1's stake to have signed a given ICM message in order for it to be accepted. Before the message can be delivered, however, 5 _more_ validators are added to L1 A's validator set (all with the same stake weight as the original validators), meaning that the Teleporter message was signed by _only 50%_ of L1 A's stake. L1 B will reject this message.
 
-Once sent on chain, Warp messages cannot be re-signed by a new validator set in such a scenario. Teleporter, however, does support re-signing via the function `retrySendCrossChainMessage`, which can be called for any message that has not been acknowledged as delivered to its destination. Under the hood, this packages the Teleporter message into a brand new Warp message that is re-signed by the current validator set. 
+Once sent on chain, ICM messages cannot be re-signed by a new validator set in such a scenario. Teleporter, however, does support re-signing via the function `retrySendCrossChainMessage`, which can be called for any message that has not been acknowledged as delivered to its destination. Under the hood, this packages the Teleporter message into a brand new ICM message that is re-signed by the current validator set. 
 
 ## Teleporter Messenger Contract Deployment
 
