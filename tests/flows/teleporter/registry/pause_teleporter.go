@@ -36,7 +36,9 @@ func PauseTeleporter(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 
 	// Pause Teleporter on L1 B
 	opts, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, l1BInfo.EVMChainID)
+		fundedKey,
+		l1BInfo.EVMChainID,
+	)
 	Expect(err).Should(BeNil())
 	tx, err := testMessengerB.PauseTeleporterAddress(opts, teleporterAddress)
 	Expect(err).Should(BeNil())

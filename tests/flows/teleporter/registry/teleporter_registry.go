@@ -151,7 +151,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	)
 
 	// Update teleporter with the new TeleporterMessengers
-	for _, l1 := range network.GetL1Infos() {
+	for _, l1 := range network.GetAllL1Infos() {
 		teleporter.SetTeleporter(newTeleporterAddress, l1)
 		teleporter.InitializeBlockchainID(l1, fundedKey)
 	}
@@ -181,9 +181,9 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	// Teleporter versions should match, so message should be received successfully.
 	teleporter.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		l1AInfo,
-		testMessengerB,
 		l1BInfo,
+		testMessengerB,
+		cChainInfo,
 		testMessengerContractC,
 		testMessengerC,
 		fundedKey,
