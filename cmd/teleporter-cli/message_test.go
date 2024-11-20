@@ -23,7 +23,7 @@ func TestMessageCmd(t *testing.T) {
 			name: "help",
 			args: []string{"message", "--help"},
 			err:  nil,
-			out:  "Given the hex encoded bytes of a Teleporter message",
+			out:  "Given the hex encoded bytes of a TeleporterMessenger message",
 		},
 	}
 
