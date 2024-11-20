@@ -674,6 +674,36 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
     }
 
+    function testChangeDelegatorRewardRecipientWithNullAddress() public {
+        bytes32 validationID = _registerDefaultValidator();
+        bytes32 delegationID = _registerDefaultDelegator(validationID);
+        address rewardRecipient = address(42);
+        address newRewardRecipient = address(0);
+
+        _initializeEndDelegationValidatorActiveWithChecks({
+            validationID: validationID,
+            sender: DEFAULT_DELEGATOR_ADDRESS,
+            delegationID: delegationID,
+            startDelegationTimestamp: DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
+            endDelegationTimestamp: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
+            expectedValidatorWeight: DEFAULT_WEIGHT,
+            expectedNonce: 2,
+            includeUptime: true,
+            force: false,
+            rewardRecipient: rewardRecipient
+        });
+
+        vm.prank(DEFAULT_DELEGATOR_ADDRESS);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                PoSValidatorManager.InvalidRewardRecipient.selector, newRewardRecipient
+            )
+        );
+
+        posValidatorManager.changeDelegatorRewardRecipient(delegationID, newRewardRecipient);
+    }
+
     function testChangeDelegatorRewardRecipient() public {
         bytes32 validationID = _registerDefaultValidator();
         bytes32 delegationID = _registerDefaultDelegator(validationID);
