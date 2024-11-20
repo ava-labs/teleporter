@@ -40,7 +40,6 @@ func DeployValidatorSetSig(
 // and we don't want to add the ValidatorSetSig ABI to the subnetInfo
 func ExecuteValidatorSetSigCallAndVerify(
 	ctx context.Context,
-	network interfaces.Network,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
 	validatorSetSigAddress common.Address,

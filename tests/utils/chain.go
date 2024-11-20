@@ -453,15 +453,6 @@ func GetPChainInfo(cChainInfo interfaces.SubnetTestInfo) interfaces.SubnetTestIn
 	}
 }
 
-func GetTwoSubnets(network interfaces.Network) (
-	interfaces.SubnetTestInfo,
-	interfaces.SubnetTestInfo,
-) {
-	subnets := network.GetSubnetsInfo()
-	Expect(len(subnets)).Should(BeNumerically(">=", 2))
-	return subnets[0], subnets[1]
-}
-
 type ChainConfigMap map[string]string
 
 // Sets the chain config in customChainConfigs for the specified subnet

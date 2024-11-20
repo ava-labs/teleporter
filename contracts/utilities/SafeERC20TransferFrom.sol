@@ -29,8 +29,27 @@ library SafeERC20TransferFrom {
      */
     // solhint-disable private-vars-leading-underscore
     function safeTransferFrom(IERC20 erc20, uint256 amount) internal returns (uint256) {
+        return safeTransferFrom(erc20, msg.sender, amount);
+    }
+    // solhint-enable private-vars-leading-underscore
+
+    /**
+     * @dev Checks the balance of the contract before and after the call to safeTransferFrom, and returns the balance
+     * increase. Designed for safely handling ERC20 "fee on transfer" and "burn on transfer" implementations.
+     *
+     * Supports passing arbitrary sender address values, allowing its use in ERC-2771 compliant meta-transactions.
+     * Note: Contracts that use this function must ensure that users cannot pass arbitrary addresses as
+     * the {from} address for the {transferFrom} call. Proper authorization (such as msg.sender) must
+     * be required to ensure no one can improperly transfer tokens from any address.
+     */
+    // solhint-disable private-vars-leading-underscore
+    function safeTransferFrom(
+        IERC20 erc20,
+        address from,
+        uint256 amount
+    ) internal returns (uint256) {
         uint256 balanceBefore = erc20.balanceOf(address(this));
-        erc20.safeTransferFrom(msg.sender, address(this), amount);
+        erc20.safeTransferFrom(from, address(this), amount);
         uint256 balanceAfter = erc20.balanceOf(address(this));
 
         require(balanceAfter > balanceBefore, "SafeERC20TransferFrom: balance not increased");

@@ -8,7 +8,7 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -17,8 +17,8 @@ import (
 
 const newNodeCount = 2
 
-func ValidatorChurn(network interfaces.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
+func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
+	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
 	teleporterContractAddress := teleporter.TeleporterMessengerAddress(subnetAInfo)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
@@ -69,7 +69,7 @@ func ValidatorChurn(network interfaces.LocalNetwork, teleporter utils.Teleporter
 	network.AddSubnetValidators(addValidatorsCtx, subnetAInfo.SubnetID, newNodeCount)
 
 	// Refresh the subnet info
-	subnetAInfo, subnetBInfo = utils.GetTwoSubnets(network)
+	subnetAInfo, subnetBInfo = network.GetTwoSubnets()
 
 	// Trigger the proposer VM to update its height so that the inner VM can see the new validator set
 	// We have to update all subnets, not just the ones directly involved in this test to ensure that the

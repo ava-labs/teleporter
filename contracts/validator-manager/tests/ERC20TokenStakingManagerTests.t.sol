@@ -30,7 +30,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         _setUp();
         _mockGetBlockchainID();
         _mockInitializeValidatorSet();
-        app.initializeValidatorSet(_defaultSubnetConversionData(), 0);
+        app.initializeValidatorSet(_defaultConversionData(), 0);
     }
 
     function testDisableInitialization() public {

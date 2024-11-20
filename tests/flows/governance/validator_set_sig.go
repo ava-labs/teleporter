@@ -8,12 +8,12 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
 
-func ValidatorSetSig(network interfaces.LocalNetwork) {
+func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	// ************************************************************************************************
 	// Setup
 	// ************************************************************************************************
@@ -36,7 +36,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// ************************************************************************************************
 	// Setup
 	// ************************************************************************************************
-	subnetA, subnetB := utils.GetTwoSubnets(network)
+	subnetA, subnetB := network.GetTwoSubnets()
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -150,9 +150,8 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// ************************************************************************************************
 
 	// Execute the ValidatorSetSig executeCall and wait for acceptance
-	receipt := utils.ExecuteValidatorSetSigCallAndVerify(
+	receipt := network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
 		subnetB,
 		subnetA,
 		validatorSetSigContractAddress,
@@ -173,9 +172,8 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 
 	// Resend the same message again and it should fail due to nonce being consumed
 
-	_ = utils.ExecuteValidatorSetSigCallAndVerify(
+	_ = network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
 		subnetB,
 		subnetA,
 		validatorSetSigContractAddress,
@@ -190,9 +188,8 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	Expect(endingBalance).Should(Equal(big.NewInt(100)))
 
 	// Send another valid transaction with the incremented nonce
-	receipt2 := utils.ExecuteValidatorSetSigCallAndVerify(
+	receipt2 := network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
 		subnetB,
 		subnetA,
 		validatorSetSigContractAddress,
@@ -222,9 +219,8 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 
 	// Send the third transaction where the validatorSetSig contract expects validator signatures
 	// from the same chain that it is deployed on.
-	receipt3 := utils.ExecuteValidatorSetSigCallAndVerify(
+	receipt3 := network.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
-		network,
 		subnetB,
 		subnetB,
 		validatorSetSigContractAddress2,

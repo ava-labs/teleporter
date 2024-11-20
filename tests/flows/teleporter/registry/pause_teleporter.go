@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/teleporter/tests/interfaces"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
 
-func PauseTeleporter(network interfaces.Network, teleporter utils.TeleporterTestInfo) {
+func PauseTeleporter(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := utils.GetTwoSubnets(network)
+	subnetBInfo, _ := network.GetTwoSubnets()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
@@ -51,7 +51,7 @@ func PauseTeleporter(network interfaces.Network, teleporter utils.TeleporterTest
 	Expect(isPaused).Should(BeTrue())
 
 	// Send a message from subnet A to subnet B, which should fail
-	utils.SendExampleCrossChainMessageAndVerify(
+	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		teleporter,
 		subnetAInfo,
@@ -61,7 +61,8 @@ func PauseTeleporter(network interfaces.Network, teleporter utils.TeleporterTest
 		testMessengerB,
 		fundedKey,
 		"message_1",
-		false)
+		false,
+	)
 
 	// Unpause Teleporter on subnet B
 	tx, err = testMessengerB.UnpauseTeleporterAddress(opts, teleporterAddress)
@@ -77,7 +78,7 @@ func PauseTeleporter(network interfaces.Network, teleporter utils.TeleporterTest
 	Expect(isPaused).Should(BeFalse())
 
 	// Send a message from subnet A to subnet B again, which should now succeed
-	utils.SendExampleCrossChainMessageAndVerify(
+	network.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		teleporter,
 		subnetAInfo,
@@ -87,5 +88,6 @@ func PauseTeleporter(network interfaces.Network, teleporter utils.TeleporterTest
 		testMessengerB,
 		fundedKey,
 		"message_2",
-		true)
+		true,
+	)
 }
