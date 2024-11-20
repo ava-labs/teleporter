@@ -7,11 +7,7 @@ pragma solidity 0.8.25;
 
 import {Test} from "@forge-std/Test.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
-import {
-    PChainOwner,
-    ConversionData,
-    InitialValidator
-} from "../interfaces/IValidatorManager.sol";
+import {PChainOwner, ConversionData, InitialValidator} from "../interfaces/IValidatorManager.sol";
 
 contract ValidatorMessagesTest is Test {
     bytes32 public constant DEFAULT_SUBNET_ID =
@@ -94,17 +90,7 @@ contract ValidatorMessagesTest is Test {
     }
 
     function testRegisterSubnetValidatorMessageInvalidInputLength() public {
-        (, bytes memory packed) = ValidatorMessages.packRegisterL1ValidatorMessage(
-            ValidatorMessages.ValidationPeriod({
-                subnetID: DEFAULT_SUBNET_ID,
-                nodeID: DEFAULT_NODE_ID,
-                registrationExpiry: DEFAULT_EXPIRY,
-                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-                remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
-                disableOwner: DEFAULT_P_CHAIN_OWNER,
-                weight: DEFAULT_WEIGHT
-            })
-        );
+        bytes memory packed = _getPackedRegisterL1ValidatorMessage();
         // Invalid length
         bytes memory invalidPacked = new bytes(packed.length - 1);
         for (uint256 i = 0; i < packed.length - 1; i++) {
@@ -118,7 +104,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked);
 
         // Invalid codec ID
-        bytes memory invalidPacked2 = packed;
+        bytes memory invalidPacked2 = _getPackedRegisterL1ValidatorMessage();
         invalidPacked2[1] = 0x01;
         vm.expectRevert(
             abi.encodeWithSelector(ValidatorMessages.InvalidCodecID.selector, uint32(1))
@@ -126,7 +112,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked2);
 
         // Invalid message type
-        bytes memory invalidPacked3 = packed;
+        bytes memory invalidPacked3 = _getPackedRegisterL1ValidatorMessage();
         invalidPacked3[5] = 0x00;
         vm.expectRevert(ValidatorMessages.InvalidMessageType.selector);
         ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked3);
@@ -383,5 +369,20 @@ contract ValidatorMessagesTest is Test {
             ValidatorMessages.unpackValidationUptimeMessage(packed);
         assertEq(validationID, DEFAULT_VALIDATION_ID);
         assertEq(uptime, 100);
+    }
+
+    function _getPackedRegisterL1ValidatorMessage() internal returns (bytes memory) {
+        (, bytes memory packed) = ValidatorMessages.packRegisterL1ValidatorMessage(
+            ValidatorMessages.ValidationPeriod({
+                subnetID: DEFAULT_SUBNET_ID,
+                nodeID: DEFAULT_NODE_ID,
+                registrationExpiry: DEFAULT_EXPIRY,
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+                remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+                disableOwner: DEFAULT_P_CHAIN_OWNER,
+                weight: DEFAULT_WEIGHT
+            })
+        );
+        return packed;
     }
 }

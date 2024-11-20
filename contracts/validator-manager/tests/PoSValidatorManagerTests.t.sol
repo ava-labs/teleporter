@@ -697,15 +697,14 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             expectedNonce: 1
         });
 
-        uint64 validatorEndTime = DEFAULT_REGISTRATION_TIMESTAMP;
         bytes memory setWeightMessage =
             ValidatorMessages.packL1ValidatorWeightMessage(validationID, 2, 0);
         bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
-            validationID, validatorEndTime - DEFAULT_REGISTRATION_TIMESTAMP
+            validationID, DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         );
         _initializeEndValidation({
             validationID: validationID,
-            completionTimestamp: validatorEndTime,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
             setWeightMessage: setWeightMessage,
             includeUptime: true,
             uptimeMessage: uptimeMessage,
@@ -715,7 +714,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _setUpCompleteDelegatorRegistrationWithChecks(
             validationID,
             delegationID,
-            validatorEndTime + 1,
+            DEFAULT_COMPLETION_TIMESTAMP + 1,
             DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
             1
         );
@@ -1208,7 +1207,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory setWeightMessage =
             ValidatorMessages.packL1ValidatorWeightMessage(validationID, 1, 0);
         bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
-            validationID, 1
+            validationID, DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         );
 
         _initializeEndValidation({
@@ -1376,19 +1375,16 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 validationID = _registerDefaultValidator();
         bytes32 delegationID = _initializeDefaultDelegatorRegistration(validationID);
 
-        bytes memory setWeightMessage =
-            ValidatorMessages.packL1ValidatorWeightMessage(validationID, 1, 0);
+        // bytes memory setWeightMessage =
+        //     ValidatorMessages.packL1ValidatorWeightMessage(validationID, 1, 0);
         bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
             validationID, DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         );
-        _initializeEndValidation({
-            validationID: validationID,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
-            setWeightMessage: setWeightMessage,
-            includeUptime: true,
-            uptimeMessage: uptimeMessage,
-            force: false
-        });
+
+        _mockGetUptimeWarpMessage(uptimeMessage, true);
+        _mockGetBlockchainID();
+        vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
+        _initializeEndValidation(validationID, true);
 
         _setUpCompleteDelegatorRegistrationWithChecks(
             validationID, delegationID, DEFAULT_COMPLETION_TIMESTAMP + 1, 0, 2
@@ -1431,19 +1427,16 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 validationID = _registerDefaultValidator();
         bytes32 delegationID = _initializeDefaultDelegatorRegistration(validationID);
 
-        bytes memory setWeightMessage =
-            ValidatorMessages.packL1ValidatorWeightMessage(validationID, 1, 0);
+        // bytes memory setWeightMessage =
+        //     ValidatorMessages.packL1ValidatorWeightMessage(validationID, 1, 0);
         bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
             validationID, DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         );
-        _initializeEndValidation({
-            validationID: validationID,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
-            setWeightMessage: setWeightMessage,
-            includeUptime: true,
-            uptimeMessage: uptimeMessage,
-            force: false
-        });
+
+        _mockGetUptimeWarpMessage(uptimeMessage, true);
+        _mockGetBlockchainID();
+        vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
+        _initializeEndValidation(validationID, true);
 
         _setUpCompleteDelegatorRegistrationWithChecks(
             validationID, delegationID, DEFAULT_COMPLETION_TIMESTAMP + 1, 0, 2
