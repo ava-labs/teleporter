@@ -13,8 +13,8 @@ import (
 
 var messageCmd = &cobra.Command{
 	Use:   "message MESSAGE_BYTES",
-	Short: "Decodes hex encoded Teleporter message bytes into a TeleporterMessage struct",
-	Long: `Given the hex encoded bytes of a Teleporter message, this command will decode
+	Short: "Decodes hex encoded TeleporterMessenger message bytes into a TeleporterMessage struct",
+	Long: `Given the hex encoded bytes of a TeleporterMessenger message, this command will decode
 the bytes into a TeleporterMessage struct and print the struct fields.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -25,7 +25,7 @@ the bytes into a TeleporterMessage struct and print the struct fields.`,
 		msg := teleportermessenger.TeleporterMessage{}
 		err = msg.Unpack(b)
 		cobra.CheckErr(err)
-		logger.Info("Teleporter Message unpacked", zap.Any("message", msg))
+		logger.Info("TeleporterMessenger Message unpacked", zap.Any("message", msg))
 		cmd.Println("Message command ran successfully")
 	},
 }
