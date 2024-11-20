@@ -74,7 +74,7 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	// Trigger the proposer VM to update its height so that the inner VM can see the new validator set
 	// We have to update all L1s, not just the ones directly involved in this test to ensure that the
 	// proposer VM is updated on all L1s.
-	for _, l1Info := range network.GetAllL1Infos() {
+	for _, l1Info := range network.GetL1Infos() {
 		err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
 			ctx, l1Info.EVMChainID, fundedKey, l1Info.WSClient,
 		)

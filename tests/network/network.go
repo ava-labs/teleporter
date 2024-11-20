@@ -35,7 +35,7 @@ import (
 type LocalNetwork struct {
 	tmpnet.Network
 
-	extraNodes               []*tmpnet.Node // to add as more subnet validators in the tests
+	extraNodes               []*tmpnet.Node // to add as more l1 validators in the tests
 	primaryNetworkValidators []ids.NodeID
 	globalFundedKey          *ecdsa.PrivateKey
 	pChainWallet             pwallet.Wallet
@@ -156,7 +156,7 @@ func NewLocalNetwork(
 	// Create the P-Chain wallet to issue transactions
 	kc := secp256k1fx.NewKeychain(globalFundedKey)
 	var l1IDs []ids.ID
-	for _, l1 := range localNetwork.GetAllL1Infos() {
+	for _, l1 := range localNetwork.GetL1Infos() {
 		l1IDs = append(l1IDs, l1.L1ID)
 	}
 	wallet, err := primary.MakeWallet(ctx, &primary.WalletConfig{
@@ -201,18 +201,18 @@ func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.L1TestInfo {
 	}
 }
 
-// Returns all subnet info sorted in lexicographic order of SubnetName.
+// Returns all L1 info sorted in lexicographic order of L1Name.
 func (n *LocalNetwork) GetL1Infos() []interfaces.L1TestInfo {
-	subnets := make([]interfaces.L1TestInfo, len(n.Network.Subnets))
-	for i, subnet := range n.Network.Subnets {
+	l1s := make([]interfaces.L1TestInfo, len(n.Network.Subnets))
+	for i, l1 := range n.Network.Subnets {
 		var nodeURIs []string
-		for _, nodeID := range subnet.ValidatorIDs {
+		for _, nodeID := range l1.ValidatorIDs {
 			uri, err := n.Network.GetURIForNodeID(nodeID)
 			Expect(err).Should(BeNil())
 
 			nodeURIs = append(nodeURIs, uri)
 		}
-		blockchainID := subnet.Chains[0].ChainID
+		blockchainID := l1.Chains[0].ChainID
 		wsClient, err := ethclient.Dial(utils.HttpToWebsocketURI(nodeURIs[0], blockchainID.String()))
 		Expect(err).Should(BeNil())
 
@@ -220,8 +220,8 @@ func (n *LocalNetwork) GetL1Infos() []interfaces.L1TestInfo {
 		Expect(err).Should(BeNil())
 		evmChainID, err := rpcClient.ChainID(context.Background())
 		Expect(err).Should(BeNil())
-		subnets[i] = interfaces.L1TestInfo{
-			L1ID:         subnet.SubnetID,
+		l1s[i] = interfaces.L1TestInfo{
+			L1ID:         l1.SubnetID,
 			BlockchainID: blockchainID,
 			NodeURIs:     nodeURIs,
 			WSClient:     wsClient,
@@ -229,7 +229,7 @@ func (n *LocalNetwork) GetL1Infos() []interfaces.L1TestInfo {
 			EVMChainID:   evmChainID,
 		}
 	}
-	return subnets
+	return l1s
 }
 
 // Returns L1 info for all L1s, including the primary network
