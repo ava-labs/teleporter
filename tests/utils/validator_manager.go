@@ -32,6 +32,7 @@ import (
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
+	"github.com/ava-labs/subnet-evm/warp/messages"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
 	erc20tokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20TokenStakingManager"
 	examplerewardcalculator "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ExampleRewardCalculator"
@@ -118,6 +119,7 @@ func DeployAndInitializeNativeTokenStakingManager(
 			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
 			WeightToValueFactor:      big.NewInt(0).SetUint64(DefaultWeightToValueFactor),
 			RewardCalculator:         rewardCalculatorAddress,
+			UptimeBlockchainID:       subnet.BlockchainID,
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -191,6 +193,7 @@ func DeployAndInitializeERC20TokenStakingManager(
 			MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
 			WeightToValueFactor:      big.NewInt(0).SetUint64(DefaultWeightToValueFactor),
 			RewardCalculator:         rewardCalculatorAddress,
+			UptimeBlockchainID:       subnet.BlockchainID,
 		},
 		erc20Address,
 	)
@@ -518,7 +521,7 @@ func DeliverNativeTokenSubnetConversion(
 		senderKey,
 		subnet,
 		validatorManagerAddress,
-		subnetConversionSignedMessage,
+		subnetConversionSignedMessage.Bytes(),
 	)
 }
 
@@ -540,7 +543,7 @@ func DeliverERC20TokenSubnetConversion(
 		senderKey,
 		subnet,
 		validatorManagerAddress,
-		subnetConversionSignedMessage,
+		subnetConversionSignedMessage.Bytes(),
 	)
 }
 
@@ -562,7 +565,7 @@ func DeliverPoASubnetConversion(
 		senderKey,
 		subnet,
 		validatorManagerAddress,
-		subnetConversionSignedMessage,
+		subnetConversionSignedMessage.Bytes(),
 	)
 }
 
@@ -694,7 +697,7 @@ func CompleteNativeValidatorRegistration(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		registrationSignedMessage,
+		registrationSignedMessage.Bytes(),
 	)
 }
 
@@ -715,7 +718,7 @@ func CompleteERC20ValidatorRegistration(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		registrationSignedMessage,
+		registrationSignedMessage.Bytes(),
 	)
 }
 
@@ -736,7 +739,7 @@ func CompletePoAValidatorRegistration(
 		senderKey,
 		subnet,
 		validatorManagerAddress,
-		registrationSignedMessage,
+		registrationSignedMessage.Bytes(),
 	)
 }
 
@@ -747,7 +750,7 @@ func CallWarpReceiver(
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	contract common.Address,
-	signedMessage *avalancheWarp.Message,
+	signedMessageBytes []byte,
 ) *types.Receipt {
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnet, PrivateKeyToAddress(senderKey))
 	registrationTx := predicateutils.NewPredicateTx(
@@ -761,7 +764,7 @@ func CallWarpReceiver(
 		callData,
 		types.AccessList{},
 		warp.ContractAddress,
-		signedMessage.Bytes(),
+		signedMessageBytes,
 	)
 	signedRegistrationTx := SignTransaction(registrationTx, senderKey, subnet.EVMChainID)
 	return SendTransactionAndWaitForSuccess(ctx, subnet, signedRegistrationTx)
@@ -987,6 +990,66 @@ func InitializeAndCompletePoAValidatorRegistration(
 	return validationID
 }
 
+func ConstructUptimeProofMessage(
+	validationID ids.ID,
+	uptime uint64,
+	subnet interfaces.SubnetTestInfo,
+	networkID uint32,
+	signatureAggregator *aggregator.SignatureAggregator,
+) *avalancheWarp.Message {
+	uptimePayload, err := messages.NewValidatorUptime(validationID, uptime)
+	Expect(err).Should(BeNil())
+	addressedCall, err := warpPayload.NewAddressedCall(nil, uptimePayload.Bytes())
+	Expect(err).Should(BeNil())
+	uptimeProofUnsignedMessage, err := avalancheWarp.NewUnsignedMessage(
+		networkID,
+		subnet.BlockchainID,
+		addressedCall.Bytes(),
+	)
+	Expect(err).Should(BeNil())
+
+	uptimeProofSignedMessage, err := signatureAggregator.CreateSignedMessage(
+		uptimeProofUnsignedMessage,
+		nil,
+		subnet.SubnetID,
+		67,
+	)
+	Expect(err).Should(BeNil())
+	return uptimeProofSignedMessage
+}
+
+func InitializeEndNativeValidationWithUptime(
+	ctx context.Context,
+	networkID uint32,
+	signatureAggregator *aggregator.SignatureAggregator,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	stakingManagerAddress common.Address,
+	validationID ids.ID,
+	uptime uint64,
+) *types.Receipt {
+	uptimeMsg := ConstructUptimeProofMessage(
+		validationID,
+		uptime,
+		subnet,
+		networkID,
+		signatureAggregator,
+	)
+
+	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("initializeEndValidation", validationID, true, uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		ctx,
+		callData,
+		senderKey,
+		subnet,
+		stakingManagerAddress,
+		uptimeMsg.Bytes(),
+	)
+}
+
 func InitializeEndNativeValidation(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
@@ -1004,6 +1067,38 @@ func InitializeEndNativeValidation(
 	)
 	Expect(err).Should(BeNil())
 	return WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+}
+
+func ForceInitializeEndNativeValidationWithUptime(
+	ctx context.Context,
+	networkID uint32,
+	signatureAggregator *aggregator.SignatureAggregator,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	stakingManagerAddress common.Address,
+	validationID ids.ID,
+	uptime uint64,
+) *types.Receipt {
+	uptimeMsg := ConstructUptimeProofMessage(
+		validationID,
+		uptime,
+		subnet,
+		networkID,
+		signatureAggregator,
+	)
+
+	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("forceInitializeEndValidation", validationID, true, uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		ctx,
+		callData,
+		senderKey,
+		subnet,
+		stakingManagerAddress,
+		uptimeMsg.Bytes(),
+	)
 }
 
 func ForceInitializeEndNativeValidation(
@@ -1025,13 +1120,44 @@ func ForceInitializeEndNativeValidation(
 	return WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 }
 
+func InitializeEndERC20ValidationWithUptime(
+	ctx context.Context,
+	networkID uint32,
+	signatureAggregator *aggregator.SignatureAggregator,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	stakingManagerAddress common.Address,
+	validationID ids.ID,
+	uptime uint64,
+) *types.Receipt {
+	uptimeMsg := ConstructUptimeProofMessage(
+		validationID,
+		uptime,
+		subnet,
+		networkID,
+		signatureAggregator,
+	)
+
+	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("initializeEndValidation", validationID, true, uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		ctx,
+		callData,
+		senderKey,
+		subnet,
+		stakingManagerAddress,
+		uptimeMsg.Bytes(),
+	)
+}
+
 func InitializeEndERC20Validation(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 	validationID ids.ID,
-	force bool,
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
@@ -1043,6 +1169,38 @@ func InitializeEndERC20Validation(
 	)
 	Expect(err).Should(BeNil())
 	return WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+}
+
+func ForceInitializeEndERC20ValidationWithUptime(
+	ctx context.Context,
+	networkID uint32,
+	signatureAggregator *aggregator.SignatureAggregator,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	stakingManagerAddress common.Address,
+	validationID ids.ID,
+	uptime uint64,
+) *types.Receipt {
+	uptimeMsg := ConstructUptimeProofMessage(
+		validationID,
+		uptime,
+		subnet,
+		networkID,
+		signatureAggregator,
+	)
+
+	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("forceInitializeEndValidation", validationID, true, uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		ctx,
+		callData,
+		senderKey,
+		subnet,
+		stakingManagerAddress,
+		uptimeMsg.Bytes(),
+	)
 }
 
 func ForceInitializeEndERC20Validation(
@@ -1098,7 +1256,7 @@ func CompleteEndNativeValidation(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		registrationSignedMessage,
+		registrationSignedMessage.Bytes(),
 	)
 }
 
@@ -1119,7 +1277,7 @@ func CompleteEndERC20Validation(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		registrationSignedMessage,
+		registrationSignedMessage.Bytes(),
 	)
 }
 
@@ -1140,7 +1298,7 @@ func CompleteEndPoAValidation(
 		senderKey,
 		subnet,
 		validatorManagerAddress,
-		registrationSignedMessage,
+		registrationSignedMessage.Bytes(),
 	)
 }
 
@@ -1199,7 +1357,7 @@ func CompleteERC20DelegatorRegistration(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		signedMessage,
+		signedMessage.Bytes(),
 	)
 }
 
@@ -1241,7 +1399,7 @@ func CompleteEndERC20Delegation(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		signedMessage,
+		signedMessage.Bytes(),
 	)
 }
 
@@ -1290,7 +1448,7 @@ func CompleteNativeDelegatorRegistration(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		signedMessage,
+		signedMessage.Bytes(),
 	)
 }
 
@@ -1332,7 +1490,7 @@ func CompleteEndNativeDelegation(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		signedMessage,
+		signedMessage.Bytes(),
 	)
 }
 
@@ -1425,18 +1583,37 @@ func InitializeAndCompleteEndNativeValidation(
 	expiry uint64,
 	node Node,
 	nonce uint64,
+	includeUptime bool,
+	validatorStartTime time.Time,
 	pchainWallet pwallet.Wallet,
 	networkID uint32,
 ) {
 	log.Println("Initializing validator removal")
 	WaitMinStakeDuration(ctx, subnetInfo, fundedKey)
-	receipt := ForceInitializeEndNativeValidation(
-		ctx,
-		fundedKey,
-		subnetInfo,
-		stakingManager,
-		validationID,
-	)
+
+	var receipt *types.Receipt
+	if includeUptime {
+		uptime := uint64(time.Since(validatorStartTime).Seconds())
+		receipt = ForceInitializeEndNativeValidationWithUptime(
+			ctx,
+			networkID,
+			signatureAggregator,
+			fundedKey,
+			subnetInfo,
+			stakingManagerAddress,
+			validationID,
+			uptime,
+		)
+	} else {
+		receipt = ForceInitializeEndNativeValidation(
+			ctx,
+			fundedKey,
+			subnetInfo,
+			stakingManager,
+			validationID,
+		)
+	}
+
 	validatorRemovalEvent, err := GetEventFromLogs(
 		receipt.Logs,
 		stakingManager.ParseValidatorRemovalInitialized,
@@ -1580,18 +1757,35 @@ func InitializeAndCompleteEndERC20Validation(
 	expiry uint64,
 	node Node,
 	nonce uint64,
+	includeUptime bool,
+	validatorStartTime time.Time,
 	pchainWallet pwallet.Wallet,
 	networkID uint32,
 ) {
 	log.Println("Initializing validator removal")
 	WaitMinStakeDuration(ctx, subnetInfo, fundedKey)
-	receipt := ForceInitializeEndERC20Validation(
-		ctx,
-		fundedKey,
-		subnetInfo,
-		stakingManager,
-		validationID,
-	)
+	var receipt *types.Receipt
+	if includeUptime {
+		uptime := uint64(time.Since(validatorStartTime).Seconds())
+		receipt = ForceInitializeEndERC20ValidationWithUptime(
+			ctx,
+			networkID,
+			signatureAggregator,
+			fundedKey,
+			subnetInfo,
+			stakingManagerAddress,
+			validationID,
+			uptime,
+		)
+	} else {
+		receipt = ForceInitializeEndERC20Validation(
+			ctx,
+			fundedKey,
+			subnetInfo,
+			stakingManager,
+			validationID,
+		)
+	}
 	validatorRemovalEvent, err := GetEventFromLogs(
 		receipt.Logs,
 		stakingManager.ParseValidatorRemovalInitialized,

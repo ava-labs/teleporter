@@ -52,7 +52,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	// Deploy the new version of Teleporter to both chains
 	var newTeleporterAddress common.Address
 	for _, subnet := range network.GetAllSubnetsInfo() {
-		newTeleporterAddress = utils.DeployNewTeleporterVersion(ctx, teleporter, subnet, fundedKey, teleporterByteCodeFile)
+		newTeleporterAddress = teleporter.DeployNewTeleporterVersion(ctx, subnet, fundedKey, teleporterByteCodeFile)
 	}
 
 	networkID := network.GetNetworkID()
@@ -92,9 +92,8 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	network.RestartNodes(restartCtx, nil)
 
 	// Call addProtocolVersion on subnetB to register the new Teleporter version
-	network.AddProtocolVersionAndWaitForAcceptance(
+	teleporter.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		teleporter,
 		subnetBInfo,
 		newTeleporterAddress,
 		fundedKey,
@@ -103,9 +102,8 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 
 	// Send a message using old Teleporter version to test messenger using new Teleporter version.
 	// Message should be received successfully since we haven't updated mininum Teleporter version yet.
-	network.SendExampleCrossChainMessageAndVerify(
+	teleporter.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporter,
 		cChainInfo,
 		testMessengerC,
 		subnetBInfo,
@@ -140,9 +138,8 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 
 	// Send a message using old Teleporter version to test messenger with updated minimum Teleporter version.
 	// Message should fail since we updated minimum Teleporter version.
-	network.SendExampleCrossChainMessageAndVerify(
+	teleporter.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporter,
 		cChainInfo,
 		testMessengerC,
 		subnetBInfo,
@@ -159,9 +156,8 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		teleporter.InitializeBlockchainID(subnet, fundedKey)
 	}
 
-	network.SendExampleCrossChainMessageAndVerify(
+	teleporter.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporter,
 		subnetBInfo,
 		testMessengerB,
 		cChainInfo,
@@ -173,9 +169,8 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	)
 
 	// Call addProtocolVersion on subnetA to register the new Teleporter version
-	network.AddProtocolVersionAndWaitForAcceptance(
+	teleporter.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		teleporter,
 		cChainInfo,
 		newTeleporterAddress,
 		fundedKey,
@@ -184,9 +179,8 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 
 	// Send a message from A->B, which previously failed, but now using the new Teleporter version.
 	// Teleporter versions should match, so message should be received successfully.
-	network.SendExampleCrossChainMessageAndVerify(
+	teleporter.SendExampleCrossChainMessageAndVerify(
 		ctx,
-		teleporter,
 		subnetBInfo,
 		testMessengerB,
 		cChainInfo,
@@ -199,9 +193,8 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 
 	// To make sure all subnets are using the same Teleporter version, call addProtocolVersion on subnetA
 	// to register the new Teleporter version
-	network.AddProtocolVersionAndWaitForAcceptance(
+	teleporter.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
-		teleporter,
 		subnetAInfo,
 		newTeleporterAddress,
 		fundedKey,

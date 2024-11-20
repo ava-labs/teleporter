@@ -59,7 +59,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
         maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
         weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-        rewardCalculator: IRewardCalculator(address(0))
+        rewardCalculator: IRewardCalculator(address(0)),
+        uptimeBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID
     });
 
     ValidatorRegistrationInput public defaultRegistrationInput = ValidatorRegistrationInput({
@@ -195,24 +196,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         posValidatorManager.initializeEndValidation(validationID, true, 0);
     }
 
-    function testInvalidUptimeChainID() public {
-        bytes32 validationID = _registerDefaultValidator();
-
-        _mockGetUptimeWarpMessage(new bytes(0), true);
-        _mockGetBlockchainID(posValidatorManager.P_CHAIN_BLOCKCHAIN_ID());
-        vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ValidatorManager.InvalidWarpSourceChainID.selector, DEFAULT_SOURCE_BLOCKCHAIN_ID
-            )
-        );
-        posValidatorManager.initializeEndValidation(validationID, true, 0);
-    }
-
     function testInvalidUptimeSenderAddress() public {
         bytes32 validationID = _registerDefaultValidator();
 
-        _mockGetBlockchainID();
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
@@ -241,7 +227,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testInvalidUptimeValidationID() public {
         bytes32 validationID = _registerDefaultValidator();
 
-        _mockGetBlockchainID();
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
@@ -1109,7 +1094,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory uptimeMsg1 =
             ValidatorMessages.packValidationUptimeMessage(validationID, uptime1);
         _mockGetUptimeWarpMessage(uptimeMsg1, true);
-        _mockGetBlockchainID();
 
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit UptimeUpdated(validationID, uptime1);
@@ -1124,7 +1108,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory uptimeMsg2 =
             ValidatorMessages.packValidationUptimeMessage(validationID, uptime2);
         _mockGetUptimeWarpMessage(uptimeMsg2, true);
-        _mockGetBlockchainID();
 
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidatorRemovalInitialized(
@@ -1150,7 +1133,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes memory uptimeMsg1 =
             ValidatorMessages.packValidationUptimeMessage(validationID, uptime1);
         _mockGetUptimeWarpMessage(uptimeMsg1, true);
-        _mockGetBlockchainID();
 
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit UptimeUpdated(validationID, uptime1);
@@ -1179,7 +1161,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
                 / 100
         );
         _mockGetUptimeWarpMessage(uptimeMsg, true);
-        _mockGetBlockchainID();
 
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -1375,16 +1356,20 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 validationID = _registerDefaultValidator();
         bytes32 delegationID = _initializeDefaultDelegatorRegistration(validationID);
 
-        // bytes memory setWeightMessage =
-        //     ValidatorMessages.packL1ValidatorWeightMessage(validationID, 1, 0);
+        bytes memory setWeightMessage =
+            ValidatorMessages.packL1ValidatorWeightMessage(validationID, 2, 0);
         bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
             validationID, DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         );
 
-        _mockGetUptimeWarpMessage(uptimeMessage, true);
-        _mockGetBlockchainID();
-        vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
-        _initializeEndValidation(validationID, true);
+        _initializeEndValidation({
+            validationID: validationID,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            setWeightMessage: setWeightMessage,
+            includeUptime: true,
+            uptimeMessage: uptimeMessage,
+            force: false
+        });
 
         _setUpCompleteDelegatorRegistrationWithChecks(
             validationID, delegationID, DEFAULT_COMPLETION_TIMESTAMP + 1, 0, 2
@@ -1427,16 +1412,20 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 validationID = _registerDefaultValidator();
         bytes32 delegationID = _initializeDefaultDelegatorRegistration(validationID);
 
-        // bytes memory setWeightMessage =
-        //     ValidatorMessages.packL1ValidatorWeightMessage(validationID, 1, 0);
+        bytes memory setWeightMessage =
+            ValidatorMessages.packL1ValidatorWeightMessage(validationID, 2, 0);
         bytes memory uptimeMessage = ValidatorMessages.packValidationUptimeMessage(
             validationID, DEFAULT_COMPLETION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
         );
 
-        _mockGetUptimeWarpMessage(uptimeMessage, true);
-        _mockGetBlockchainID();
-        vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
-        _initializeEndValidation(validationID, true);
+        _initializeEndValidation({
+            validationID: validationID,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP,
+            setWeightMessage: setWeightMessage,
+            includeUptime: true,
+            uptimeMessage: uptimeMessage,
+            force: false
+        });
 
         _setUpCompleteDelegatorRegistrationWithChecks(
             validationID, delegationID, DEFAULT_COMPLETION_TIMESTAMP + 1, 0, 2
@@ -1496,7 +1485,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
                 / 100
         );
         _mockGetUptimeWarpMessage(uptimeMsg, true);
-        _mockGetBlockchainID();
 
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidatorRemovalInitialized(
@@ -1791,7 +1779,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         if (includeUptime) {
             _mockGetUptimeWarpMessage(uptimePayload, true);
-            _mockGetBlockchainID();
         }
         _initializeEndDelegation(sender, delegationID, endDelegationTimestamp, includeUptime, force);
     }

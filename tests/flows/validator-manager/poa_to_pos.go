@@ -226,6 +226,7 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 			MaximumStakeMultiplier:   utils.DefaultMaxStakeMultiplier,
 			WeightToValueFactor:      big.NewInt(0).SetUint64(utils.DefaultWeightToValueFactor),
 			RewardCalculator:         rewardCalculatorAddress,
+			UptimeBlockchainID:       subnetAInfo.BlockchainID,
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -252,6 +253,8 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 		expiry,
 		nodes[0],
 		1,
+		false,
+		time.Time{},
 		network.GetPChainWallet(),
 		network.GetNetworkID(),
 	)
@@ -270,6 +273,7 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 		network.GetPChainWallet(),
 		network.GetNetworkID(),
 	)
+	validatorStartTime := time.Now()
 
 	// Delist the PoS validator
 	utils.InitializeAndCompleteEndNativeValidation(
@@ -284,6 +288,8 @@ func PoAMigrationToPoS(network *localnetwork.LocalNetwork) {
 		expiry2,
 		nodes[0],
 		1,
+		true,
+		validatorStartTime,
 		network.GetPChainWallet(),
 		network.GetNetworkID(),
 	)
