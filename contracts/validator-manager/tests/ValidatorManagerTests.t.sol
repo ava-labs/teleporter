@@ -316,7 +316,7 @@ abstract contract ValidatorManagerTest is Test {
 
         bytes32 validationID = sha256(abi.encodePacked(DEFAULT_SUBNET_ID, uint32(0)));
         vm.expectRevert(abi.encodeWithSelector(ValidatorManager.InvalidTotalWeight.selector, 4));
-        _forceInitializeEndValidation(validationID, false);
+        _forceInitializeEndValidation(validationID, false, address(0));
     }
 
     function testCumulativeChurnRegistration() public {
@@ -389,7 +389,8 @@ abstract contract ValidatorManagerTest is Test {
                 _valueToWeight(DEFAULT_MINIMUM_STAKE_AMOUNT) + churnThreshold
             )
         );
-        _initializeEndValidation(validationID, false);
+
+        _initializeEndValidation(validationID, false, address(0));
     }
 
     function testValidatorManagerStorageSlot() public view {
@@ -491,9 +492,31 @@ abstract contract ValidatorManagerTest is Test {
 
         vm.warp(completionTimestamp);
         if (force) {
-            _forceInitializeEndValidation(validationID, includeUptime);
+            _forceInitializeEndValidation(validationID, includeUptime, address(0));
         } else {
-            _initializeEndValidation(validationID, includeUptime);
+            _initializeEndValidation(validationID, includeUptime, address(0));
+        }
+    }
+
+    function _initializeEndValidation(
+        bytes32 validationID,
+        uint64 completionTimestamp,
+        bytes memory setWeightMessage,
+        bool includeUptime,
+        bytes memory uptimeMessage,
+        bool force,
+        address recipientAddress
+    ) internal {
+        _mockSendWarpMessage(setWeightMessage, bytes32(0));
+        if (includeUptime) {
+            _mockGetUptimeWarpMessage(uptimeMessage, true);
+        }
+
+        vm.warp(completionTimestamp);
+        if (force) {
+            _forceInitializeEndValidation(validationID, includeUptime, recipientAddress);
+        } else {
+            _initializeEndValidation(validationID, includeUptime, recipientAddress);
         }
     }
 
@@ -581,11 +604,16 @@ abstract contract ValidatorManagerTest is Test {
         uint64 weight
     ) internal virtual returns (bytes32);
 
-    function _initializeEndValidation(bytes32 validationID, bool includeUptime) internal virtual;
+    function _initializeEndValidation(
+        bytes32 validationID,
+        bool includeUptime,
+        address rewardRecipient
+    ) internal virtual;
 
     function _forceInitializeEndValidation(
         bytes32 validationID,
-        bool includeUptime
+        bool includeUptime,
+        address rewardRecipient
     ) internal virtual;
 
     function _setUp() internal virtual returns (IValidatorManager);
