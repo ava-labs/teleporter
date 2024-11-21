@@ -276,6 +276,8 @@ func (n *LocalNetwork) ConvertSubnet(
 			}
 		}
 	}
+	utils.PChainProposerVMWorkaround(pChainWallet)
+	utils.AdvanceProposerVM(ctx, subnet, senderKey, 5)
 
 	return nodes, validationIDs, proxyAdmin
 }
@@ -298,7 +300,8 @@ func (n *LocalNetwork) AddSubnetValidators(
 		// Add the node to the network
 		n.Network.Nodes = append(n.Network.Nodes, node)
 	}
-	n.Network.StartNodes(context.Background(), os.Stdout, nodes...)
+	err := n.Network.StartNodes(context.Background(), os.Stdout, nodes...)
+	Expect(err).Should(BeNil())
 
 	// Update the tmpnet Subnet struct
 	for _, tmpnetSubnet := range n.Network.Subnets {
