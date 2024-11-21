@@ -105,6 +105,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		network.GetPChainWallet(),
 		network.GetNetworkID(),
 	)
+	validatorStartTime := time.Now()
 
 	//
 	// Register a delegator
@@ -273,6 +274,8 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		expiry,
 		nodes[0],
 		1,
+		true,
+		validatorStartTime,
 		network.GetPChainWallet(),
 		network.GetNetworkID(),
 	)

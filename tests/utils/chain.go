@@ -560,6 +560,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 		logging.Info,
 		registry,
 		trackedSubnets,
+		nil,
 		&cfg,
 	)
 	Expect(err).Should(BeNil())
