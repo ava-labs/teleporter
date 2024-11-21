@@ -277,10 +277,10 @@ func InitializeValidatorSet(
 	nodes []Node,
 ) []ids.ID {
 	log.Println("Initializing validator set")
-	initialValidators := make([]warpMessage.SubnetConversionValidatorData, len(nodes))
+	initialValidators := make([]warpMessage.SubnetToL1ConverstionValidatorData, len(nodes))
 	initialValidatorsABI := make([]ivalidatormanager.InitialValidator, len(nodes))
 	for i, node := range nodes {
-		initialValidators[i] = warpMessage.SubnetConversionValidatorData{
+		initialValidators[i] = warpMessage.SubnetToL1ConverstionValidatorData{
 			NodeID:       node.NodeID.Bytes(),
 			BLSPublicKey: node.NodePoP.PublicKey,
 			Weight:       nodes[i].Weight,
@@ -292,7 +292,7 @@ func InitializeValidatorSet(
 		}
 	}
 
-	subnetConversionData := warpMessage.SubnetConversionData{
+	subnetConversionData := warpMessage.SubnetToL1ConversionData{
 		SubnetID:       subnetInfo.SubnetID,
 		ManagerChainID: subnetInfo.BlockchainID,
 		ManagerAddress: validatorManagerAddress[:],
@@ -304,7 +304,7 @@ func InitializeValidatorSet(
 		ValidatorManagerAddress:      validatorManagerAddress,
 		InitialValidators:            initialValidatorsABI,
 	}
-	subnetConversionID, err := warpMessage.SubnetConversionID(subnetConversionData)
+	subnetConversionID, err := warpMessage.SubnetToL1ConversionID(subnetConversionData)
 	Expect(err).Should(BeNil())
 	subnetConversionSignedMessage := ConstructSubnetConversionMessage(
 		subnetConversionID,
@@ -556,7 +556,7 @@ func InitializeAndCompleteNativeValidatorRegistration(
 	// (Sending to the P-Chain will be skipped for now)
 	signedWarpMessage := ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo, nil, signatureAggregator)
 
-	_, err = pchainWallet.IssueRegisterSubnetValidatorTx(
+	_, err = pchainWallet.IssueRegisterL1ValidatorTx(
 		100*units.Avax,
 		node.NodePoP.ProofOfPossession,
 		signedWarpMessage.Bytes(),
@@ -634,7 +634,7 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 	// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
 	signedWarpMessage := ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo, nil, signatureAggregator)
 
-	_, err = pchainWallet.IssueRegisterSubnetValidatorTx(
+	_, err = pchainWallet.IssueRegisterL1ValidatorTx(
 		100*units.Avax,
 		node.NodePoP.ProofOfPossession,
 		signedWarpMessage.Bytes(),
@@ -702,7 +702,7 @@ func InitializeAndCompletePoAValidatorRegistration(
 	// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
 	signedWarpMessage := ConstructSignedWarpMessage(ctx, receipt, subnetInfo, pChainInfo, nil, signatureAggregator)
 
-	_, err := pchainWallet.IssueRegisterSubnetValidatorTx(
+	_, err := pchainWallet.IssueRegisterL1ValidatorTx(
 		100*units.Avax,
 		node.NodePoP.ProofOfPossession,
 		signedWarpMessage.Bytes(),
@@ -1084,7 +1084,7 @@ func InitializeAndCompleteEndInitialPoSValidation(
 	Expect(err).Should(BeNil())
 
 	// Deliver the Warp message to the P-Chain
-	pchainWallet.IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
+	pchainWallet.IssueSetL1ValidatorWeightTx(signedWarpMessage.Bytes())
 	PChainProposerVMWorkaround(pchainWallet)
 	AdvanceProposerVM(ctx, subnetInfo, fundedKey, 5)
 
@@ -1180,7 +1180,7 @@ func InitializeAndCompleteEndPoSValidation(
 	Expect(err).Should(BeNil())
 
 	// Deliver the Warp message to the P-Chain
-	pchainWallet.IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
+	pchainWallet.IssueSetL1ValidatorWeightTx(signedWarpMessage.Bytes())
 	PChainProposerVMWorkaround(pchainWallet)
 	AdvanceProposerVM(ctx, subnetInfo, fundedKey, 5)
 
@@ -1259,7 +1259,7 @@ func InitializeAndCompleteEndInitialPoAValidation(
 	Expect(err).Should(BeNil())
 
 	// Deliver the Warp message to the P-Chain
-	pchainWallet.IssueSetSubnetValidatorWeightTx(signedWarpMessage.Bytes())
+	pchainWallet.IssueSetL1ValidatorWeightTx(signedWarpMessage.Bytes())
 	PChainProposerVMWorkaround(pchainWallet)
 	AdvanceProposerVM(ctx, subnetInfo, fundedKey, 5)
 
@@ -1373,9 +1373,9 @@ func ConstructSubnetValidatorRegistrationMessageForInitialValidator(
 	networkID uint32,
 	signatureAggregator *aggregator.SignatureAggregator,
 ) *avalancheWarp.Message {
-	justification := platformvm.SubnetValidatorRegistrationJustification{
-		Preimage: &platformvm.SubnetValidatorRegistrationJustification_ConvertSubnetTxData{
-			ConvertSubnetTxData: &platformvm.SubnetIDIndex{
+	justification := platformvm.L1ValidatorRegistrationJustification{
+		Preimage: &platformvm.L1ValidatorRegistrationJustification_ConvertSubnetToL1TxData{
+			ConvertSubnetToL1TxData: &platformvm.SubnetIDIndex{
 				SubnetId: subnet.SubnetID[:],
 				Index:    index,
 			},
@@ -1384,7 +1384,7 @@ func ConstructSubnetValidatorRegistrationMessageForInitialValidator(
 	justificationBytes, err := proto.Marshal(&justification)
 	Expect(err).Should(BeNil())
 
-	registrationPayload, err := warpMessage.NewSubnetValidatorRegistration(validationID, valid)
+	registrationPayload, err := warpMessage.NewL1ValidatorRegistration(validationID, valid)
 	Expect(err).Should(BeNil())
 	registrationAddressedCall, err := warpPayload.NewAddressedCall(nil, registrationPayload.Bytes())
 	Expect(err).Should(BeNil())
@@ -1416,7 +1416,7 @@ func ConstructSubnetValidatorRegistrationMessage(
 	networkID uint32,
 	signatureAggregator *aggregator.SignatureAggregator,
 ) *avalancheWarp.Message {
-	msg, err := warpMessage.NewRegisterSubnetValidator(
+	msg, err := warpMessage.NewRegisterL1Validator(
 		subnet.SubnetID,
 		node.NodeID,
 		node.NodePoP.PublicKey,
@@ -1426,15 +1426,15 @@ func ConstructSubnetValidatorRegistrationMessage(
 		node.Weight,
 	)
 	Expect(err).Should(BeNil())
-	justification := platformvm.SubnetValidatorRegistrationJustification{
-		Preimage: &platformvm.SubnetValidatorRegistrationJustification_RegisterSubnetValidatorMessage{
-			RegisterSubnetValidatorMessage: msg.Bytes(),
+	justification := platformvm.L1ValidatorRegistrationJustification{
+		Preimage: &platformvm.L1ValidatorRegistrationJustification_RegisterL1ValidatorMessage{
+			RegisterL1ValidatorMessage: msg.Bytes(),
 		},
 	}
 	justificationBytes, err := proto.Marshal(&justification)
 	Expect(err).Should(BeNil())
 
-	registrationPayload, err := warpMessage.NewSubnetValidatorRegistration(validationID, valid)
+	registrationPayload, err := warpMessage.NewL1ValidatorRegistration(validationID, valid)
 	Expect(err).Should(BeNil())
 	registrationAddressedCall, err := warpPayload.NewAddressedCall(nil, registrationPayload.Bytes())
 	Expect(err).Should(BeNil())
@@ -1465,7 +1465,7 @@ func ConstructSubnetValidatorWeightUpdateMessage(
 	signatureAggregator *aggregator.SignatureAggregator,
 	networkID uint32,
 ) *avalancheWarp.Message {
-	payload, err := warpMessage.NewSubnetValidatorWeight(validationID, nonce, weight)
+	payload, err := warpMessage.NewL1ValidatorWeight(validationID, nonce, weight)
 	Expect(err).Should(BeNil())
 	updateAddressedCall, err := warpPayload.NewAddressedCall(nil, payload.Bytes())
 	Expect(err).Should(BeNil())
@@ -1493,7 +1493,7 @@ func ConstructSubnetConversionMessage(
 	networkID uint32,
 	signatureAggregator *aggregator.SignatureAggregator,
 ) *avalancheWarp.Message {
-	subnetConversionPayload, err := warpMessage.NewSubnetConversion(subnetConversionID)
+	subnetConversionPayload, err := warpMessage.NewSubnetToL1Conversion(subnetConversionID)
 	Expect(err).Should(BeNil())
 	subnetConversionAddressedCall, err := warpPayload.NewAddressedCall(
 		nil,
@@ -1536,7 +1536,7 @@ func ValidateRegisterSubnetValidatorMessage(
 	var payloadInterface warpMessage.Payload
 	ver, err := warpMessage.Codec.Unmarshal(msg.Payload, &payloadInterface)
 	Expect(err).Should(BeNil())
-	payload, ok := payloadInterface.(*warpMessage.RegisterSubnetValidator)
+	payload, ok := payloadInterface.(*warpMessage.RegisterL1Validator)
 	Expect(ok).Should(BeTrue())
 
 	Expect(ver).Should(Equal(uint16(warpMessage.CodecVersion)))
@@ -1558,7 +1558,7 @@ func ValidateSubnetValidatorWeightMessage(
 	var payloadInterface warpMessage.Payload
 	ver, err := warpMessage.Codec.Unmarshal(msg.Payload, &payloadInterface)
 	Expect(err).Should(BeNil())
-	payload, ok := payloadInterface.(*warpMessage.SubnetValidatorWeight)
+	payload, ok := payloadInterface.(*warpMessage.L1ValidatorWeight)
 	Expect(ok).Should(BeTrue())
 
 	Expect(ver).Should(Equal(uint16(warpMessage.CodecVersion)))

@@ -212,7 +212,7 @@ func (n *LocalNetwork) ConvertSubnet(
 	// Construct the convert subnet info
 	destAddr, err := address.ParseToID(utils.DefaultPChainAddress)
 	Expect(err).Should(BeNil())
-	vdrs := make([]*txs.ConvertSubnetValidator, len(tmpnetNodes))
+	vdrs := make([]*txs.ConvertSubnetToL1Validator, len(tmpnetNodes))
 	for i, node := range tmpnetNodes {
 		signer, err := node.GetProofOfPossession()
 		Expect(err).Should(BeNil())
@@ -221,7 +221,7 @@ func (n *LocalNetwork) ConvertSubnet(
 			NodePoP: signer,
 			Weight:  weights[i],
 		})
-		vdrs[i] = &txs.ConvertSubnetValidator{
+		vdrs[i] = &txs.ConvertSubnetToL1Validator{
 			NodeID:  node.NodeID.Bytes(),
 			Weight:  weights[i],
 			Balance: units.Avax * 100,
@@ -237,7 +237,7 @@ func (n *LocalNetwork) ConvertSubnet(
 		}
 	}
 	pChainWallet := n.GetPChainWallet()
-	_, err = pChainWallet.IssueConvertSubnetTx(
+	_, err = pChainWallet.IssueConvertSubnetToL1Tx(
 		subnet.SubnetID,
 		subnet.BlockchainID,
 		vdrManagerAddress[:],
