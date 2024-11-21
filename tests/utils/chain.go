@@ -562,11 +562,9 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	Expect(err).Should(BeNil())
 
 	appRequestNetwork, err := peers.NewNetwork(
-		"test-aggregator",
-		logging.Verbo,
+		logging.Error,
 		registry,
 		trackedSubnets,
-		messageCreator,
 		nil,
 		&cfg,
 	)
@@ -575,6 +573,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	agg, err := aggregator.NewSignatureAggregator(
 		appRequestNetwork,
 		logging.NoLog{},
+		messageCreator,
 		1024,
 		metrics.NewSignatureAggregatorMetrics(prometheus.NewRegistry()),
 		// Setting the etnaTime to a minute ago so that the post-etna code path is used in the test
