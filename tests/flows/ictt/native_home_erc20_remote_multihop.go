@@ -81,6 +81,9 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		tokenDecimals,
 	)
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	// Register both ERC20Destinations on the NativeTokenHome
 	utils.RegisterERC20TokenRemoteOnHome(
 		ctx,
@@ -90,7 +93,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		subnetAInfo,
 		erc20TokenRemoteAddressA,
 		fundedKey,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	utils.RegisterERC20TokenRemoteOnHome(
@@ -101,7 +104,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		subnetBInfo,
 		erc20TokenRemoteAddressB,
 		fundedKey,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	// Generate new recipient to receive transferred tokens
@@ -142,7 +145,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		true,
 		fundedKey,
 		nil,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	utils.CheckERC20TokenRemoteWithdrawal(
@@ -175,6 +178,6 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		cChainInfo,
 		transferredAmount,
 		secondaryFeeAmount,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 }

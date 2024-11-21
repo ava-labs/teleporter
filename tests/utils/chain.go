@@ -541,8 +541,6 @@ func InstantiateGenesisTemplate(
 }
 
 // Aggregator utils
-var instance = 0
-
 func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.SignatureAggregator {
 	cfg := sigAggConfig.Config{
 		PChainAPI: &relayerConfig.APIConfig{
@@ -576,18 +574,13 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 
 	agg, err := aggregator.NewSignatureAggregator(
 		appRequestNetwork,
-		logging.NewLogger(fmt.Sprintf("dbg-sig-agg-%d", instance), logging.NewWrappedCore(
-			logging.Verbo,
-			os.Stdout,
-			logging.JSON.ConsoleEncoder(),
-		)),
+		logging.NoLog{},
 		1024,
 		metrics.NewSignatureAggregatorMetrics(prometheus.NewRegistry()),
 		// Setting the etnaTime to a minute ago so that the post-etna code path is used in the test
 		time.Now().Add(-1*time.Minute),
 	)
 	Expect(err).Should(BeNil())
-	instance++
 	return agg
 }
 

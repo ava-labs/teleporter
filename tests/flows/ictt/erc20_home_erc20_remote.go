@@ -71,6 +71,9 @@ func ERC20TokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, teleport
 		tokenDecimals,
 	)
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	utils.RegisterERC20TokenRemoteOnHome(
 		ctx,
 		teleporter,
@@ -79,7 +82,7 @@ func ERC20TokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, teleport
 		subnetAInfo,
 		erc20TokenRemoteAddress,
 		fundedKey,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	// Generate new recipient to receive transferred tokens
@@ -119,7 +122,7 @@ func ERC20TokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, teleport
 		true,
 		fundedKey,
 		nil,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	utils.CheckERC20TokenRemoteWithdrawal(
@@ -172,7 +175,7 @@ func ERC20TokenHomeERC20TokenRemote(network *localnetwork.LocalNetwork, teleport
 		true,
 		fundedKey,
 		nil,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	utils.CheckERC20TokenHomeWithdrawal(
