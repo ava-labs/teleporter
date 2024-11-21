@@ -628,7 +628,9 @@ abstract contract PoSValidatorManager is
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
-        _initializeEndDelegationWithCheck(delegationID, includeUptimeProof, messageIndex, address(0));
+        _initializeEndDelegationWithCheck(
+            delegationID, includeUptimeProof, messageIndex, address(0)
+        );
     }
 
     /**
@@ -741,11 +743,8 @@ abstract contract PoSValidatorManager is
             ($._delegatorStakes[delegationID].endingNonce,) =
                 _setValidatorWeight(validationID, validator.weight - delegator.weight);
 
-            uint256 reward = _calculateDelegationReward(delegator);
-            $._redeemableDelegatorRewards[delegationID] = reward;
-            if (rewardRecipient != address(0)) {
-                $._delegatorRewardRecipients[delegationID] = rewardRecipient;
-            }
+            uint256 reward =
+                _calculateAndSetDelegationReward(delegator, rewardRecipient, delegationID);
 
             emit DelegatorRemovalInitialized({
                 delegationID: delegationID,
@@ -753,11 +752,7 @@ abstract contract PoSValidatorManager is
             });
             return (reward > 0);
         } else if (validator.status == ValidatorStatus.Completed) {
-            $._redeemableDelegatorRewards[delegationID] = _calculateDelegationReward(delegator);
-            if (rewardRecipient != address(0)) {
-                $._delegatorRewardRecipients[delegationID] = rewardRecipient;
-            }
-
+            _calculateAndSetDelegationReward(delegator, rewardRecipient, delegationID);
             _completeEndDelegation(delegationID);
             // If the validator has completed, then no further uptimes may be submitted, so we always
             // end the delegation.
@@ -768,11 +763,12 @@ abstract contract PoSValidatorManager is
     }
 
     /// @dev Calculates the reward owed to the delegator based on the state of the delegator and its corresponding validator.
-    function _calculateDelegationReward(Delegator memory delegator)
-        private
-        view
-        returns (uint256)
-    {
+    /// then set the reward and reward recipient in the storage.
+    function _calculateAndSetDelegationReward(
+        Delegator memory delegator,
+        address rewardRecipient,
+        bytes32 delegationID
+    ) private returns (uint256) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         Validator memory validator = getValidator(delegator.validationID);
@@ -794,13 +790,21 @@ abstract contract PoSValidatorManager is
             return 0;
         }
 
-        return $._rewardCalculator.calculateReward({
+        uint256 reward = $._rewardCalculator.calculateReward({
             stakeAmount: weightToValue(delegator.weight),
             validatorStartTime: validator.startedAt,
             stakingStartTime: delegator.startedAt,
             stakingEndTime: delegationEndTime,
             uptimeSeconds: $._posValidatorInfo[delegator.validationID].uptimeSeconds
         });
+
+        $._redeemableDelegatorRewards[delegationID] = reward;
+
+        if (rewardRecipient != address(0)) {
+            $._delegatorRewardRecipients[delegationID] = rewardRecipient;
+        }
+
+        return reward;
     }
 
     /**
