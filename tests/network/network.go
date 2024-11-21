@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	goLog "log"
 	"os"
 	"sort"
@@ -120,17 +119,6 @@ func NewLocalNetwork(
 	)
 	Expect(network).ShouldNot(BeNil())
 
-	// Activate Etna
-	// upgrades := upgrade.Default
-	// upgrades.EtnaTime = time.Now().Add(-1 * time.Minute)
-	// upgradeJSON, err := json.Marshal(upgrades)
-	// Expect(err).Should(BeNil())
-
-	// upgradeBase64 := base64.StdEncoding.EncodeToString(upgradeJSON)
-	// network.DefaultFlags.SetDefaults(tmpnet.FlagsMap{
-	// 	config.UpgradeFileContentKey: upgradeBase64,
-	// })
-
 	avalancheGoBuildPath, ok := os.LookupEnv("AVALANCHEGO_BUILD_PATH")
 	Expect(ok).Should(Equal(true))
 
@@ -165,11 +153,7 @@ func NewLocalNetwork(
 
 	// All nodes are specified as bootstrap validators
 	var primaryNetworkValidators []*tmpnet.Node
-	fmt.Println("Primary Network Validators")
-	for _, node := range network.Nodes {
-		fmt.Println(node.NodeID, node.URI)
-		primaryNetworkValidators = append(primaryNetworkValidators, node)
-	}
+	primaryNetworkValidators = append(primaryNetworkValidators, network.Nodes...)
 
 	localNetwork := &LocalNetwork{
 		Network:                  *network,
@@ -253,6 +237,7 @@ func (n *LocalNetwork) ConvertSubnet(
 	utils.AdvanceProposerVM(ctx, subnet, senderKey, 5)
 
 	aggregator := n.GetSignatureAggregator()
+	defer aggregator.Shutdown()
 	validationIDs := utils.InitializeValidatorSet(
 		ctx,
 		senderKey,
@@ -263,7 +248,6 @@ func (n *LocalNetwork) ConvertSubnet(
 		aggregator,
 		nodes,
 	)
-	aggregator.Shutdown()
 
 	// Remove the bootstrap nodes as subnet validators
 	for _, vdr := range currentValidators {
@@ -271,7 +255,7 @@ func (n *LocalNetwork) ConvertSubnet(
 		Expect(err).Should(BeNil())
 		for _, node := range n.Network.Nodes {
 			if node.NodeID == vdr.NodeID {
-				fmt.Println("Restarting bootstrap node", node.NodeID)
+				goLog.Println("Restarting bootstrap node", node.NodeID)
 				n.Network.RestartNode(ctx, os.Stdout, node)
 			}
 		}
