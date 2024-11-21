@@ -540,9 +540,8 @@ func InstantiateGenesisTemplate(
 	return subnetGenesisFile.Name()
 }
 
-//
 // Aggregator utils
-//
+var instance = 0
 
 func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.SignatureAggregator {
 	cfg := sigAggConfig.Config{
@@ -565,6 +564,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	Expect(err).Should(BeNil())
 
 	appRequestNetwork, err := peers.NewNetwork(
+		"test-aggregator",
 		logging.Verbo,
 		registry,
 		trackedSubnets,
@@ -576,7 +576,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 
 	agg, err := aggregator.NewSignatureAggregator(
 		appRequestNetwork,
-		logging.NewLogger("dbg-sig-agg", logging.NewWrappedCore(
+		logging.NewLogger(fmt.Sprintf("dbg-sig-agg-%d", instance), logging.NewWrappedCore(
 			logging.Verbo,
 			os.Stdout,
 			logging.JSON.ConsoleEncoder(),
@@ -587,6 +587,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 		time.Now().Add(-1*time.Minute),
 	)
 	Expect(err).Should(BeNil())
+	instance++
 	return agg
 }
 
