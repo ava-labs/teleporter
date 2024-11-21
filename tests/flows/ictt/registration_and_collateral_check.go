@@ -98,9 +98,6 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 	Expect(err).Should(BeNil())
 	utils.ExpectBigEqual(balance, initialBalance)
 
-	aggregator := network.GetSignatureAggregator()
-	defer aggregator.Shutdown()
-
 	// Register the NativeTokenRemote to the ERC20TokenHome
 	collateralNeeded := utils.RegisterTokenRemoteOnHome(
 		ctx,
@@ -113,7 +110,7 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
 		fundedKey,
-		aggregator,
+		network.GetSignatureAggregator(),
 	)
 
 	// Try sending again and expect failure since remote is not collateralized
@@ -193,7 +190,7 @@ func RegistrationAndCollateralCheck(network *localnetwork.LocalNetwork, teleport
 		true,
 		fundedKey,
 		nil,
-		aggregator,
+		network.GetSignatureAggregator(),
 	)
 
 	// Verify the recipient received the tokens

@@ -540,7 +540,10 @@ func InstantiateGenesisTemplate(
 	return subnetGenesisFile.Name()
 }
 
+//
 // Aggregator utils
+//
+
 func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.SignatureAggregator {
 	cfg := sigAggConfig.Config{
 		PChainAPI: &relayerConfig.APIConfig{
@@ -553,6 +556,14 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	trackedSubnets := set.NewSet[ids.ID](len(subnets))
 	trackedSubnets.Add(subnets...)
 	registry := prometheus.NewRegistry()
+	appRequestNetwork, err := peers.NewNetwork(
+		logging.Info,
+		registry,
+		trackedSubnets,
+		&cfg,
+	)
+	Expect(err).Should(BeNil())
+
 	messageCreator, err := message.NewCreator(
 		logging.NoLog{},
 		registry,
@@ -560,22 +571,12 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 		constants.DefaultNetworkMaximumInboundTimeout,
 	)
 	Expect(err).Should(BeNil())
-
-	appRequestNetwork, err := peers.NewNetwork(
-		logging.Error,
-		registry,
-		trackedSubnets,
-		nil,
-		&cfg,
-	)
-	Expect(err).Should(BeNil())
-
 	agg, err := aggregator.NewSignatureAggregator(
 		appRequestNetwork,
 		logging.NoLog{},
-		messageCreator,
 		1024,
 		metrics.NewSignatureAggregatorMetrics(prometheus.NewRegistry()),
+		messageCreator,
 		// Setting the etnaTime to a minute ago so that the post-etna code path is used in the test
 		time.Now().Add(-1*time.Minute),
 	)

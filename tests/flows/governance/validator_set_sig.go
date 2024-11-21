@@ -145,9 +145,6 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 	// Test Case 1: validatorChain (subnetB) != targetChain (subnetA)
 	// ************************************************************************************************
 
-	aggregator := network.GetSignatureAggregator()
-	defer aggregator.Shutdown()
-
 	// Execute the ValidatorSetSig executeCall and wait for acceptance
 	receipt := utils.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
@@ -156,7 +153,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 		validatorSetSigContractAddress,
 		fundedKey,
 		&offchainMessages[0],
-		aggregator,
+		network.GetSignatureAggregator(),
 		true,
 	)
 

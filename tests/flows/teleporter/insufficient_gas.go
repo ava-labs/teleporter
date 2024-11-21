@@ -55,9 +55,6 @@ func InsufficientGas(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 
 	messageID := event.MessageID
 
-	aggregator := network.GetSignatureAggregator()
-	defer aggregator.Shutdown()
-
 	// Relay message from SubnetA to SubnetB
 	receipt = teleporter.RelayTeleporterMessage(
 		ctx,
@@ -67,7 +64,7 @@ func InsufficientGas(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 		true,
 		fundedKey,
 		nil,
-		aggregator,
+		network.GetSignatureAggregator(),
 	)
 
 	// Check Teleporter message received on the destination

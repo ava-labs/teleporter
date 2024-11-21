@@ -12,7 +12,7 @@ import (
 	"github.com/ava-labs/avalanchego/utils/units"
 	teleporterFlows "github.com/ava-labs/teleporter/tests/flows/teleporter"
 	registryFlows "github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
-	"github.com/ava-labs/teleporter/tests/network"
+	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
@@ -30,7 +30,7 @@ const (
 )
 
 var (
-	LocalNetworkInstance *network.LocalNetwork
+	LocalNetworkInstance *localnetwork.LocalNetwork
 	TeleporterInfo       utils.TeleporterTestInfo
 )
 
@@ -58,14 +58,14 @@ var _ = ginkgo.BeforeSuite(func() {
 	Expect(err).Should(BeNil())
 
 	// Create the local network instance
-	ctx, cancel := context.WithTimeout(context.Background(), 240*2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 120*2*time.Second)
 	defer cancel()
 
-	LocalNetworkInstance = network.NewLocalNetwork(
+	LocalNetworkInstance = localnetwork.NewLocalNetwork(
 		ctx,
 		"teleporter-test-local-network",
 		warpGenesisTemplateFile,
-		[]network.SubnetSpec{
+		[]localnetwork.SubnetSpec{
 			{
 				Name:                       "A",
 				EVMChainID:                 12345,

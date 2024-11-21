@@ -34,7 +34,7 @@ func TestValidatorManager(t *testing.T) {
 // Define the before and after suite functions.
 var _ = ginkgo.BeforeEach(func() {
 	// Create the local network instance
-	ctx, cancel := context.WithTimeout(context.Background(), 240*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 	LocalNetworkInstance = localnetwork.NewLocalNetwork(
 		ctx,

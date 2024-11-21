@@ -57,9 +57,6 @@ func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.Te
 		fundedKey,
 	)
 
-	aggregator := network.GetSignatureAggregator()
-	defer aggregator.Shutdown()
-
 	teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
@@ -68,7 +65,7 @@ func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.Te
 		false,
 		fundedKey,
 		nil,
-		aggregator,
+		network.GetSignatureAggregator(),
 	)
 
 	//

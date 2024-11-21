@@ -50,9 +50,6 @@ func PauseTeleporter(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeTrue())
 
-	aggregator := network.GetSignatureAggregator()
-	defer aggregator.Shutdown()
-
 	// Send a message from subnet A to subnet B, which should fail
 	teleporter.SendExampleCrossChainMessageAndVerify(
 		ctx,
@@ -63,7 +60,7 @@ func PauseTeleporter(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 		testMessengerB,
 		fundedKey,
 		"message_1",
-		aggregator,
+		network.GetSignatureAggregator(),
 		false,
 	)
 
@@ -90,7 +87,7 @@ func PauseTeleporter(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 		testMessengerB,
 		fundedKey,
 		"message_2",
-		aggregator,
+		network.GetSignatureAggregator(),
 		true,
 	)
 }

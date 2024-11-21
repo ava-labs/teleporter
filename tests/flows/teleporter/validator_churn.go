@@ -58,9 +58,6 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	Expect(err).Should(BeNil())
 	sentTeleporterMessage := sendEvent.Message
 
-	aggregator := network.GetSignatureAggregator()
-	defer aggregator.Shutdown()
-
 	// Construct the signed warp message
 	signedWarpMessage := utils.ConstructSignedWarpMessage(
 		ctx,
@@ -68,7 +65,7 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 		subnetAInfo,
 		subnetBInfo,
 		nil,
-		aggregator,
+		network.GetSignatureAggregator(),
 	)
 
 	//
@@ -97,7 +94,7 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 		}
 		utils.InitializeAndCompletePoAValidatorRegistration(
 			addValidatorsCtx,
-			aggregator,
+			network.GetSignatureAggregator(),
 			fundedKey,
 			fundedKey,
 			subnetAInfo,
@@ -171,7 +168,7 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 		true,
 		fundedKey,
 		nil,
-		aggregator,
+		network.GetSignatureAggregator(),
 	)
 
 	// Verify the message was delivered

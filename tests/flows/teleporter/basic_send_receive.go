@@ -22,13 +22,10 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ctx := context.Background()
 
-	aggregator := network.GetSignatureAggregator()
-	defer aggregator.Shutdown()
-
 	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
 	// This is only done if the test non-external networks because external networks may have
 	// an arbitrarily high number of receipts to be cleared from a given queue from unrelated messages.
-	teleporter.ClearReceiptQueue(ctx, fundedKey, subnetBInfo, subnetAInfo, aggregator)
+	teleporter.ClearReceiptQueue(ctx, fundedKey, subnetBInfo, subnetAInfo, network.GetSignatureAggregator())
 
 	feeAmount := big.NewInt(1)
 	feeTokenAddress, feeToken := utils.DeployExampleERC20(
@@ -77,7 +74,7 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 		true,
 		fundedKey,
 		nil,
-		aggregator,
+		network.GetSignatureAggregator(),
 	)
 	receiveEvent, err := utils.GetEventFromLogs(
 		deliveryReceipt.Logs,
@@ -112,7 +109,7 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 		true,
 		fundedKey,
 		nil,
-		aggregator,
+		network.GetSignatureAggregator(),
 	)
 
 	Expect(utils.CheckReceiptReceived(

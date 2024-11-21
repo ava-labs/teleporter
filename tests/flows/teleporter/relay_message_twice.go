@@ -49,9 +49,6 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 		fundedKey,
 	)
 
-	aggregator := network.GetSignatureAggregator()
-	defer aggregator.Shutdown()
-
 	//
 	// Relay the message to the destination
 	//
@@ -63,7 +60,7 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 		true,
 		fundedKey,
 		nil,
-		aggregator,
+		network.GetSignatureAggregator(),
 	)
 
 	//
@@ -88,6 +85,6 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 		false,
 		fundedKey,
 		nil,
-		aggregator,
+		network.GetSignatureAggregator(),
 	)
 }
