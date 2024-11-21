@@ -492,7 +492,6 @@ func (n *LocalNetwork) Dir() string {
 func (n *LocalNetwork) GetPChainWallet() pwallet.Wallet {
 	// Create the P-Chain wallet to issue transactions
 	kc := secp256k1fx.NewKeychain(n.globalFundedKey)
-	n.GetSubnetsInfo()
 	var subnetIDs []ids.ID
 	for _, subnet := range n.GetSubnetsInfo() {
 		subnetIDs = append(subnetIDs, subnet.SubnetID)
