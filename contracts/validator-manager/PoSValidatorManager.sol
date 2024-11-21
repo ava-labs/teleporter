@@ -628,7 +628,7 @@ abstract contract PoSValidatorManager is
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
-        _initializeEndDeleationWithCheck(delegationID, includeUptimeProof, messageIndex, address(0));
+        _initializeEndDelegationWithCheck(delegationID, includeUptimeProof, messageIndex, address(0));
     }
 
     /**
@@ -640,12 +640,12 @@ abstract contract PoSValidatorManager is
         uint32 messageIndex,
         address rewardRecipient
     ) external {
-        _initializeEndDeleationWithCheck(
+        _initializeEndDelegationWithCheck(
             delegationID, includeUptimeProof, messageIndex, rewardRecipient
         );
     }
 
-    function _initializeEndDeleationWithCheck(
+    function _initializeEndDelegationWithCheck(
         bytes32 delegationID,
         bool includeUptimeProof,
         uint32 messageIndex,
