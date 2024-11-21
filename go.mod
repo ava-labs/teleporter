@@ -9,7 +9,7 @@ require (
 
 require (
 	github.com/ava-labs/awm-relayer v1.4.1-0.20241114185359-5cd5a982832d
-	github.com/ava-labs/subnet-evm v0.6.12-rc.0
+	github.com/ava-labs/subnet-evm v0.6.12
 	github.com/ethereum/go-ethereum v1.13.14
 	github.com/onsi/ginkgo/v2 v2.22.0
 	github.com/onsi/gomega v1.35.1
@@ -26,7 +26,7 @@ require (
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.1 // indirect
-	github.com/ava-labs/coreth v0.13.8 // indirect
+	github.com/ava-labs/coreth v0.13.9-rc.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.10.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
