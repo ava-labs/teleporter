@@ -279,11 +279,11 @@ abstract contract PoSValidatorManager is
         bytes32 validationID,
         address rewardRecipient
     ) external {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
         if (rewardRecipient == address(0)) {
             revert InvalidRewardRecipient(rewardRecipient);
         }
-
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         if ($._posValidatorInfo[validationID].owner != _msgSender()) {
             revert UnauthorizedOwner(_msgSender());
