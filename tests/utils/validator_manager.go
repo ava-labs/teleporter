@@ -232,7 +232,7 @@ func DeployAndInitializeValidatorManager(
 				MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
 				WeightToValueFactor:      big.NewInt(0).SetUint64(DefaultWeightToValueFactor),
 				RewardCalculator:         rewardCalculatorAddress,
-				UptimeBlockchainID:       subnet.BlockchainID
+				UptimeBlockchainID:       subnet.BlockchainID,
 			},
 		)
 		Expect(err).Should(BeNil())
