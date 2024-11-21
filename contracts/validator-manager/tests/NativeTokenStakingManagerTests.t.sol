@@ -8,7 +8,7 @@ pragma solidity 0.8.25;
 import {Test} from "@forge-std/Test.sol";
 import {PoSValidatorManagerTest} from "./PoSValidatorManagerTests.t.sol";
 import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
-import {PoSValidatorManager} from "../PoSValidatorManager.sol";
+import {PoSValidatorManager, PoSValidatorManagerSettings} from "../PoSValidatorManager.sol";
 import {ValidatorRegistrationInput, IValidatorManager} from "../interfaces/IValidatorManager.sol";
 import {ExampleRewardCalculator} from "../ExampleRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
@@ -33,7 +33,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         app = new NativeTokenStakingManager(ICMInitializable.Disallowed);
         vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
 
-        app.initialize(defaultPoSSettings);
+        app.initialize(_defaultPoSSettings());
     }
 
     function testZeroMinimumDelegationFee() public {
@@ -42,6 +42,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             abi.encodeWithSelector(PoSValidatorManager.InvalidDelegationFee.selector, 0)
         );
 
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.minimumDelegationFeeBips = 0;
         app.initialize(defaultPoSSettings);
     }
@@ -55,6 +56,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             )
         );
 
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.minimumDelegationFeeBips = minimumDelegationFeeBips;
         app.initialize(defaultPoSSettings);
     }
@@ -67,6 +69,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             )
         );
 
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.minimumStakeAmount = DEFAULT_MAXIMUM_STAKE_AMOUNT;
         defaultPoSSettings.maximumStakeAmount = DEFAULT_MINIMUM_STAKE_AMOUNT;
         app.initialize(defaultPoSSettings);
@@ -78,6 +81,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             abi.encodeWithSelector(PoSValidatorManager.InvalidStakeMultiplier.selector, 0)
         );
 
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.maximumStakeMultiplier = 0;
         app.initialize(defaultPoSSettings);
     }
@@ -91,6 +95,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             )
         );
 
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.maximumStakeMultiplier = maximumStakeMultiplier;
         app.initialize(defaultPoSSettings);
     }
@@ -101,6 +106,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             abi.encodeWithSelector(PoSValidatorManager.ZeroWeightToValueFactor.selector)
         );
 
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.weightToValueFactor = 0;
         app.initialize(defaultPoSSettings);
     }
@@ -114,6 +120,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             )
         );
 
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.minimumStakeDuration = minStakeDuration;
         app.initialize(defaultPoSSettings);
     }
@@ -173,6 +180,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         app = new TestableNativeTokenStakingManager(ICMInitializable.Allowed);
         rewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_RATE);
 
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.rewardCalculator = rewardCalculator;
         app.initialize(defaultPoSSettings);
 

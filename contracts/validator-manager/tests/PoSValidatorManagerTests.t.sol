@@ -47,22 +47,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     PoSValidatorManager public posValidatorManager;
     IRewardCalculator public rewardCalculator;
 
-    PoSValidatorManagerSettings public defaultPoSSettings = PoSValidatorManagerSettings({
-        baseSettings: ValidatorManagerSettings({
-            subnetID: DEFAULT_SUBNET_ID,
-            churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-            maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-        }),
-        minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-        maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-        minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-        minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-        maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-        weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-        rewardCalculator: IRewardCalculator(address(0)),
-        uptimeBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID
-    });
-
     ValidatorRegistrationInput public defaultRegistrationInput = ValidatorRegistrationInput({
         nodeID: DEFAULT_NODE_ID,
         blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
@@ -1980,6 +1964,24 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             stakingStartTime: DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
             stakingEndTime: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
             uptimeSeconds: DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP - DEFAULT_REGISTRATION_TIMESTAMP
+        });
+    }
+
+    function _defaultPoSSettings() internal pure returns (PoSValidatorManagerSettings memory) {
+        return PoSValidatorManagerSettings({
+            baseSettings: ValidatorManagerSettings({
+                subnetID: DEFAULT_SUBNET_ID,
+                churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+            }),
+            minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
+            maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
+            minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+            minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
+            maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
+            weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
+            rewardCalculator: IRewardCalculator(address(0)),
+            uptimeBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID
         });
     }
 }

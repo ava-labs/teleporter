@@ -328,6 +328,7 @@ contract ValidatorMessagesTest is Test {
                 initialValidators: initialValidators
             })
         );
+
         assertEq(packed.length, 186);
     }
 
