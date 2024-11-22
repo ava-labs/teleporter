@@ -1059,7 +1059,7 @@ func InitializeEndNativeValidation(
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, l1.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := stakingManager.InitializeEndValidation(
+	tx, err := stakingManager.InitializeEndValidation0(
 		opts,
 		validationID,
 		false,
@@ -1161,7 +1161,7 @@ func InitializeEndERC20Validation(
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, l1.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := stakingManager.InitializeEndValidation(
+	tx, err := stakingManager.InitializeEndValidation0(
 		opts,
 		validationID,
 		false,
