@@ -13,6 +13,7 @@ import {
 } from "../interfaces/IValidatorManager.sol";
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
+import {ValidatorManager} from "../ValidatorManager.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
@@ -60,6 +61,28 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
                 disableOwner: DEFAULT_P_CHAIN_OWNER
             }),
             DEFAULT_WEIGHT
+        );
+    }
+
+    // This test applies to all ValidatorManagers, but we test it here to avoid
+    // having to source UINT64MAX funds for PoSValidatorManagers.
+    function testTotalWeightOverflow() public {
+        uint64 weight = type(uint64).max;
+
+        bytes memory nodeID = _newNodeID();
+        vm.expectRevert(
+            abi.encodeWithSelector(ValidatorManager.InvalidTotalWeight.selector, weight)
+        );
+
+        _initializeValidatorRegistration(
+            ValidatorRegistrationInput({
+                nodeID: nodeID,
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+                remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
+                disableOwner: DEFAULT_P_CHAIN_OWNER,
+                registrationExpiry: DEFAULT_EXPIRY
+            }),
+            weight
         );
     }
 
