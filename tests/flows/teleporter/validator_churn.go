@@ -5,9 +5,11 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/ava-labs/avalanchego/utils/units"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
+	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -15,7 +17,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const newNodeCount = 2
+const (
+	newNodeCount       = 2
+	sleepPeriodSeconds = 5
+)
 
 func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
@@ -57,16 +62,56 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	sentTeleporterMessage := sendEvent.Message
 
 	// Construct the signed warp message
-	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, receipt, subnetAInfo, subnetBInfo)
+	signedWarpMessage := utils.ConstructSignedWarpMessage(
+		ctx,
+		receipt,
+		subnetAInfo,
+		subnetBInfo,
+		nil,
+		network.GetSignatureAggregator(),
+	)
 
 	//
 	// Modify the validator set on Subnet A
 	//
 
 	// Add new nodes to the validator set
-	addValidatorsCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	addValidatorsCtx, cancel := context.WithTimeout(ctx, (90+sleepPeriodSeconds)*newNodeCount*time.Second)
 	defer cancel()
-	network.AddSubnetValidators(addValidatorsCtx, subnetAInfo.SubnetID, newNodeCount)
+	newNodes := network.GetExtraNodes(newNodeCount)
+	validatorManagerAddress := network.GetValidatorManager(subnetAInfo.SubnetID)
+	validatorManager, err := poavalidatormanager.NewPoAValidatorManager(validatorManagerAddress, subnetAInfo.RPCClient)
+	pChainInfo := utils.GetPChainInfo(network.GetPrimaryNetworkInfo())
+	Expect(err).Should(BeNil())
+
+	subnetAInfo = network.AddSubnetValidators(newNodes, subnetAInfo)
+
+	for i := 0; i < newNodeCount; i++ {
+		expiry := uint64(time.Now().Add(24 * time.Hour).Unix())
+		pop, err := newNodes[i].GetProofOfPossession()
+		Expect(err).Should(BeNil())
+		node := utils.Node{
+			NodeID:  newNodes[i].NodeID,
+			NodePoP: pop,
+			Weight:  units.Schmeckle,
+		}
+		utils.InitializeAndCompletePoAValidatorRegistration(
+			addValidatorsCtx,
+			network.GetSignatureAggregator(),
+			fundedKey,
+			fundedKey,
+			subnetAInfo,
+			pChainInfo,
+			validatorManager,
+			validatorManagerAddress,
+			expiry,
+			node,
+			network.GetPChainWallet(),
+			network.GetNetworkID(),
+		)
+		// Sleep to ensure the validator manager uses a new churn tracking period
+		time.Sleep(sleepPeriodSeconds * time.Second)
+	}
 
 	// Refresh the subnet info
 	subnetAInfo, subnetBInfo = network.GetTwoSubnets()
@@ -118,7 +163,16 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	// Wait for the transaction to be mined
 	receipt = utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
-	teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
+	teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		subnetAInfo,
+		subnetBInfo,
+		true,
+		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
+	)
 
 	// Verify the message was delivered
 	delivered, err = teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(

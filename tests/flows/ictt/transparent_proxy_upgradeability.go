@@ -62,13 +62,14 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 	utils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
 
 	// Deploy a TransparentUpgradeableProxy contract on primary network for the ERC20TokenHome logic contract
-	erc20TokenHomeAddress, proxyAdmin, erc20TokenHome := utils.DeployTransparentUpgradeableProxy(
+	erc20TokenHomeAddress, proxyAdmin := utils.DeployTransparentUpgradeableProxy(
 		ctx,
 		cChainInfo,
 		fundedKey,
 		implAddress,
-		erc20tokenhome.NewERC20TokenHome,
 	)
+	erc20TokenHome, err := erc20tokenhome.NewERC20TokenHome(erc20TokenHomeAddress, cChainInfo.RPCClient)
+	Expect(err).Should(BeNil())
 
 	tx, err = erc20TokenHome.Initialize(
 		opts,
@@ -104,6 +105,7 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		subnetAInfo,
 		erc20TokenRemoteAddress,
 		fundedKey,
+		network.GetSignatureAggregator(),
 	)
 
 	// Send a transfer from primary network to Subnet A
@@ -142,6 +144,8 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		subnetAInfo,
 		true,
 		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
 	)
 
 	utils.CheckERC20TokenRemoteWithdrawal(
@@ -206,6 +210,8 @@ func TransparentUpgradeableProxy(network *localnetwork.LocalNetwork, teleporter 
 		cChainInfo,
 		true,
 		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
 	)
 
 	// Check that the transfer was successful, and expected balances are correct

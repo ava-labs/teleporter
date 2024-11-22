@@ -36,7 +36,6 @@ import (
 	"github.com/ava-labs/subnet-evm/precompile/contracts/nativeminter"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
-	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	nativeMinter "github.com/ava-labs/teleporter/abi-bindings/go/INativeMinter"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
@@ -657,16 +656,10 @@ func ConstructSignedWarpMessage(
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
+	justification []byte,
+	signatureAggregator *aggregator.SignatureAggregator,
 ) *avalancheWarp.Message {
 	unsignedMsg := ExtractWarpMessageFromLog(ctx, sourceReceipt, source)
-
-	// Set local variables for the duration of the test
-	unsignedWarpMessageID := unsignedMsg.ID()
-	log.Info(
-		"Parsed unsignedWarpMsg",
-		"unsignedWarpMessageID", unsignedWarpMessageID,
-		"unsignedWarpMessage", unsignedMsg,
-	)
 
 	// Loop over each client on source chain to ensure they all have time to accept the block.
 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
@@ -675,37 +668,30 @@ func ConstructSignedWarpMessage(
 
 	// Get the aggregate signature for the Warp message
 	log.Info("Fetching aggregate signature from the source chain validators")
-	return GetSignedMessage(ctx, source, destination, unsignedWarpMessageID)
+	return GetSignedMessage(source, destination, unsignedMsg, justification, signatureAggregator)
 }
 
 func GetSignedMessage(
-	ctx context.Context,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
-	unsignedWarpMessageID ids.ID,
+	unsignedWarpMessage *avalancheWarp.UnsignedMessage,
+	justification []byte,
+	signatureAggregator *aggregator.SignatureAggregator,
 ) *avalancheWarp.Message {
-	Expect(len(source.NodeURIs)).Should(BeNumerically(">", 0))
-	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
-	Expect(err).Should(BeNil())
-
 	signingSubnetID := source.SubnetID
 	if source.SubnetID == constants.PrimaryNetworkID {
 		signingSubnetID = destination.SubnetID
 	}
 
-	// Get the aggregate signature for the Warp message
-	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
-		ctx,
-		unsignedWarpMessageID,
+	signedWarpMessage, err := signatureAggregator.CreateSignedMessage(
+		unsignedWarpMessage,
+		justification,
+		signingSubnetID,
 		warp.WarpDefaultQuorumNumerator,
-		signingSubnetID.String(),
 	)
 	Expect(err).Should(BeNil())
 
-	signedWarpMsg, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
-	Expect(err).Should(BeNil())
-
-	return signedWarpMsg
+	return signedWarpMessage
 }
 
 func SetupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, network *tmpnet.Network, subnetID ids.ID) {

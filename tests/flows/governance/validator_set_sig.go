@@ -3,7 +3,6 @@ package governance
 import (
 	"context"
 	"math/big"
-	"time"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
@@ -141,9 +140,6 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 
 	// Restart nodes with new chain config
 	network.SetChainConfigs(chainConfigs)
-	restartCtx, cancel := context.WithTimeout(ctx, time.Second*30)
-	defer cancel()
-	network.RestartNodes(restartCtx, nil)
 
 	// ************************************************************************************************
 	// Test Case 1: validatorChain (subnetB) != targetChain (subnetA)
@@ -157,6 +153,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 		validatorSetSigContractAddress,
 		fundedKey,
 		&offchainMessages[0],
+		network.GetSignatureAggregator(),
 		true,
 	)
 
@@ -179,6 +176,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 		validatorSetSigContractAddress,
 		fundedKey,
 		&offchainMessages[0],
+		network.GetSignatureAggregator(),
 		false,
 	)
 
@@ -195,6 +193,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 		validatorSetSigContractAddress,
 		fundedKey,
 		&offchainMessages[1],
+		network.GetSignatureAggregator(),
 		true,
 	)
 
@@ -226,6 +225,7 @@ func ValidatorSetSig(network *localnetwork.LocalNetwork) {
 		validatorSetSigContractAddress2,
 		fundedKey,
 		&offchainMessages[2],
+		network.GetSignatureAggregator(),
 		true,
 	)
 

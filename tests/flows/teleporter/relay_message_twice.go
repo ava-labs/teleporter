@@ -41,13 +41,27 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 		"destinationBlockchainID", subnetBInfo.BlockchainID,
 	)
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, teleporter.TeleporterMessenger(subnetAInfo), subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey,
+		ctx,
+		teleporter.TeleporterMessenger(subnetAInfo),
+		subnetAInfo,
+		subnetBInfo,
+		sendCrossChainMessageInput,
+		fundedKey,
 	)
 
 	//
 	// Relay the message to the destination
 	//
-	teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, fundedKey)
+	teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		subnetAInfo,
+		subnetBInfo,
+		true,
+		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
+	)
 
 	//
 	// Check Teleporter message received on the destination
@@ -63,5 +77,14 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 	// Attempt to send the same message again, should fail
 	//
 	log.Info("Relaying the same Teleporter message again on the destination")
-	teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, fundedKey)
+	teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		subnetAInfo,
+		subnetBInfo,
+		false,
+		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
+	)
 }

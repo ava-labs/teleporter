@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ava-labs/avalanchego/utils/units"
 	teleporterFlows "github.com/ava-labs/teleporter/tests/flows/teleporter"
 	registryFlows "github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
@@ -57,7 +58,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	Expect(err).Should(BeNil())
 
 	// Create the local network instance
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 120*2*time.Second)
 	defer cancel()
 
 	LocalNetworkInstance = localnetwork.NewLocalNetwork(
@@ -71,7 +72,7 @@ var _ = ginkgo.BeforeSuite(func() {
 				TeleporterContractAddress:  teleporterContractAddress,
 				TeleporterDeployedBytecode: teleporterDeployedBytecode,
 				TeleporterDeployerAddress:  teleporterDeployerAddress,
-				NodeCount:                  2,
+				NodeCount:                  5,
 			},
 			{
 				Name:                       "B",
@@ -79,9 +80,10 @@ var _ = ginkgo.BeforeSuite(func() {
 				TeleporterContractAddress:  teleporterContractAddress,
 				TeleporterDeployedBytecode: teleporterDeployedBytecode,
 				TeleporterDeployerAddress:  teleporterDeployerAddress,
-				NodeCount:                  2,
+				NodeCount:                  5,
 			},
 		},
+		2,
 		2,
 	)
 	TeleporterInfo = utils.NewTeleporterTestInfo(LocalNetworkInstance.GetAllSubnetsInfo())
@@ -102,6 +104,17 @@ var _ = ginkgo.BeforeSuite(func() {
 		TeleporterInfo.SetTeleporter(teleporterContractAddress, subnet)
 		TeleporterInfo.InitializeBlockchainID(subnet, fundedKey)
 		TeleporterInfo.DeployTeleporterRegistry(subnet, fundedKey)
+	}
+
+	for _, subnet := range LocalNetworkInstance.GetSubnetsInfo() {
+		// Choose weights such that we can test validator churn
+		LocalNetworkInstance.ConvertSubnet(
+			ctx,
+			subnet,
+			utils.PoAValidatorManager,
+			[]uint64{units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle},
+			fundedKey,
+			false)
 	}
 
 	log.Info("Set up ginkgo before suite")

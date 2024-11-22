@@ -17,8 +17,8 @@ export ARCH=$(uname -m)
 echo "ARCH set to $ARCH"
 
 DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 ExampleRewardCalculator TestMessenger ValidatorSetSig NativeTokenStakingManager ERC20TokenStakingManager PoAValidatorManager
-TokenHome TokenRemote ERC20TokenHome ERC20TokenHomeUpgradeable ERC20TokenRemote ERC20TokenRemoteUpgradeable NativeTokenHome NativeTokenHomeUpgradeable NativeTokenRemote NativeTokenRemoteUpgradeable WrappedNativeToken MockERC20SendAndCallReceiver MockNativeSendAndCallReceiver ExampleERC20Decimals"
-
+TokenHome TokenRemote ERC20TokenHome ERC20TokenHomeUpgradeable ERC20TokenRemote ERC20TokenRemoteUpgradeable NativeTokenHome NativeTokenHomeUpgradeable NativeTokenRemote NativeTokenRemoteUpgradeable
+WrappedNativeToken MockERC20SendAndCallReceiver MockNativeSendAndCallReceiver ExampleERC20Decimals IValidatorManager IPoSValidatorManager"
 PROXY_LIST="TransparentUpgradeableProxy ProxyAdmin"
 
 SUBNET_EVM_LIST="INativeMinter"
@@ -139,21 +139,30 @@ function generate_bindings() {
 
         # Filter out the contract we are generating bindings for
         filtered_contracts=$(remove_matching_string $contracts $contract_name)
-
-        # Filter out external libraries
-        for lib in $EXTERNAL_LIBS; do
-            filtered_contracts=$(remove_matching_string $filtered_contracts $lib)
-        done
-
-        echo "Generating Go bindings for $contract_name..."
+        
         gen_path=$TELEPORTER_PATH/abi-bindings/go/$dir/$contract_name
         mkdir -p $gen_path
+        echo "Generating Go bindings for $contract_name..."
+        
+        if [ -z "$filtered_contracts" ]; then
+            echo "No external libraries found"
+            $GOPATH/bin/abigen --pkg $(convertToLower $contract_name) \
+                            --combined-json $combined_json \
+                            --type $contract_name \
+                            --out $gen_path/$contract_name.go
+        else
+            # Filter out external libraries
+            for lib in $EXTERNAL_LIBS; do
+                filtered_contracts=$(remove_matching_string $filtered_contracts $lib)
+            done
 
-        $GOPATH/bin/abigen --pkg $(convertToLower $contract_name) \
-                        --combined-json $combined_json \
-                        --type $contract_name \
-                        --out $gen_path/$contract_name.go \
-                        --exc $filtered_contracts
+            $GOPATH/bin/abigen --pkg $(convertToLower $contract_name) \
+                            --combined-json $combined_json \
+                            --type $contract_name \
+                            --out $gen_path/$contract_name.go \
+                            --exc $filtered_contracts
+        fi
+        
         echo "Done generating Go bindings for $contract_name."
     done
 }

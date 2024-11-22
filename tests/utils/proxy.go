@@ -13,13 +13,12 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func DeployTransparentUpgradeableProxy[T any](
+func DeployTransparentUpgradeableProxy(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
 	senderKey *ecdsa.PrivateKey,
 	implAddress common.Address,
-	newInstance func(address common.Address, backend bind.ContractBackend) (*T, error),
-) (common.Address, *proxyadmin.ProxyAdmin, *T) {
+) (common.Address, *proxyadmin.ProxyAdmin) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
 		subnet.EVMChainID,
@@ -42,8 +41,5 @@ func DeployTransparentUpgradeableProxy[T any](
 	proxyAdmin, err := proxyadmin.NewProxyAdmin(proxyAdminEvent.NewAdmin, subnet.RPCClient)
 	Expect(err).Should(BeNil())
 
-	contract, err := newInstance(proxyAddress, subnet.RPCClient)
-	Expect(err).Should(BeNil())
-
-	return proxyAddress, proxyAdmin, contract
+	return proxyAddress, proxyAdmin
 }

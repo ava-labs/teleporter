@@ -49,7 +49,16 @@ func UnallowedRelayer(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	//
 	// Relay the message to the destination
 	//
-	teleporter.RelayTeleporterMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, fundedKey)
+	teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		subnetAInfo,
+		subnetBInfo,
+		false,
+		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
+	)
 
 	//
 	// Check Teleporter message was not received on the destination
