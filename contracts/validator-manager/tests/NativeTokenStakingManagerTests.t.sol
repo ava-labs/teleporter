@@ -8,19 +8,14 @@ pragma solidity 0.8.25;
 import {Test} from "@forge-std/Test.sol";
 import {PoSValidatorManagerTest} from "./PoSValidatorManagerTests.t.sol";
 import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
-import {PoSValidatorManager} from "../PoSValidatorManager.sol";
-import {
-    ValidatorManagerSettings,
-    ValidatorRegistrationInput,
-    IValidatorManager
-} from "../interfaces/IValidatorManager.sol";
-import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
-import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
+import {PoSValidatorManager, PoSValidatorManagerSettings} from "../PoSValidatorManager.sol";
+import {ValidatorRegistrationInput, IValidatorManager} from "../interfaces/IValidatorManager.sol";
 import {ExampleRewardCalculator} from "../ExampleRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
+import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
 contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     NativeTokenStakingManager public app;
@@ -34,28 +29,22 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         app.initializeValidatorSet(_defaultConversionData(), 0);
     }
 
+    function testDisableInitialization() public {
+        app = new NativeTokenStakingManager(ICMInitializable.Disallowed);
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
+
+        app.initialize(_defaultPoSSettings());
+    }
+
     function testZeroMinimumDelegationFee() public {
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         vm.expectRevert(
             abi.encodeWithSelector(PoSValidatorManager.InvalidDelegationFee.selector, 0)
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: 0,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0)),
-                uptimeBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID
-            })
-        );
+
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        defaultPoSSettings.minimumDelegationFeeBips = 0;
+        app.initialize(defaultPoSSettings);
     }
 
     function testMaxMinimumDelegationFee() public {
@@ -66,23 +55,10 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 PoSValidatorManager.InvalidDelegationFee.selector, minimumDelegationFeeBips
             )
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: minimumDelegationFeeBips,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0)),
-                uptimeBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID
-            })
-        );
+
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        defaultPoSSettings.minimumDelegationFeeBips = minimumDelegationFeeBips;
+        app.initialize(defaultPoSSettings);
     }
 
     function testInvalidStakeAmountRange() public {
@@ -92,23 +68,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 PoSValidatorManager.InvalidStakeAmount.selector, DEFAULT_MAXIMUM_STAKE_AMOUNT
             )
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0)),
-                uptimeBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID
-            })
-        );
+
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        defaultPoSSettings.minimumStakeAmount = DEFAULT_MAXIMUM_STAKE_AMOUNT;
+        defaultPoSSettings.maximumStakeAmount = DEFAULT_MINIMUM_STAKE_AMOUNT;
+        app.initialize(defaultPoSSettings);
     }
 
     function testZeroMaxStakeMultiplier() public {
@@ -116,23 +80,10 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         vm.expectRevert(
             abi.encodeWithSelector(PoSValidatorManager.InvalidStakeMultiplier.selector, 0)
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: 0,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0)),
-                uptimeBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID
-            })
-        );
+
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        defaultPoSSettings.maximumStakeMultiplier = 0;
+        app.initialize(defaultPoSSettings);
     }
 
     function testMaxStakeMultiplierOverLimit() public {
@@ -143,23 +94,10 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 PoSValidatorManager.InvalidStakeMultiplier.selector, maximumStakeMultiplier
             )
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: maximumStakeMultiplier,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0)),
-                uptimeBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID
-            })
-        );
+
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        defaultPoSSettings.maximumStakeMultiplier = maximumStakeMultiplier;
+        app.initialize(defaultPoSSettings);
     }
 
     function testZeroWeightToValueFactor() public {
@@ -167,23 +105,10 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         vm.expectRevert(
             abi.encodeWithSelector(PoSValidatorManager.ZeroWeightToValueFactor.selector)
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: 0,
-                rewardCalculator: IRewardCalculator(address(0)),
-                uptimeBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID
-            })
-        );
+
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        defaultPoSSettings.weightToValueFactor = 0;
+        app.initialize(defaultPoSSettings);
     }
 
     function testMinStakeDurationTooLow() public {
@@ -194,23 +119,10 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 PoSValidatorManager.InvalidMinStakeDuration.selector, minStakeDuration
             )
         );
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: minStakeDuration,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: IRewardCalculator(address(0)),
-                uptimeBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID
-            })
-        );
+
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        defaultPoSSettings.minimumStakeDuration = minStakeDuration;
+        app.initialize(defaultPoSSettings);
     }
 
     // Helpers
@@ -267,23 +179,11 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         // Construct the object under test
         app = new TestableNativeTokenStakingManager(ICMInitializable.Allowed);
         rewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_RATE);
-        app.initialize(
-            PoSValidatorManagerSettings({
-                baseSettings: ValidatorManagerSettings({
-                    subnetID: DEFAULT_SUBNET_ID,
-                    churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                    maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-                }),
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE_AMOUNT,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE_AMOUNT,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                minimumDelegationFeeBips: DEFAULT_MINIMUM_DELEGATION_FEE_BIPS,
-                maximumStakeMultiplier: DEFAULT_MAXIMUM_STAKE_MULTIPLIER,
-                weightToValueFactor: DEFAULT_WEIGHT_TO_VALUE_FACTOR,
-                rewardCalculator: rewardCalculator,
-                uptimeBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID
-            })
-        );
+
+        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        defaultPoSSettings.rewardCalculator = rewardCalculator;
+        app.initialize(defaultPoSSettings);
+
         validatorManager = app;
         posValidatorManager = app;
         return app;

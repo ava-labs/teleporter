@@ -5,18 +5,18 @@
 
 pragma solidity 0.8.25;
 
-import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 import {PoAValidatorManager} from "../PoAValidatorManager.sol";
-import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput,
     IValidatorManager
 } from "../interfaces/IValidatorManager.sol";
+import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {ValidatorManager} from "../ValidatorManager.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
-import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
+import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
 contract PoAValidatorManagerTest is ValidatorManagerTest {
     PoAValidatorManager public app;
@@ -30,6 +30,19 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
         _mockGetBlockchainID();
         _mockInitializeValidatorSet();
         app.initializeValidatorSet(_defaultConversionData(), 0);
+    }
+
+    function testDisableInitialization() public {
+        app = new PoAValidatorManager(ICMInitializable.Disallowed);
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
+        app.initialize(
+            ValidatorManagerSettings({
+                subnetID: DEFAULT_SUBNET_ID,
+                churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
+                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
+            }),
+            address(this)
+        );
     }
 
     function testInvalidOwnerRegistration() public {

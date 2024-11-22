@@ -782,6 +782,7 @@ abstract contract PoSValidatorManager is
         } else if (validator.status == ValidatorStatus.Active) {
             delegationEndTime = uint64(block.timestamp);
         } else {
+            // Should be unreachable.
             revert InvalidValidatorStatus(validator.status);
         }
 
@@ -824,6 +825,7 @@ abstract contract PoSValidatorManager is
 
         Validator memory validator = getValidator(delegator.validationID);
         if (validator.messageNonce == 0) {
+            // Should be unreachable.
             revert InvalidDelegationID(delegationID);
         }
 
