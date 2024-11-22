@@ -384,6 +384,7 @@ abstract contract PoSValidatorManager is
 
         address owner = $._posValidatorInfo[validationID].owner;
         address rewardRecipient = $._rewardRecipients[validationID];
+        delete $._rewardRecipients[validationID];
 
         // the reward-recipient should always be set, but just in case it isn't, we won't burn the reward
         if (rewardRecipient == address(0)) {
@@ -889,6 +890,7 @@ abstract contract PoSValidatorManager is
         delete $._delegatorStakes[delegationID];
 
         address rewardRecipient = $._delegatorRewardRecipients[delegationID];
+        delete $._delegatorRewardRecipients[delegationID];
 
         if (rewardRecipient == address(0)) {
             rewardRecipient = delegator.owner;
