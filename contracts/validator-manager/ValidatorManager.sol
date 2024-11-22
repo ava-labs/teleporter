@@ -168,7 +168,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             }
 
             // Validation ID of the initial validators is the sha256 hash of the
-            // convert L1 to L1 tx ID and the index of the initial validator.
+            // convert subnet to L1 tx ID and the index of the initial validator.
             bytes32 validationID = sha256(abi.encodePacked(conversionData.l1ID, i));
 
             // Save the initial validator as an active validator.

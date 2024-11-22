@@ -19,7 +19,7 @@ func UnallowedRelayer(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
-	// Send a transaction to L1 A to issue a ICM Message from the Teleporter contract to L1 B
+	// Send a transaction to L1 A to issue an ICM Message from the Teleporter contract to L1 B
 	// The Teleporter message includes an allowed relayer list that does NOT include the relayer
 	//
 	ctx := context.Background()

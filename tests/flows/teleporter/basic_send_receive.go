@@ -19,7 +19,7 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	teleporterContractAddress := teleporter.TeleporterMessengerAddress(l1AInfo)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	// Send a transaction to L1 A to issue a ICM Message from the Teleporter contract to L1 B
+	// Send a transaction to L1 A to issue an ICM Message from the Teleporter contract to L1 B
 	ctx := context.Background()
 
 	// Clear the receipt queue from L1 B -> L1 A to have a clean slate for the test flow.
@@ -79,7 +79,7 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
-	// Send a transaction to L1 B to issue a ICM Message from the Teleporter contract to L1 A
+	// Send a transaction to L1 B to issue an ICM Message from the Teleporter contract to L1 A
 	sendCrossChainMessageInput.DestinationBlockchainID = l1AInfo.BlockchainID
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(

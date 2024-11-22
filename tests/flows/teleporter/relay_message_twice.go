@@ -20,7 +20,7 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
-	// Send a transaction to L1 A to issue a ICM Message from the Teleporter contract to L1 B
+	// Send a transaction to L1 A to issue an ICM Message from the Teleporter contract to L1 B
 	//
 	ctx := context.Background()
 

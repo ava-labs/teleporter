@@ -18,7 +18,7 @@ func ResubmitAlteredMessage(network *localnetwork.LocalNetwork, teleporter utils
 	l1BInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	// Send a transaction to L1 A to issue a ICM Message from the Teleporter contract to L1 B
+	// Send a transaction to L1 A to issue an ICM Message from the Teleporter contract to L1 B
 	ctx := context.Background()
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
