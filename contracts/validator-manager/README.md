@@ -1,8 +1,5 @@
 # Validator Manager Contract
 
-> [!CAUTION]
-> The contracts in this directory are still under active development, are unaudited, and should not be used in production.
-
 The contracts in this directory define the Validator Manager used to manage Avalanche L1 validators, as defined in [ACP-77](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets). `ValidatorManager.sol` is the top-level abstract contract that provides the basic functionality. The other contracts are related as follows:
 
 ```mermaid
@@ -60,7 +57,7 @@ Proof-of-Authority validator management is provided via `PoAValidatorManager`, w
 
 ### PoSValidatorManager
 
-Proof-of-Stake validator management is provided by the abstract contract `PoSValidatorManager`, which has two concrete implementations: `NativeTokenStakingManager` and `ERC20TokenStakingManager`. In addition to basic validator management provided in `ValidatorManager`, `PoSValidatorManager` supports uptime-based validation rewards, as well as delegation to a chosen validator. This [state transition diagram](./StateTransition.md) illustrates the relationship between validators and delegators.
+Proof-of-Stake validator management is provided by the abstract contract `PoSValidatorManager`, which has two concrete implementations: `NativeTokenStakingManager` and `ERC20TokenStakingManager`. In addition to basic validator management provided in `ValidatorManager`, `PoSValidatorManager` supports uptime-based validation rewards, as well as delegation to a chosen validator. The `uptimeBlockchainID` used to initialize the `PoSValidatorManager` **must** be validated by the L1 validator set that the contract manages. **There is no way to verify this from within the contract, so take care when setting this value.** This [state transition diagram](./StateTransition.md) illustrates the relationship between validators and delegators.
 
 > [!NOTE]
 > The `weightToValueFactor` fields of the `PoSValidatorManagerSettings` passed to `PoSValidatorManager`'s `initialize` function sets the factor used to convert between the weight that the validator is registered with on the P-Chain, and the value transferred to the contract as stake. This involves integer division, which may result in loss of precision. When selecting `weightToValueFactor`, it's important to make the following considerations:

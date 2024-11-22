@@ -17,7 +17,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const newNodeCount = 2
+const (
+	newNodeCount       = 2
+	sleepPeriodSeconds = 5
+)
 
 func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
@@ -76,7 +79,7 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	//
 
 	// Add new nodes to the validator set
-	addValidatorsCtx, cancel := context.WithTimeout(ctx, 90*newNodeCount*time.Second)
+	addValidatorsCtx, cancel := context.WithTimeout(ctx, (90+sleepPeriodSeconds)*newNodeCount*time.Second)
 	defer cancel()
 	newNodes := network.GetExtraNodes(newNodeCount)
 	validatorManagerAddress := network.GetValidatorManager(subnetAInfo.SubnetID)
@@ -110,7 +113,7 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 			network.GetNetworkID(),
 		)
 		// Sleep to ensure the validator manager uses a new churn tracking period
-		time.Sleep(5 * time.Second)
+		time.Sleep(sleepPeriodSeconds * time.Second)
 	}
 
 	// Refresh the subnet info

@@ -19,7 +19,18 @@ enum DelegatorStatus {
 }
 
 /**
- * @dev PoS Validator Manager settings, used to initialize the PoS Validator Manager
+ * @notice PoS Validator Manager settings, used to initialize the PoS Validator Manager
+ * @notice baseSettings specified the base settings for the Validator Manager. See {IValidatorManager-ValidatorManagerSettings}
+ * @notice minimumStakeAmount is the minimum amount of stake required to stake to a validator
+ * @notice maximumStakeAmount is the maximum amount of stake that can be staked to a validator
+ * @notice minimumStakeDuration is the minimum duration that validators must stake for
+ * @notice minimumDelegationFeeBips is the minimum delegation fee in basis points that validators can charge
+ * @notice maximumStakeMultiplier is the multiplier applied to validator's initial stake amount to determine
+ * the maximum amount of stake a validator can have with delegations.
+ * @notice weightToValueFactor is the factor used to convert validator weight to value
+ * @notice rewardCalculator is the reward calculator used to calculate rewards for this validator manager
+ * @notice uptimeBlockchainID is the ID of the blockchain that submits uptime proofs.
+ * This must be a blockchain validated by the subnetID that this contract manages.
  */
 struct PoSValidatorManagerSettings {
     ValidatorManagerSettings baseSettings;
@@ -30,6 +41,7 @@ struct PoSValidatorManagerSettings {
     uint8 maximumStakeMultiplier;
     uint256 weightToValueFactor;
     IRewardCalculator rewardCalculator;
+    bytes32 uptimeBlockchainID;
 }
 
 /**
@@ -140,6 +152,17 @@ interface IPoSValidatorManager is IValidatorManager {
     ) external;
 
     /**
+     * @notice See {IPoSValidatorManager-initializeEndValidation} for details of the first three parameters
+     * @param recipientAddress The address to receive the rewards
+     */
+    function initializeEndValidation(
+        bytes32 validationID,
+        bool includeUptimeProof,
+        uint32 messageIndex,
+        address recipientAddress
+    ) external;
+
+    /**
      * @notice Begins the process of ending an active validation period, but does not revert if the latest known uptime
      * is not sufficient to collect uptime-based rewards. This function is used to exit the validator set when rewards are
      * not expected.
@@ -154,6 +177,17 @@ interface IPoSValidatorManager is IValidatorManager {
         bytes32 validationID,
         bool includeUptimeProof,
         uint32 messageIndex
+    ) external;
+
+    /**
+     * @notice See {IPoSValidatorManager-forceInitializeEndValidation} for details of the first three parameters
+     * @param recipientAddress Address to receive the rewards.
+     */
+    function forceInitializeEndValidation(
+        bytes32 validationID,
+        bool includeUptimeProof,
+        uint32 messageIndex,
+        address recipientAddress
     ) external;
 
     /**
@@ -191,6 +225,17 @@ interface IPoSValidatorManager is IValidatorManager {
     ) external;
 
     /**
+     * @notice See {IPoSValidatorManager-initializeEndDelegation} for details of the first three parameters
+     * @param recipientAddress The address to receive the rewards.
+     */
+    function initializeEndDelegation(
+        bytes32 delegationID,
+        bool includeUptimeProof,
+        uint32 messageIndex,
+        address recipientAddress
+    ) external;
+
+    /**
      * @notice Begins the process of removing a delegator from a validation period, but does not revert if the delegation is not eligible for rewards.
      * The delegator must have been previously registered with the given validationID. For the purposes of computing delegation rewards,
      * the delegation period is considered ended when this function is called. Uses the supplied uptime proof to calculate rewards.
@@ -208,6 +253,17 @@ interface IPoSValidatorManager is IValidatorManager {
         bytes32 delegationID,
         bool includeUptimeProof,
         uint32 messageIndex
+    ) external;
+
+    /**
+     * @notice See {IPoSValidatorManager-forceInitializeEndDelegation} for details of the first three parameters
+     * @param recipientAddress The address to receive the rewards.
+     */
+    function forceInitializeEndDelegation(
+        bytes32 delegationID,
+        bool includeUptimeProof,
+        uint32 messageIndex,
+        address recipientAddress
     ) external;
 
     /**
@@ -235,4 +291,18 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param validationID The ID of the validation period being ended.
      */
     function claimDelegationFees(bytes32 validationID) external;
+
+    /**
+     * @notice Changes the address of the recipient of the validator's rewards for a validation period. This method can be called any time before {completeEndValidation}.
+     * @param validationID The ID of the validation period being ended.
+     * @param recipient The address to receive the rewards.
+     */
+    function changeValidatorRewardRecipient(bytes32 validationID, address recipient) external;
+
+    /**
+     * @notice Changes the address of the recipient of the delegator's rewards for a delegation period. This method can be called any time before {completeEndDelegation}.
+     * @param delegationID The ID of the validation period being ended.
+     * @param recipient The address to receive the rewards.
+     */
+    function changeDelegatorRewardRecipient(bytes32 delegationID, address recipient) external;
 }

@@ -29,6 +29,7 @@ import (
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
+	"github.com/ava-labs/subnet-evm/warp/messages"
 	proxyadmin "github.com/ava-labs/teleporter/abi-bindings/go/ProxyAdmin"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
 	erc20tokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20TokenStakingManager"
@@ -199,6 +200,7 @@ func DeployAndInitializeValidatorManager(
 				MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
 				WeightToValueFactor:      big.NewInt(0).SetUint64(DefaultWeightToValueFactor),
 				RewardCalculator:         rewardCalculatorAddress,
+				UptimeBlockchainID:       subnet.BlockchainID,
 			},
 			erc20Address,
 		)
@@ -230,6 +232,7 @@ func DeployAndInitializeValidatorManager(
 				MaximumStakeMultiplier:   DefaultMaxStakeMultiplier,
 				WeightToValueFactor:      big.NewInt(0).SetUint64(DefaultWeightToValueFactor),
 				RewardCalculator:         rewardCalculatorAddress,
+				UptimeBlockchainID:       subnet.BlockchainID,
 			},
 		)
 		Expect(err).Should(BeNil())
@@ -331,7 +334,7 @@ func InitializeValidatorSet(
 		validationIDs = append(validationIDs, subnetInfo.SubnetID.Append(uint32(i)))
 	}
 
-	Expect(initialValidatorCreatedEvent.Weight).Should(Equal(new(big.Int).SetUint64(nodes[0].Weight)))
+	Expect(initialValidatorCreatedEvent.Weight).Should(Equal(nodes[0].Weight))
 
 	emittedValidationID := ids.ID(initialValidatorCreatedEvent.ValidationID)
 	Expect(emittedValidationID).Should(Equal(validationIDs[0]))
@@ -357,7 +360,7 @@ func DeliverSubnetConversion(
 		senderKey,
 		subnet,
 		validatorManagerAddress,
-		subnetConversionSignedMessage,
+		subnetConversionSignedMessage.Bytes(),
 	)
 }
 
@@ -489,7 +492,7 @@ func CompleteValidatorRegistration(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		registrationSignedMessage,
+		registrationSignedMessage.Bytes(),
 	)
 }
 
@@ -500,7 +503,7 @@ func CallWarpReceiver(
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	contract common.Address,
-	signedMessage *avalancheWarp.Message,
+	signedMessageBytes []byte,
 ) *types.Receipt {
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnet, PrivateKeyToAddress(senderKey))
 	registrationTx := predicateutils.NewPredicateTx(
@@ -514,7 +517,7 @@ func CallWarpReceiver(
 		callData,
 		types.AccessList{},
 		warp.ContractAddress,
-		signedMessage.Bytes(),
+		signedMessageBytes,
 	)
 	signedRegistrationTx := SignTransaction(registrationTx, senderKey, subnet.EVMChainID)
 	return SendTransactionAndWaitForSuccess(ctx, subnet, signedRegistrationTx)
@@ -749,7 +752,7 @@ func InitializeEndPoSValidation(
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := stakingManager.InitializeEndValidation(
+	tx, err := stakingManager.InitializeEndValidation0(
 		opts,
 		validationID,
 		false,
@@ -776,6 +779,98 @@ func ForceInitializeEndPoSValidation(
 	)
 	Expect(err).Should(BeNil())
 	return WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+}
+
+func ConstructUptimeProofMessage(
+	validationID ids.ID,
+	uptime uint64,
+	subnet interfaces.SubnetTestInfo,
+	networkID uint32,
+	signatureAggregator *aggregator.SignatureAggregator,
+) *avalancheWarp.Message {
+	uptimePayload, err := messages.NewValidatorUptime(validationID, uptime)
+	Expect(err).Should(BeNil())
+	addressedCall, err := warpPayload.NewAddressedCall(nil, uptimePayload.Bytes())
+	Expect(err).Should(BeNil())
+	uptimeProofUnsignedMessage, err := avalancheWarp.NewUnsignedMessage(
+		networkID,
+		subnet.BlockchainID,
+		addressedCall.Bytes(),
+	)
+	Expect(err).Should(BeNil())
+
+	uptimeProofSignedMessage, err := signatureAggregator.CreateSignedMessage(
+		uptimeProofUnsignedMessage,
+		nil,
+		subnet.SubnetID,
+		67,
+	)
+	Expect(err).Should(BeNil())
+	return uptimeProofSignedMessage
+}
+
+func ForceInitializeEndPoSValidationWithUptime(
+	ctx context.Context,
+	networkID uint32,
+	signatureAggregator *aggregator.SignatureAggregator,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	stakingManagerAddress common.Address,
+	validationID ids.ID,
+	uptime uint64,
+) *types.Receipt {
+	uptimeMsg := ConstructUptimeProofMessage(
+		validationID,
+		uptime,
+		subnet,
+		networkID,
+		signatureAggregator,
+	)
+
+	abi, err := iposvalidatormanager.IPoSValidatorManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("forceInitializeEndValidation", validationID, true, uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		ctx,
+		callData,
+		senderKey,
+		subnet,
+		stakingManagerAddress,
+		uptimeMsg.Bytes(),
+	)
+}
+
+func InitializeEndPoSValidationWithUptime(
+	ctx context.Context,
+	networkID uint32,
+	signatureAggregator *aggregator.SignatureAggregator,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	stakingManagerAddress common.Address,
+	validationID ids.ID,
+	uptime uint64,
+) *types.Receipt {
+	uptimeMsg := ConstructUptimeProofMessage(
+		validationID,
+		uptime,
+		subnet,
+		networkID,
+		signatureAggregator,
+	)
+
+	abi, err := iposvalidatormanager.IPoSValidatorManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	callData, err := abi.Pack("initializeEndValidation", validationID, true, uint32(0))
+	Expect(err).Should(BeNil())
+	return CallWarpReceiver(
+		ctx,
+		callData,
+		senderKey,
+		subnet,
+		stakingManagerAddress,
+		uptimeMsg.Bytes(),
+	)
 }
 
 func InitializeEndPoAValidation(
@@ -812,7 +907,7 @@ func CompleteEndValidation(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		registrationSignedMessage,
+		registrationSignedMessage.Bytes(),
 	)
 }
 
@@ -898,7 +993,7 @@ func CompleteDelegatorRegistration(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		signedMessage,
+		signedMessage.Bytes(),
 	)
 }
 
@@ -942,7 +1037,7 @@ func CompleteEndDelegation(
 		senderKey,
 		subnet,
 		stakingManagerContractAddress,
-		signedMessage,
+		signedMessage.Bytes(),
 	)
 }
 
@@ -975,7 +1070,7 @@ func InitializeAndCompleteEndInitialPoSValidation(
 	)
 	Expect(err).Should(BeNil())
 	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
-	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(weight))
+	Expect(validatorRemovalEvent.Weight).Should(Equal(weight))
 
 	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 	// (Sending to the P-Chain will be skipped for now)
@@ -1035,25 +1130,44 @@ func InitializeAndCompleteEndPoSValidation(
 	expiry uint64,
 	node Node,
 	nonce uint64,
+	includeUptime bool,
+	validatorStartTime time.Time,
 	pchainWallet pwallet.Wallet,
 	networkID uint32,
 ) {
 	log.Println("Initializing validator removal")
 	WaitMinStakeDuration(ctx, subnetInfo, fundedKey)
-	receipt := ForceInitializeEndPoSValidation(
-		ctx,
-		fundedKey,
-		subnetInfo,
-		stakingManager,
-		validationID,
-	)
+
+	var receipt *types.Receipt
+	if includeUptime {
+		uptime := uint64(time.Since(validatorStartTime).Seconds())
+		receipt = ForceInitializeEndPoSValidationWithUptime(
+			ctx,
+			networkID,
+			signatureAggregator,
+			fundedKey,
+			subnetInfo,
+			stakingManagerAddress,
+			validationID,
+			uptime,
+		)
+	} else {
+		receipt = ForceInitializeEndPoSValidation(
+			ctx,
+			fundedKey,
+			subnetInfo,
+			stakingManager,
+			validationID,
+		)
+	}
+
 	validatorRemovalEvent, err := GetEventFromLogs(
 		receipt.Logs,
 		stakingManager.ParseValidatorRemovalInitialized,
 	)
 	Expect(err).Should(BeNil())
 	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
-	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(node.Weight))
+	Expect(validatorRemovalEvent.Weight).Should(Equal(node.Weight))
 
 	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 	unsignedMessage := ExtractWarpMessageFromLog(ctx, receipt, subnetInfo)
@@ -1131,7 +1245,7 @@ func InitializeAndCompleteEndInitialPoAValidation(
 	)
 	Expect(err).Should(BeNil())
 	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
-	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(weight))
+	Expect(validatorRemovalEvent.Weight).Should(Equal(weight))
 
 	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 	// (Sending to the P-Chain will be skipped for now)
@@ -1206,7 +1320,7 @@ func InitializeAndCompleteEndPoAValidation(
 	)
 	Expect(err).Should(BeNil())
 	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
-	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(weight))
+	Expect(validatorRemovalEvent.Weight).Should(Equal(weight))
 
 	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 	// (Sending to the P-Chain will be skipped for now)
