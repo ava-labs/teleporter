@@ -153,7 +153,7 @@ interface IPoSValidatorManager is IValidatorManager {
 
     /**
      * @notice See {IPoSValidatorManager-initializeEndValidation} for details of the first three parameters
-     * @param recipientAddress The address to receive the rewards
+     * @param recipientAddress The address to receive the rewards. If the 0-address is provided, the rewards will be sent to the validator.
      */
     function initializeEndValidation(
         bytes32 validationID,

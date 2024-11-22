@@ -289,11 +289,7 @@ abstract contract PoSValidatorManager is
             revert UnauthorizedOwner(_msgSender());
         }
 
-        if (rewardRecipient == _msgSender()) {
-            delete $._rewardRecipients[validationID];
-        } else {
-            $._rewardRecipients[validationID] = rewardRecipient;
-        }
+        $._rewardRecipients[validationID] = rewardRecipient;
     }
 
     function changeDelegatorRewardRecipient(
@@ -365,11 +361,13 @@ abstract contract PoSValidatorManager is
             stakingEndTime: validator.endedAt,
             uptimeSeconds: uptimeSeconds
         });
-        $._redeemableValidatorRewards[validationID] += reward;
 
-        if (rewardRecipient != address(0)) {
-            $._rewardRecipients[validationID] = rewardRecipient;
+        if (rewardRecipient == address(0)) {
+            rewardRecipient = $._posValidatorInfo[validationID].owner;
         }
+
+        $._redeemableValidatorRewards[validationID] += reward;
+        $._rewardRecipients[validationID] = rewardRecipient;
 
         return (reward > 0);
     }
@@ -389,13 +387,11 @@ abstract contract PoSValidatorManager is
         }
 
         address owner = $._posValidatorInfo[validationID].owner;
-
         address rewardRecipient = $._rewardRecipients[validationID];
 
+        // the reward-recipient should always be set, but just in case it isn't, we won't burn the reward
         if (rewardRecipient == address(0)) {
             rewardRecipient = owner;
-        } else {
-            delete $._rewardRecipients[validationID];
         }
 
         // The validator can either be Completed or Invalidated here. We only grant rewards for Completed.
@@ -479,10 +475,14 @@ abstract contract PoSValidatorManager is
         uint64 weight = valueToWeight(lockedValue);
         bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
 
-        $._posValidatorInfo[validationID].owner = _msgSender();
+        address owner = _msgSender();
+
+        $._posValidatorInfo[validationID].owner = owner;
         $._posValidatorInfo[validationID].delegationFeeBips = delegationFeeBips;
         $._posValidatorInfo[validationID].minStakeDuration = minStakeDuration;
         $._posValidatorInfo[validationID].uptimeSeconds = 0;
+        $._rewardRecipients[validationID] = owner;
+
         return validationID;
     }
 
