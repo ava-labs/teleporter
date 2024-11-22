@@ -44,8 +44,8 @@ struct Validator {
  */
 struct ValidatorChurnPeriod {
     uint256 startedAt;
-    uint256 initialWeight;
-    uint256 totalWeight;
+    uint64 initialWeight;
+    uint64 totalWeight;
     uint64 churnAmount;
 }
 
@@ -114,12 +114,12 @@ interface IValidatorManager {
         bytes32 indexed validationID,
         bytes indexed nodeID,
         bytes32 indexed registerValidationMessageID,
-        uint256 weight,
+        uint64 weight,
         uint64 registrationExpiry
     );
 
     event InitialValidatorCreated(
-        bytes32 indexed validationID, bytes indexed nodeID, uint256 weight
+        bytes32 indexed validationID, bytes indexed nodeID, uint64 weight
     );
 
     /**
@@ -130,7 +130,7 @@ interface IValidatorManager {
      * @param timestamp The time at which the validation period was registered with the contract.
      */
     event ValidationPeriodRegistered(
-        bytes32 indexed validationID, uint256 weight, uint256 timestamp
+        bytes32 indexed validationID, uint64 weight, uint256 timestamp
     );
 
     /**
@@ -145,7 +145,7 @@ interface IValidatorManager {
     event ValidatorRemovalInitialized(
         bytes32 indexed validationID,
         bytes32 indexed setWeightMessageID,
-        uint256 weight,
+        uint64 weight,
         uint256 endTime
     );
 
@@ -161,13 +161,13 @@ interface IValidatorManager {
      * @notice Event emitted when validator weight is updated.
      * @param validationID The ID of the validation period being updated
      * @param nonce The message nonce used to update the validator weight
-     * @param validatorWeight The updated validator weight that is sent to the P-Chain
+     * @param weight The updated validator weight that is sent to the P-Chain
      * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
      */
     event ValidatorWeightUpdate(
         bytes32 indexed validationID,
         uint64 indexed nonce,
-        uint64 validatorWeight,
+        uint64 weight,
         bytes32 setWeightMessageID
     );
 
