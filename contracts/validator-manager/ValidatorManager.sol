@@ -75,7 +75,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     error InvalidBLSKeyLength(uint256 length);
     error InvalidNodeID(bytes nodeID);
     error InvalidConversionID(bytes32 encodedConversionID, bytes32 expectedConversionID);
-    error InvalidTotalWeight(uint256 weight);
+    error InvalidTotalWeight(uint64 weight);
     error InvalidValidationID(bytes32 validationID);
     error InvalidValidatorStatus(ValidatorStatus status);
     error InvalidWarpMessage();
@@ -160,7 +160,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         uint256 numInitialValidators = conversionData.initialValidators.length;
 
-        uint256 totalWeight;
+        uint64 totalWeight;
         for (uint32 i; i < numInitialValidators; ++i) {
             InitialValidator memory initialValidator = conversionData.initialValidators[i];
             if ($._registeredValidators[initialValidator.nodeID] != bytes32(0)) {
@@ -244,6 +244,11 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 || input.registrationExpiry >= block.timestamp + MAXIMUM_REGISTRATION_EXPIRY_LENGTH
         ) {
             revert InvalidRegistrationExpiry(input.registrationExpiry);
+        }
+
+        // Ensure the new validator doesn't overflow the total weight
+        if (uint256(weight) + uint256($._churnTracker.totalWeight) > type(uint64).max) {
+            revert InvalidTotalWeight(weight);
         }
 
         _validatePChainOwner(input.remainingBalanceOwner);
@@ -520,7 +525,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         emit ValidatorWeightUpdate({
             validationID: validationID,
             nonce: nonce,
-            validatorWeight: newWeight,
+            weight: newWeight,
             setWeightMessageID: messageID
         });
 
