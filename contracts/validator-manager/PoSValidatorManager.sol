@@ -306,11 +306,7 @@ abstract contract PoSValidatorManager is
             revert UnauthorizedOwner(_msgSender());
         }
 
-        if (rewardRecipient == _msgSender()) {
-            delete $._delegatorRewardRecipients[delegationID];
-        } else {
-            $._delegatorRewardRecipients[delegationID] = rewardRecipient;
-        }
+        $._delegatorRewardRecipients[delegationID] = rewardRecipient;
     }
 
     /**
@@ -799,11 +795,12 @@ abstract contract PoSValidatorManager is
             uptimeSeconds: $._posValidatorInfo[delegator.validationID].uptimeSeconds
         });
 
-        $._redeemableDelegatorRewards[delegationID] = reward;
-
-        if (rewardRecipient != address(0)) {
-            $._delegatorRewardRecipients[delegationID] = rewardRecipient;
+        if (rewardRecipient == address(0)) {
+            rewardRecipient = delegator.owner;
         }
+
+        $._redeemableDelegatorRewards[delegationID] = reward;
+        $._delegatorRewardRecipients[delegationID] = rewardRecipient;
 
         return reward;
     }
@@ -895,8 +892,6 @@ abstract contract PoSValidatorManager is
 
         if (rewardRecipient == address(0)) {
             rewardRecipient = delegator.owner;
-        } else {
-            delete $._delegatorRewardRecipients[delegationID];
         }
 
         (uint256 delegationRewards, uint256 validatorFees) =
