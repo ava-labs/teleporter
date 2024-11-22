@@ -334,7 +334,7 @@ func InitializeValidatorSet(
 		validationIDs = append(validationIDs, subnetInfo.SubnetID.Append(uint32(i)))
 	}
 
-	Expect(initialValidatorCreatedEvent.Weight).Should(Equal(new(big.Int).SetUint64(nodes[0].Weight)))
+	Expect(initialValidatorCreatedEvent.Weight).Should(Equal(nodes[0].Weight))
 
 	emittedValidationID := ids.ID(initialValidatorCreatedEvent.ValidationID)
 	Expect(emittedValidationID).Should(Equal(validationIDs[0]))
@@ -1070,7 +1070,7 @@ func InitializeAndCompleteEndInitialPoSValidation(
 	)
 	Expect(err).Should(BeNil())
 	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
-	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(weight))
+	Expect(validatorRemovalEvent.Weight).Should(Equal(weight))
 
 	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 	// (Sending to the P-Chain will be skipped for now)
@@ -1167,7 +1167,7 @@ func InitializeAndCompleteEndPoSValidation(
 	)
 	Expect(err).Should(BeNil())
 	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
-	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(node.Weight))
+	Expect(validatorRemovalEvent.Weight).Should(Equal(node.Weight))
 
 	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 	unsignedMessage := ExtractWarpMessageFromLog(ctx, receipt, subnetInfo)
@@ -1245,7 +1245,7 @@ func InitializeAndCompleteEndInitialPoAValidation(
 	)
 	Expect(err).Should(BeNil())
 	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
-	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(weight))
+	Expect(validatorRemovalEvent.Weight).Should(Equal(weight))
 
 	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 	// (Sending to the P-Chain will be skipped for now)
@@ -1320,7 +1320,7 @@ func InitializeAndCompleteEndPoAValidation(
 	)
 	Expect(err).Should(BeNil())
 	Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
-	Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(weight))
+	Expect(validatorRemovalEvent.Weight).Should(Equal(weight))
 
 	// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 	// (Sending to the P-Chain will be skipped for now)
