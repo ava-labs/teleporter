@@ -102,34 +102,10 @@ contract ValidatorMessagesTest is Test {
             )
         );
         ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked);
-
-        // Invalid codec ID
-        bytes memory invalidPacked2 = _getPackedRegisterL1ValidatorMessage();
-        invalidPacked2[1] = 0x01;
-        vm.expectRevert(
-            abi.encodeWithSelector(ValidatorMessages.InvalidCodecID.selector, uint32(1))
-        );
-        ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked2);
-
-        // Invalid message type
-        bytes memory invalidPacked3 = _getPackedRegisterL1ValidatorMessage();
-        invalidPacked3[5] = 0x00;
-        vm.expectRevert(ValidatorMessages.InvalidMessageType.selector);
-        ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked3);
     }
 
     function testRegisterSubnetValidatorMessageInvalidCodecID() public {
-        (, bytes memory packed) = ValidatorMessages.packRegisterL1ValidatorMessage(
-            ValidatorMessages.ValidationPeriod({
-                subnetID: DEFAULT_SUBNET_ID,
-                nodeID: DEFAULT_NODE_ID,
-                registrationExpiry: DEFAULT_EXPIRY,
-                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-                remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
-                disableOwner: DEFAULT_P_CHAIN_OWNER,
-                weight: DEFAULT_WEIGHT
-            })
-        );
+        bytes memory packed = _getPackedRegisterL1ValidatorMessage();
 
         // Invalid codec ID
         bytes memory invalidPacked2 = packed;
@@ -141,17 +117,7 @@ contract ValidatorMessagesTest is Test {
     }
 
     function testRegisterSubnetValidatorMessageInvalidTypeID() public {
-        (, bytes memory packed) = ValidatorMessages.packRegisterL1ValidatorMessage(
-            ValidatorMessages.ValidationPeriod({
-                subnetID: DEFAULT_SUBNET_ID,
-                nodeID: DEFAULT_NODE_ID,
-                registrationExpiry: DEFAULT_EXPIRY,
-                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-                remainingBalanceOwner: DEFAULT_P_CHAIN_OWNER,
-                disableOwner: DEFAULT_P_CHAIN_OWNER,
-                weight: DEFAULT_WEIGHT
-            })
-        );
+        bytes memory packed = _getPackedRegisterL1ValidatorMessage();
 
         // Invalid message type
         bytes memory invalidPacked3 = packed;
