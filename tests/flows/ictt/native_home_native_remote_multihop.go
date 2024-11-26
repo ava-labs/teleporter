@@ -77,6 +77,9 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		burnedFeesReportingRewardPercentage,
 	)
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	// Register both NativeTokenDestinations on the NativeTokenHome
 	collateralAmountA := utils.RegisterTokenRemoteOnHome(
 		ctx,
@@ -89,7 +92,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
 		fundedKey,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	collateralAmountB := utils.RegisterTokenRemoteOnHome(
@@ -103,7 +106,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
 		fundedKey,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	// Add collateral for both NativeTokenDestinations
@@ -167,7 +170,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		true,
 		fundedKey,
 		nil,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	// Verify the recipient received the tokens
@@ -203,7 +206,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		true,
 		fundedKey,
 		nil,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	// Verify the recipient received the tokens
@@ -227,7 +230,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		cChainInfo,
 		amountToSendA,
 		big.NewInt(0),
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	// Again, send half of the received amount to account for gas expenses
@@ -249,6 +252,6 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork
 		cChainInfo,
 		amountToSendB,
 		secondaryFeeAmount,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 }

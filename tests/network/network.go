@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	goLog "log"
@@ -16,7 +15,6 @@ import (
 	"github.com/ava-labs/avalanchego/genesis"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
-	"github.com/ava-labs/avalanchego/upgrade"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/utils/formatting/address"
 	"github.com/ava-labs/avalanchego/utils/units"
@@ -44,7 +42,7 @@ type LocalNetwork struct {
 	tmpnet.Network
 
 	extraNodes               []*tmpnet.Node // to add as more subnet validators in the tests
-	primaryNetworkValidators []ids.NodeID
+	primaryNetworkValidators []*tmpnet.Node
 	globalFundedKey          *secp256k1.PrivateKey
 	validatorManagers        map[ids.ID]common.Address
 }
@@ -121,17 +119,6 @@ func NewLocalNetwork(
 	)
 	Expect(network).ShouldNot(BeNil())
 
-	// Activate Etna
-	upgrades := upgrade.Default
-	upgrades.EtnaTime = time.Now().Add(-1 * time.Minute)
-	upgradeJSON, err := json.Marshal(upgrades)
-	Expect(err).Should(BeNil())
-
-	upgradeBase64 := base64.StdEncoding.EncodeToString(upgradeJSON)
-	network.DefaultFlags.SetDefaults(tmpnet.FlagsMap{
-		config.UpgradeFileContentKey: upgradeBase64,
-	})
-
 	avalancheGoBuildPath, ok := os.LookupEnv("AVALANCHEGO_BUILD_PATH")
 	Expect(ok).Should(Equal(true))
 
@@ -165,10 +152,8 @@ func NewLocalNetwork(
 	}
 
 	// All nodes are specified as bootstrap validators
-	var primaryNetworkValidators []ids.NodeID
-	for _, node := range network.Nodes {
-		primaryNetworkValidators = append(primaryNetworkValidators, node.NodeID)
-	}
+	var primaryNetworkValidators []*tmpnet.Node
+	primaryNetworkValidators = append(primaryNetworkValidators, network.Nodes...)
 
 	localNetwork := &LocalNetwork{
 		Network:                  *network,
@@ -189,6 +174,7 @@ func (n *LocalNetwork) ConvertSubnet(
 	senderKey *ecdsa.PrivateKey,
 	proxy bool,
 ) ([]utils.Node, []ids.ID, *proxyadmin.ProxyAdmin) {
+	goLog.Println("Converting subnet", subnet.SubnetID)
 	cChainInfo := n.GetPrimaryNetworkInfo()
 	pClient := platformvm.NewClient(cChainInfo.NodeURIs[0])
 	currentValidators, err := pClient.GetCurrentValidators(ctx, subnet.SubnetID, nil)
@@ -250,6 +236,8 @@ func (n *LocalNetwork) ConvertSubnet(
 	utils.PChainProposerVMWorkaround(pChainWallet)
 	utils.AdvanceProposerVM(ctx, subnet, senderKey, 5)
 
+	aggregator := n.GetSignatureAggregator()
+	defer aggregator.Shutdown()
 	validationIDs := utils.InitializeValidatorSet(
 		ctx,
 		senderKey,
@@ -257,7 +245,7 @@ func (n *LocalNetwork) ConvertSubnet(
 		utils.GetPChainInfo(cChainInfo),
 		vdrManagerAddress,
 		n.GetNetworkID(),
-		n.GetSignatureAggregator(),
+		aggregator,
 		nodes,
 	)
 
@@ -265,7 +253,15 @@ func (n *LocalNetwork) ConvertSubnet(
 	for _, vdr := range currentValidators {
 		_, err := pChainWallet.IssueRemoveSubnetValidatorTx(vdr.NodeID, subnet.SubnetID)
 		Expect(err).Should(BeNil())
+		for _, node := range n.Network.Nodes {
+			if node.NodeID == vdr.NodeID {
+				goLog.Println("Restarting bootstrap node", node.NodeID)
+				n.Network.RestartNode(ctx, os.Stdout, node)
+			}
+		}
 	}
+	utils.PChainProposerVMWorkaround(pChainWallet)
+	utils.AdvanceProposerVM(ctx, subnet, senderKey, 5)
 
 	return nodes, validationIDs, proxyAdmin
 }
@@ -288,7 +284,8 @@ func (n *LocalNetwork) AddSubnetValidators(
 		// Add the node to the network
 		n.Network.Nodes = append(n.Network.Nodes, node)
 	}
-	n.Network.StartNodes(context.Background(), os.Stdout, nodes...)
+	err := n.Network.StartNodes(context.Background(), os.Stdout, nodes...)
+	Expect(err).Should(BeNil())
 
 	// Update the tmpnet Subnet struct
 	for _, tmpnetSubnet := range n.Network.Subnets {
@@ -328,13 +325,14 @@ func (n *LocalNetwork) GetExtraNodes(count int) []*tmpnet.Node {
 	return nodes
 }
 
+func (n *LocalNetwork) GetPrimaryNetworkValidators() []*tmpnet.Node {
+	return n.primaryNetworkValidators
+}
+
 func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
 	var nodeURIs []string
-	for _, nodeID := range n.primaryNetworkValidators {
-		uri, err := n.Network.GetURIForNodeID(nodeID)
-		Expect(err).Should(BeNil())
-
-		nodeURIs = append(nodeURIs, uri)
+	for _, node := range n.primaryNetworkValidators {
+		nodeURIs = append(nodeURIs, node.URI)
 	}
 	infoClient := info.NewClient(nodeURIs[0])
 	cChainBlockchainID, err := infoClient.GetBlockchainID(context.Background(), "C")

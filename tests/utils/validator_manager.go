@@ -276,7 +276,7 @@ func InitializeValidatorSet(
 	signatureAggregator *aggregator.SignatureAggregator,
 	nodes []Node,
 ) []ids.ID {
-	log.Println("Initializing validator set")
+	log.Println("Initializing validator set", "subnet", subnetInfo.SubnetID)
 	initialValidators := make([]warpMessage.SubnetToL1ConverstionValidatorData, len(nodes))
 	initialValidatorsABI := make([]ivalidatormanager.InitialValidator, len(nodes))
 	for i, node := range nodes {

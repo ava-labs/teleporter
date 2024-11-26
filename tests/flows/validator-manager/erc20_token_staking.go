@@ -145,6 +145,9 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		delegationID = initRegistrationEvent.DelegationID
 
+		aggregator := network.GetSignatureAggregator()
+		defer aggregator.Shutdown()
+
 		// Gather subnet-evm Warp signatures for the SubnetValidatorWeightUpdateMessage & relay to the P-Chain
 		signedWarpMessage := utils.ConstructSignedWarpMessage(
 			context.Background(),
@@ -152,7 +155,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 			subnetAInfo,
 			pChainInfo,
 			nil,
-			network.GetSignatureAggregator(),
+			aggregator,
 		)
 
 		// Issue a tx to update the validator's weight on the P-Chain
@@ -211,6 +214,9 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		Expect(delegatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
 		Expect(delegatorRemovalEvent.DelegationID[:]).Should(Equal(delegationID[:]))
 
+		aggregator := network.GetSignatureAggregator()
+		defer aggregator.Shutdown()
+
 		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
 		signedWarpMessage := utils.ConstructSignedWarpMessage(
@@ -219,7 +225,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 			subnetAInfo,
 			pChainInfo,
 			nil,
-			network.GetSignatureAggregator(),
+			aggregator,
 		)
 		Expect(err).Should(BeNil())
 

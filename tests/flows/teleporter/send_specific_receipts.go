@@ -27,8 +27,11 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 	_, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
-	teleporter.ClearReceiptQueue(ctx, fundedKey, subnetBInfo, subnetAInfo, network.GetSignatureAggregator())
+	teleporter.ClearReceiptQueue(ctx, fundedKey, subnetBInfo, subnetAInfo, aggregator)
 
 	// Use mock token as the fee token
 	mockTokenAddress, mockToken := utils.DeployExampleERC20(
@@ -74,7 +77,7 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 		true,
 		fundedKey,
 		nil,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 	receiveEvent1, err := utils.GetEventFromLogs(
 		deliveryReceipt1.Logs,
@@ -102,7 +105,7 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 		true,
 		fundedKey,
 		nil,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 	receiveEvent2, err := utils.GetEventFromLogs(
 		deliveryReceipt2.Logs,
@@ -141,7 +144,7 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 		true,
 		fundedKey,
 		nil,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	// Check that the message back to Subnet A was delivered
@@ -195,7 +198,7 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 		true,
 		fundedKey,
 		nil,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 	// Check delivered
 	delivered, err = subnetATeleporterMessenger.MessageReceived(

@@ -36,6 +36,9 @@ func ResubmitAlteredMessage(network *localnetwork.LocalNetwork, teleporter utils
 	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx, teleporter.TeleporterMessenger(subnetAInfo), subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	// Relay the message to the destination
 	receipt = teleporter.RelayTeleporterMessage(
 		ctx,
@@ -45,7 +48,7 @@ func ResubmitAlteredMessage(network *localnetwork.LocalNetwork, teleporter utils
 		true,
 		fundedKey,
 		nil,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	log.Info("Checking the message was received on the destination")

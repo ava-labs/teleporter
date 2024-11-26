@@ -87,6 +87,9 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	// Restart nodes with new chain config
 	network.SetChainConfigs(chainConfigs)
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	// Call addProtocolVersion on subnetB to register the new Teleporter version
 	teleporter.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
@@ -94,7 +97,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		newTeleporterAddress,
 		fundedKey,
 		offchainMessageB,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	// Send a message using old Teleporter version to test messenger using new Teleporter version.
@@ -108,7 +111,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		testMessengerB,
 		fundedKey,
 		"message_1",
-		network.GetSignatureAggregator(),
+		aggregator,
 		true,
 	)
 
@@ -145,7 +148,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		testMessengerB,
 		fundedKey,
 		"message_2",
-		network.GetSignatureAggregator(),
+		aggregator,
 		false,
 	)
 
@@ -164,7 +167,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		testMessengerC,
 		fundedKey,
 		"message_3",
-		network.GetSignatureAggregator(),
+		aggregator,
 		false,
 	)
 
@@ -175,7 +178,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		newTeleporterAddress,
 		fundedKey,
 		offchainMessageC,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	// Send a message from A->B, which previously failed, but now using the new Teleporter version.
@@ -189,7 +192,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		testMessengerC,
 		fundedKey,
 		"message_4",
-		network.GetSignatureAggregator(),
+		aggregator,
 		true,
 	)
 
@@ -201,7 +204,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		newTeleporterAddress,
 		fundedKey,
 		offchainMessageA,
-		network.GetSignatureAggregator(),
+		aggregator,
 	)
 
 	latestVersionA, err := teleporter.TeleporterRegistry(subnetAInfo).LatestVersion(&bind.CallOpts{})
