@@ -3,6 +3,7 @@ package teleporter
 import (
 	"bytes"
 	"context"
+	goLog "log"
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
@@ -26,8 +27,11 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 	_, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
-	teleporter.ClearReceiptQueue(ctx, fundedKey, l1BInfo, l1AInfo)
+	teleporter.ClearReceiptQueue(ctx, fundedKey, l1BInfo, l1AInfo, aggregator)
 
 	// Use mock token as the fee token
 	mockTokenAddress, mockToken := utils.DeployExampleERC20(
@@ -57,11 +61,13 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 		AllowedRelayerAddresses: []common.Address{},
 		Message:                 []byte{1, 2, 3, 4},
 	}
+	goLog.Println("Sending two messages from L1 A to L1 B")
 
 	// Send first message from L1 A to L1 B with fee amount 5
 	sendCrossChainMsgReceipt, messageID1 := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx, l1ATeleporterMessenger, l1AInfo, l1BInfo, sendCrossChainMessageInput, fundedKey)
 
+	goLog.Println("Relaying the first message from L1 A to L1 B")
 	// Relay the message from L1A to L1B
 	deliveryReceipt1 := teleporter.RelayTeleporterMessage(
 		ctx,
@@ -70,10 +76,13 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 		l1BInfo,
 		true,
 		fundedKey,
+		nil,
+		aggregator,
 	)
 	receiveEvent1, err := utils.GetEventFromLogs(
 		deliveryReceipt1.Logs,
-		l1BTeleporterMessenger.ParseReceiveCrossChainMessage)
+		l1BTeleporterMessenger.ParseReceiveCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	Expect(receiveEvent1.MessageID[:]).Should(Equal(messageID1[:]))
 
@@ -82,11 +91,13 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
+	goLog.Println("Sending the second message from L1 A to L1 B")
 	// Send second message from L1 A to L1 B with fee amount 5
 	sendCrossChainMsgReceipt, messageID2 := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx, l1ATeleporterMessenger, l1AInfo, l1BInfo, sendCrossChainMessageInput, fundedKey)
 
-	// Relay the message from L1A to L1B
+	goLog.Println("Relaying the second message from L1 A to L1 B")
+	// Relay the message from L1 A to L1 B
 	deliveryReceipt2 := teleporter.RelayTeleporterMessage(
 		ctx,
 		sendCrossChainMsgReceipt,
@@ -94,6 +105,8 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 		l1BInfo,
 		true,
 		fundedKey,
+		nil,
+		aggregator,
 	)
 	receiveEvent2, err := utils.GetEventFromLogs(
 		deliveryReceipt2.Logs,
@@ -107,6 +120,7 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 	Expect(delivered).Should(BeTrue())
 
 	// Call send specific receipts to get reward of relaying two messages
+	goLog.Println("Sending specific receipts from Subnet B to Subnet A")
 	receipt, messageID := utils.SendSpecifiedReceiptsAndWaitForAcceptance(
 		ctx,
 		l1BTeleporterMessenger,
@@ -121,8 +135,18 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 		fundedKey,
 	)
 
-	// Relay message from L1 B to L1 A
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, l1BInfo, l1AInfo, true, fundedKey)
+	// Relay message from Subnet B to Subnet A
+	goLog.Println("Relaying the specific receipts from Subnet B to Subnet A")
+	receipt = teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		l1BInfo,
+		l1AInfo,
+		true,
+		fundedKey,
+		nil,
+		aggregator,
+	)
 
 	// Check that the message back to L1 A was delivered
 	delivered, err = l1ATeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
@@ -160,12 +184,23 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 		Message:                 []byte{1, 2, 3, 4},
 	}
 
+	goLog.Println("Sending a message from Subnet B to Subnet A to trigger receipts")
 	// This message will also have the same receipts as the previous message
 	receipt, messageID = utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx, l1BTeleporterMessenger, l1BInfo, l1AInfo, sendCrossChainMessageInput, fundedKey)
 
-	// Relay message from L1 B to L1 A
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, l1BInfo, l1AInfo, true, fundedKey)
+	goLog.Println("Relaying the message from L1 B to L1 A")
+	// Relay message from Subnet B to Subnet A
+	receipt = teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		l1BInfo,
+		l1AInfo,
+		true,
+		fundedKey,
+		nil,
+		aggregator,
+	)
 	// Check delivered
 	delivered, err = l1ATeleporterMessenger.MessageReceived(
 		&bind.CallOpts{},

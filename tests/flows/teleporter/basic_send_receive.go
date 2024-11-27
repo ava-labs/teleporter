@@ -22,10 +22,13 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	// Send a transaction to L1 A to issue an ICM Message from the Teleporter contract to L1 B
 	ctx := context.Background()
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	// Clear the receipt queue from L1 B -> L1 A to have a clean slate for the test flow.
 	// This is only done if the test non-external networks because external networks may have
 	// an arbitrarily high number of receipts to be cleared from a given queue from unrelated messages.
-	teleporter.ClearReceiptQueue(ctx, fundedKey, l1BInfo, l1AInfo)
+	teleporter.ClearReceiptQueue(ctx, fundedKey, l1BInfo, l1AInfo, aggregator)
 
 	feeAmount := big.NewInt(1)
 	feeTokenAddress, feeToken := utils.DeployExampleERC20(
@@ -66,10 +69,20 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	expectedReceiptID := teleporterMessageID
 
 	// Relay the message to the destination
-	deliveryReceipt := teleporter.RelayTeleporterMessage(ctx, receipt, l1AInfo, l1BInfo, true, fundedKey)
+	deliveryReceipt := teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		l1AInfo,
+		l1BInfo,
+		true,
+		fundedKey,
+		nil,
+		aggregator,
+	)
 	receiveEvent, err := utils.GetEventFromLogs(
 		deliveryReceipt.Logs,
-		teleporter.TeleporterMessenger(l1BInfo).ParseReceiveCrossChainMessage)
+		teleporter.TeleporterMessenger(l1BInfo).ParseReceiveCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 
 	// Check Teleporter message received on the destination
@@ -92,7 +105,16 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	)
 
 	// Relay the message to the destination
-	deliveryReceipt = teleporter.RelayTeleporterMessage(ctx, receipt, l1BInfo, l1AInfo, true, fundedKey)
+	deliveryReceipt = teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		l1BInfo,
+		l1AInfo,
+		true,
+		fundedKey,
+		nil,
+		aggregator,
+	)
 
 	Expect(utils.CheckReceiptReceived(
 		deliveryReceipt,

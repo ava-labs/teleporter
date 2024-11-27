@@ -2,7 +2,6 @@ package registry
 
 import (
 	"context"
-	"time"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
@@ -87,9 +86,9 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 
 	// Restart nodes with new chain config
 	network.SetChainConfigs(chainConfigs)
-	restartCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-	network.RestartNodes(restartCtx, nil)
+
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
 
 	// Call addProtocolVersion on subnetB to register the new Teleporter version
 	teleporter.AddProtocolVersionAndWaitForAcceptance(
@@ -98,6 +97,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		newTeleporterAddress,
 		fundedKey,
 		offchainMessageB,
+		aggregator,
 	)
 
 	// Send a message using old Teleporter version to test messenger using new Teleporter version.
@@ -111,6 +111,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		testMessengerB,
 		fundedKey,
 		"message_1",
+		aggregator,
 		true,
 	)
 
@@ -147,6 +148,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		testMessengerB,
 		fundedKey,
 		"message_2",
+		aggregator,
 		false,
 	)
 
@@ -165,6 +167,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		testMessengerC,
 		fundedKey,
 		"message_3",
+		aggregator,
 		false,
 	)
 
@@ -175,6 +178,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		newTeleporterAddress,
 		fundedKey,
 		offchainMessageC,
+		aggregator,
 	)
 
 	// Send a message from A->B, which previously failed, but now using the new Teleporter version.
@@ -188,6 +192,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		testMessengerC,
 		fundedKey,
 		"message_4",
+		aggregator,
 		true,
 	)
 
@@ -199,6 +204,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 		newTeleporterAddress,
 		fundedKey,
 		offchainMessageA,
+		aggregator,
 	)
 
 	latestVersionA, err := teleporter.TeleporterRegistry(l1AInfo).LatestVersion(&bind.CallOpts{})

@@ -65,10 +65,22 @@ func RetrySuccessfulExecution(network *localnetwork.LocalNetwork, teleporter uti
 
 	teleporterMessageID := event.MessageID
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	//
 	// Relay the message to the destination
 	//
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, l1AInfo, l1BInfo, true, fundedKey)
+	receipt = teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		l1AInfo,
+		l1BInfo,
+		true,
+		fundedKey,
+		nil,
+		aggregator,
+	)
 	receiveEvent, err :=
 		utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(l1BInfo).ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())

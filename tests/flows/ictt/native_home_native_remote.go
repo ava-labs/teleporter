@@ -57,6 +57,9 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		burnedFeesReportingRewardPercentage,
 	)
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	// Register the NativeTokenRemote on the NativeTokenHome
 	collateralAmount := utils.RegisterTokenRemoteOnHome(
 		ctx,
@@ -69,6 +72,7 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 		big.NewInt(1),
 		multiplyOnRemote,
 		fundedKey,
+		aggregator,
 	)
 
 	utils.AddCollateralToNativeTokenHome(
@@ -119,6 +123,8 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 			l1AInfo,
 			true,
 			fundedKey,
+			nil,
+			aggregator,
 		)
 
 		utils.CheckBalance(
@@ -160,6 +166,8 @@ func NativeTokenHomeNativeDestination(network *localnetwork.LocalNetwork, telepo
 			cChainInfo,
 			true,
 			fundedKey,
+			nil,
+			aggregator,
 		)
 
 		// Check that the recipient received the tokens

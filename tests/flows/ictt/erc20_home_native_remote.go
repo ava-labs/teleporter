@@ -74,6 +74,9 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 		burnedFeesReportingRewardPercentage,
 	)
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	collateralAmount := utils.RegisterTokenRemoteOnHome(
 		ctx,
 		teleporter,
@@ -85,6 +88,7 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
 		fundedKey,
+		aggregator,
 	)
 
 	utils.AddCollateralToERC20TokenHome(
@@ -136,6 +140,8 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 		l1AInfo,
 		true,
 		fundedKey,
+		nil,
+		aggregator,
 	)
 
 	// Verify the recipient received the tokens
@@ -170,6 +176,8 @@ func ERC20TokenHomeNativeTokenRemote(network *localnetwork.LocalNetwork, telepor
 		cChainInfo,
 		true,
 		fundedKey,
+		nil,
+		aggregator,
 	)
 
 	// Check that the recipient received the tokens

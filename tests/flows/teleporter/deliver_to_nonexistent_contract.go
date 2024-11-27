@@ -87,8 +87,21 @@ func DeliverToNonExistentContract(network *localnetwork.LocalNetwork, teleporter
 	//
 	// Relay the message to the destination
 	//
+
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	log.Info("Relaying the message to the destination")
-	receipt = teleporter.RelayTeleporterMessage(ctx, receipt, l1AInfo, l1BInfo, true, fundedKey)
+	receipt = teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		l1AInfo,
+		l1BInfo,
+		true,
+		fundedKey,
+		nil,
+		aggregator,
+	)
 	receiveEvent, err :=
 		utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(l1AInfo).ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())

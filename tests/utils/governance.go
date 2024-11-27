@@ -6,6 +6,7 @@ import (
 
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
+	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
@@ -37,7 +38,7 @@ func DeployValidatorSetSig(
 }
 
 // Returns Receipt for the transaction unlike TeleporterRegistry version since this is a non-teleporter case
-// and we don't want to add the ValidatorSetSig ABI to the l1Info
+// and we don't want to add the ValidatorSetSig ABI to the L1Info
 func ExecuteValidatorSetSigCallAndVerify(
 	ctx context.Context,
 	source interfaces.L1TestInfo,
@@ -45,9 +46,10 @@ func ExecuteValidatorSetSigCallAndVerify(
 	validatorSetSigAddress common.Address,
 	senderKey *ecdsa.PrivateKey,
 	unsignedMessage *avalancheWarp.UnsignedMessage,
+	signatureAggregator *aggregator.SignatureAggregator,
 	expectSuccess bool,
 ) *types.Receipt {
-	signedWarpMsg := GetSignedMessage(ctx, source, destination, unsignedMessage.ID())
+	signedWarpMsg := GetSignedMessage(source, destination, unsignedMessage, nil, signatureAggregator)
 	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
 
 	signedPredicateTx := CreateExecuteCallPredicateTransaction(

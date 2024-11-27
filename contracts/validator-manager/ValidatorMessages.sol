@@ -152,7 +152,7 @@ library ValidatorMessages {
      * @param conversionData The struct representing data to pack into the message.
      * @return The packed message.
      */
-    function packConversionData(ConversionData calldata conversionData)
+    function packConversionData(ConversionData memory conversionData)
         external
         pure
         returns (bytes memory)

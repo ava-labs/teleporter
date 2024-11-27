@@ -46,10 +46,22 @@ func UnallowedRelayer(network *localnetwork.LocalNetwork, teleporter utils.Telep
 		ctx, teleporter.TeleporterMessenger(l1AInfo), l1AInfo, l1BInfo, sendCrossChainMessageInput, fundedKey,
 	)
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	//
 	// Relay the message to the destination
 	//
-	teleporter.RelayTeleporterMessage(ctx, receipt, l1AInfo, l1BInfo, false, fundedKey)
+	teleporter.RelayTeleporterMessage(
+		ctx,
+		receipt,
+		l1AInfo,
+		l1BInfo,
+		false,
+		fundedKey,
+		nil,
+		aggregator,
+	)
 
 	//
 	// Check Teleporter message was not received on the destination

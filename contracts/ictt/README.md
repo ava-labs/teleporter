@@ -19,13 +19,6 @@ The token transferrer also supports "multi-hop" transfers, where tokens can be t
 
 In addition to supporting basic token transfers, the token transferrer contracts offer a `sendAndCall` interface for transferring tokens and using them in a smart contract interaction all within a single ICM message. If the call to the recipient smart contract fails, the transferred tokens are sent to a fallback recipient address on the destination chain of the transfer. The `sendAndCall` interface enables the direct use of transferred tokens in dApps on other chains, such as performing swaps, using the tokens to pay for fees when invoking services, etc.
 
-A breakdown of the structure of the contracts that implement this function can be found under `./contracts` [here](./contracts/README.md).
-
-## Audits
-
-Some contracts in this repository have been audited. The `main` branch may contain unaudited code. Please check [here](./audits/README.md) for which versions of each contract have been audited.
-DO NOT USE UN-AUDITED CODE IN PRODUCTION!
-
 ## Upgradability
 
 The token transferrer contracts implement both upgradeable and non-upgradeable versions. The non-upgradeable versions are extensions of their respective upgradeable token transferrer contract, and has a `constructor` that calls the `initialize` function of the upgradeable version. The upgradeable contracts are ERC7201 compliant, and use namespace storage to store the state of the contract.

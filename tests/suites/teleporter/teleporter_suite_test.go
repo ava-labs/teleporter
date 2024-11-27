@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ava-labs/avalanchego/utils/units"
 	teleporterFlows "github.com/ava-labs/teleporter/tests/flows/teleporter"
 	registryFlows "github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
-	localnetwork "github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
@@ -29,7 +30,7 @@ const (
 )
 
 var (
-	LocalNetworkInstance *localnetwork.LocalNetwork
+	LocalNetworkInstance *network.LocalNetwork
 	TeleporterInfo       utils.TeleporterTestInfo
 )
 
@@ -57,21 +58,21 @@ var _ = ginkgo.BeforeSuite(func() {
 	Expect(err).Should(BeNil())
 
 	// Create the local network instance
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 240*2*time.Second)
 	defer cancel()
 
-	LocalNetworkInstance = localnetwork.NewLocalNetwork(
+	LocalNetworkInstance = network.NewLocalNetwork(
 		ctx,
 		"teleporter-test-local-network",
 		warpGenesisTemplateFile,
-		[]localnetwork.L1Spec{
+		[]network.L1Spec{
 			{
 				Name:                       "A",
 				EVMChainID:                 12345,
 				TeleporterContractAddress:  teleporterContractAddress,
 				TeleporterDeployedBytecode: teleporterDeployedBytecode,
 				TeleporterDeployerAddress:  teleporterDeployerAddress,
-				NodeCount:                  2,
+				NodeCount:                  5,
 			},
 			{
 				Name:                       "B",
@@ -79,9 +80,10 @@ var _ = ginkgo.BeforeSuite(func() {
 				TeleporterContractAddress:  teleporterContractAddress,
 				TeleporterDeployedBytecode: teleporterDeployedBytecode,
 				TeleporterDeployerAddress:  teleporterDeployerAddress,
-				NodeCount:                  2,
+				NodeCount:                  5,
 			},
 		},
+		2,
 		2,
 	)
 	TeleporterInfo = utils.NewTeleporterTestInfo(LocalNetworkInstance.GetAllL1Infos())
@@ -102,6 +104,17 @@ var _ = ginkgo.BeforeSuite(func() {
 		TeleporterInfo.SetTeleporter(teleporterContractAddress, l1)
 		TeleporterInfo.InitializeBlockchainID(l1, fundedKey)
 		TeleporterInfo.DeployTeleporterRegistry(l1, fundedKey)
+	}
+
+	for _, subnet := range LocalNetworkInstance.GetL1Infos() {
+		// Choose weights such that we can test validator churn
+		LocalNetworkInstance.ConvertSubnet(
+			ctx,
+			subnet,
+			utils.PoAValidatorManager,
+			[]uint64{units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle},
+			fundedKey,
+			false)
 	}
 
 	log.Info("Set up ginkgo before suite")

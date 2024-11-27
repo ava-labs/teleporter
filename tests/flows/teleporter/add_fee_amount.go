@@ -79,6 +79,8 @@ func AddFeeAmount(network *localnetwork.LocalNetwork, teleporter utils.Teleporte
 		l1BInfo,
 		true,
 		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
 	)
 	receiveEvent, err := utils.GetEventFromLogs(
 		deliveryReceipt.Logs,
@@ -109,10 +111,20 @@ func AddFeeAmount(network *localnetwork.LocalNetwork, teleporter utils.Teleporte
 			Amount:          big.NewInt(0),
 		},
 		[]common.Address{},
-		fundedKey)
+		fundedKey,
+	)
 
-	// Relay message containing the specific receipt from L1 B to L1 A
-	teleporter.RelayTeleporterMessage(ctx, sendSpecificReceiptsReceipt, l1BInfo, l1AInfo, true, fundedKey)
+	// Relay message containing the specific receipt from Subnet B to Subnet A
+	teleporter.RelayTeleporterMessage(
+		ctx,
+		sendSpecificReceiptsReceipt,
+		l1BInfo,
+		l1AInfo,
+		true,
+		fundedKey,
+		nil,
+		network.GetSignatureAggregator(),
+	)
 
 	// Check message delivered
 	delivered, err = teleporter.TeleporterMessenger(l1AInfo).MessageReceived(

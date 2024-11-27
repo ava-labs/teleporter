@@ -78,7 +78,17 @@ func relayAlteredMessage(
 	)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessage := utils.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
+	signedWarpMessage := utils.ConstructSignedWarpMessage(
+		ctx,
+		sourceReceipt,
+		source,
+		destination,
+		nil,
+		aggregator,
+	)
 
 	// Construct the transaction to send the Warp message to the destination chain
 	_, fundedKey := network.GetFundedAccountInfo()

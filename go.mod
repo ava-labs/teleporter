@@ -3,20 +3,20 @@ module github.com/ava-labs/teleporter
 go 1.22.8
 
 require (
-	github.com/ava-labs/avalanchego v1.12.0-initial-poc.9
+	github.com/ava-labs/avalanchego v1.12.0-initial-poc.9.0.20241122192639-7c3ad181c928
 	github.com/supranational/blst v0.3.13 // indirect
 )
 
 require (
-	github.com/ava-labs/awm-relayer v1.4.1-0.20241114185359-5cd5a982832d
-	github.com/ava-labs/subnet-evm v0.6.12-rc.0
+	github.com/ava-labs/awm-relayer v1.4.1-0.20241122202209-75359d908260
+	github.com/ava-labs/subnet-evm v0.6.12
 	github.com/ethereum/go-ethereum v1.13.14
 	github.com/onsi/ginkgo/v2 v2.22.0
-	github.com/onsi/gomega v1.35.1
+	github.com/onsi/gomega v1.36.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/spf13/cobra v1.8.1
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/tools v0.27.0
 	google.golang.org/protobuf v1.35.2
@@ -26,7 +26,7 @@ require (
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.1 // indirect
-	github.com/ava-labs/coreth v0.13.8 // indirect
+	github.com/ava-labs/coreth v0.13.9-rc.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.10.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect

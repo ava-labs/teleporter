@@ -78,6 +78,9 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		burnedFeesReportingRewardPercentage,
 	)
 
+	aggregator := network.GetSignatureAggregator()
+	defer aggregator.Shutdown()
+
 	// Register both NativeTokenDestinations on the ERC20TokenHome
 	collateralAmountA := utils.RegisterTokenRemoteOnHome(
 		ctx,
@@ -90,6 +93,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
 		fundedKey,
+		aggregator,
 	)
 
 	collateralAmountB := utils.RegisterTokenRemoteOnHome(
@@ -103,6 +107,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnRemote,
 		fundedKey,
+		aggregator,
 	)
 
 	// Add collateral for both NativeTokenDestinations
@@ -168,6 +173,8 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		l1AInfo,
 		true,
 		fundedKey,
+		nil,
+		aggregator,
 	)
 
 	// Verify the recipient received the tokens
@@ -203,6 +210,8 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		l1BInfo,
 		true,
 		fundedKey,
+		nil,
+		aggregator,
 	)
 
 	// Verify the recipient received the tokens
@@ -226,6 +235,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		cChainInfo,
 		amountToSend,
 		big.NewInt(0),
+		aggregator,
 	)
 
 	// Multi-hop transfer back to L1 A
@@ -244,5 +254,6 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		cChainInfo,
 		amountToSend,
 		secondaryFeeAmount,
+		aggregator,
 	)
 }
