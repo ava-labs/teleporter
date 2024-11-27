@@ -2453,7 +2453,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function _defaultPoSSettings() internal pure returns (PoSValidatorManagerSettings memory) {
         return PoSValidatorManagerSettings({
             baseSettings: ValidatorManagerSettings({
-                subnetID: DEFAULT_L1_ID,
+                l1ID: DEFAULT_L1_ID,
                 churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                 maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
             }),
