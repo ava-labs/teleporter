@@ -78,7 +78,7 @@ contract ValidatorMessagesTest is Test {
         );
         ValidatorMessages.packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
-                subnetID: DEFAULT_SUBNET_ID,
+                subnetID: DEFAULT_L1_ID,
                 nodeID: DEFAULT_NODE_ID,
                 registrationExpiry: DEFAULT_EXPIRY,
                 blsPublicKey: invalidBLSKey,
@@ -288,7 +288,7 @@ contract ValidatorMessagesTest is Test {
         });
         bytes memory packed = ValidatorMessages.packConversionData(
             ConversionData({
-                subnetID: DEFAULT_SUBNET_ID,
+                subnetID: DEFAULT_L1_ID,
                 validatorManagerBlockchainID: DEFAULT_SUBNET_CONVERSION_ID,
                 validatorManagerAddress: DEFAULT_OWNER,
                 initialValidators: initialValidators
@@ -341,7 +341,7 @@ contract ValidatorMessagesTest is Test {
     function _getPackedRegisterL1ValidatorMessage() internal returns (bytes memory) {
         (, bytes memory packed) = ValidatorMessages.packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
-                subnetID: DEFAULT_SUBNET_ID,
+                subnetID: DEFAULT_L1_ID,
                 nodeID: DEFAULT_NODE_ID,
                 registrationExpiry: DEFAULT_EXPIRY,
                 blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
