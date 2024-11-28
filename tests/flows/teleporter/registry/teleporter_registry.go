@@ -90,7 +90,7 @@ func TeleporterRegistry(network *localnetwork.LocalNetwork, teleporter utils.Tel
 	aggregator := network.GetSignatureAggregator()
 	defer aggregator.Shutdown()
 
-	// Call addProtocolVersion on subnetB to register the new Teleporter version
+	// Call addProtocolVersion on L1 B to register the new Teleporter version
 	teleporter.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
 		l1BInfo,

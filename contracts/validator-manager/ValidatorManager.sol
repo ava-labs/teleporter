@@ -269,7 +269,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Check that adding this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTracker(weight, 0);
 
-        (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
+        (bytes32 validationID, bytes memory registerL1ValidatorMessage) = ValidatorMessages
             .packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 l1ID: $._l1ID,
@@ -281,11 +281,11 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 weight: weight
             })
         );
-        $._pendingRegisterValidationMessages[validationID] = registerSubnetValidatorMessage;
+        $._pendingRegisterValidationMessages[validationID] = registerL1ValidatorMessage;
         $._registeredValidators[input.nodeID] = validationID;
 
         // Submit the message to the Warp precompile.
-        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerSubnetValidatorMessage);
+        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerL1ValidatorMessage);
         $._validationPeriods[validationID].status = ValidatorStatus.PendingAdded;
         $._validationPeriods[validationID].nodeID = input.nodeID;
         $._validationPeriods[validationID].startingWeight = weight;

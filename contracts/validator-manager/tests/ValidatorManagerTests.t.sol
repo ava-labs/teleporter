@@ -190,7 +190,7 @@ abstract contract ValidatorManagerTest is Test {
         bytes32 validationID = _setUpInitializeValidatorRegistration(
             DEFAULT_NODE_ID, DEFAULT_L1_ID, DEFAULT_WEIGHT, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY
         );
-        (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
+        (, bytes memory registerL1ValidatorMessage) = ValidatorMessages
             .packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 l1ID: DEFAULT_L1_ID,
@@ -202,7 +202,7 @@ abstract contract ValidatorManagerTest is Test {
                 weight: DEFAULT_WEIGHT
             })
         );
-        _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
+        _mockSendWarpMessage(registerL1ValidatorMessage, bytes32(0));
         validatorManager.resendRegisterValidatorMessage(validationID);
     }
 
@@ -259,10 +259,10 @@ abstract contract ValidatorManagerTest is Test {
             force: false
         });
 
-        bytes memory subnetValidatorRegistrationMessage =
+        bytes memory l1ValidatorRegistrationMessage =
             ValidatorMessages.packL1ValidatorRegistrationMessage(validationID, false);
 
-        _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
+        _mockGetPChainWarpMessage(l1ValidatorRegistrationMessage, true);
 
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidationPeriodEnded(validationID, ValidatorStatus.Completed);
@@ -274,10 +274,10 @@ abstract contract ValidatorManagerTest is Test {
         bytes32 validationID = _setUpInitializeValidatorRegistration(
             DEFAULT_NODE_ID, DEFAULT_L1_ID, DEFAULT_WEIGHT, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY
         );
-        bytes memory subnetValidatorRegistrationMessage =
+        bytes memory l1ValidatorRegistrationMessage =
             ValidatorMessages.packL1ValidatorRegistrationMessage(validationID, false);
 
-        _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
+        _mockGetPChainWarpMessage(l1ValidatorRegistrationMessage, true);
 
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidationPeriodEnded(validationID, ValidatorStatus.Invalidated);
@@ -417,7 +417,7 @@ abstract contract ValidatorManagerTest is Test {
                 weight: weight
             })
         );
-        (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
+        (, bytes memory registerL1ValidatorMessage) = ValidatorMessages
             .packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 l1ID: l1ID,
@@ -430,7 +430,7 @@ abstract contract ValidatorManagerTest is Test {
             })
         );
         vm.warp(registrationExpiry - 1);
-        _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
+        _mockSendWarpMessage(registerL1ValidatorMessage, bytes32(0));
 
         _beforeSend(_weightToValue(weight), address(this));
         vm.expectEmit(true, true, true, true, address(validatorManager));
@@ -459,10 +459,10 @@ abstract contract ValidatorManagerTest is Test {
         validationID = _setUpInitializeValidatorRegistration(
             nodeID, l1ID, weight, registrationExpiry, blsPublicKey
         );
-        bytes memory subnetValidatorRegistrationMessage =
+        bytes memory l1ValidatorRegistrationMessage =
             ValidatorMessages.packL1ValidatorRegistrationMessage(validationID, true);
 
-        _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
+        _mockGetPChainWarpMessage(l1ValidatorRegistrationMessage, true);
 
         vm.warp(registrationTimestamp);
         vm.expectEmit(true, true, true, true, address(validatorManager));

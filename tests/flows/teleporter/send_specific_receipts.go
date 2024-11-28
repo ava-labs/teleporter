@@ -30,7 +30,7 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 	aggregator := network.GetSignatureAggregator()
 	defer aggregator.Shutdown()
 
-	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
+	// Clear the receipt queue from L1 B -> L1 A to have a clean slate for the test flow.
 	teleporter.ClearReceiptQueue(ctx, fundedKey, l1BInfo, l1AInfo, aggregator)
 
 	// Use mock token as the fee token
@@ -120,7 +120,7 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 	Expect(delivered).Should(BeTrue())
 
 	// Call send specific receipts to get reward of relaying two messages
-	goLog.Println("Sending specific receipts from Subnet B to Subnet A")
+	goLog.Println("Sending specific receipts from L1 B to L1 A")
 	receipt, messageID := utils.SendSpecifiedReceiptsAndWaitForAcceptance(
 		ctx,
 		l1BTeleporterMessenger,
@@ -135,8 +135,8 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 		fundedKey,
 	)
 
-	// Relay message from Subnet B to Subnet A
-	goLog.Println("Relaying the specific receipts from Subnet B to Subnet A")
+	// Relay message from L1 B to L1 A
+	goLog.Println("Relaying the specific receipts from L1 B to L1 A")
 	receipt = teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
@@ -184,13 +184,13 @@ func SendSpecificReceipts(network *localnetwork.LocalNetwork, teleporter utils.T
 		Message:                 []byte{1, 2, 3, 4},
 	}
 
-	goLog.Println("Sending a message from Subnet B to Subnet A to trigger receipts")
+	goLog.Println("Sending a message from L1 B to L1 A to trigger receipts")
 	// This message will also have the same receipts as the previous message
 	receipt, messageID = utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx, l1BTeleporterMessenger, l1BInfo, l1AInfo, sendCrossChainMessageInput, fundedKey)
 
 	goLog.Println("Relaying the message from L1 B to L1 A")
-	// Relay message from Subnet B to Subnet A
+	// Relay message from L1 B to L1 A
 	receipt = teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,

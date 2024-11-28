@@ -36,7 +36,9 @@ func InsufficientGas(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 	// Send message from L1A to L1B with 0 execution gas, which should fail to execute
 	message := "Hello, world!"
 	optsA, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, l1AInfo.EVMChainID)
+		fundedKey,
+		l1AInfo.EVMChainID,
+	)
 	Expect(err).Should(BeNil())
 	tx, err := l1ATestMessenger.SendMessage(
 		optsA, l1BInfo.BlockchainID, testMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message,
@@ -58,7 +60,7 @@ func InsufficientGas(network *localnetwork.LocalNetwork, teleporter utils.Telepo
 	aggregator := network.GetSignatureAggregator()
 	defer aggregator.Shutdown()
 
-	// Relay message from SubnetA to SubnetB
+	// Relay message from L1 A to L1 B
 	receipt = teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,

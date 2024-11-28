@@ -114,7 +114,7 @@ func AddFeeAmount(network *localnetwork.LocalNetwork, teleporter utils.Teleporte
 		fundedKey,
 	)
 
-	// Relay message containing the specific receipt from Subnet B to Subnet A
+	// Relay message containing the specific receipt from L1 B to L1 A
 	teleporter.RelayTeleporterMessage(
 		ctx,
 		sendSpecificReceiptsReceipt,

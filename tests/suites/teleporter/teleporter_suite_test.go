@@ -114,7 +114,8 @@ var _ = ginkgo.BeforeSuite(func() {
 			utils.PoAValidatorManager,
 			[]uint64{units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle},
 			fundedKey,
-			false)
+			false,
+		)
 	}
 
 	log.Info("Set up ginkgo before suite")

@@ -1629,9 +1629,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 balanceBefore = _getStakeAssetBalance(address(this));
 
-        bytes memory subnetValidatorRegistrationMessage =
+        bytes memory l1ValidatorRegistrationMessage =
             ValidatorMessages.packL1ValidatorRegistrationMessage(validationID, false);
-        _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
+        _mockGetPChainWarpMessage(l1ValidatorRegistrationMessage, true);
 
         posValidatorManager.completeEndValidation(0);
 
@@ -2301,7 +2301,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 validatorWeight,
         address rewardRecipient
     ) internal {
-        bytes memory subnetValidatorRegistrationMessage =
+        bytes memory l1ValidatorRegistrationMessage =
             ValidatorMessages.packL1ValidatorRegistrationMessage(validationID, false);
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
@@ -2312,7 +2312,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _expectStakeUnlock(validatorOwner, _weightToValue(validatorWeight));
         _expectRewardIssuance(rewardRecipient, expectedReward);
 
-        _completeEndValidation(subnetValidatorRegistrationMessage);
+        _completeEndValidation(l1ValidatorRegistrationMessage);
 
         if (rewardRecipient == validatorOwner) {
             assertEq(
@@ -2332,8 +2332,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         }
     }
 
-    function _completeEndValidation(bytes memory subnetValidatorRegistrationMessage) internal {
-        _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
+    function _completeEndValidation(bytes memory l1ValidatorRegistrationMessage) internal {
+        _mockGetPChainWarpMessage(l1ValidatorRegistrationMessage, true);
         posValidatorManager.completeEndValidation(0);
     }
 

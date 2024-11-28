@@ -544,7 +544,7 @@ library ValidatorMessages {
     }
 
     /**
-     * @notice Unpacks a byte array as a SubnetValidatorWeightMessage.
+     * @notice Unpacks a byte array as an L1ValidatorWeightMessage.
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.

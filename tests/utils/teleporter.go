@@ -210,7 +210,7 @@ func (t TeleporterTestInfo) SendExampleCrossChainMessageAndVerify(
 	signatureAggregator *aggregator.SignatureAggregator,
 	expectSuccess bool,
 ) {
-	// Call the example messenger contract on Subnet A
+	// Call the example messenger contract on L1 A
 	optsA, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := sourceExampleMessenger.SendMessage(
@@ -337,9 +337,9 @@ func (t TeleporterTestInfo) ClearReceiptQueue(
 	)
 	for outstandReceiptCount.Cmp(big.NewInt(0)) != 0 {
 		log.Info("Emptying receipt queue", "remainingReceipts", outstandReceiptCount.String())
-		// Send message from Subnet B to Subnet A to trigger the "regular" method of delivering receipts.
+		// Send message from L1 B to L1 A to trigger the "regular" method of delivering receipts.
 		// The next message from B->A will contain the same receipts that were manually sent in the above steps,
-		// but they should not be processed again on Subnet A.
+		// but they should not be processed again on L1 A.
 		sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
 			DestinationBlockchainID: destination.BlockchainID,
 			DestinationAddress:      common.HexToAddress("0x1111111111111111111111111111111111111111"),
