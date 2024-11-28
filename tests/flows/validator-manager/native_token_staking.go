@@ -142,7 +142,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		aggregator := network.GetSignatureAggregator()
 		defer aggregator.Shutdown()
 
-		// Gather subnet-evm Warp signatures for the SubnetValidatorWeightUpdateMessage & relay to the P-Chain
+		// Gather subnet-evm Warp signatures for the L1ValidatorWeightMessage & relay to the P-Chain
 		signedWarpMessage := utils.ConstructSignedWarpMessage(
 			context.Background(),
 			receipt,
@@ -157,8 +157,8 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
 		utils.AdvanceProposerVM(ctx, l1AInfo, fundedKey, 5)
 
-		// Construct a L1ValidatorWeightUpdateMessage Warp message from the P-Chain
-		registrationSignedMessage := utils.ConstructL1ValidatorWeightUpdateMessage(
+		// Construct a L1ValidatorWeightMessage Warp message from the P-Chain
+		registrationSignedMessage := utils.ConstructL1ValidatorWeightMessage(
 			validationID,
 			nonce,
 			newValidatorWeight,
@@ -210,7 +210,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		aggregator := network.GetSignatureAggregator()
 		defer aggregator.Shutdown()
 
-		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
+		// Gather subnet-evm Warp signatures for the SetL1ValidatorWeightMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
 		signedWarpMessage := utils.ConstructSignedWarpMessage(
 			context.Background(),
@@ -227,8 +227,8 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
 		utils.AdvanceProposerVM(ctx, l1AInfo, fundedKey, 5)
 
-		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
-		signedMessage := utils.ConstructL1ValidatorWeightUpdateMessage(
+		// Construct a L1ValidatorWeightMessage Warp message from the P-Chain
+		signedMessage := utils.ConstructL1ValidatorWeightMessage(
 			validationID,
 			nonce,
 			nodes[0].Weight,

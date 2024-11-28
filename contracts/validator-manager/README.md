@@ -132,7 +132,7 @@ Disabled L1 validators can re-activate at any time by increasing their balance w
 
 ### (PoS only) Remove a Delegator
 
-Delegators removal may be initiated by calling `initializeEndDelegation`, as long as churn restrictions are not violated. Similar to `initializeEndValidation`, an uptime proof may be provided to be used to determine delegator rewards eligibility. If no proof is provided, the latest known uptime will be used (see [(PoS only) Submit and Uptime Proof](#pos-only-submit-an-uptime-proof)). The validator's weight is updated on the P-Chain by the same mechanism used to register a delegator. The `SubnetValidatorWeightUpdateMessage` from the P-Chain is delivered to the `PoSValidatorManager` in the call to `completeEndDelegation`.
+Delegators removal may be initiated by calling `initializeEndDelegation`, as long as churn restrictions are not violated. Similar to `initializeEndValidation`, an uptime proof may be provided to be used to determine delegator rewards eligibility. If no proof is provided, the latest known uptime will be used (see [(PoS only) Submit and Uptime Proof](#pos-only-submit-an-uptime-proof)). The validator's weight is updated on the P-Chain by the same mechanism used to register a delegator. The `L1ValidatorWeightMessage` from the P-Chain is delivered to the `PoSValidatorManager` in the call to `completeEndDelegation`.
 
 Either the delegator owner or the validator owner may initiate removing a delegator. This is to prevent the validator from being unable to remove itself due to churn limitations if it is has too high a proportion of the Subnet's total weight due to delegator additions. The validator owner may only remove Delegators after the minimum stake duration has elapsed.
 

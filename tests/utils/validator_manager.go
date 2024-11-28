@@ -1452,7 +1452,7 @@ func ConstructL1ValidatorRegistrationMessage(
 	return registrationSignedMessage
 }
 
-func ConstructL1ValidatorWeightUpdateMessage(
+func ConstructL1ValidatorWeightMessage(
 	validationID ids.ID,
 	nonce uint64,
 	weight uint64,

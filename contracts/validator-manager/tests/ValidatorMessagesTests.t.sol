@@ -33,7 +33,7 @@ contract ValidatorMessagesTest is Test {
         DEFAULT_P_CHAIN_OWNER = PChainOwner({threshold: 1, addresses: addresses});
     }
 
-    function testSubnetConversionMessageInvalidInputLength() public {
+    function testSubnetToL1ConversionMessageInvalidInputLength() public {
         bytes memory packed =
             ValidatorMessages.packSubnetToL1ConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
         // Invalid length
@@ -47,7 +47,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackSubnetToL1ConversionMessage(invalidPacked);
     }
 
-    function testSubnetConversionMessageInvalidCodecID() public {
+    function testSubnetToL1ConversionMessageInvalidCodecID() public {
         bytes memory packed =
             ValidatorMessages.packSubnetToL1ConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
 
@@ -60,7 +60,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackSubnetToL1ConversionMessage(invalidPacked2);
     }
 
-    function testSubnetConversionMessageInvalidTypeID() public {
+    function testSubnetToL1ConversionMessageInvalidTypeID() public {
         bytes memory packed =
             ValidatorMessages.packSubnetToL1ConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
         // Invalid message type
@@ -70,7 +70,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackSubnetToL1ConversionMessage(invalidPacked3);
     }
 
-    function testRegisterSubnetValidatorMessageInvalidBLSKey() public {
+    function testRegisterL1ValidatorMessageInvalidBLSKey() public {
         vm.expectRevert(ValidatorMessages.InvalidBLSPublicKey.selector);
         // 47 bytes
         bytes memory invalidBLSKey = bytes(
@@ -89,7 +89,7 @@ contract ValidatorMessagesTest is Test {
         );
     }
 
-    function testRegisterSubnetValidatorMessageInvalidInputLength() public {
+    function testRegisterL1ValidatorMessageInvalidInputLength() public {
         bytes memory packed = _getPackedRegisterL1ValidatorMessage();
         // Invalid length
         bytes memory invalidPacked = new bytes(packed.length - 1);
@@ -104,7 +104,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked);
     }
 
-    function testRegisterSubnetValidatorMessageInvalidCodecID() public {
+    function testRegisterL1ValidatorMessageInvalidCodecID() public {
         bytes memory packed = _getPackedRegisterL1ValidatorMessage();
 
         // Invalid codec ID
@@ -116,7 +116,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked2);
     }
 
-    function testRegisterSubnetValidatorMessageInvalidTypeID() public {
+    function testRegisterL1ValidatorMessageInvalidTypeID() public {
         bytes memory packed = _getPackedRegisterL1ValidatorMessage();
 
         // Invalid message type
@@ -126,7 +126,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackRegisterL1ValidatorMessage(invalidPacked3);
     }
 
-    function testSubnetValidatorRegistrationMessageInvalidInputLength() public {
+    function testL1ValidatorRegistrationMessageInvalidInputLength() public {
         bytes memory packed =
             ValidatorMessages.packL1ValidatorRegistrationMessage(DEFAULT_VALIDATION_ID, true);
 
@@ -141,7 +141,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackL1ValidatorRegistrationMessage(invalidPacked);
     }
 
-    function testSubnetValidatorRegistrationMessageInvalidCodecID() public {
+    function testL1ValidatorRegistrationMessageInvalidCodecID() public {
         bytes memory packed =
             ValidatorMessages.packL1ValidatorRegistrationMessage(DEFAULT_VALIDATION_ID, true);
 
@@ -154,7 +154,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackL1ValidatorRegistrationMessage(invalidPacked2);
     }
 
-    function testSubnetValidatorRegistrationMessageInvalidTypeID() public {
+    function testL1ValidatorRegistrationMessageInvalidTypeID() public {
         bytes memory packed =
             ValidatorMessages.packL1ValidatorRegistrationMessage(DEFAULT_VALIDATION_ID, true);
 
@@ -204,7 +204,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackValidationUptimeMessage(invalidPacked3);
     }
 
-    function testSetSubnetValidatorWeightMessageInvalidInputLength() public {
+    function testSetL1ValidatorWeightMessageInvalidInputLength() public {
         bytes memory packed = ValidatorMessages.packL1ValidatorWeightMessage(
             DEFAULT_VALIDATION_ID, 100, DEFAULT_WEIGHT
         );
@@ -220,7 +220,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackL1ValidatorWeightMessage(invalidPacked);
     }
 
-    function testSetSubnetValidatorWeightMessageInvalidCodecID() public {
+    function testSetL1ValidatorWeightMessageInvalidCodecID() public {
         bytes memory packed = ValidatorMessages.packL1ValidatorWeightMessage(
             DEFAULT_VALIDATION_ID, 100, DEFAULT_WEIGHT
         );
@@ -234,7 +234,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackL1ValidatorWeightMessage(invalidPacked2);
     }
 
-    function testSetSubnetValidatorWeightMessageInvalidTypeID() public {
+    function testSetL1ValidatorWeightMessageInvalidTypeID() public {
         bytes memory packed = ValidatorMessages.packL1ValidatorWeightMessage(
             DEFAULT_VALIDATION_ID, 100, DEFAULT_WEIGHT
         );
@@ -246,7 +246,7 @@ contract ValidatorMessagesTest is Test {
         ValidatorMessages.unpackL1ValidatorWeightMessage(invalidPacked3);
     }
 
-    function testRegisterSubnetValidatorMessage() public view {
+    function testRegisterL1ValidatorMessage() public view {
         (bytes32 validationID, bytes memory packed) = ValidatorMessages
             .packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
@@ -272,7 +272,7 @@ contract ValidatorMessagesTest is Test {
         assertEq(recoveredID, validationID);
     }
 
-    function testSubnetConversionMessage() public pure {
+    function testSubnetToL1ConversionMessage() public pure {
         bytes memory packed =
             ValidatorMessages.packSubnetToL1ConversionMessage(DEFAULT_SUBNET_CONVERSION_ID);
         bytes32 conversionID = ValidatorMessages.unpackSubnetToL1ConversionMessage(packed);
@@ -298,7 +298,7 @@ contract ValidatorMessagesTest is Test {
         assertEq(packed.length, 186);
     }
 
-    function testSubnetValidatorRegistrationMessage() public pure {
+    function testL1ValidatorRegistrationMessage() public pure {
         bytes memory packed =
             ValidatorMessages.packL1ValidatorRegistrationMessage(DEFAULT_VALIDATION_ID, true);
         (bytes32 validationID, bool valid) =
@@ -307,7 +307,7 @@ contract ValidatorMessagesTest is Test {
         assert(valid);
     }
 
-    function testSetSubnetValidatorWeightMessage() public pure {
+    function testSetL1ValidatorWeightMessage() public pure {
         bytes memory packed = ValidatorMessages.packL1ValidatorWeightMessage(
             DEFAULT_VALIDATION_ID, 100, DEFAULT_WEIGHT
         );
@@ -318,7 +318,7 @@ contract ValidatorMessagesTest is Test {
         assertEq(weight, DEFAULT_WEIGHT);
     }
 
-    function testSubnetValidatorWeightUpdateMessage() public pure {
+    function testL1ValidatorWeightMessage() public pure {
         bytes memory packed = ValidatorMessages.packL1ValidatorWeightMessage(
             DEFAULT_VALIDATION_ID, 100, DEFAULT_WEIGHT
         );
@@ -338,7 +338,7 @@ contract ValidatorMessagesTest is Test {
         assertEq(uptime, 100);
     }
 
-    function _getPackedRegisterL1ValidatorMessage() internal returns (bytes memory) {
+    function _getPackedRegisterL1ValidatorMessage() internal view returns (bytes memory) {
         (, bytes memory packed) = ValidatorMessages.packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
                 l1ID: DEFAULT_L1_ID,
