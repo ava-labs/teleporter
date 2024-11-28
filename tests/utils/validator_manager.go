@@ -568,9 +568,10 @@ func InitializeAndCompleteNativeValidatorRegistration(
 
 	// Construct a L1ValidatorRegistrationMessage Warp message from the P-Chain
 	log.Println("Completing validator registration")
-	registrationSignedMessage := ConstructL1ValidatorRegistrationMessageForInitialValidator(
+	registrationSignedMessage := ConstructL1ValidatorRegistrationMessage(
 		validationID,
-		0,
+		expiry,
+		node,
 		true,
 		l1Info,
 		pChainInfo,
@@ -645,9 +646,10 @@ func InitializeAndCompleteERC20ValidatorRegistration(
 
 	// Construct a L1ValidatorRegistrationMessage Warp message from the P-Chain
 	log.Println("Completing validator registration")
-	registrationSignedMessage := ConstructL1ValidatorRegistrationMessageForInitialValidator(
+	registrationSignedMessage := ConstructL1ValidatorRegistrationMessage(
 		validationID,
-		0,
+		expiry,
+		node,
 		true,
 		l1Info,
 		pChainInfo,
@@ -712,9 +714,10 @@ func InitializeAndCompletePoAValidatorRegistration(
 
 	// Construct a L1ValidatorRegistrationMessage Warp message from the P-Chain
 	log.Println("Completing validator registration")
-	registrationSignedMessage := ConstructL1ValidatorRegistrationMessageForInitialValidator(
+	registrationSignedMessage := ConstructL1ValidatorRegistrationMessage(
 		validationID,
-		0,
+		expiry,
+		node,
 		true,
 		l1Info,
 		pChainInfo,
@@ -1184,9 +1187,10 @@ func InitializeAndCompleteEndPoSValidation(
 
 	// Construct a L1ValidatorRegistrationMessage Warp message from the P-Chain
 	log.Println("Completing validator removal")
-	registrationSignedMessage := ConstructL1ValidatorRegistrationMessageForInitialValidator(
+	registrationSignedMessage := ConstructL1ValidatorRegistrationMessage(
 		validationID,
-		0,
+		expiry,
+		node,
 		false,
 		l1Info,
 		pChainInfo,
@@ -1328,9 +1332,10 @@ func InitializeAndCompleteEndPoAValidation(
 	ValidateL1ValidatorWeightMessage(signedWarpMessage, validationID, 0, nonce)
 
 	// Construct a L1ValidatorRegistrationMessage Warp message from the P-Chain
-	registrationSignedMessage := ConstructL1ValidatorRegistrationMessageForInitialValidator(
+	registrationSignedMessage := ConstructL1ValidatorRegistrationMessage(
 		validationID,
 		0,
+		Node{},
 		false,
 		l1Info,
 		pChainInfo,
