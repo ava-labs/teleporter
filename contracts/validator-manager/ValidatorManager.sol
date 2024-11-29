@@ -86,6 +86,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     error PChainOwnerAddressesNotSorted();
 
     // solhint-disable ordering
+    /**
+     * @dev This storage is visible to child contracts for convenience.
+     *      Child contracts should probably never write to this storage.
+     */
     function _getValidatorManagerStorage()
         internal
         pure
