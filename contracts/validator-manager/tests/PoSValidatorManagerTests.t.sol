@@ -2365,7 +2365,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         _completeEndDelegation(delegationID, weightUpdateMessage);
 
-        assertEq(posValidatorManager.getWeight(validationID), expectedValidatorWeight);
+        assertEq(posValidatorManager.getValidator(validationID).weight, expectedValidatorWeight);
 
         if (rewardRecipient == delegator) {
             assertEq(

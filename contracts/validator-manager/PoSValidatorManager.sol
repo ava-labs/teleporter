@@ -101,7 +101,7 @@ abstract contract PoSValidatorManager is
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
-        private
+        internal
         pure
         returns (PoSValidatorManagerStorage storage $)
     {

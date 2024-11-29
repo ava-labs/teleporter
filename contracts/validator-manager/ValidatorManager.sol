@@ -87,7 +87,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
-        private
+        internal
         pure
         returns (ValidatorManagerStorage storage $)
     {
@@ -467,14 +467,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         emit ValidationPeriodEnded(validationID, validator.status);
 
         return (validationID, validator);
-    }
-
-    /**
-     * @notice Returns the validator's weight. This weight is not guaranteed to be known by the P-Chain
-     * @return Weight of the validator. If the validation ID does not exist, the weight will be 0.
-     */
-    function getWeight(bytes32 validationID) external view returns (uint64) {
-        return getValidator(validationID).weight;
     }
 
     function _incrementAndGetNonce(bytes32 validationID) internal returns (uint64) {
