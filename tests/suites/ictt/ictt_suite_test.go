@@ -65,7 +65,7 @@ var _ = ginkgo.BeforeSuite(func() {
 		ctx,
 		"teleporter-test-local-network",
 		warpGenesisTemplateFile,
-		[]localnetwork.SubnetSpec{
+		[]localnetwork.L1Spec{
 			{
 				Name:                       "A",
 				EVMChainID:                 12345,
@@ -86,10 +86,10 @@ var _ = ginkgo.BeforeSuite(func() {
 		2,
 		2,
 	)
-	TeleporterInfo = utils.NewTeleporterTestInfo(LocalNetworkInstance.GetAllSubnetsInfo())
+	TeleporterInfo = utils.NewTeleporterTestInfo(LocalNetworkInstance.GetAllL1Infos())
 	log.Info("Started local network")
 
-	// Only need to deploy Teleporter on the C-Chain since it is included in the genesis of the subnet chains.
+	// Only need to deploy Teleporter on the C-Chain since it is included in the genesis of the L1 chains.
 	_, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
 	TeleporterInfo.DeployTeleporterMessenger(
 		ctx,
@@ -99,10 +99,10 @@ var _ = ginkgo.BeforeSuite(func() {
 		teleporterContractAddress,
 		fundedKey,
 	)
-	for _, subnet := range LocalNetworkInstance.GetAllSubnetsInfo() {
-		TeleporterInfo.SetTeleporter(teleporterContractAddress, subnet)
-		TeleporterInfo.InitializeBlockchainID(subnet, fundedKey)
-		TeleporterInfo.DeployTeleporterRegistry(subnet, fundedKey)
+	for _, l1 := range LocalNetworkInstance.GetAllL1Infos() {
+		TeleporterInfo.SetTeleporter(teleporterContractAddress, l1)
+		TeleporterInfo.InitializeBlockchainID(l1, fundedKey)
+		TeleporterInfo.DeployTeleporterRegistry(l1, fundedKey)
 	}
 })
 
@@ -114,7 +114,7 @@ var _ = ginkgo.AfterSuite(func() {
 var _ = ginkgo.Describe("[Validator manager integration tests]", func() {
 	// ICTT tests
 
-	ginkgo.It("Transfer an ERC20 token between two Subnets",
+	ginkgo.It("Transfer an ERC20 token between two L1s",
 		ginkgo.Label(icttLabel, erc20TokenHomeLabel, erc20TokenRemoteLabel),
 		func() {
 			icttFlows.ERC20TokenHomeERC20TokenRemote(LocalNetworkInstance, TeleporterInfo)

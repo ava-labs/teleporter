@@ -12,39 +12,39 @@ import (
 )
 
 func RetrySuccessfulExecution(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := network.GetTwoSubnets()
+	l1AInfo := network.GetPrimaryNetworkInfo()
+	l1BInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
-	// Deploy TestMessenger to Subnets A and B
+	// Deploy TestMessenger to L1s A and B
 	//
 	ctx := context.Background()
 
-	_, subnetATestMessenger := utils.DeployTestMessenger(
+	_, l1ATestMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
-		teleporter.TeleporterRegistryAddress(subnetAInfo),
-		subnetAInfo,
+		teleporter.TeleporterRegistryAddress(l1AInfo),
+		l1AInfo,
 	)
-	testMessengerContractAddressB, subnetBTestMessenger := utils.DeployTestMessenger(
+	testMessengerContractAddressB, l1BTestMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
-		teleporter.TeleporterRegistryAddress(subnetBInfo),
-		subnetBInfo,
+		teleporter.TeleporterRegistryAddress(l1BInfo),
+		l1BInfo,
 	)
 
 	//
-	// Call the test messenger contract on Subnet A
+	// Call the test messenger contract on L1 A
 	//
 	message := "Hello, world!"
-	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
+	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, l1AInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := subnetATestMessenger.SendMessage(
+	tx, err := l1ATestMessenger.SendMessage(
 		optsA,
-		subnetBInfo.BlockchainID,
+		l1BInfo.BlockchainID,
 		testMessengerContractAddressB,
 		fundedAddress,
 		big.NewInt(0),
@@ -54,14 +54,14 @@ func RetrySuccessfulExecution(network *localnetwork.LocalNetwork, teleporter uti
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
+	receipt := utils.WaitForTransactionSuccess(ctx, l1AInfo, tx.Hash())
 
 	event, err := utils.GetEventFromLogs(
 		receipt.Logs,
-		teleporter.TeleporterMessenger(subnetAInfo).ParseSendCrossChainMessage,
+		teleporter.TeleporterMessenger(l1AInfo).ParseSendCrossChainMessage,
 	)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(l1BInfo.BlockchainID[:]))
 
 	teleporterMessageID := event.MessageID
 
@@ -74,22 +74,22 @@ func RetrySuccessfulExecution(network *localnetwork.LocalNetwork, teleporter uti
 	receipt = teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
-		subnetAInfo,
-		subnetBInfo,
+		l1AInfo,
+		l1BInfo,
 		true,
 		fundedKey,
 		nil,
 		aggregator,
 	)
 	receiveEvent, err :=
-		utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(subnetBInfo).ParseReceiveCrossChainMessage)
+		utils.GetEventFromLogs(receipt.Logs, teleporter.TeleporterMessenger(l1BInfo).ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	deliveredTeleporterMessage := receiveEvent.Message
 
 	//
 	// Check Teleporter message received on the destination
 	//
-	delivered, err := teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(l1BInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -98,19 +98,19 @@ func RetrySuccessfulExecution(network *localnetwork.LocalNetwork, teleporter uti
 	//
 	// Verify we received the expected string
 	//
-	_, currMessage, err := subnetBTestMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
+	_, currMessage, err := l1BTestMessenger.GetCurrentMessage(&bind.CallOpts{}, l1AInfo.BlockchainID)
 	Expect(err).Should(BeNil())
 	Expect(currMessage).Should(Equal(message))
 
 	//
 	// Attempt to retry message execution, which should fail
 	//
-	optsB, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.EVMChainID)
+	optsB, err := bind.NewKeyedTransactorWithChainID(fundedKey, l1BInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 
-	tx, err = teleporter.TeleporterMessenger(subnetBInfo).RetryMessageExecution(
+	tx, err = teleporter.TeleporterMessenger(l1BInfo).RetryMessageExecution(
 		optsB,
-		subnetAInfo.BlockchainID,
+		l1AInfo.BlockchainID,
 		deliveredTeleporterMessage,
 	)
 	Expect(err).Should(Not(BeNil()))

@@ -36,8 +36,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
 
     struct ValidatorManagerStorage {
-        /// @notice The subnetID associated with this validator manager.
-        bytes32 _subnetID;
+        /// @notice The l1ID associated with this validator manager.
+        bytes32 _l1ID;
         /// @notice The number of seconds after which to reset the churn tracker.
         uint64 _churnPeriodSeconds;
         /// @notice The maximum churn rate allowed per churn period.
@@ -118,7 +118,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         onlyInitializing
     {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        $._subnetID = settings.subnetID;
+        $._l1ID = settings.l1ID;
 
         if (
             settings.maximumChurnPercentage > MAXIMUM_CHURN_PERCENTAGE_LIMIT
@@ -150,7 +150,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             revert InvalidInitializationStatus();
         }
         // Check that the blockchainID and validator manager address in the ConversionData correspond to this contract.
-        // Other validation checks are done by the P-Chain when converting the subnet, so are not required here.
+        // Other validation checks are done by the P-Chain when converting the L1, so are not required here.
         if (conversionData.validatorManagerBlockchainID != WARP_MESSENGER.getBlockchainID()) {
             revert InvalidValidatorManagerBlockchainID(conversionData.validatorManagerBlockchainID);
         }
@@ -168,8 +168,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             }
 
             // Validation ID of the initial validators is the sha256 hash of the
-            // convert Subnet tx ID and the index of the initial validator.
-            bytes32 validationID = sha256(abi.encodePacked(conversionData.subnetID, i));
+            // convert subnet to L1 tx ID and the index of the initial validator.
+            bytes32 validationID = sha256(abi.encodePacked(conversionData.l1ID, i));
 
             // Save the initial validator as an active validator.
 
@@ -195,7 +195,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             revert InvalidTotalWeight(totalWeight);
         }
 
-        // Verify that the sha256 hash of the Subnet conversion data matches with the Warp message's conversionID.
+        // Verify that the sha256 hash of the L1 conversion data matches with the Warp message's conversionID.
         bytes32 conversionID = ValidatorMessages.unpackSubnetToL1ConversionMessage(
             _getPChainWarpMessage(messageIndex).payload
         );
@@ -269,10 +269,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Check that adding this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTracker(weight, 0);
 
-        (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
+        (bytes32 validationID, bytes memory registerL1ValidatorMessage) = ValidatorMessages
             .packRegisterL1ValidatorMessage(
             ValidatorMessages.ValidationPeriod({
-                subnetID: $._subnetID,
+                l1ID: $._l1ID,
                 nodeID: input.nodeID,
                 blsPublicKey: input.blsPublicKey,
                 remainingBalanceOwner: input.remainingBalanceOwner,
@@ -281,11 +281,11 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 weight: weight
             })
         );
-        $._pendingRegisterValidationMessages[validationID] = registerSubnetValidatorMessage;
+        $._pendingRegisterValidationMessages[validationID] = registerL1ValidatorMessage;
         $._registeredValidators[input.nodeID] = validationID;
 
         // Submit the message to the Warp precompile.
-        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerSubnetValidatorMessage);
+        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerL1ValidatorMessage);
         $._validationPeriods[validationID].status = ValidatorStatus.PendingAdded;
         $._validationPeriods[validationID].nodeID = input.nodeID;
         $._validationPeriods[validationID].startingWeight = weight;

@@ -15,21 +15,21 @@ import (
 /*
 *
   - Deploy a ERC20TokenHome on the primary network
-  - Deploys NativeTokenRemote to Subnet A and Subnet B
-  - Transfers C-Chain example ERC20 tokens to Subnet A as Subnet A's native token
-  - Transfers C-Chain example ERC20 tokens to Subnet B as Subnet B's native token
-    to collateralize the token transferrer on Subnet B
-  - Transfer tokens from Subnet A to Subnet B through multi-hop
-  - Transfer back tokens from Subnet B to Subnet A through multi-hop
+  - Deploys NativeTokenRemote toA and L1 B
+  - Transfers C-Chain example ERC20 tokens to L1 A as L1 A's native token
+  - Transfers C-Chain example ERC20 tokens to L1 B as L1 B's native token
+    to collateralize the token transferrer on L1 B
+  - Transfer tokens from L1 A to L1 B through multi-hop
+  - Transfer back tokens from L1 B to L1 A through multi-hop
 */
 func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, subnetBInfo := network.GetTwoSubnets()
+	l1AInfo, l1BInfo := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
-	// Deploy an ExampleERC20 on subnet A as the token to be transferred
+	// Deploy an ExampleERC20 on L1 A as the token to be transferred
 	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20Decimals(
 		ctx,
 		fundedKey,
@@ -50,11 +50,11 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		exampleERC20Decimals,
 	)
 
-	// Deploy a NativeTokenRemote to Subnet A
+	// Deploy a NativeTokenRemote to L1 A
 	nativeTokenRemoteAddressA, nativeTokenRemoteA := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		subnetAInfo,
+		l1AInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -64,11 +64,11 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		burnedFeesReportingRewardPercentage,
 	)
 
-	// Deploy a NativeTokenRemote to Subnet B
+	// Deploy a NativeTokenRemote to L1 B
 	nativeTokenRemoteAddressB, nativeTokenRemoteB := utils.DeployNativeTokenRemote(
 		ctx,
 		teleporter,
-		subnetBInfo,
+		l1BInfo,
 		"SUBB",
 		fundedAddress,
 		cChainInfo.BlockchainID,
@@ -87,7 +87,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
-		subnetAInfo,
+		l1AInfo,
 		nativeTokenRemoteAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
@@ -101,7 +101,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
-		subnetBInfo,
+		l1BInfo,
 		nativeTokenRemoteAddressB,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
@@ -117,7 +117,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		erc20TokenHome,
 		erc20TokenHomeAddress,
 		exampleERC20,
-		subnetAInfo.BlockchainID,
+		l1AInfo.BlockchainID,
 		nativeTokenRemoteAddressA,
 		collateralAmountA,
 		fundedKey,
@@ -129,7 +129,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		erc20TokenHome,
 		erc20TokenHomeAddress,
 		exampleERC20,
-		subnetBInfo.BlockchainID,
+		l1BInfo.BlockchainID,
 		nativeTokenRemoteAddressB,
 		collateralAmountB,
 		fundedKey,
@@ -143,9 +143,9 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 	// These are set during the initial transferring, and used in the multi-hop transfers
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
 
-	// Send tokens from C-Chain to Subnet A
+	// Send tokens from C-Chain to L1 A
 	inputA := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationBlockchainID:            l1AInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressA,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             exampleERC20Address,
@@ -165,12 +165,12 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		fundedKey,
 	)
 
-	// Relay the message to subnet A and check for a native token mint withdrawal
+	// Relay the message to L1 A and check for a native token mint withdrawal
 	teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
 		cChainInfo,
-		subnetAInfo,
+		l1AInfo,
 		true,
 		fundedKey,
 		nil,
@@ -178,11 +178,11 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 	)
 
 	// Verify the recipient received the tokens
-	utils.CheckBalance(ctx, recipientAddress, transferredAmountA, subnetAInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmountA, l1AInfo.RPCClient)
 
-	// Send tokens from C-Chain to Subnet B
+	// Send tokens from C-Chain to L1 B
 	inputB := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:            subnetBInfo.BlockchainID,
+		DestinationBlockchainID:            l1BInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressB,
 		Recipient:                          recipientAddress,
 		PrimaryFeeTokenAddress:             exampleERC20Address,
@@ -202,12 +202,12 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		fundedKey,
 	)
 
-	// Relay the message to subnet B and check for a native token mint withdrawal
+	// Relay the message to L1 B and check for a native token mint withdrawal
 	teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
 		cChainInfo,
-		subnetBInfo,
+		l1BInfo,
 		true,
 		fundedKey,
 		nil,
@@ -215,9 +215,9 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 	)
 
 	// Verify the recipient received the tokens
-	utils.CheckBalance(ctx, recipientAddress, transferredAmountB, subnetBInfo.RPCClient)
+	utils.CheckBalance(ctx, recipientAddress, transferredAmountB, l1BInfo.RPCClient)
 
-	// Multi-hop transfer to Subnet B
+	// Multi-hop transfer to L1 B
 	// Send half of the received amount to account for gas expenses
 	amountToSend := new(big.Int).Div(transferredAmountA, big.NewInt(2))
 
@@ -226,10 +226,10 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		teleporter,
 		fundedKey,
 		recipientAddress,
-		subnetAInfo,
+		l1AInfo,
 		nativeTokenRemoteA,
 		nativeTokenRemoteAddressA,
-		subnetBInfo,
+		l1BInfo,
 		nativeTokenRemoteB,
 		nativeTokenRemoteAddressB,
 		cChainInfo,
@@ -238,17 +238,17 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network *localnetwork.LocalNetwork,
 		aggregator,
 	)
 
-	// Multi-hop transfer back to Subnet A
+	// Multi-hop transfer back to L1 A
 	secondaryFeeAmount := new(big.Int).Div(amountToSend, big.NewInt(4))
 	utils.SendNativeMultiHopAndVerify(
 		ctx,
 		teleporter,
 		fundedKey,
 		recipientAddress,
-		subnetBInfo,
+		l1BInfo,
 		nativeTokenRemoteB,
 		nativeTokenRemoteAddressB,
-		subnetAInfo,
+		l1AInfo,
 		nativeTokenRemoteA,
 		nativeTokenRemoteAddressA,
 		cChainInfo,

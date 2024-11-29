@@ -17,62 +17,62 @@ import (
 )
 
 /*
- * Registers a native token staking validator on a subnet. The steps are as follows:
+ * Registers a native token staking validator on a L1. The steps are as follows:
  * - Deploy the NativeTokenStakingManager
  * - Initiate validator registration
  * - Deliver the Warp message to the P-Chain (not implemented)
  * - Aggregate P-Chain signatures on the response Warp message
- * - Deliver the Warp message to the subnet
+ * - Deliver the Warp message to the L1
  * - Verify that the validator is registered in the staking contract
  *
- * Delists the validator from the subnet. The steps are as follows:
+ * Delists the validator from the L1. The steps are as follows:
  * - Initiate validator delisting
  * - Deliver the Warp message to the P-Chain (not implemented)
  * - Aggregate P-Chain signatures on the response Warp message
- * - Deliver the Warp message to the subnet
+ * - Deliver the Warp message to the L1
  * - Verify that the validator is delisted from the staking contract
  */
 func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
-	// Get the subnets info
+	// Get the L1s info
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := network.GetTwoSubnets()
+	l1AInfo, _ := network.GetTwoL1s()
 	_, fundedKey := network.GetFundedAccountInfo()
 	pChainInfo := utils.GetPChainInfo(cChainInfo)
 
 	signatureAggregator := utils.NewSignatureAggregator(
 		cChainInfo.NodeURIs[0],
 		[]ids.ID{
-			subnetAInfo.SubnetID,
+			l1AInfo.L1ID,
 		},
 	)
 	ctx := context.Background()
 
 	nodes, initialValidationIDs, _ := network.ConvertSubnet(
 		ctx,
-		subnetAInfo,
+		l1AInfo,
 		utils.NativeTokenStakingManager,
 		[]uint64{units.Schmeckle, 1000 * units.Schmeckle}, // Choose weights to avoid validator churn limits
 		fundedKey,
 		false,
 	)
-	stakingManagerAddress := network.GetValidatorManager(subnetAInfo.SubnetID)
+	stakingManagerAddress := network.GetValidatorManager(l1AInfo.L1ID)
 	nativeStakingManager, err := nativetokenstakingmanager.NewNativeTokenStakingManager(
 		stakingManagerAddress,
-		subnetAInfo.RPCClient,
+		l1AInfo.RPCClient,
 	)
 	Expect(err).Should(BeNil())
-	utils.AddNativeMinterAdmin(ctx, subnetAInfo, fundedKey, stakingManagerAddress)
+	utils.AddNativeMinterAdmin(ctx, l1AInfo, fundedKey, stakingManagerAddress)
 
 	//
 	// Delist one initial validator
 	//
-	posStakingManager, err := iposvalidatormanager.NewIPoSValidatorManager(stakingManagerAddress, subnetAInfo.RPCClient)
+	posStakingManager, err := iposvalidatormanager.NewIPoSValidatorManager(stakingManagerAddress, l1AInfo.RPCClient)
 	Expect(err).Should(BeNil())
 	utils.InitializeAndCompleteEndInitialPoSValidation(
 		ctx,
 		signatureAggregator,
 		fundedKey,
-		subnetAInfo,
+		l1AInfo,
 		pChainInfo,
 		posStakingManager,
 		stakingManagerAddress,
@@ -91,7 +91,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		ctx,
 		signatureAggregator,
 		fundedKey,
-		subnetAInfo,
+		l1AInfo,
 		pChainInfo,
 		nativeStakingManager,
 		stakingManagerAddress,
@@ -126,7 +126,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		receipt := utils.InitializeNativeDelegatorRegistration(
 			ctx,
 			fundedKey,
-			subnetAInfo,
+			l1AInfo,
 			validationID,
 			delegatorStake,
 			stakingManagerAddress,
@@ -142,11 +142,11 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		aggregator := network.GetSignatureAggregator()
 		defer aggregator.Shutdown()
 
-		// Gather subnet-evm Warp signatures for the SubnetValidatorWeightUpdateMessage & relay to the P-Chain
+		// Gather subnet-evm Warp signatures for the L1ValidatorWeightMessage & relay to the P-Chain
 		signedWarpMessage := utils.ConstructSignedWarpMessage(
 			context.Background(),
 			receipt,
-			subnetAInfo,
+			l1AInfo,
 			pChainInfo,
 			nil,
 			aggregator,
@@ -155,25 +155,25 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		// Issue a tx to update the validator's weight on the P-Chain
 		network.GetPChainWallet().IssueSetL1ValidatorWeightTx(signedWarpMessage.Bytes())
 		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
-		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
+		utils.AdvanceProposerVM(ctx, l1AInfo, fundedKey, 5)
 
-		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
-		registrationSignedMessage := utils.ConstructSubnetValidatorWeightUpdateMessage(
+		// Construct a L1ValidatorWeightMessage Warp message from the P-Chain
+		registrationSignedMessage := utils.ConstructL1ValidatorWeightMessage(
 			validationID,
 			nonce,
 			newValidatorWeight,
-			subnetAInfo,
+			l1AInfo,
 			pChainInfo,
 			signatureAggregator,
 			network.GetNetworkID(),
 		)
 
-		// Deliver the Warp message to the subnet
+		// Deliver the Warp message to the L1
 		receipt = utils.CompleteDelegatorRegistration(
 			ctx,
 			fundedKey,
 			delegationID,
-			subnetAInfo,
+			l1AInfo,
 			stakingManagerAddress,
 			registrationSignedMessage,
 		)
@@ -195,7 +195,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		receipt := utils.InitializeEndDelegation(
 			ctx,
 			fundedKey,
-			subnetAInfo,
+			l1AInfo,
 			stakingManagerAddress,
 			delegationID,
 		)
@@ -210,12 +210,12 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		aggregator := network.GetSignatureAggregator()
 		defer aggregator.Shutdown()
 
-		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
+		// Gather subnet-evm Warp signatures for the SetL1ValidatorWeightMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
 		signedWarpMessage := utils.ConstructSignedWarpMessage(
 			context.Background(),
 			receipt,
-			subnetAInfo,
+			l1AInfo,
 			pChainInfo,
 			nil,
 			aggregator,
@@ -225,25 +225,25 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		// Issue a tx to update the validator's weight on the P-Chain
 		network.GetPChainWallet().IssueSetL1ValidatorWeightTx(signedWarpMessage.Bytes())
 		utils.PChainProposerVMWorkaround(network.GetPChainWallet())
-		utils.AdvanceProposerVM(ctx, subnetAInfo, fundedKey, 5)
+		utils.AdvanceProposerVM(ctx, l1AInfo, fundedKey, 5)
 
-		// Construct a SubnetValidatorWeightUpdateMessage Warp message from the P-Chain
-		signedMessage := utils.ConstructSubnetValidatorWeightUpdateMessage(
+		// Construct a L1ValidatorWeightMessage Warp message from the P-Chain
+		signedMessage := utils.ConstructL1ValidatorWeightMessage(
 			validationID,
 			nonce,
 			nodes[0].Weight,
-			subnetAInfo,
+			l1AInfo,
 			pChainInfo,
 			signatureAggregator,
 			network.GetNetworkID(),
 		)
 
-		// Deliver the Warp message to the subnet
+		// Deliver the Warp message to the L1
 		receipt = utils.CompleteEndDelegation(
 			ctx,
 			fundedKey,
 			delegationID,
-			subnetAInfo,
+			l1AInfo,
 			stakingManagerAddress,
 			signedMessage,
 		)
@@ -265,7 +265,7 @@ func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
 		ctx,
 		signatureAggregator,
 		fundedKey,
-		subnetAInfo,
+		l1AInfo,
 		pChainInfo,
 		posStakingManager,
 		stakingManagerAddress,

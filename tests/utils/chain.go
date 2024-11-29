@@ -125,16 +125,16 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 
 func CreateNativeTransferTransaction(
 	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
+	l1Info interfaces.L1TestInfo,
 	fromKey *ecdsa.PrivateKey,
 	recipient common.Address,
 	amount *big.Int,
 ) *types.Transaction {
 	fromAddress := crypto.PubkeyToAddress(fromKey.PublicKey)
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fromAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, l1Info, fromAddress)
 
 	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   subnetInfo.EVMChainID,
+		ChainID:   l1Info.EVMChainID,
 		Nonce:     nonce,
 		To:        &recipient,
 		Gas:       NativeTransferGas,
@@ -143,91 +143,91 @@ func CreateNativeTransferTransaction(
 		Value:     amount,
 	})
 
-	return SignTransaction(tx, fromKey, subnetInfo.EVMChainID)
+	return SignTransaction(tx, fromKey, l1Info.EVMChainID)
 }
 
 func SendNativeTransfer(
 	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
+	l1Info interfaces.L1TestInfo,
 	fromKey *ecdsa.PrivateKey,
 	recipient common.Address,
 	amount *big.Int,
 ) *types.Receipt {
-	tx := CreateNativeTransferTransaction(ctx, subnetInfo, fromKey, recipient, amount)
-	return SendTransactionAndWaitForSuccess(ctx, subnetInfo, tx)
+	tx := CreateNativeTransferTransaction(ctx, l1Info, fromKey, recipient, amount)
+	return SendTransactionAndWaitForSuccess(ctx, l1Info, tx)
 }
 
 // Sends a tx, and waits for it to be mined.
 // Asserts Receipt.status equals success.
 func sendAndWaitForTransaction(
 	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
+	l1Info interfaces.L1TestInfo,
 	tx *types.Transaction,
 	success bool,
 ) *types.Receipt {
-	err := subnetInfo.RPCClient.SendTransaction(ctx, tx)
+	err := l1Info.RPCClient.SendTransaction(ctx, tx)
 	Expect(err).Should(BeNil())
 
-	return waitForTransaction(ctx, subnetInfo, tx.Hash(), success)
+	return waitForTransaction(ctx, l1Info, tx.Hash(), success)
 }
 
 // Sends a tx, and waits for it to be mined.
 // Asserts Receipt.status equals false.
 func SendTransactionAndWaitForFailure(
 	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
+	l1Info interfaces.L1TestInfo,
 	tx *types.Transaction,
 ) *types.Receipt {
-	return sendAndWaitForTransaction(ctx, subnetInfo, tx, false)
+	return sendAndWaitForTransaction(ctx, l1Info, tx, false)
 }
 
 // Sends a tx, and waits for it to be mined.
 // Asserts Receipt.status equals true.
 func SendTransactionAndWaitForSuccess(
 	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
+	l1Info interfaces.L1TestInfo,
 	tx *types.Transaction,
 ) *types.Receipt {
-	return sendAndWaitForTransaction(ctx, subnetInfo, tx, true)
+	return sendAndWaitForTransaction(ctx, l1Info, tx, true)
 }
 
 // Waits for a transaction to be mined.
 // Asserts Receipt.status equals true.
 func WaitForTransactionSuccess(
 	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
+	l1Info interfaces.L1TestInfo,
 	txHash common.Hash,
 ) *types.Receipt {
-	return waitForTransaction(ctx, subnetInfo, txHash, true)
+	return waitForTransaction(ctx, l1Info, txHash, true)
 }
 
 // Waits for a transaction to be mined.
 // Asserts Receipt.status equals false.
 func WaitForTransactionFailure(
 	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
+	l1Info interfaces.L1TestInfo,
 	txHash common.Hash,
 ) *types.Receipt {
-	return waitForTransaction(ctx, subnetInfo, txHash, false)
+	return waitForTransaction(ctx, l1Info, txHash, false)
 }
 
 // Waits for a transaction to be mined.
 // Asserts Receipt.status equals success.
 func waitForTransaction(
 	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
+	l1Info interfaces.L1TestInfo,
 	txHash common.Hash,
 	success bool,
 ) *types.Receipt {
 	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	receipt, err := WaitMined(cctx, subnetInfo.RPCClient, txHash)
+	receipt, err := WaitMined(cctx, l1Info.RPCClient, txHash)
 	Expect(err).Should(BeNil())
 
 	if success {
 		if receipt.Status == types.ReceiptStatusFailed {
-			TraceTransactionAndExit(ctx, subnetInfo.RPCClient, receipt.TxHash)
+			TraceTransactionAndExit(ctx, l1Info.RPCClient, receipt.TxHash)
 		}
 	} else {
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusFailed))
@@ -278,16 +278,16 @@ func SignTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.
 // Returns the gasFeeCap, gasTipCap, and nonce the be used when constructing a transaction from fundedAddress
 func CalculateTxParams(
 	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
+	l1Info interfaces.L1TestInfo,
 	fundedAddress common.Address,
 ) (*big.Int, *big.Int, uint64) {
-	baseFee, err := subnetInfo.RPCClient.EstimateBaseFee(ctx)
+	baseFee, err := l1Info.RPCClient.EstimateBaseFee(ctx)
 	Expect(err).Should(BeNil())
 
-	gasTipCap, err := subnetInfo.RPCClient.SuggestGasTipCap(ctx)
+	gasTipCap, err := l1Info.RPCClient.SuggestGasTipCap(ctx)
 	Expect(err).Should(BeNil())
 
-	nonce, err := subnetInfo.RPCClient.NonceAt(ctx, fundedAddress, nil)
+	nonce, err := l1Info.RPCClient.NonceAt(ctx, fundedAddress, nil)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap := baseFee.Mul(baseFee, big.NewInt(gasUtils.BaseFeeFactor))
@@ -386,12 +386,12 @@ func waitForBlockHeight(
 func GetEventFromLogsOrTrace[T any](
 	ctx context.Context,
 	receipt *types.Receipt,
-	subnetInfo interfaces.SubnetTestInfo,
+	l1Info interfaces.L1TestInfo,
 	parser func(log types.Log) (T, error),
 ) T {
 	log, err := GetEventFromLogs(receipt.Logs, parser)
 	if err != nil {
-		TraceTransactionAndExit(ctx, subnetInfo.RPCClient, receipt.TxHash)
+		TraceTransactionAndExit(ctx, l1Info.RPCClient, receipt.TxHash)
 	}
 	return log
 }
@@ -443,23 +443,23 @@ func BigIntMul(v1 *big.Int, v2 *big.Int) *big.Int {
 // Network utils
 //
 
-func GetPChainInfo(cChainInfo interfaces.SubnetTestInfo) interfaces.SubnetTestInfo {
+func GetPChainInfo(cChainInfo interfaces.L1TestInfo) interfaces.L1TestInfo {
 	pChainBlockchainID, err := info.NewClient(cChainInfo.NodeURIs[0]).GetBlockchainID(context.Background(), "P")
 	Expect(err).Should(BeNil())
-	return interfaces.SubnetTestInfo{
+	return interfaces.L1TestInfo{
 		BlockchainID: pChainBlockchainID,
-		SubnetID:     ids.Empty,
+		L1ID:         ids.Empty,
 	}
 }
 
 type ChainConfigMap map[string]string
 
-// Sets the chain config in customChainConfigs for the specified subnet
-func (m ChainConfigMap) Add(subnet interfaces.SubnetTestInfo, chainConfig string) {
-	if subnet.SubnetID == constants.PrimaryNetworkID {
+// Sets the chain config in customChainConfigs for the specified L!
+func (m ChainConfigMap) Add(l1 interfaces.L1TestInfo, chainConfig string) {
+	if l1.L1ID == constants.PrimaryNetworkID {
 		m[CChainPathSpecifier] = chainConfig
 	} else {
-		m[subnet.BlockchainID.String()] = chainConfig
+		m[l1.BlockchainID.String()] = chainConfig
 	}
 }
 
@@ -525,23 +525,23 @@ func InstantiateGenesisTemplate(
 	templateFileBytes, err := os.ReadFile(templateFileName)
 	Expect(err).Should(BeNil())
 
-	subnetGenesisFile, err := os.CreateTemp(os.TempDir(), "")
+	l1GenesisFile, err := os.CreateTemp(os.TempDir(), "")
 	Expect(err).Should(BeNil())
 
-	defer subnetGenesisFile.Close()
+	defer l1GenesisFile.Close()
 
 	var replaced string = string(templateFileBytes[:])
 	for _, s := range substitutions {
 		replaced = strings.ReplaceAll(replaced, s.Target, s.Value)
 	}
 
-	subnetGenesisFile.WriteString(replaced)
+	l1GenesisFile.WriteString(replaced)
 
-	return subnetGenesisFile.Name()
+	return l1GenesisFile.Name()
 }
 
 // Aggregator utils
-func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.SignatureAggregator {
+func NewSignatureAggregator(apiUri string, l1IDs []ids.ID) *aggregator.SignatureAggregator {
 	cfg := sigAggConfig.Config{
 		PChainAPI: &relayerConfig.APIConfig{
 			BaseURL: apiUri,
@@ -550,8 +550,8 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 			BaseURL: apiUri,
 		},
 	}
-	trackedSubnets := set.NewSet[ids.ID](len(subnets))
-	trackedSubnets.Add(subnets...)
+	trackedL1s := set.NewSet[ids.ID](len(l1IDs))
+	trackedL1s.Add(l1IDs...)
 	registry := prometheus.NewRegistry()
 	messageCreator, err := message.NewCreator(
 		logging.NoLog{},
@@ -564,7 +564,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	appRequestNetwork, err := peers.NewNetwork(
 		logging.Error,
 		registry,
-		trackedSubnets,
+		trackedL1s,
 		nil,
 		&cfg,
 	)
@@ -590,18 +590,18 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 // Funded key must have admin access to set new admin.
 func AddNativeMinterAdmin(
 	ctx context.Context,
-	subnet interfaces.SubnetTestInfo,
+	l1 interfaces.L1TestInfo,
 	fundedKey *ecdsa.PrivateKey,
 	address common.Address,
 ) {
-	nativeMinterPrecompile, err := nativeMinter.NewINativeMinter(nativeminter.ContractAddress, subnet.RPCClient)
+	nativeMinterPrecompile, err := nativeMinter.NewINativeMinter(nativeminter.ContractAddress, l1.RPCClient)
 	Expect(err).Should(BeNil())
 
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnet.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, l1.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := nativeMinterPrecompile.SetAdmin(opts, address)
 	Expect(err).Should(BeNil())
-	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	WaitForTransactionSuccess(ctx, l1, tx.Hash())
 }
 
 // Blocks until all validators specified in nodeURIs have reached the specified block height
@@ -630,7 +630,7 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 func ExtractWarpMessageFromLog(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source interfaces.SubnetTestInfo,
+	source interfaces.L1TestInfo,
 ) *avalancheWarp.UnsignedMessage {
 	log.Info("Fetching relevant warp logs from the newly produced block")
 	logs, err := source.RPCClient.FilterLogs(ctx, subnetEvmInterfaces.FilterQuery{
@@ -652,8 +652,8 @@ func ExtractWarpMessageFromLog(
 func ConstructSignedWarpMessage(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
+	source interfaces.L1TestInfo,
+	destination interfaces.L1TestInfo,
 	justification []byte,
 	signatureAggregator *aggregator.SignatureAggregator,
 ) *avalancheWarp.Message {
@@ -670,21 +670,21 @@ func ConstructSignedWarpMessage(
 }
 
 func GetSignedMessage(
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
+	source interfaces.L1TestInfo,
+	destination interfaces.L1TestInfo,
 	unsignedWarpMessage *avalancheWarp.UnsignedMessage,
 	justification []byte,
 	signatureAggregator *aggregator.SignatureAggregator,
 ) *avalancheWarp.Message {
-	signingSubnetID := source.SubnetID
-	if source.SubnetID == constants.PrimaryNetworkID {
-		signingSubnetID = destination.SubnetID
+	signingL1ID := source.L1ID
+	if source.L1ID == constants.PrimaryNetworkID {
+		signingL1ID = destination.L1ID
 	}
 
 	signedWarpMessage, err := signatureAggregator.CreateSignedMessage(
 		unsignedWarpMessage,
 		justification,
-		signingSubnetID,
+		signingL1ID,
 		warp.WarpDefaultQuorumNumerator,
 	)
 	Expect(err).Should(BeNil())
@@ -692,15 +692,15 @@ func GetSignedMessage(
 	return signedWarpMessage
 }
 
-func SetupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, network *tmpnet.Network, subnetID ids.ID) {
-	subnetDetails := network.Subnets[slices.IndexFunc(
+func SetupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, network *tmpnet.Network, L1ID ids.ID) {
+	l1Details := network.Subnets[slices.IndexFunc(
 		network.Subnets,
-		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
+		func(s *tmpnet.Subnet) bool { return s.SubnetID == L1ID },
 	)]
 
-	chainID := subnetDetails.Chains[0].ChainID
+	chainID := l1Details.Chains[0].ChainID
 
-	nodeURI, err := network.GetURIForNodeID(subnetDetails.ValidatorIDs[0])
+	nodeURI, err := network.GetURIForNodeID(l1Details.ValidatorIDs[0])
 	Expect(err).Should(BeNil())
 	uri := HttpToWebsocketURI(nodeURI, chainID.String())
 

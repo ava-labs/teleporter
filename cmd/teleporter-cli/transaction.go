@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	warpPrecompileAddressHex = "0x0200000000000000000000000000000000000005"
+	ICMPrecompileAddressHex = "0x0200000000000000000000000000000000000005"
 )
 
 var (
@@ -32,7 +32,7 @@ var transactionCmd = &cobra.Command{
 	Use:   "transaction --rpc RPC_URL --teleporter-address CONTRACT_ADDRESS TRANSACTION_HASH",
 	Short: "Parses relevant Teleporter logs from a transaction",
 	Long: `Given a transaction this command looks through the transaction's receipt
-for Teleporter and Warp log events. When corresponding log events are found,
+for TeleporterMessenger and ICM log events. When corresponding log events are found,
 the command parses to log event fields to a more human readable format. Optionally pass -d 
 or --debug for extra transaction output. This may require enabling debug enpoints on your RPC node`,
 	Args: cobra.ExactArgs(1),
@@ -51,13 +51,13 @@ func checkReceipt(cmd *cobra.Command, txHash common.Hash) {
 	receipt, err := client.TransactionReceipt(context.Background(), txHash)
 	cobra.CheckErr(err)
 
-	warpPrecompileAddress := common.HexToAddress(warpPrecompileAddressHex)
+	ICMPrecompileAddress := common.HexToAddress(ICMPrecompileAddressHex)
 	for _, log := range receipt.Logs {
 		switch log.Address {
 		case teleporterAddress:
 			printTeleporterLogs(cmd, log)
-		case warpPrecompileAddress:
-			printWarpLogs(cmd, log)
+		case ICMPrecompileAddress:
+			printICMLogs(cmd, log)
 		}
 	}
 }
@@ -78,26 +78,26 @@ func printTeleporterLogs(cmd *cobra.Command, log *types.Log) {
 	cmd.Println(out.String() + "\n")
 }
 
-func printWarpLogs(cmd *cobra.Command, log *types.Log) {
+func printICMLogs(cmd *cobra.Command, log *types.Log) {
 	logJson, err := json.MarshalIndent(log, "", "  ")
 	cobra.CheckErr(err)
 
-	cmd.Println("Warp Log:\n" + string(logJson) + "\n")
+	cmd.Println("ICM Log:\n" + string(logJson) + "\n")
 
 	unsignedMsg, err := warp.UnpackSendWarpEventDataToMessage(log.Data)
 	cobra.CheckErr(err)
-	cmd.Println("Warp Message ID: " + unsignedMsg.ID().Hex())
+	cmd.Println("ICM Message ID: " + unsignedMsg.ID().Hex())
 
-	warpPayload, err := warpPayload.ParseAddressedCall(unsignedMsg.Payload)
+	icmPayload, err := warpPayload.ParseAddressedCall(unsignedMsg.Payload)
 	cobra.CheckErr(err)
 
-	warpPayloadJson, err := json.MarshalIndent(warpPayload, "", "  ")
+	icmPayloadJson, err := json.MarshalIndent(icmPayload, "", "  ")
 	cobra.CheckErr(err)
-	cmd.Println("Warp Payload:")
-	cmd.Println(string(warpPayloadJson))
+	cmd.Println("ICM Payload:")
+	cmd.Println(string(icmPayloadJson))
 
 	teleporterMessage := teleportermessenger.TeleporterMessage{}
-	err = teleporterMessage.Unpack(warpPayload.Payload)
+	err = teleporterMessage.Unpack(icmPayload.Payload)
 	cobra.CheckErr(err)
 
 	cmd.Println("Teleporter Message:")

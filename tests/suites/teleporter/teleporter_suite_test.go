@@ -65,7 +65,7 @@ var _ = ginkgo.BeforeSuite(func() {
 		ctx,
 		"teleporter-test-local-network",
 		warpGenesisTemplateFile,
-		[]network.SubnetSpec{
+		[]network.L1Spec{
 			{
 				Name:                       "A",
 				EVMChainID:                 12345,
@@ -86,10 +86,10 @@ var _ = ginkgo.BeforeSuite(func() {
 		2,
 		2,
 	)
-	TeleporterInfo = utils.NewTeleporterTestInfo(LocalNetworkInstance.GetAllSubnetsInfo())
+	TeleporterInfo = utils.NewTeleporterTestInfo(LocalNetworkInstance.GetAllL1Infos())
 	log.Info("Started local network")
 
-	// Only need to deploy Teleporter on the C-Chain since it is included in the genesis of the subnet chains.
+	// Only need to deploy Teleporter on the C-Chain since it is included in the genesis of the l1 chains.
 	_, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
 	TeleporterInfo.DeployTeleporterMessenger(
 		ctx,
@@ -100,13 +100,13 @@ var _ = ginkgo.BeforeSuite(func() {
 		fundedKey,
 	)
 
-	for _, subnet := range LocalNetworkInstance.GetAllSubnetsInfo() {
-		TeleporterInfo.SetTeleporter(teleporterContractAddress, subnet)
-		TeleporterInfo.InitializeBlockchainID(subnet, fundedKey)
-		TeleporterInfo.DeployTeleporterRegistry(subnet, fundedKey)
+	for _, l1 := range LocalNetworkInstance.GetAllL1Infos() {
+		TeleporterInfo.SetTeleporter(teleporterContractAddress, l1)
+		TeleporterInfo.InitializeBlockchainID(l1, fundedKey)
+		TeleporterInfo.DeployTeleporterRegistry(l1, fundedKey)
 	}
 
-	for _, subnet := range LocalNetworkInstance.GetSubnetsInfo() {
+	for _, subnet := range LocalNetworkInstance.GetL1Infos() {
 		// Choose weights such that we can test validator churn
 		LocalNetworkInstance.ConvertSubnet(
 			ctx,
@@ -114,7 +114,8 @@ var _ = ginkgo.BeforeSuite(func() {
 			utils.PoAValidatorManager,
 			[]uint64{units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle},
 			fundedKey,
-			false)
+			false,
+		)
 	}
 
 	log.Info("Set up ginkgo before suite")
@@ -127,7 +128,7 @@ var _ = ginkgo.AfterSuite(func() {
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Teleporter tests
-	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A",
+	ginkgo.It("Send a message from L1 A to L1 B, and one from B to A",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
 			teleporterFlows.BasicSendReceive(LocalNetworkInstance, TeleporterInfo)

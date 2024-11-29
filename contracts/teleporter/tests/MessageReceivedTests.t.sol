@@ -16,7 +16,7 @@ contract MessageReceivedTest is TeleporterMessengerTest {
     }
 
     function testReceivedMessage() public {
-        // Mock receiving a message from another subnet.
+        // Mock receiving a message from another L1.
         address relayerRewardAddress = 0xA66884fAdC0D4d7B7eedcF61Eb863Ff413bB6234;
         uint256 messageNonce = 1;
         bytes32 messageID = teleporterMessenger.calculateMessageID(

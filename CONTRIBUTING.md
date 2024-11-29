@@ -53,4 +53,4 @@ To start developing on Teleporter, you'll need Solidity >= v0.8.25. [Foundry](ht
 
 ### Do you have questions about the source code?
 
-- Ask any question about Teleporter under GitHub [discussions](https://github.com/ava-labs/teleporter/discussions/categories/q-a).
+- Ask any question about ICM or ICM contracts under GitHub [discussions](https://github.com/ava-labs/teleporter/discussions/categories/q-a).

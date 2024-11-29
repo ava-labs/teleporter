@@ -12,29 +12,29 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// Tests basic one-way send from Subnet A to Subnet B and vice versa
+// Tests basic one-way send from L1 A to L1 B and vice versa
 func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := network.GetTwoSubnets()
-	teleporterContractAddress := teleporter.TeleporterMessengerAddress(subnetAInfo)
+	l1AInfo := network.GetPrimaryNetworkInfo()
+	l1BInfo, _ := network.GetTwoL1s()
+	teleporterContractAddress := teleporter.TeleporterMessengerAddress(l1AInfo)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
+	// Send a transaction to L1 A to issue an ICM Message from the Teleporter contract to L1 B
 	ctx := context.Background()
 
 	aggregator := network.GetSignatureAggregator()
 	defer aggregator.Shutdown()
 
-	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
+	// Clear the receipt queue from L1 B -> L1 A to have a clean slate for the test flow.
 	// This is only done if the test non-external networks because external networks may have
 	// an arbitrarily high number of receipts to be cleared from a given queue from unrelated messages.
-	teleporter.ClearReceiptQueue(ctx, fundedKey, subnetBInfo, subnetAInfo, aggregator)
+	teleporter.ClearReceiptQueue(ctx, fundedKey, l1BInfo, l1AInfo, aggregator)
 
 	feeAmount := big.NewInt(1)
 	feeTokenAddress, feeToken := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
-		subnetAInfo,
+		l1AInfo,
 	)
 	utils.ERC20Approve(
 		ctx,
@@ -42,12 +42,12 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 		teleporterContractAddress,
 		big.NewInt(0).Mul(big.NewInt(1e18),
 			big.NewInt(10)),
-		subnetAInfo,
+		l1AInfo,
 		fundedKey,
 	)
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: subnetBInfo.BlockchainID,
+		DestinationBlockchainID: l1BInfo.BlockchainID,
 		DestinationAddress:      fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: feeTokenAddress,
@@ -60,9 +60,9 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporter.TeleporterMessenger(subnetAInfo),
-		subnetAInfo,
-		subnetBInfo,
+		teleporter.TeleporterMessenger(l1AInfo),
+		l1AInfo,
+		l1BInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
@@ -72,8 +72,8 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	deliveryReceipt := teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
-		subnetAInfo,
-		subnetBInfo,
+		l1AInfo,
+		l1BInfo,
 		true,
 		fundedKey,
 		nil,
@@ -81,24 +81,25 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	)
 	receiveEvent, err := utils.GetEventFromLogs(
 		deliveryReceipt.Logs,
-		teleporter.TeleporterMessenger(subnetBInfo).ParseReceiveCrossChainMessage)
+		teleporter.TeleporterMessenger(l1BInfo).ParseReceiveCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 
 	// Check Teleporter message received on the destination
-	delivered, err := teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(l1BInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
-	// Send a transaction to Subnet B to issue a Warp Message from the Teleporter contract to Subnet A
-	sendCrossChainMessageInput.DestinationBlockchainID = subnetAInfo.BlockchainID
+	// Send a transaction to L1 B to issue an ICM Message from the Teleporter contract to L1 A
+	sendCrossChainMessageInput.DestinationBlockchainID = l1AInfo.BlockchainID
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporter.TeleporterMessenger(subnetBInfo),
-		subnetBInfo,
-		subnetAInfo,
+		teleporter.TeleporterMessenger(l1BInfo),
+		l1BInfo,
+		l1AInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
@@ -107,8 +108,8 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	deliveryReceipt = teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
-		subnetBInfo,
-		subnetAInfo,
+		l1BInfo,
+		l1AInfo,
 		true,
 		fundedKey,
 		nil,
@@ -118,20 +119,20 @@ func BasicSendReceive(network *localnetwork.LocalNetwork, teleporter utils.Telep
 	Expect(utils.CheckReceiptReceived(
 		deliveryReceipt,
 		expectedReceiptID,
-		teleporter.TeleporterMessenger(subnetAInfo))).Should(BeTrue())
+		teleporter.TeleporterMessenger(l1AInfo))).Should(BeTrue())
 
 	// Check Teleporter message received on the destination
-	delivered, err = teleporter.TeleporterMessenger(subnetAInfo).MessageReceived(
+	delivered, err = teleporter.TeleporterMessenger(l1AInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// If the reward address of the message from A->B is the funded address, which is able to send
-	// transactions on subnet A, then redeem the rewards.
+	// transactions on L1 A, then redeem the rewards.
 	if receiveEvent.RewardRedeemer == fundedAddress {
 		utils.RedeemRelayerRewardsAndConfirm(
-			ctx, teleporter.TeleporterMessenger(subnetAInfo), subnetAInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
+			ctx, teleporter.TeleporterMessenger(l1AInfo), l1AInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
 		)
 	}
 }

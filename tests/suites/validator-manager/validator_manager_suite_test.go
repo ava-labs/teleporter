@@ -40,7 +40,7 @@ var _ = ginkgo.BeforeEach(func() {
 		ctx,
 		"validator-manager-test-local-network",
 		warpGenesisTemplateFile,
-		[]localnetwork.SubnetSpec{
+		[]localnetwork.L1Spec{
 			{
 				Name:       "A",
 				EVMChainID: 12345,

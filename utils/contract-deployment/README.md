@@ -1,8 +1,8 @@
-# Teleporter Contract Deployment
+# TeleporterMessenger Contract Deployment
 
-The `TeleporterMessenger` contract is designed to only send and receive Avalanche Warp messages to and from its own address on different chains. We ensure that the contract can be deployed to the same address on every EVM based chain by using [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c). Only allowing messages to be sent and received by the same address guarantees that all messages use the same Teleporter message format because only the same exact contract bytecode could have been deployed to the same address.
+The `TeleporterMessenger` contract is designed to only send and receive Avalanche ICM messages to and from its own address on different chains. We ensure that the contract can be deployed to the same address on every EVM based chain by using [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c). Only allowing messages to be sent and received by the same address guarantees that all messages use the same TeleporterMessenger message format because only the same exact contract bytecode could have been deployed to the same address.
 
-This directory contains scripts written in Golang to construct a raw transaction using Nick's method that deploys the Teleporter contract, and determine the keyless address that must be prefunded in order for the transaction to be sent.
+This directory contains scripts written in Golang to construct a raw transaction using Nick's method that deploys the TeleporterMessenger contract, and determine the keyless address that must be prefunded in order for the transaction to be sent.
 
 ## Running
 
@@ -30,11 +30,11 @@ teleporter_deployer_address=$(cat UniversalTeleporterDeployerAddress.txt)
 cast send --private-key $my_private_key --value 10ether $teleporter_deployer_address --rpc-url $my_rpc_url
 ```
 
-Then, deploy Teleporter by sending the keyless transaction:
+Then, deploy TeleporterMessenger by sending the keyless transaction:
 
 ```bash
 teleporter_deploy_tx=$(cat UniversalTeleporterDeployerTransaction.txt)
 cast publish --rpc-url $my_rpc_url $teleporter_deploy_tx
 ```
 
-Once you've verified that Teleporter was deployed to the address in `UniversalTeleporterMessengerContractAddress.txt`, Teleporter is ready to use.
+Once you've verified that TeleporterMessenger was deployed to the address in `UniversalTeleporterMessengerContractAddress.txt`, TeleporterMessenger and ICM is ready to use.

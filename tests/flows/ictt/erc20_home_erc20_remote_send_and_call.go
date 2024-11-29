@@ -15,9 +15,9 @@ import (
 
 /**
  * Deploy an ERC20TokenHome on the primary network
- * Deploys ERC20TokenRemote to Subnet A
- * Transfers C-Chain example ERC20 tokens to Subnet A and calls contract on Subnet A using sendAndCall
- * Transfers C-Chain example ERC20 to EOA on Subnet A, and then transfer tokens from Subnet A back
+ * Deploys ERC20TokenRemote to L1 A
+ * Transfers C-Chain example ERC20 tokens to L1 A and calls contract on L1 A using sendAndCall
+ * Transfers C-Chain example ERC20 to EOA on L1 A, and then transfer tokens from L1 A back
  * C-Chain and calls contract on the C-Chain using sendAndCall
  */
 func ERC20TokenHomeERC20TokenRemoteSendAndCall(
@@ -25,7 +25,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 	teleporter utils.TeleporterTestInfo,
 ) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
-	subnetAInfo, _ := network.GetTwoSubnets()
+	l1AInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -61,10 +61,10 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 	remoteMockERC20SACRAddress, remoteMockERC20SACR := utils.DeployMockERC20SendAndCallReceiver(
 		ctx,
 		fundedKey,
-		subnetAInfo,
+		l1AInfo,
 	)
 
-	// Token representation on subnet A will have same name, symbol, and decimals
+	// Token representation on L1 A will have same name, symbol, and decimals
 	tokenName, err := exampleERC20.Name(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	tokenSymbol, err := exampleERC20.Symbol(&bind.CallOpts{})
@@ -72,12 +72,12 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 	tokenDecimals, err := exampleERC20.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	// Deploy an ERC20TokenRemote to Subnet A
+	// Deploy an ERC20TokenRemote to L1 A
 	erc20TokenRemoteAddress, erc20TokenRemote := utils.DeployERC20TokenRemote(
 		ctx,
 		teleporter,
 		fundedKey,
-		subnetAInfo,
+		l1AInfo,
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20TokenHomeAddress,
@@ -95,7 +95,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 		teleporter,
 		cChainInfo,
 		erc20TokenHomeAddress,
-		subnetAInfo,
+		l1AInfo,
 		erc20TokenRemoteAddress,
 		fundedKey,
 		aggregator,
@@ -115,10 +115,10 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 	primaryFee := big.NewInt(1e18)
 	transferredAmount := utils.BigIntSub(amount, primaryFee)
 
-	// Send tokens from C-Chain to Mock contract on subnet A
+	// Send tokens from C-Chain to Mock contract on L1 A
 	{
 		input := erc20tokenhome.SendAndCallInput{
-			DestinationBlockchainID:            subnetAInfo.BlockchainID,
+			DestinationBlockchainID:            l1AInfo.BlockchainID,
 			DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
 			RecipientContract:                  remoteMockERC20SACRAddress,
 			RecipientPayload:                   []byte{1},
@@ -141,12 +141,12 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 			fundedKey,
 		)
 
-		// Relay the message to Subnet A and check for message delivery
+		// Relay the message to L1 A and check for message delivery
 		receipt = teleporter.RelayTeleporterMessage(
 			ctx,
 			receipt,
 			cChainInfo,
-			subnetAInfo,
+			l1AInfo,
 			true,
 			fundedKey,
 			nil,
@@ -169,11 +169,11 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 		Expect(balance).Should(Equal(transferredAmount))
 	}
 
-	// Transfer ERC20 tokens to account on subnet A
+	// Transfer ERC20 tokens to account on L1 A
 	{
-		// Send ERC20 tokens from C-Chain to recipient on subnet A
+		// Send ERC20 tokens from C-Chain to recipient on L1 A
 		input := erc20tokenhome.SendTokensInput{
-			DestinationBlockchainID:            subnetAInfo.BlockchainID,
+			DestinationBlockchainID:            l1AInfo.BlockchainID,
 			DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
 			Recipient:                          recipientAddress,
 			PrimaryFeeTokenAddress:             exampleERC20Address,
@@ -193,12 +193,12 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 			fundedKey,
 		)
 
-		// Relay the message to Subnet A and check for message delivery
+		// Relay the message to L1 A and check for message delivery
 		receipt = teleporter.RelayTeleporterMessage(
 			ctx,
 			receipt,
 			cChainInfo,
-			subnetAInfo,
+			l1AInfo,
 			true,
 			fundedKey,
 			nil,
@@ -221,10 +221,10 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 
 	// Send tokens to mock contract on C-Chain using sendAndCall
 	{
-		// Fund recipient with gas tokens on subnet A
+		// Fund recipient with gas tokens on L1 A
 		utils.SendNativeTransfer(
 			ctx,
-			subnetAInfo,
+			l1AInfo,
 			fundedKey,
 			recipientAddress,
 			big.NewInt(1e18),
@@ -245,7 +245,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 
 		receipt, transferredAmount := utils.SendAndCallERC20TokenRemote(
 			ctx,
-			subnetAInfo,
+			l1AInfo,
 			erc20TokenRemote,
 			erc20TokenRemoteAddress,
 			inputB,
@@ -256,7 +256,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(
 		receipt = teleporter.RelayTeleporterMessage(
 			ctx,
 			receipt,
-			subnetAInfo,
+			l1AInfo,
 			cChainInfo,
 			true,
 			fundedKey,

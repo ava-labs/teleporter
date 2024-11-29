@@ -1574,7 +1574,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     }
 
     function testSubmitUptimeProofPoaValidator() public {
-        bytes32 defaultInitialValidationID = sha256(abi.encodePacked(DEFAULT_SUBNET_ID, uint32(1)));
+        bytes32 defaultInitialValidationID = sha256(abi.encodePacked(DEFAULT_L1_ID, uint32(1)));
 
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -1613,7 +1613,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     }
 
     function testEndValidationPoAValidator() public {
-        bytes32 validationID = sha256(abi.encodePacked(DEFAULT_SUBNET_ID, uint32(1)));
+        bytes32 validationID = sha256(abi.encodePacked(DEFAULT_L1_ID, uint32(1)));
 
         vm.warp(DEFAULT_COMPLETION_TIMESTAMP);
         bytes memory setValidatorWeightPayload =
@@ -1629,9 +1629,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         uint256 balanceBefore = _getStakeAssetBalance(address(this));
 
-        bytes memory subnetValidatorRegistrationMessage =
+        bytes memory l1ValidatorRegistrationMessage =
             ValidatorMessages.packL1ValidatorRegistrationMessage(validationID, false);
-        _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
+        _mockGetPChainWarpMessage(l1ValidatorRegistrationMessage, true);
 
         posValidatorManager.completeEndValidation(0);
 
@@ -1639,7 +1639,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     }
 
     function testDelegationToPoAValidator() public {
-        bytes32 defaultInitialValidationID = sha256(abi.encodePacked(DEFAULT_SUBNET_ID, uint32(1)));
+        bytes32 defaultInitialValidationID = sha256(abi.encodePacked(DEFAULT_L1_ID, uint32(1)));
 
         _beforeSend(_weightToValue(DEFAULT_DELEGATOR_WEIGHT), DEFAULT_DELEGATOR_ADDRESS);
 
@@ -2301,7 +2301,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 validatorWeight,
         address rewardRecipient
     ) internal {
-        bytes memory subnetValidatorRegistrationMessage =
+        bytes memory l1ValidatorRegistrationMessage =
             ValidatorMessages.packL1ValidatorRegistrationMessage(validationID, false);
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
@@ -2312,7 +2312,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _expectStakeUnlock(validatorOwner, _weightToValue(validatorWeight));
         _expectRewardIssuance(rewardRecipient, expectedReward);
 
-        _completeEndValidation(subnetValidatorRegistrationMessage);
+        _completeEndValidation(l1ValidatorRegistrationMessage);
 
         if (rewardRecipient == validatorOwner) {
             assertEq(
@@ -2332,8 +2332,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         }
     }
 
-    function _completeEndValidation(bytes memory subnetValidatorRegistrationMessage) internal {
-        _mockGetPChainWarpMessage(subnetValidatorRegistrationMessage, true);
+    function _completeEndValidation(bytes memory l1ValidatorRegistrationMessage) internal {
+        _mockGetPChainWarpMessage(l1ValidatorRegistrationMessage, true);
         posValidatorManager.completeEndValidation(0);
     }
 
@@ -2453,7 +2453,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function _defaultPoSSettings() internal pure returns (PoSValidatorManagerSettings memory) {
         return PoSValidatorManagerSettings({
             baseSettings: ValidatorManagerSettings({
-                subnetID: DEFAULT_SUBNET_ID,
+                l1ID: DEFAULT_L1_ID,
                 churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                 maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
             }),

@@ -51,12 +51,12 @@ struct ValidatorChurnPeriod {
 
 /**
  * @notice Validator Manager settings, used to initialize the Validator Manager
- * @notice The subnetID is the ID of the subnet that the Validator Manager is managing
+ * @notice The l1ID is the ID of the L1 that the Validator Manager is managing
  * @notice The churnPeriodSeconds is the duration of the churn period in seconds
  * @notice The maximumChurnPercentage is the maximum percentage of the total weight that can be added or removed in a single churn period
  */
 struct ValidatorManagerSettings {
-    bytes32 subnetID;
+    bytes32 l1ID;
     uint64 churnPeriodSeconds;
     uint8 maximumChurnPercentage;
 }
@@ -68,7 +68,7 @@ struct ValidatorManagerSettings {
  * and verified by the Validator Manager.
  */
 struct ConversionData {
-    bytes32 subnetID;
+    bytes32 l1ID;
     bytes32 validatorManagerBlockchainID;
     address validatorManagerAddress;
     InitialValidator[] initialValidators;
@@ -105,7 +105,7 @@ interface IValidatorManager {
      * emitted.
      * @param validationID The ID of the validation period being created.
      * @param nodeID The node ID of the validator being registered.
-     * @param registerValidationMessageID The ID of the Warp message that will be sent to the P-Chain to register the
+     * @param registerValidationMessageID The ID of the ICM message that will be sent to the P-Chain to register the
      * validation period.
      * @param weight The weight of the validator being registered.
      * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
@@ -138,7 +138,7 @@ interface IValidatorManager {
      * {initializeEndValidation}.
      * Note: The stake for this validation period remains locked until a {ValidationPeriodRemoved} event is emitted.
      * @param validationID The ID of the validation period being removed.
-     * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain.
+     * @param setWeightMessageID The ID of the ICM message that updates the validator's weight on the P-Chain.
      * @param weight The weight of the validator being removed.
      * @param endTime The time at which the removal was initiated.
      */
@@ -162,7 +162,7 @@ interface IValidatorManager {
      * @param validationID The ID of the validation period being updated
      * @param nonce The message nonce used to update the validator weight
      * @param weight The updated validator weight that is sent to the P-Chain
-     * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
+     * @param setWeightMessageID The ID of the ICM message that updates the validator's weight on the P-Chain
      */
     event ValidatorWeightUpdate(
         bytes32 indexed validationID,
@@ -174,7 +174,7 @@ interface IValidatorManager {
     /**
      * @notice Verifies and sets the initial validator set for the chain through a P-Chain SubnetToL1ConversionMessage.
      * @param conversionData The subnet conversion message data used to recompute and verify against the conversionID.
-     * @param messsageIndex The index that contains the SubnetToL1ConversionMessage Warp message containing the conversionID to be verified against the provided {ConversionData}
+     * @param messsageIndex The index that contains the SubnetToL1ConversionMessage ICM message containing the conversionID to be verified against the provided {ConversionData}
      */
     function initializeValidatorSet(
         ConversionData calldata conversionData,
@@ -191,7 +191,7 @@ interface IValidatorManager {
     /**
      * @notice Completes the validator registration process by returning an acknowledgement of the registration of a
      * validationID from the P-Chain.
-     * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
+     * @param messageIndex The index of the ICM message to be received providing the acknowledgement.
      */
     function completeValidatorRegistration(uint32 messageIndex) external;
 
@@ -208,7 +208,7 @@ interface IValidatorManager {
      * with the validation.
      * Note: This function can be used for successful validation periods that have been explicitly ended by calling
      * {initializeEndValidation} or for validation periods that never began on the P-Chain due to the {registrationExpiry} being reached.
-     * @param messageIndex The index of the Warp message to be received providing the proof the validation is not active
+     * @param messageIndex The index of the ICM message to be received providing the proof the validation is not active
      * and never will be active on the P-Chain.
      */
     function completeEndValidation(uint32 messageIndex) external;

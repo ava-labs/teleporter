@@ -26,8 +26,8 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         TeleporterMessengerTest.setUp();
     }
 
-    // This test first mocks sending 3 messages (each with fees) to a different subnet.
-    // It then mocks receiving a message back from that subnet with the receipt information
+    // This test first mocks sending 3 messages (each with fees) to a different L1.
+    // It then mocks receiving a message back from that L1 with the receipt information
     // for each of the 3 messages sent, and checks that the relayers can redeem their rewards.
     function testCheckRelayersUponReceipt() public {
         // Submit a few mock messages to be sent.

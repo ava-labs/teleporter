@@ -37,8 +37,8 @@ struct ValidatorSetSigMessage {
 
 /**
  * @dev Contract that verifies that a set threshold of validators from a given blockchainID
- * have signed an off-chain Warp message and forwards the payload to the target contract specified in the ValidatorSetSigMessage.
- * The threshold itself is set by the validator themselves in their Warp configs:
+ * have signed an off-chain ICM message and forwards the payload to the target contract specified in the ValidatorSetSigMessage.
+ * The threshold itself is set by the validator themselves in their ICM configs:
  * https://github.com/ava-labs/subnet-evm/blob/6c018f89339f3d381909e02013f002f234dc7ae3/precompile/contracts/warp/config.go#L50
  *
  * This is intended to be used for safe off-chain governance of enabled contracts. An example use case would be
@@ -62,9 +62,9 @@ contract ValidatorSetSig is ReentrancyGuard {
     mapping(address targetContractAddress => uint256 nonce) public nonces;
 
     /**
-     * @notice Address that the off-chain Warp message sets as the "source" address.
+     * @notice Address that the off-chain ICM message sets as the "source" address.
      * @dev The address is not owned by any EOA or smart contract account, so it
-     * cannot possibly be the source address of any other Warp message emitted by the VM.
+     * cannot possibly be the source address of any other ICM message emitted by the VM.
      */
     address public constant VALIDATORS_SOURCE_ADDRESS = address(0);
 
@@ -74,7 +74,7 @@ contract ValidatorSetSig is ReentrancyGuard {
     bytes32 public immutable blockchainID;
 
     /**
-     * @notice Warp precompile used for sending and receiving Warp messages.
+     * @notice ICM precompile used for sending and receiving ICM messages.
      */
     IWarpMessenger public constant WARP_MESSENGER =
         IWarpMessenger(0x0200000000000000000000000000000000000005);

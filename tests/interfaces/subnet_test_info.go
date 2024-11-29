@@ -7,9 +7,9 @@ import (
 	"github.com/ava-labs/subnet-evm/ethclient"
 )
 
-// Tracks information about a test subnet used for executing tests against.
-type SubnetTestInfo struct {
-	SubnetID     ids.ID
+// Tracks information about a test L1 used for executing tests against.
+type L1TestInfo struct {
+	L1ID         ids.ID
 	BlockchainID ids.ID
 	NodeURIs     []string
 	WSClient     ethclient.Client

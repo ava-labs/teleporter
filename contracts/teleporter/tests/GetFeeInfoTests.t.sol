@@ -49,7 +49,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
         uint256 expectedNonce = _getNextMessageNonce();
         bytes32 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, feeAmount);
 
-        // Now mock receiving a message back from that subnet with a receipt of the above message.
+        // Now mock receiving a message back from that L1 with a receipt of the above message.
         address relayerRewardAddress = 0xA66884fAdC0D4d7B7eedcF61Eb863Ff413bB6234;
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
         receipts[0] = TeleporterMessageReceipt({

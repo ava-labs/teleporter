@@ -14,25 +14,25 @@ import (
 )
 
 func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, subnetCInfo := network.GetTwoSubnets()
+	l1AInfo := network.GetPrimaryNetworkInfo()
+	l1BInfo, L1CInfo := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
-	// Get the expected teleporter message ID for Subnet C
+	// Get the expected teleporter message ID for L1 C
 	//
-	expectedAtoCMessageID, err := teleporter.TeleporterMessenger(subnetAInfo).GetNextMessageID(
+	expectedAtoCMessageID, err := teleporter.TeleporterMessenger(l1AInfo).GetNextMessageID(
 		&bind.CallOpts{},
-		subnetCInfo.BlockchainID,
+		L1CInfo.BlockchainID,
 	)
 	Expect(err).Should(BeNil())
 
 	//
-	// Submit a message to be sent from SubnetA to SubnetB
+	// Submit a message to be sent from L1A to L1B
 	//
 	ctx := context.Background()
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: subnetBInfo.BlockchainID, // Message intended for SubnetB
+		DestinationBlockchainID: l1BInfo.BlockchainID, // Message intended for L1B
 		DestinationAddress:      common.HexToAddress("0x1111111111111111111111111111111111111111"),
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
@@ -45,14 +45,14 @@ func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.Te
 
 	log.Info(
 		"Sending Teleporter transaction on source chain",
-		"destinationBlockchainID", subnetBInfo.BlockchainID,
+		"destinationBlockchainID", l1BInfo.BlockchainID,
 	)
 
 	receipt, _ := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporter.TeleporterMessenger(subnetAInfo),
-		subnetAInfo,
-		subnetBInfo,
+		teleporter.TeleporterMessenger(l1AInfo),
+		l1AInfo,
+		l1BInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
@@ -63,8 +63,8 @@ func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.Te
 	teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
-		subnetAInfo,
-		subnetCInfo,
+		l1AInfo,
+		L1CInfo,
 		false,
 		fundedKey,
 		nil,
@@ -72,9 +72,9 @@ func DeliverToWrongChain(network *localnetwork.LocalNetwork, teleporter utils.Te
 	)
 
 	//
-	// Check that the message was not received on the Subnet C
+	// Check that the message was not received on the L1 C
 	//
-	delivered, err := teleporter.TeleporterMessenger(subnetCInfo).MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(L1CInfo).MessageReceived(
 		&bind.CallOpts{}, expectedAtoCMessageID,
 	)
 	Expect(err).Should(BeNil())

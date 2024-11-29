@@ -15,17 +15,17 @@ import (
 )
 
 func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.TeleporterTestInfo) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := network.GetTwoSubnets()
+	l1AInfo := network.GetPrimaryNetworkInfo()
+	l1BInfo, _ := network.GetTwoL1s()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
-	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
+	// Send a transaction to L1 A to issue an ICM Message from the Teleporter contract to L1 B
 	//
 	ctx := context.Background()
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: subnetBInfo.BlockchainID,
+		DestinationBlockchainID: l1BInfo.BlockchainID,
 		DestinationAddress:      fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
@@ -38,13 +38,13 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 
 	log.Info(
 		"Sending Teleporter transaction on source chain",
-		"destinationBlockchainID", subnetBInfo.BlockchainID,
+		"destinationBlockchainID", l1BInfo.BlockchainID,
 	)
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
-		teleporter.TeleporterMessenger(subnetAInfo),
-		subnetAInfo,
-		subnetBInfo,
+		teleporter.TeleporterMessenger(l1AInfo),
+		l1AInfo,
+		l1BInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
@@ -58,8 +58,8 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 	teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
-		subnetAInfo,
-		subnetBInfo,
+		l1AInfo,
+		l1BInfo,
 		true,
 		fundedKey,
 		nil,
@@ -70,7 +70,7 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 	// Check Teleporter message received on the destination
 	//
 	log.Info("Checking the message was received on the destination")
-	delivered, err := teleporter.TeleporterMessenger(subnetBInfo).MessageReceived(
+	delivered, err := teleporter.TeleporterMessenger(l1BInfo).MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -83,8 +83,8 @@ func RelayMessageTwice(network *localnetwork.LocalNetwork, teleporter utils.Tele
 	teleporter.RelayTeleporterMessage(
 		ctx,
 		receipt,
-		subnetAInfo,
-		subnetBInfo,
+		l1AInfo,
+		l1BInfo,
 		false,
 		fundedKey,
 		nil,

@@ -29,7 +29,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
     function testSuccess() public {
         // This test contract must be an allowed relayer since it is what
-        // will call receiveCrossSubnetMessage.
+        // will call receiveCrossChainMessage.
         address[] memory allowedRelayers = new address[](2);
         allowedRelayers[0] = address(this);
         allowedRelayers[1] = DEFAULT_RELAYER_REWARD_ADDRESS;
