@@ -4,29 +4,29 @@
 
 set -e
 
-TELEPORTER_PATH=$(
+ICM_CONTRACTS_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
 
-source $TELEPORTER_PATH/scripts/versions.sh
+source $ICM_CONTRACTS_PATH/scripts/versions.sh
 
 function solFormat() {
     # format solidity contracts
     echo "Formatting Solidity contracts..."
-    forge fmt --root $TELEPORTER_PATH $TELEPORTER_PATH/contracts/**
+    forge fmt --root $ICM_CONTRACTS_PATH $ICM_CONTRACTS_PATH/contracts/**
 }
 
 function solFormatCheck() {
     # format solidity contracts
     echo "Checking formatting of Solidity contracts..."
-    forge fmt --check --root $TELEPORTER_PATH $TELEPORTER_PATH/contracts/**
+    forge fmt --check --root $ICM_CONTRACTS_PATH $ICM_CONTRACTS_PATH/contracts/**
 }
 
 function solLinter() {
     # lint solidity contracts
     echo "Linting Solidity contracts..."
-    cd $TELEPORTER_PATH
+    cd $ICM_CONTRACTS_PATH
     # "solhint **/*.sol" runs differently than "solhint '**/*.sol'", where the latter checks sol files
     # in subdirectories. The former only checks sol files in the current directory and directories one level down.
     solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
@@ -37,8 +37,8 @@ function golangLinter() {
     go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
 
     echo "Linting Golang code..."
-    cd $TELEPORTER_PATH
-    golangci-lint run --config=$TELEPORTER_PATH/.golangci.yml ./...
+    cd $ICM_CONTRACTS_PATH
+    golangci-lint run --config=$ICM_CONTRACTS_PATH/.golangci.yml ./...
 }
 
 function runAll() {
