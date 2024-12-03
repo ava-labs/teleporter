@@ -171,45 +171,45 @@ interface IValidatorManager {
         bytes32 setWeightMessageID
     );
 
-    /**
-     * @notice Verifies and sets the initial validator set for the chain through a P-Chain SubnetToL1ConversionMessage.
-     * @param conversionData The subnet conversion message data used to recompute and verify against the conversionID.
-     * @param messsageIndex The index that contains the SubnetToL1ConversionMessage Warp message containing the conversionID to be verified against the provided {ConversionData}
-     */
-    function initializeValidatorSet(
-        ConversionData calldata conversionData,
-        uint32 messsageIndex
-    ) external;
+    // /**
+    //  * @notice Verifies and sets the initial validator set for the chain through a P-Chain SubnetToL1ConversionMessage.
+    //  * @param conversionData The subnet conversion message data used to recompute and verify against the conversionID.
+    //  * @param messsageIndex The index that contains the SubnetToL1ConversionMessage Warp message containing the conversionID to be verified against the provided {ConversionData}
+    //  */
+    // function initializeValidatorSet(
+    //     ConversionData calldata conversionData,
+    //     uint32 messsageIndex
+    // ) external;
 
-    /**
-     * @notice Resubmits a validator registration message to be sent to the P-Chain.
-     * Only necessary if the original message can't be delivered due to validator churn.
-     * @param validationID The ID of the validation period being registered.
-     */
-    function resendRegisterValidatorMessage(bytes32 validationID) external;
+    // /**
+    //  * @notice Resubmits a validator registration message to be sent to the P-Chain.
+    //  * Only necessary if the original message can't be delivered due to validator churn.
+    //  * @param validationID The ID of the validation period being registered.
+    //  */
+    // function resendRegisterValidatorMessage(bytes32 validationID) external;
 
-    /**
-     * @notice Completes the validator registration process by returning an acknowledgement of the registration of a
-     * validationID from the P-Chain.
-     * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
-     */
-    function completeValidatorRegistration(uint32 messageIndex) external;
+    // /**
+    //  * @notice Completes the validator registration process by returning an acknowledgement of the registration of a
+    //  * validationID from the P-Chain.
+    //  * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
+    //  */
+    // function completeValidatorRegistration(uint32 messageIndex) external;
 
-    /**
-     * @notice Resubmits a validator end message to be sent to the P-Chain.
-     * Only necessary if the original message can't be delivered due to validator churn.
-     * @param validationID The ID of the validation period being ended.
-     */
-    function resendEndValidatorMessage(bytes32 validationID) external;
+    // /**
+    //  * @notice Resubmits a validator end message to be sent to the P-Chain.
+    //  * Only necessary if the original message can't be delivered due to validator churn.
+    //  * @param validationID The ID of the validation period being ended.
+    //  */
+    // function resendEndValidatorMessage(bytes32 validationID) external;
 
-    /**
-     * @notice Completes the process of ending a validation period by receiving an acknowledgement from the P-Chain
-     * that the validation ID is not active and will never be active in the future. Returns the the stake associated
-     * with the validation.
-     * Note: This function can be used for successful validation periods that have been explicitly ended by calling
-     * {initializeEndValidation} or for validation periods that never began on the P-Chain due to the {registrationExpiry} being reached.
-     * @param messageIndex The index of the Warp message to be received providing the proof the validation is not active
-     * and never will be active on the P-Chain.
-     */
-    function completeEndValidation(uint32 messageIndex) external;
+    // /**
+    //  * @notice Completes the process of ending a validation period by receiving an acknowledgement from the P-Chain
+    //  * that the validation ID is not active and will never be active in the future. Returns the the stake associated
+    //  * with the validation.
+    //  * Note: This function can be used for successful validation periods that have been explicitly ended by calling
+    //  * {initializeEndValidation} or for validation periods that never began on the P-Chain due to the {registrationExpiry} being reached.
+    //  * @param messageIndex The index of the Warp message to be received providing the proof the validation is not active
+    //  * and never will be active on the P-Chain.
+    //  */
+    // function completeEndValidation(uint32 messageIndex) external;
 }

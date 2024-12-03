@@ -486,6 +486,39 @@ abstract contract PoSValidatorManager is
         return validationID;
     }
 
+    function _acp99InitValidatorRegistration(
+        bytes32 validationID,
+        uint256 stakeAmount,
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration
+    ) internal {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        // Validate and save the validator requirements
+        if (
+            delegationFeeBips < $._minimumDelegationFeeBips
+                || delegationFeeBips > MAXIMUM_DELEGATION_FEE_BIPS
+        ) {
+            revert InvalidDelegationFee(delegationFeeBips);
+        }
+
+        if (minStakeDuration < $._minimumStakeDuration) {
+            revert InvalidMinStakeDuration(minStakeDuration);
+        }
+
+        // Ensure the weight is within the valid range.
+        if (stakeAmount < $._minimumStakeAmount || stakeAmount > $._maximumStakeAmount) {
+            revert InvalidStakeAmount(stakeAmount);
+        }
+
+        // Lock the stake in the contract.
+        _lock(stakeAmount);
+
+        $._posValidatorInfo[validationID].owner = _msgSender();
+        $._posValidatorInfo[validationID].delegationFeeBips = delegationFeeBips;
+        $._posValidatorInfo[validationID].minStakeDuration = minStakeDuration;
+        $._posValidatorInfo[validationID].uptimeSeconds = 0;
+    }
+
     /**
      * @notice Converts a token value to a weight.
      * @param value Token value to convert.

@@ -25,6 +25,7 @@ import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
+import {IACP99SecurityModule} from "./interfaces/IACP99SecurityModule.sol";
 
 /**
  * @dev Implementation of the {IValidatorManager} interface.
@@ -141,10 +142,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     /**
      * @notice See {IValidatorManager-initializeValidatorSet}.
      */
-    function initializeValidatorSet(
+    function _initializeValidatorSet(
         ConversionData calldata conversionData,
         uint32 messageIndex
-    ) external {
+    ) internal {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         if ($._initializedValidatorSet) {
             revert InvalidInitializationStatus();
@@ -321,7 +322,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     /**
      * @notice See {IValidatorManager-completeValidatorRegistration}.
      */
-    function completeValidatorRegistration(uint32 messageIndex) external {
+    function _completeValidatorRegistration(uint32 messageIndex) internal {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         (bytes32 validationID, bool validRegistration) = ValidatorMessages
             .unpackL1ValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
