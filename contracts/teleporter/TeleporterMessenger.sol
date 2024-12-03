@@ -30,7 +30,7 @@ import {ReentrancyGuards} from "@utilities/ReentrancyGuards.sol";
  * and to receive messages sent from other chains. Teleporter contracts should be deployed through Nick's method
  * of universal deployer, such that the same contract is deployed at the same address on all chains.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     using SafeERC20 for IERC20;

@@ -110,7 +110,7 @@ As an example, to include `TeleporterMessenger` `v1.0.0` in the genesis file, in
 }
 ```
 
-The values above are taken from the `v1.0.0` [release artifacts](https://github.com/ava-labs/teleporter/releases/tag/v1.0.0). The contract address, deployed bytecode, and deployer address are unique per major release. All of the other values should remain the same.
+The values above are taken from the `v1.0.0` [release artifacts](https://github.com/ava-labs/icm-contracts/releases/tag/v1.0.0). The contract address, deployed bytecode, and deployer address are unique per major release. All of the other values should remain the same.
 
 ## Deployed Addresses
 
@@ -146,7 +146,7 @@ From the root of the repo, the TeleporterMessenger contract can be deployed by c
 
 Required arguments:
 
-- `--version <version>` Specify the release version to deploy. These will all be of the form `v1.X.0`. Each `TeleporterMessenger` version can only send and receive messages from the **same** `TeleporterMessenger` version on another chain. You can see a list of released versions at https://github.com/ava-labs/teleporter/releases.
+- `--version <version>` Specify the release version to deploy. These will all be of the form `v1.X.0`. Each `TeleporterMessenger` version can only send and receive messages from the **same** `TeleporterMessenger` version on another chain. You can see a list of released versions at https://github.com/ava-labs/icm-contracts/releases.
 - `--rpc-url <url>` Specify the rpc url of the node to use.
 
 Options:
@@ -155,7 +155,7 @@ Options:
 
 To ensure that `TeleporterMessenger` can be deployed to the same address on every EVM based chain, it uses [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c) to deploy from a static deployer address. Teleporter costs exactly `10eth` in the Avalanche L1's native gas token to deploy, which must be sent to the deployer address.
 
-`deploy_teleporter.sh` will send the necessary native tokens to the deployer address if it is provided with a private key for an account with sufficient funds. Alternatively, the deployer address can be funded externally. The deployer address for each version can be found by looking up the appropriate version at https://github.com/ava-labs/teleporter/releases and downloading `TeleporterMessenger_Deployer_Address_<VERSION>.txt`.
+`deploy_teleporter.sh` will send the necessary native tokens to the deployer address if it is provided with a private key for an account with sufficient funds. Alternatively, the deployer address can be funded externally. The deployer address for each version can be found by looking up the appropriate version at https://github.com/ava-labs/icm-contracts/releases and downloading `TeleporterMessenger_Deployer_Address_<VERSION>.txt`.
 
 Alternatively for new Avalanche L1s, the `TeleporterMessenger` contract can be directly included in the genesis file as documented [here](./contracts/teleporter/README.md#teleporter-messenger-contract-deployment).
 

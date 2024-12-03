@@ -21,7 +21,7 @@ struct ProtocolRegistryEntry {
  * @dev TeleporterRegistry contract provides an upgrade mechanism for {ITeleporterMessenger} contracts
  * through Warp off-chain messages
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 contract TeleporterRegistry {
     /**

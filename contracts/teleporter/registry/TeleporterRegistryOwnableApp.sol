@@ -13,7 +13,7 @@ import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
  * only owners of the contract to update the minimum Teleporter version or
  * pause and unpause specific Teleporter versions.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 abstract contract TeleporterRegistryOwnableApp is TeleporterRegistryApp, Ownable {
     constructor(

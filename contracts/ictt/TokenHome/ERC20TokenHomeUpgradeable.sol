@@ -23,7 +23,7 @@ import {ICMInitializable} from "@utilities/ICMInitializable.sol";
  * @title ERC20TokenHomeUpgradeable
  * @notice An {IERC20TokenHome} implementation that locks a specified ERC20 token to be sent to
  * TokenRemote instances on other chains.
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
     using SafeERC20 for IERC20;
@@ -65,7 +65,7 @@ contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
     /**
      * @notice Initializes the token TokenHome instance to send ERC20 tokens to TokenRemote instances on other chains.
      * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
-     * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/teleporter/registry
+     * address. See here for details: https://github.com/ava-labs/icm-contracts/tree/main/contracts/teleporter/registry
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
      * @param minTeleporterVersion Minimum Teleporter version supported by this contract.

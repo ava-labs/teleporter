@@ -13,7 +13,7 @@ import {TeleporterMessageReceipt} from "./ITeleporterMessenger.sol";
  * TeleporterMessageReceipt structs. It provides FIFO properties.
  * Note: All functions in this library are internal so that the library is not deployed as a contract.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 library ReceiptQueue {
     // A receipt queue represents a FIFO list of receipts.

@@ -23,7 +23,7 @@ function printHelp() {
     echo "Usage: ./scripts/deploy_teleporter.sh --version <version> --rpc-url <url> [OPTIONS]"
     echo ""
     echo "Deploys a selected TeleporterMessenger contract to the specified chain"
-    echo "For a list of releases, go to https://github.com/ava-labs/teleporter/releases"
+    echo "For a list of releases, go to https://github.com/ava-labs/icm-contracts/releases"
     printUsage
 }
 
@@ -84,12 +84,12 @@ fi
 gas_tokens_required=10000000000000000000 # 10^19 wei = 10 eth
 
 # Download the artifacts for this release.
-teleporter_contract_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Contract_Address_$teleporter_version.txt)
+teleporter_contract_address=$(curl -sL https://github.com/ava-labs/icm-contracts/releases/download/$teleporter_version/TeleporterMessenger_Contract_Address_$teleporter_version.txt)
 echo "TeleporterMessenger $teleporter_version contract address: $teleporter_contract_address"
-teleporter_deployer_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Deployer_Address_$teleporter_version.txt)
+teleporter_deployer_address=$(curl -sL https://github.com/ava-labs/icm-contracts/releases/download/$teleporter_version/TeleporterMessenger_Deployer_Address_$teleporter_version.txt)
 echo "TeleporterMessenger $teleporter_version deployer address: $teleporter_deployer_address"
-teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Deployment_Transaction_$teleporter_version.txt)
-teleporter_messenger_bytecode=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Bytecode_$teleporter_version.txt)
+teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/icm-contracts/releases/download/$teleporter_version/TeleporterMessenger_Deployment_Transaction_$teleporter_version.txt)
+teleporter_messenger_bytecode=$(curl -sL https://github.com/ava-labs/icm-contracts/releases/download/$teleporter_version/TeleporterMessenger_Bytecode_$teleporter_version.txt)
 if [ "$teleporter_contract_address" == "Not Found" ]; then
     echo "Error: TeleporterMessenger $teleporter_version contract address not found."
     exit 1
