@@ -144,4 +144,8 @@ interface IValidatorManager {
      * @param validationID The ID of the validation period being ended.
      */
     function resendEndValidatorMessage(bytes32 validationID) external;
+
+    function getValidator(bytes32 validationID) external view returns (Validator memory);
+
+    function getChurnPeriodSeconds() external view returns (uint64);
 }

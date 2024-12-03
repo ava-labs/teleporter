@@ -94,16 +94,6 @@ contract ERC20TokenStakingManager is
     }
 
     /**
-     * @notice See {IERC20TokenStakingManager-initializeDelegatorRegistration}
-     */
-    function initializeDelegatorRegistration(
-        bytes32 validationID,
-        uint256 delegationAmount
-    ) external nonReentrant returns (bytes32) {
-        return _initializeDelegatorRegistration(validationID, _msgSender(), delegationAmount);
-    }
-
-    /**
      * @notice Returns the ERC20 token being staked
      */
     function erc20() external view returns (IERC20Mintable) {

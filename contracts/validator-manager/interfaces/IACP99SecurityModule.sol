@@ -18,7 +18,7 @@ interface IACP99SecurityModule {
 
     function handleCompleteEndValidation(bytes32 validationID) external;
 
-    function handleInitializeValidatorWeightChange(bytes32 validationID, uint64 weight, bytes calldata args) external;
+    function handleInitializeValidatorWeightChange(bytes32 validationID, uint64 weight, uint64 nonce, bytes calldata args) external;
 
     function handleCompleteValidatorWeightChange(bytes32 validationID, bytes calldata args) external;
 }

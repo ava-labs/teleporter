@@ -50,7 +50,8 @@ abstract contract ACP99ValidatorManager is IACP99ValidatorManager, ValidatorMana
     }
 
     function initializeValidatorWeightChange(bytes32 validationID, uint64 weight, bytes calldata args) external{
-        securityModule.handleInitializeValidatorWeightChange(validationID, weight, args);
+        (uint64 nonce, ) = _setValidatorWeight(validationID, weight);
+        securityModule.handleInitializeValidatorWeightChange(validationID, weight, nonce, args);
     }
 
     function completeValidatorWeightChange(bytes32 validationID, bytes calldata args) external{

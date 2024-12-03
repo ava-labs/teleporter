@@ -29,7 +29,7 @@ import {ValidatorRegistrationInput, ConversionData, PChainOwner, InitialValidato
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValidatorManager {
+contract ValidatorManager is Initializable, ContextUpgradeable, IValidatorManager {
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
 
@@ -531,7 +531,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         return (nonce, messageID);
     }
 
-    function _getChurnPeriodSeconds() internal view returns (uint64) {
+    function getChurnPeriodSeconds() external view returns (uint64) {
         return _getValidatorManagerStorage()._churnPeriodSeconds;
     }
 

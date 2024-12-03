@@ -70,7 +70,7 @@ struct PoSValidatorInfo {
 /**
  * @notice Interface for Proof of Stake Validator Managers
  */
-interface IPoSValidatorManager is IValidatorManager {
+interface IPoSValidatorManager {
     /**
      * @notice Event emitted when a delegator registration is initiated
      * @param delegationID The ID of the delegation
@@ -79,7 +79,6 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param nonce The message nonce used to update the validator weight
      * @param validatorWeight The updated validator weight that is sent to the P-Chain
      * @param delegatorWeight The weight of the delegator
-     * @param setWeightMessageID The ID of the Warp message that updates the validator's weight on the P-Chain
      */
     event DelegatorAdded(
         bytes32 indexed delegationID,
@@ -87,8 +86,7 @@ interface IPoSValidatorManager is IValidatorManager {
         address indexed delegatorAddress,
         uint64 nonce,
         uint64 validatorWeight,
-        uint64 delegatorWeight,
-        bytes32 setWeightMessageID
+        uint64 delegatorWeight
     );
 
     /**

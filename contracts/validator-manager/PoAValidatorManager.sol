@@ -19,7 +19,7 @@ import {ACP99ValidatorManager} from "./ACP99ValidatorManager.sol";
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-contract PoAValidatorManager is IACP99SecurityModule, ACP99ValidatorManager, OwnableUpgradeable {
+contract PoAValidatorManager is IACP99SecurityModule, OwnableUpgradeable {
     constructor(ICMInitializable init) {
         if (init == ICMInitializable.Disallowed) {
             _disableInitializers();
@@ -35,10 +35,9 @@ contract PoAValidatorManager is IACP99SecurityModule, ACP99ValidatorManager, Own
 
     // solhint-disable func-name-mixedcase, ordering
     function __PoAValidatorManager_init(
-        ValidatorManagerSettings calldata settings,
+        ValidatorManagerSettings calldata,
         address initialOwner
     ) internal onlyInitializing {
-        __ValidatorManager_init(settings);
         __Ownable_init(initialOwner);
     }
 
@@ -68,7 +67,7 @@ contract PoAValidatorManager is IACP99SecurityModule, ACP99ValidatorManager, Own
         // No-op
     }
 
-    function handleInitializeValidatorWeightChange(bytes32 validationID, uint64 weight, bytes calldata args) external {
+    function handleInitializeValidatorWeightChange(bytes32 validationID, uint64 weight, uint64 nonce, bytes calldata args) external {
         // No-op
     }
 
