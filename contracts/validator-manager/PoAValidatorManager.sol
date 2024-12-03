@@ -6,10 +6,8 @@
 pragma solidity 0.8.25;
 
 import {
-    ValidatorManagerSettings,
-    ValidatorRegistrationInput
+    ValidatorManagerSettings
 } from "./interfaces/IValidatorManager.sol";
-import {IPoAValidatorManager} from "./interfaces/IPoAValidatorManager.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";

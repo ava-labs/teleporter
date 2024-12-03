@@ -7,14 +7,10 @@ pragma solidity 0.8.25;
 
 import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {
-    InitialValidator,
     IValidatorManager,
-    PChainOwner,
-    ConversionData,
     Validator,
     ValidatorChurnPeriod,
     ValidatorManagerSettings,
-    ValidatorRegistrationInput,
     ValidatorStatus
 } from "./interfaces/IValidatorManager.sol";
 import {
@@ -26,6 +22,7 @@ import {ContextUpgradeable} from
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 import {IACP99SecurityModule} from "./interfaces/IACP99SecurityModule.sol";
+import {ValidatorRegistrationInput, ConversionData, PChainOwner, InitialValidator} from "./interfaces/IACP99ValidatorManager.sol";
 
 /**
  * @dev Implementation of the {IValidatorManager} interface.

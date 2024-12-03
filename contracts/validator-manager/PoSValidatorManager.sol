@@ -16,7 +16,6 @@ import {
 } from "./interfaces/IPoSValidatorManager.sol";
 import {
     Validator,
-    ValidatorRegistrationInput,
     ValidatorStatus
 } from "./interfaces/IValidatorManager.sol";
 import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";

@@ -5,11 +5,11 @@
 
 import {IACP99SecurityModule} from "./interfaces/IACP99SecurityModule.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
-import {ConversionData,ValidatorRegistrationInput} from "./interfaces/IValidatorManager.sol";
+import {IACP99ValidatorManager, ConversionData, ValidatorRegistrationInput} from "./interfaces/IACP99ValidatorManager.sol";
 
 pragma solidity 0.8.25;
 
-abstract contract ACP99ValidatorManager is ValidatorManager {
+abstract contract ACP99ValidatorManager is IACP99ValidatorManager, ValidatorManager {
     IACP99SecurityModule public securityModule;
 
     // TODO: calling this should be restricted to...who?
@@ -49,7 +49,11 @@ abstract contract ACP99ValidatorManager is ValidatorManager {
         securityModule.handleCompleteEndValidation(validationID);
     }
 
-    function initializeValidatorWeightChange() external{}
+    function initializeValidatorWeightChange(bytes32 validationID, uint64 weight, bytes calldata args) external{
+        securityModule.handleInitializeValidatorWeightChange(validationID, weight, args);
+    }
 
-    function completeValidatorWeightChange() external{}
+    function completeValidatorWeightChange(bytes32 validationID, bytes calldata args) external{
+        securityModule.handleCompleteValidatorWeightChange(validationID, args);
+    }
 }

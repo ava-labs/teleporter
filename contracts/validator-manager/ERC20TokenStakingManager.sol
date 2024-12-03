@@ -7,8 +7,6 @@ pragma solidity 0.8.25;
 
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
-import {ValidatorRegistrationInput} from "./interfaces/IValidatorManager.sol";
-import {IERC20TokenStakingManager} from "./interfaces/IERC20TokenStakingManager.sol";
 import {IERC20Mintable} from "./interfaces/IERC20Mintable.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
