@@ -27,7 +27,7 @@ For help getting started with building ICM contracts, refer to [the avalanche-st
 
 - `contracts/`
   - [`governance/`](./contracts/governance/README.md) includes contracts related to L1 governance.
-  - [`ictt/`](./contracts/ictt/README.md) Interchain Token Transfer contracts. Facilities the transfer of tokens among L1s.
+  - [`ictt/`](./contracts/ictt/README.md) Interchain Token Transfer contracts. Facilitates the transfer of tokens among L1s.
   - [`teleporter/`](./contracts/teleporter/README.md) includes `TeleporterMessenger`, which serves as the interface for most contracts to use ICM. 
     - [`registry/`](./contracts/teleporter/registry/README.md) includes a registry contract for managing different versions of `TeleporterMessenger`.
   - [`validator-manager/`](./contracts/validator-manager/README.md) includes contracts for managing the validator set of an L1.
