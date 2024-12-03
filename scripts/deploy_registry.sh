@@ -4,14 +4,14 @@
 
 set -e
 
-TELEPORTER_PATH=$(
+ICM_CONTRACTS_PATH=$(
     cd "$(dirname "${BASH_SOURCE[0]}")"
     cd .. && pwd
 )
 
 # Check that foundry (specifically cast) is installed.
 if ! command -v cast &> /dev/null; then
-    echo "cast not found. You can install by calling $TELEPORTER_PATH/scripts/install_foundry.sh" && exit 1
+    echo "cast not found. You can install by calling $ICM_CONTRACTS_PATH/scripts/install_foundry.sh" && exit 1
 fi
 
 # Check that jq is installed.

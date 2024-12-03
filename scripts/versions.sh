@@ -5,7 +5,7 @@
 set -e
 set -o pipefail
 
-TELEPORTER_PATH=$(
+ICM_CONTRACTS_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
@@ -13,7 +13,7 @@ TELEPORTER_PATH=$(
 # Pass in the full name of the dependency.
 # Parses go.mod for a matching entry and extracts the version number.
 function getDepVersion() {
-    grep -m1 "^\s*$1" $TELEPORTER_PATH/go.mod | cut -d ' ' -f2
+    grep -m1 "^\s*$1" $ICM_CONTRACTS_PATH/go.mod | cut -d ' ' -f2
 }
 
 function extract_commit() {
@@ -44,5 +44,5 @@ SUBNET_EVM_VERSION=${SUBNET_EVM_VERSION:-$(extract_commit "$(getDepVersion githu
 GOLANGCI_LINT_VERSION=${GOLANGCI_LINT_VERSION:-'v1.60'}
 
 # Extract the Solidity version from foundry.toml
-SOLIDITY_VERSION=$(awk -F"'" '/^solc_version/ {print $2}' $TELEPORTER_PATH/foundry.toml)
-EVM_VERSION=$(awk -F"'" '/^evm_version/ {print $2}' $TELEPORTER_PATH/foundry.toml)
+SOLIDITY_VERSION=$(awk -F"'" '/^solc_version/ {print $2}' $ICM_CONTRACTS_PATH/foundry.toml)
+EVM_VERSION=$(awk -F"'" '/^evm_version/ {print $2}' $ICM_CONTRACTS_PATH/foundry.toml)
