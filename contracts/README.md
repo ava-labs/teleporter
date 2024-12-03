@@ -1,7 +1,7 @@
 ## Contracts
 This directory contains Solidity contracts that leverage Avalanche Interchain Messaging (ICM) to implement unique cross-chain functions. 
 
-This directory is set up as a [Foundry](https://github.com/foundry-rs/foundry) project. Use the `scripts/install_foundry.sh` to install the correct version of the ava-labs fork of foundry. 
+This repository is set up as a [Foundry](https://github.com/foundry-rs/foundry) project. Use the `scripts/install_foundry.sh` to install the correct version of the ava-labs fork of foundry. 
 
 ## Building and Running
 - To compile the contracts run `forge build` from this directory.
