@@ -70,11 +70,11 @@ contract PoAValidatorManager is IACP99SecurityModule, ACP99ValidatorManager, Own
         // No-op
     }
 
-    function handleInitializeValidatorWeightChange() external {
+    function handleInitializeValidatorWeightChange(bytes32 validationID, uint64 weight, bytes calldata args) external {
         // No-op
     }
 
-    function handleCompleteValidatorWeightChange() external {
+    function handleCompleteValidatorWeightChange(bytes32 validationID, bytes calldata args) external {
         // No-op
     }
 }

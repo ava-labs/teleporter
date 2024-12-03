@@ -205,10 +205,31 @@ abstract contract PoSValidatorManager is
         _completeEndValidation(validationID);
     }
 
-    function handleInitializeValidatorWeightChange() external {
+    function handleInitializeValidatorWeightChange(bytes32 validationID, uint64 weight, bytes calldata args) external {
+        (bytes32 delegationID, bytes memory innerArgs) = abi.decode(args, (bytes32, bytes));
+        if (_getPoSValidatorManagerStorage()._delegatorStakes[delegationID].status == DelegatorStatus.Unknown) {
+            address delegatorAddress = abi.decode(innerArgs, (address));
+            uint64 delegatorWeight = getValidator(validationID).weight - weight;
+            _initializeDelegatorRegistration(validationID, delegatorAddress, weightToValue(delegatorWeight));
+        } else {
+            (bool force, bool includeUptimeProof, uint32 messageIndex, address rewardRecipient) = abi.decode(innerArgs, (bool, bool, uint32, address));
+            bool success = _initializeEndDelegation(delegationID, includeUptimeProof, messageIndex, rewardRecipient);
+            if (force) {
+                return;
+            }
+            if (!success) {
+                revert DelegatorIneligibleForRewards(delegationID);
+            }
+        }
     }
 
-    function handleCompleteValidatorWeightChange() external {
+    function handleCompleteValidatorWeightChange(bytes32, bytes calldata args) external {
+        (bytes32 delegationID, uint32 messageIndex) = abi.decode(args, (bytes32, uint32));
+        if (_getPoSValidatorManagerStorage()._delegatorStakes[delegationID].status == DelegatorStatus.PendingAdded) {
+            _completeDelegatorRegistration(delegationID, messageIndex);
+        } else {
+            _completeEndDelegation(delegationID, messageIndex);
+        }
     }
 
     /**
@@ -536,7 +557,7 @@ abstract contract PoSValidatorManager is
     /**
      * @notice See {IPoSValidatorManager-completeDelegatorRegistration}.
      */
-    function completeDelegatorRegistration(bytes32 delegationID, uint32 messageIndex) external {
+    function _completeDelegatorRegistration(bytes32 delegationID, uint32 messageIndex) internal {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
@@ -553,7 +574,7 @@ abstract contract PoSValidatorManager is
         // In the case where the validator has completed its validation period, we can no
         // longer stake and should move our status directly to completed and return the stake.
         if (validator.status == ValidatorStatus.Completed) {
-            return _completeEndDelegation(delegationID);
+            return _endDelegation(delegationID);
         }
 
         // Unpack the Warp message
@@ -581,73 +602,6 @@ abstract contract PoSValidatorManager is
             validationID: validationID,
             startTime: uint64(block.timestamp)
         });
-    }
-
-    /**
-     * @notice See {IPoSValidatorManager-initializeEndDelegation}.
-     */
-    function initializeEndDelegation(
-        bytes32 delegationID,
-        bool includeUptimeProof,
-        uint32 messageIndex
-    ) external {
-        _initializeEndDelegationWithCheck(
-            delegationID, includeUptimeProof, messageIndex, address(0)
-        );
-    }
-
-    /**
-     * @notice See {IPoSValidatorManager-initializeEndDelegation}.
-     */
-    function initializeEndDelegation(
-        bytes32 delegationID,
-        bool includeUptimeProof,
-        uint32 messageIndex,
-        address rewardRecipient
-    ) external {
-        _initializeEndDelegationWithCheck(
-            delegationID, includeUptimeProof, messageIndex, rewardRecipient
-        );
-    }
-
-    function _initializeEndDelegationWithCheck(
-        bytes32 delegationID,
-        bool includeUptimeProof,
-        uint32 messageIndex,
-        address rewardRecipient
-    ) internal {
-        if (
-            !_initializeEndDelegation(
-                delegationID, includeUptimeProof, messageIndex, rewardRecipient
-            )
-        ) {
-            revert DelegatorIneligibleForRewards(delegationID);
-        }
-    }
-
-    /**
-     * @notice See {IPoSValidatorManager-forceInitializeEndDelegation}.
-     */
-    function forceInitializeEndDelegation(
-        bytes32 delegationID,
-        bool includeUptimeProof,
-        uint32 messageIndex
-    ) external {
-        // Ignore the return value here to force end delegation, regardless of possible missed rewards
-        _initializeEndDelegation(delegationID, includeUptimeProof, messageIndex, address(0));
-    }
-
-    /**
-     * @notice See {IPoSValidatorManager-forceInitializeEndDelegation}.
-     */
-    function forceInitializeEndDelegation(
-        bytes32 delegationID,
-        bool includeUptimeProof,
-        uint32 messageIndex,
-        address rewardRecipient
-    ) external {
-        // Ignore the return value here to force end delegation, regardless of possible missed rewards
-        _initializeEndDelegation(delegationID, includeUptimeProof, messageIndex, rewardRecipient);
     }
 
     /**
@@ -716,7 +670,7 @@ abstract contract PoSValidatorManager is
             return (reward > 0);
         } else if (validator.status == ValidatorStatus.Completed) {
             _calculateAndSetDelegationReward(delegator, rewardRecipient, delegationID);
-            _completeEndDelegation(delegationID);
+            _endDelegation(delegationID);
             // If the validator has completed, then no further uptimes may be submitted, so we always
             // end the delegation.
             return true;
@@ -803,10 +757,10 @@ abstract contract PoSValidatorManager is
     /**
      * @notice See {IPoSValidatorManager-completeEndDelegation}.
      */
-    function completeEndDelegation(
+    function _completeEndDelegation(
         bytes32 delegationID,
         uint32 messageIndex
-    ) external nonReentrant {
+    ) internal nonReentrant {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         Delegator memory delegator = $._delegatorStakes[delegationID];
 
@@ -836,10 +790,10 @@ abstract contract PoSValidatorManager is
             }
         }
 
-        _completeEndDelegation(delegationID);
+        _endDelegation(delegationID);
     }
 
-    function _completeEndDelegation(bytes32 delegationID) internal {
+    function _endDelegation(bytes32 delegationID) internal {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
