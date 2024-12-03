@@ -9,7 +9,7 @@ import {IACP99ValidatorManager, ConversionData, ValidatorRegistrationInput} from
 
 pragma solidity 0.8.25;
 
-abstract contract ACP99ValidatorManager is IACP99ValidatorManager, ValidatorManager {
+contract ACP99ValidatorManager is IACP99ValidatorManager, ValidatorManager {
     IACP99SecurityModule public securityModule;
 
     // TODO: calling this should be restricted to...who?
