@@ -5,7 +5,6 @@
 
 pragma solidity 0.8.25;
 
-import {ValidatorManager} from "./ValidatorManager.sol";
 import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput
@@ -14,13 +13,15 @@ import {IPoAValidatorManager} from "./interfaces/IPoAValidatorManager.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
+import {IACP99SecurityModule} from "./interfaces/IACP99SecurityModule.sol";
+import {ACP99ValidatorManager} from "./ACP99ValidatorManager.sol";
 
 /**
  * @dev Implementation of the {IPoAValidatorManager} interface.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableUpgradeable {
+contract PoAValidatorManager is IACP99SecurityModule, ACP99ValidatorManager, OwnableUpgradeable {
     constructor(ICMInitializable init) {
         if (init == ICMInitializable.Disallowed) {
             _disableInitializers();
@@ -46,30 +47,34 @@ contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableU
     // solhint-disable-next-line no-empty-blocks
     function __PoAValidatorManager_init_unchained() internal onlyInitializing {}
 
-    // solhint-enable func-name-mixedcase
-
-    /**
-     * @notice See {IPoAValidatorManager-initializeValidatorRegistration}.
-     */
-    function initializeValidatorRegistration(
-        ValidatorRegistrationInput calldata registrationInput,
-        uint64 weight
-    ) external onlyOwner returns (bytes32 validationID) {
-        return _initializeValidatorRegistration(registrationInput, weight);
-    }
-
     // solhint-enable ordering
     /**
      * @notice See {IPoAValidatorManager-initializeEndValidation}.
      */
-    function initializeEndValidation(bytes32 validationID) external override onlyOwner {
-        _initializeEndValidation(validationID);
-    }
 
     /**
      * @notice See {IValidatorManager-completeEndValidation}.
      */
-    function completeEndValidation(uint32 messageIndex) external {
-        _completeEndValidation(messageIndex);
+    function handleInitializeValidatorRegistration(bytes32 validationID, uint64 weight, bytes calldata args) external {
+    }
+
+    function handleCompleteValidatorRegistration(bytes32 validationID) external {
+        // No-op
+    }
+
+    function handleInitializeEndValidation(bytes32 validationID, bytes calldata args) external {
+        // No-op
+    }
+
+    function handleCompleteEndValidation(bytes32 validationID) external {
+        // No-op
+    }
+
+    function handleInitializeValidatorWeightChange() external {
+        // No-op
+    }
+
+    function handleCompleteValidatorWeightChange() external {
+        // No-op
     }
 }

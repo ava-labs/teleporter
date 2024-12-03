@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {ValidatorManager} from "./ValidatorManager.sol";
+import {ACP99ValidatorManager} from "./ACP99ValidatorManager.sol";
 import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {
     Delegator,
@@ -24,6 +24,7 @@ import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {ReentrancyGuardUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
+import {IACP99SecurityModule} from "./interfaces/IACP99SecurityModule.sol";
 
 /**
  * @dev Implementation of the {IPoSValidatorManager} interface.
@@ -32,7 +33,8 @@ import {ReentrancyGuardUpgradeable} from
  */
 abstract contract PoSValidatorManager is
     IPoSValidatorManager,
-    ValidatorManager,
+    IACP99SecurityModule,
+    ACP99ValidatorManager,
     ReentrancyGuardUpgradeable
 {
     // solhint-disable private-vars-leading-underscore
@@ -174,6 +176,41 @@ abstract contract PoSValidatorManager is
         $._uptimeBlockchainID = uptimeBlockchainID;
     }
 
+    function handleInitializeValidatorRegistration(bytes32 validationID, uint64 weight, bytes calldata args) external {
+        uint256 stakeAmount = weightToValue(weight);
+        (uint16 delegationFeeBips, uint64 minStakeDuration) = abi.decode(args, (uint16, uint64));
+        _initializeValidatorRegistration(validationID, stakeAmount, delegationFeeBips, minStakeDuration);
+    }
+
+    function handleCompleteValidatorRegistration(bytes32 validationID) external {
+        // No-op
+    }
+
+    function handleInitializeEndValidation(bytes32 validationID, bytes calldata args) external {
+        (bool force, bool includeUptimeProof, uint32 messageIndex, address rewardRecipient) = abi.decode(args, (bool, bool, uint32, address));
+
+        bool success = _initializeEndPoSValidation(
+            validationID, includeUptimeProof, messageIndex, rewardRecipient
+        );
+        if (force) {
+            return;
+        }
+
+        if (!success) {
+            revert ValidatorIneligibleForRewards(validationID);
+        }
+    }
+
+    function handleCompleteEndValidation(bytes32 validationID) external {
+        _completeEndValidation(validationID);
+    }
+
+    function handleInitializeValidatorWeightChange() external {
+    }
+
+    function handleCompleteValidatorWeightChange() external {
+    }
+
     /**
      * @notice See {IPoSValidatorManager-submitUptimeProof}.
      */
@@ -206,73 +243,6 @@ abstract contract PoSValidatorManager is
         }
 
         _withdrawValidationRewards($._posValidatorInfo[validationID].owner, validationID);
-    }
-
-    /**
-     * @notice See {IPoSValidatorManager-initializeEndValidation}.
-     */
-    function initializeEndValidation(
-        bytes32 validationID,
-        bool includeUptimeProof,
-        uint32 messageIndex
-    ) external {
-        _initializeEndValidationWithCheck(
-            validationID, includeUptimeProof, messageIndex, address(0)
-        );
-    }
-
-    /**
-     * @notice See {IPoSValidatorManager-initializeEndValidation}.
-     */
-    function initializeEndValidation(
-        bytes32 validationID,
-        bool includeUptimeProof,
-        uint32 messageIndex,
-        address rewardRecipient
-    ) external {
-        _initializeEndValidationWithCheck(
-            validationID, includeUptimeProof, messageIndex, rewardRecipient
-        );
-    }
-
-    function _initializeEndValidationWithCheck(
-        bytes32 validationID,
-        bool includeUptimeProof,
-        uint32 messageIndex,
-        address rewardRecipient
-    ) internal {
-        if (
-            !_initializeEndPoSValidation(
-                validationID, includeUptimeProof, messageIndex, rewardRecipient
-            )
-        ) {
-            revert ValidatorIneligibleForRewards(validationID);
-        }
-    }
-
-    /**
-     * @notice See {IPoSValidatorManager-forceInitializeEndValidation}.
-     */
-    function forceInitializeEndValidation(
-        bytes32 validationID,
-        bool includeUptimeProof,
-        uint32 messageIndex
-    ) external {
-        // Ignore the return value here to force end validation, regardless of possible missed rewards
-        _initializeEndPoSValidation(validationID, includeUptimeProof, messageIndex, address(0));
-    }
-
-    /**
-     * @notice See {IPoSValidatorManager-forceInitializeEndValidation}.
-     */
-    function forceInitializeEndValidation(
-        bytes32 validationID,
-        bool includeUptimeProof,
-        uint32 messageIndex,
-        address rewardRecipient
-    ) external {
-        // Ignore the return value here to force end validation, regardless of possible missed rewards
-        _initializeEndPoSValidation(validationID, includeUptimeProof, messageIndex, rewardRecipient);
     }
 
     function changeValidatorRewardRecipient(
@@ -374,13 +344,10 @@ abstract contract PoSValidatorManager is
         return (reward > 0);
     }
 
-    /**
-     * @notice See {IValidatorManager-completeEndValidation}.
-     */
-    function completeEndValidation(uint32 messageIndex) external nonReentrant {
+    function _completeEndValidation(bytes32 validationID) internal {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
-        (bytes32 validationID, Validator memory validator) = _completeEndValidation(messageIndex);
+        Validator memory validator = getValidator(validationID);
 
         // Return now if this was originally a PoA validator that was later migrated to this PoS manager,
         // or the validator was part of the initial validator set.
@@ -450,43 +417,6 @@ abstract contract PoSValidatorManager is
     }
 
     function _initializeValidatorRegistration(
-        ValidatorRegistrationInput calldata registrationInput,
-        uint16 delegationFeeBips,
-        uint64 minStakeDuration,
-        uint256 stakeAmount
-    ) internal virtual returns (bytes32) {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        // Validate and save the validator requirements
-        if (
-            delegationFeeBips < $._minimumDelegationFeeBips
-                || delegationFeeBips > MAXIMUM_DELEGATION_FEE_BIPS
-        ) {
-            revert InvalidDelegationFee(delegationFeeBips);
-        }
-
-        if (minStakeDuration < $._minimumStakeDuration) {
-            revert InvalidMinStakeDuration(minStakeDuration);
-        }
-
-        // Ensure the weight is within the valid range.
-        if (stakeAmount < $._minimumStakeAmount || stakeAmount > $._maximumStakeAmount) {
-            revert InvalidStakeAmount(stakeAmount);
-        }
-
-        // Lock the stake in the contract.
-        uint256 lockedValue = _lock(stakeAmount);
-
-        uint64 weight = valueToWeight(lockedValue);
-        bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
-
-        $._posValidatorInfo[validationID].owner = _msgSender();
-        $._posValidatorInfo[validationID].delegationFeeBips = delegationFeeBips;
-        $._posValidatorInfo[validationID].minStakeDuration = minStakeDuration;
-        $._posValidatorInfo[validationID].uptimeSeconds = 0;
-        return validationID;
-    }
-
-    function _acp99InitValidatorRegistration(
         bytes32 validationID,
         uint256 stakeAmount,
         uint16 delegationFeeBips,

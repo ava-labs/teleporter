@@ -322,7 +322,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     /**
      * @notice See {IValidatorManager-completeValidatorRegistration}.
      */
-    function _completeValidatorRegistration(uint32 messageIndex) internal {
+    function _completeValidatorRegistration(uint32 messageIndex) internal returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         (bytes32 validationID, bool validRegistration) = ValidatorMessages
             .unpackL1ValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
@@ -344,6 +344,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         emit ValidationPeriodRegistered(
             validationID, $._validationPeriods[validationID].weight, block.timestamp
         );
+        return validationID;
     }
 
     /**
@@ -430,7 +431,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
      */
     function _completeEndValidation(uint32 messageIndex)
         internal
-        returns (bytes32, Validator memory)
+        returns (bytes32)
     {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
@@ -467,7 +468,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Emit event.
         emit ValidationPeriodEnded(validationID, validator.status);
 
-        return (validationID, validator);
+        return validationID;
     }
 
     /**

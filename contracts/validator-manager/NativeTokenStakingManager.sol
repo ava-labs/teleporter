@@ -23,8 +23,7 @@ import {Initializable} from
  */
 contract NativeTokenStakingManager is
     Initializable,
-    PoSValidatorManager,
-    INativeTokenStakingManager
+    PoSValidatorManager
 {
     using Address for address payable;
 
@@ -57,19 +56,6 @@ contract NativeTokenStakingManager is
 
     // solhint-disable-next-line func-name-mixedcase, no-empty-blocks
     function __NativeTokenStakingManager_init_unchained() internal onlyInitializing {}
-
-    /**
-     * @notice See {INativeTokenStakingManager-initializeValidatorRegistration}.
-     */
-    function initializeValidatorRegistration(
-        ValidatorRegistrationInput calldata registrationInput,
-        uint16 delegationFeeBips,
-        uint64 minStakeDuration
-    ) external payable nonReentrant returns (bytes32) {
-        return _initializeValidatorRegistration(
-            registrationInput, delegationFeeBips, minStakeDuration, msg.value
-        );
-    }
 
     /**
      * @notice See {INativeTokenStakingManager-initializeDelegatorRegistration}.

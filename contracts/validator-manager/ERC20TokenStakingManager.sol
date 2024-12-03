@@ -16,6 +16,7 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 
+
 /**
  * @dev Implementation of the {IERC20TokenStakingManager} interface.
  *
@@ -23,8 +24,7 @@ import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC
  */
 contract ERC20TokenStakingManager is
     Initializable,
-    PoSValidatorManager,
-    IERC20TokenStakingManager
+    PoSValidatorManager    
 {
     using SafeERC20 for IERC20Mintable;
     using SafeERC20TransferFrom for IERC20Mintable;
@@ -93,20 +93,6 @@ contract ERC20TokenStakingManager is
             revert InvalidTokenAddress(address(token));
         }
         $._token = token;
-    }
-
-    /**
-     * @notice See {IERC20TokenStakingManager-initializeValidatorRegistration}
-     */
-    function initializeValidatorRegistration(
-        ValidatorRegistrationInput calldata registrationInput,
-        uint16 delegationFeeBips,
-        uint64 minStakeDuration,
-        uint256 stakeAmount
-    ) external nonReentrant returns (bytes32 validationID) {
-        return _initializeValidatorRegistration(
-            registrationInput, delegationFeeBips, minStakeDuration, stakeAmount
-        );
     }
 
     /**

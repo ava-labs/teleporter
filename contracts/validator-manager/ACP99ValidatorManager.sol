@@ -9,7 +9,7 @@ import {ConversionData,ValidatorRegistrationInput} from "./interfaces/IValidator
 
 pragma solidity 0.8.25;
 
-contract ACP99ValidatorManager is ValidatorManager{
+abstract contract ACP99ValidatorManager is ValidatorManager {
     IACP99SecurityModule public securityModule;
 
     // TODO: calling this should be restricted to...who?
@@ -30,17 +30,24 @@ contract ACP99ValidatorManager is ValidatorManager{
         bytes calldata args
     ) external returns (bytes32){
         bytes32 validationID = _initializeValidatorRegistration(input, weight);
-        securityModule.handleValidatorRegistration(validationID, weight, args);
+        securityModule.handleInitializeValidatorRegistration(validationID, weight, args);
         return validationID;
     }
 
     function completeValidatorRegistration(uint32 messageIndex) external{
-        _completeValidatorRegistration(messageIndex);
+        bytes32 validationID = _completeValidatorRegistration(messageIndex);
+        securityModule.handleCompleteValidatorRegistration(validationID);
     }
 
-    function initializeEndValidation() external{}
+    function initializeEndValidation(bytes32 validationID, bytes calldata args) external{
+        _initializeEndValidation(validationID);
+        securityModule.handleInitializeEndValidation(validationID, args);
+    }
 
-    function completeEndValidation() external{}
+    function completeEndValidation(uint32 messageIndex) external{
+        bytes32 validationID = _completeEndValidation(messageIndex);
+        securityModule.handleCompleteEndValidation(validationID);
+    }
 
     function initializeValidatorWeightChange() external{}
 

@@ -7,14 +7,20 @@ pragma solidity 0.8.25;
 
 interface IACP99SecurityModule {
     // Called by the ValidatorManager on initializeRegisterValidator
-    function handleValidatorRegistration(
+    function handleInitializeValidatorRegistration(
         bytes32 validationID,
         uint64 weight,
         bytes calldata args
     ) external;
 
-    function handleEndValidation() external;
+    function handleCompleteValidatorRegistration(bytes32 validationID) external;
+
+    function handleInitializeEndValidation(bytes32 validationID, bytes calldata args) external;
+
+    function handleCompleteEndValidation(bytes32 validationID) external;
 
     // Called by the ValidatorManager on initializeSetValidatorWeight
-    function handleValidatorWeightChange() external;
+    function handleInitializeValidatorWeightChange() external;
+
+    function handleCompleteValidatorWeightChange() external;
 }
