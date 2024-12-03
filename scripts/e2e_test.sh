@@ -4,7 +4,7 @@
 
 set -e
 
-TELEPORTER_PATH=$(
+ICM_CONTRACTS_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd ../ && pwd
 )
@@ -26,7 +26,7 @@ Options:
 EOF
 }
 
-valid_components=$(ls -d $TELEPORTER_PATH/tests/suites/*/ | xargs -n 1 basename)
+valid_components=$(ls -d $ICM_CONTRACTS_PATH/tests/suites/*/ | xargs -n 1 basename)
 components=
 
 while [ $# -gt 0 ]; do
@@ -58,23 +58,23 @@ for component in $(echo $components | tr ',' ' '); do
     fi
 done
 
-source "$TELEPORTER_PATH"/scripts/constants.sh
-source "$TELEPORTER_PATH"/scripts/versions.sh
+source "$ICM_CONTRACTS_PATH"/scripts/constants.sh
+source "$ICM_CONTRACTS_PATH"/scripts/versions.sh
 
 BASEDIR=${BASEDIR:-"$HOME/.teleporter-deps"}
 
 cwd=$(pwd)
 # Install the avalanchego and subnet-evm binaries
 rm -rf $BASEDIR/avalanchego
-BASEDIR=$BASEDIR AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego "${TELEPORTER_PATH}/scripts/install_avalanchego_release.sh"
-BASEDIR=$BASEDIR "${TELEPORTER_PATH}/scripts/install_subnetevm_release.sh"
+BASEDIR=$BASEDIR AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego "${ICM_CONTRACTS_PATH}/scripts/install_avalanchego_release.sh"
+BASEDIR=$BASEDIR "${ICM_CONTRACTS_PATH}/scripts/install_subnetevm_release.sh"
 
 cp ${BASEDIR}/subnet-evm/subnet-evm ${BASEDIR}/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
 echo "Copied ${BASEDIR}/subnet-evm/subnet-evm binary to ${BASEDIR}/avalanchego/plugins/"
 
 export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
 
-cd $TELEPORTER_PATH
+cd $ICM_CONTRACTS_PATH
 if command -v forge &> /dev/null; then
   forge build --skip test
 else
@@ -82,7 +82,7 @@ else
   $HOME/.foundry/bin/forge build
 fi
 
-cd "$TELEPORTER_PATH"
+cd "$ICM_CONTRACTS_PATH"
 # Build ginkgo
 # to install the ginkgo binary (required for test build and run)
 go install -v github.com/onsi/ginkgo/v2/ginkgo@${GINKGO_VERSION}
