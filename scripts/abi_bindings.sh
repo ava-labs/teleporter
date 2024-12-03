@@ -4,13 +4,13 @@
 
 set -e
 
-TELEPORTER_PATH=$(
+ICM_CONTRACTS_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
 
-source $TELEPORTER_PATH/scripts/constants.sh
-source $TELEPORTER_PATH/scripts/versions.sh
+source $ICM_CONTRACTS_PATH/scripts/constants.sh
+source $ICM_CONTRACTS_PATH/scripts/versions.sh
 
 export ARCH=$(uname -m)
 [ $ARCH = x86_64 ] && ARCH=amd64
@@ -47,7 +47,7 @@ if [ "$HELP" = true ]; then
 fi
 
 if ! command -v forge &> /dev/null; then
-    echo "forge not found. You can install by calling $TELEPORTER_PATH/scripts/install_foundry.sh" && exit 1
+    echo "forge not found. You can install by calling $ICM_CONTRACTS_PATH/scripts/install_foundry.sh" && exit 1
 fi
 
 if ! command -v solc &> /dev/null; then
@@ -70,12 +70,12 @@ echo "Building subnet-evm abigen"
 go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 
 # Solc does not recursively expand remappings, so we must construct them manually
-remappings=$(cat $TELEPORTER_PATH/remappings.txt)
+remappings=$(cat $ICM_CONTRACTS_PATH/remappings.txt)
 
 # Recursively search for all remappings.txt files in the lib directory.
 # For each file, prepend the remapping with the relative path to the file.
 while read -r filepath; do
-    relative_path="${filepath#$TELEPORTER_PATH/}"
+    relative_path="${filepath#$ICM_CONTRACTS_PATH/}"
     dir_path=$(dirname "$relative_path")
     echo $dir_path
   
@@ -83,7 +83,7 @@ while read -r filepath; do
     # so that each remapping is of the form @token=lib/path/to/remapping
     transformed_lines=$(sed -n "s|^\(@[^=]*=\)\(.*\)|\1$dir_path/\2|p" "$filepath")
     remappings+=" $transformed_lines "
-done < <(find "$TELEPORTER_PATH/lib" -type f -name "remappings.txt" )
+done < <(find "$ICM_CONTRACTS_PATH/lib" -type f -name "remappings.txt" )
 
 function convertToLower() {
     if [ "$ARCH" = 'arm64' ]; then
@@ -125,12 +125,12 @@ function generate_bindings() {
         dir="${dir#./}"
 
         echo "Building $contract_name..."
-        mkdir -p $TELEPORTER_PATH/out/$contract_name.sol
+        mkdir -p $ICM_CONTRACTS_PATH/out/$contract_name.sol
         
-        combined_json=$TELEPORTER_PATH/out/$contract_name.sol/combined-output.json
+        combined_json=$ICM_CONTRACTS_PATH/out/$contract_name.sol/combined-output.json
 
         cwd=$(pwd)
-        cd $TELEPORTER_PATH
+        cd $ICM_CONTRACTS_PATH
         solc --optimize --evm-version $EVM_VERSION --combined-json abi,bin,metadata,ast,devdoc,userdoc --pretty-json $cwd/$dir/$contract_name.sol $remappings > $combined_json
         cd $cwd
 
@@ -140,7 +140,7 @@ function generate_bindings() {
         # Filter out the contract we are generating bindings for
         filtered_contracts=$(remove_matching_string $contracts $contract_name)
         
-        gen_path=$TELEPORTER_PATH/abi-bindings/go/$dir/$contract_name
+        gen_path=$ICM_CONTRACTS_PATH/abi-bindings/go/$dir/$contract_name
         mkdir -p $gen_path
         echo "Generating Go bindings for $contract_name..."
         
@@ -174,15 +174,15 @@ if [[ -z "${CONTRACT_LIST}" ]]; then
     contract_names=($DEFAULT_CONTRACT_LIST)
 fi
 
-cd $TELEPORTER_PATH/contracts
+cd $ICM_CONTRACTS_PATH/contracts
 generate_bindings "${contract_names[@]}"
 
 contract_names=($PROXY_LIST)
-cd $TELEPORTER_PATH/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/proxy/transparent
+cd $ICM_CONTRACTS_PATH/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/proxy/transparent
 generate_bindings "${contract_names[@]}"
 
 contract_names=($SUBNET_EVM_LIST)
-cd $TELEPORTER_PATH/lib/subnet-evm/contracts/contracts/interfaces
+cd $ICM_CONTRACTS_PATH/lib/subnet-evm/contracts/contracts/interfaces
 generate_bindings "${contract_names[@]}"
 
 exit 0

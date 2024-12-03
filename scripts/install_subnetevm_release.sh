@@ -6,12 +6,12 @@
 set -e
 
 # Load the versions
-TELEPORTER_PATH=$(
+ICM_CONTRACTS_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
-source "$TELEPORTER_PATH"/scripts/versions.sh
-source "$TELEPORTER_PATH"/scripts/constants.sh
+source "$ICM_CONTRACTS_PATH"/scripts/versions.sh
+source "$ICM_CONTRACTS_PATH"/scripts/constants.sh
 
 ############################
 # download subnet-evm
