@@ -191,5 +191,5 @@ forge verify-contract 0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf \
  --rpc-url <YOUR_RPC_URL>    \
  --verifier sourcify \
  --compiler-version v0.8.18+commit.87f61d96 \
-  --num-of-optimizations 200 \
+ --num-of-optimizations 200 \
 ```
