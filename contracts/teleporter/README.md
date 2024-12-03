@@ -187,7 +187,7 @@ cd contracts
 
 forge verify-contract 0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf \
  src/teleporter/TeleporterMessenger.sol:TeleporterMessenger \
- --chain-id 13337 \
+ --chain-id <YOUR_CHAIN_ID> \
  --rpc-url <YOUR_RPC_URL>    \
  --verifier sourcify \
  --compiler-version v0.8.18+commit.87f61d96 \
