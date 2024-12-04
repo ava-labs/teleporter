@@ -12,7 +12,7 @@ import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 /**
  * @title NativeTokenRemote
  * @notice A non-upgradeable version of {NativeTokenRemoteUpgradeable} that calls the parent upgradeable contract's initialize function.
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 contract NativeTokenRemote is NativeTokenRemoteUpgradeable {
     constructor(

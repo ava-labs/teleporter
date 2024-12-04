@@ -28,7 +28,7 @@ import {ReentrancyGuardUpgradeable} from
 /**
  * @dev Implementation of the {IPoSValidatorManager} interface.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 abstract contract PoSValidatorManager is
     IPoSValidatorManager,

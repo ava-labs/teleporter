@@ -9,7 +9,7 @@ import (
 	"os"
 	"strconv"
 
-	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
+	deploymentUtils "github.com/ava-labs/icm-contracts/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 )

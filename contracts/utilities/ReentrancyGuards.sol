@@ -14,7 +14,7 @@ pragma solidity 0.8.25;
  * Calls between send and receive functions should also be allowed, but not in the case it ends up being a recursive
  * send or receive call. For example the following should fail: send -> receive -> send.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 abstract contract ReentrancyGuards {
     // Send and Receive reentrancy guards

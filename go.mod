@@ -1,4 +1,4 @@
-module github.com/ava-labs/teleporter
+module github.com/ava-labs/icm-contracts
 
 go 1.22.10
 

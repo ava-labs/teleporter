@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/ava-labs/avalanchego/utils/logging"
+	teleportermessenger "github.com/ava-labs/icm-contracts/abi-bindings/go/teleporter/TeleporterMessenger"
 	"github.com/ava-labs/subnet-evm/accounts/abi"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	"github.com/spf13/cobra"
 )
 

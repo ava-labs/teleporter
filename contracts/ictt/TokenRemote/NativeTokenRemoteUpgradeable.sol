@@ -34,7 +34,7 @@ import {ICMInitializable} from "@utilities/ICMInitializable.sol";
  * @title NativeTokenRemoteUpgradeable
  * @notice This contract is an {INativeTokenRemote} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens as the native token on this chain.
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 contract NativeTokenRemoteUpgradeable is
     INativeTokenRemote,

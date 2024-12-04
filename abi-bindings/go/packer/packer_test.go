@@ -13,9 +13,9 @@ import (
 	"reflect"
 	"testing"
 
-	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/registry/TeleporterRegistry"
+	validatorsetsig "github.com/ava-labs/icm-contracts/abi-bindings/go/governance/ValidatorSetSig"
+	teleportermessenger "github.com/ava-labs/icm-contracts/abi-bindings/go/teleporter/TeleporterMessenger"
+	teleporterregistry "github.com/ava-labs/icm-contracts/abi-bindings/go/teleporter/registry/TeleporterRegistry"
 
 	"github.com/stretchr/testify/require"
 	"golang.org/x/tools/go/packages"

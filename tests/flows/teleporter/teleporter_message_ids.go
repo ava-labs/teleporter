@@ -7,10 +7,10 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
+	localnetwork "github.com/ava-labs/icm-contracts/tests/network"
+	"github.com/ava-labs/icm-contracts/tests/utils"
+	teleporterutils "github.com/ava-labs/icm-contracts/utils/teleporter-utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	localnetwork "github.com/ava-labs/teleporter/tests/network"
-	"github.com/ava-labs/teleporter/tests/utils"
-	teleporterutils "github.com/ava-labs/teleporter/utils/teleporter-utils"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )

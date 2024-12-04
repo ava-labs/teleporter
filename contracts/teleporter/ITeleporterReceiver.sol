@@ -8,7 +8,7 @@ pragma solidity 0.8.25;
 /**
  * @dev Interface that cross-chain applications must implement to receive messages from Teleporter.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 interface ITeleporterReceiver {
     /**

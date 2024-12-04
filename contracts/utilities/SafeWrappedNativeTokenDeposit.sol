@@ -17,7 +17,7 @@ import {IWrappedNativeToken} from "../ictt/interfaces/IWrappedNativeToken.sol";
  * Note: A reentrancy guard must always be used when calling token.safeDeposit in order to
  * prevent against possible "before-after" pattern vulnerabilities.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 library SafeWrappedNativeTokenDeposit {
     /**

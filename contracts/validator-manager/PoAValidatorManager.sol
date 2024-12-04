@@ -18,7 +18,7 @@ import {OwnableUpgradeable} from
 /**
  * @dev Implementation of the {IPoAValidatorManager} interface.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 contract PoAValidatorManager is IPoAValidatorManager, ValidatorManager, OwnableUpgradeable {
     constructor(ICMInitializable init) {

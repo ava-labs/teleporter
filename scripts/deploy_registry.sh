@@ -23,7 +23,7 @@ function printHelp() {
     echo "Usage: ./scripts/deploy_registry.sh --version <version> --rpc-url <url> --private-key <private_key> [OPTIONS]"
     echo ""
     echo "Deploys a selected TeleporterRegistry contract to the specified chain"
-    echo "For a list of releases, go to https://github.com/ava-labs/teleporter/releases"
+    echo "For a list of releases, go to https://github.com/ava-labs/icm-contracts/releases"
     printUsage
 }
 
@@ -78,8 +78,8 @@ if [[ $teleporter_version == "" || $rpc_url == "" || $user_private_key == "" ]];
     printHelp && exit 1
 fi
 
-teleporter_registry_bytecode=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterRegistry_Bytecode_$teleporter_version.txt)
-teleporter_contract_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Contract_Address_$teleporter_version.txt)
+teleporter_registry_bytecode=$(curl -sL https://github.com/ava-labs/icm-contracts/releases/download/$teleporter_version/TeleporterRegistry_Bytecode_$teleporter_version.txt)
+teleporter_contract_address=$(curl -sL https://github.com/ava-labs/icm-contracts/releases/download/$teleporter_version/TeleporterMessenger_Contract_Address_$teleporter_version.txt)
 if [ "$teleporter_registry_bytecode" == "Not Found" ]; then
     echo "Error: TeleporterRegistry $teleporter_version byte code not found."
     exit 1

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	governanceFlows "github.com/ava-labs/teleporter/tests/flows/governance"
-	localnetwork "github.com/ava-labs/teleporter/tests/network"
+	governanceFlows "github.com/ava-labs/icm-contracts/tests/flows/governance"
+	localnetwork "github.com/ava-labs/icm-contracts/tests/network"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

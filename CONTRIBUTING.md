@@ -12,12 +12,12 @@ To start developing on Teleporter, you'll need Solidity >= v0.8.25. [Foundry](ht
 
 ### Making an Issue
 
-- Check that the issue you're filing doesn't already exist by searching under [issues](https://github.com/ava-labs/teleporter/issues).
-- If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/ava-labs/teleporter/issues/new/choose). Be sure to include a _title and clear description_ with as much relevant information as possible.
+- Check that the issue you're filing doesn't already exist by searching under [issues](https://github.com/ava-labs/icm-contracts/issues).
+- If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/ava-labs/icm-contracts/issues/new/choose). Be sure to include a _title and clear description_ with as much relevant information as possible.
 
 ## Features
 
-- If you want to start a discussion about the development of a new feature or the modfiication of an existing one, start a thread under GitHub [discussions](https://github.com/ava-labs/teleporter/discussions/categories/ideas).
+- If you want to start a discussion about the development of a new feature or the modfiication of an existing one, start a thread under GitHub [discussions](https://github.com/ava-labs/icm-contracts/discussions/categories/ideas).
 - Post a thread about your idea and why it should be added to Teleporter.
 - Don't start working on a pull request until you've received positive feedback from the maintainers.
 
@@ -49,4 +49,4 @@ See [E2E Tests](./README.md#e2e-tests)
 
 ### Do you have questions about the source code?
 
-- Ask any question about ICM or ICM contracts under GitHub [discussions](https://github.com/ava-labs/teleporter/discussions/categories/q-a).
+- Ask any question about ICM or ICM contracts under GitHub [discussions](https://github.com/ava-labs/icm-contracts/discussions/categories/q-a).
