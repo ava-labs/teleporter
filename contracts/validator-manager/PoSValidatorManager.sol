@@ -100,8 +100,13 @@ abstract contract PoSValidatorManager is
     error InvalidUptimeBlockchainID(bytes32 uptimeBlockchainID);
 
     // solhint-disable ordering
+    /**
+     * @dev This storage is visible to child contracts for convenience.
+     *      External getters would be better practice, but code size limitations are preventing this.
+     *      Child contracts should probably never write to this storage.
+     */
     function _getPoSValidatorManagerStorage()
-        private
+        internal
         pure
         returns (PoSValidatorManagerStorage storage $)
     {
