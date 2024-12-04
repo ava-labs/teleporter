@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
+	testmessenger "github.com/ava-labs/icm-contracts/abi-bindings/go/teleporter/tests/TestMessenger"
+	localnetwork "github.com/ava-labs/icm-contracts/tests/network"
+	"github.com/ava-labs/icm-contracts/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/tests/TestMessenger"
-	localnetwork "github.com/ava-labs/teleporter/tests/network"
-	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"

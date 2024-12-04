@@ -1,6 +1,6 @@
-module github.com/ava-labs/teleporter
+module github.com/ava-labs/icm-contracts
 
-go 1.22.8
+go 1.22.10
 
 require (
 	github.com/ava-labs/avalanchego v1.12.0-initial-poc.9.0.20241122192639-7c3ad181c928

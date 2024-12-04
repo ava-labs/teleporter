@@ -4,10 +4,10 @@ import (
 	"context"
 	"crypto/ecdsa"
 
+	proxyadmin "github.com/ava-labs/icm-contracts/abi-bindings/go/ProxyAdmin"
+	transparentupgradeableproxy "github.com/ava-labs/icm-contracts/abi-bindings/go/TransparentUpgradeableProxy"
+	"github.com/ava-labs/icm-contracts/tests/interfaces"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	proxyadmin "github.com/ava-labs/teleporter/abi-bindings/go/ProxyAdmin"
-	transparentupgradeableproxy "github.com/ava-labs/teleporter/abi-bindings/go/TransparentUpgradeableProxy"
-	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"

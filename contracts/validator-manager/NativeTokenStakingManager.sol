@@ -19,7 +19,7 @@ import {Initializable} from
 /**
  * @dev Implementation of the {INativeTokenStakingManager} interface.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 contract NativeTokenStakingManager is
     Initializable,

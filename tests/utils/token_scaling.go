@@ -4,9 +4,9 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
+	erc20tokenhome "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
+	nativetokenhome "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
-	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
 	"github.com/ethereum/go-ethereum/common"
 
 	. "github.com/onsi/gomega"

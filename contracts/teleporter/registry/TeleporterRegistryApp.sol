@@ -21,7 +21,7 @@ import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
  * upgrade mechanism. It provides an interface that restricts access to only Teleporter
  * versions that are greater than or equal to `minTeleporterVersion`.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 abstract contract TeleporterRegistryApp is Context, ITeleporterReceiver, ReentrancyGuard {
     using SafeERC20 for IERC20;

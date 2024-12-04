@@ -25,7 +25,7 @@ import {Initializable} from
  * upgrade mechanism. It provides an interface that restricts access to only Teleporter
  * versions that are greater than or equal to `minTeleporterVersion`.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 abstract contract TeleporterRegistryAppUpgradeable is
     Initializable,

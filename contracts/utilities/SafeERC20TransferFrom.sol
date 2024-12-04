@@ -18,7 +18,7 @@ import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC
  * Note: A reentrancy guard must always be used when calling token.safeTransferFrom in order to
  * prevent against possible "before-after" pattern vulnerabilities.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 library SafeERC20TransferFrom {
     using SafeERC20 for IERC20;

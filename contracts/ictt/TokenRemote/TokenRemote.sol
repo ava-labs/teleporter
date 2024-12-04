@@ -30,7 +30,7 @@ import {TokenScalingUtils} from "@utilities/TokenScalingUtils.sol";
  * @dev Abstract contract for a token transferrer remote that receives tokens from its specified token TokenHome instance, and
  * allows for burning that token to redeem the backing asset on the home chain, or transferring to other remotes.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 abstract contract TokenRemote is
     ITokenRemote,

@@ -19,7 +19,7 @@ import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC
 /**
  * @dev Implementation of the {IERC20TokenStakingManager} interface.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 contract ERC20TokenStakingManager is
     Initializable,

@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
-	nativetokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
-	nativetokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/NativeTokenRemote"
-	localnetwork "github.com/ava-labs/teleporter/tests/network"
-	"github.com/ava-labs/teleporter/tests/utils"
+	nativetokenhome "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
+	nativetokenremote "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/TokenRemote/NativeTokenRemote"
+	localnetwork "github.com/ava-labs/icm-contracts/tests/network"
+	"github.com/ava-labs/icm-contracts/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )

@@ -23,7 +23,7 @@ import {ICMInitializable} from "@utilities/ICMInitializable.sol";
  * @title NativeTokenHomeUpgradeable
  * @notice An {INativeTokenHome} implementation that locks the native token of this chain to be transferred to
  * TokenRemote instances on other chains.
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
     using Address for address payable;
@@ -68,7 +68,7 @@ contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
      * @notice Initializes this token TokenHome instance to send native tokens to TokenRemote instances on other chains.
      * Always uses a {tokenDecimals} value of 18 since it is the denomination of the native token of EVM instances.
      * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
-     * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/teleporter/registry
+     * address. See here for details: https://github.com/ava-labs/icm-contracts/tree/main/contracts/teleporter/registry
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
      * @param minTeleporterVersion Minimum Teleporter version supported by this contract.

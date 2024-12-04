@@ -45,7 +45,7 @@ struct ValidatorSetSigMessage {
  * to deploy an `Ownable` target contract that is owned by an instance of this contract and adding the
  * `onlyOwner` modifier to the functions that should be governed.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 contract ValidatorSetSig is ReentrancyGuard {
     /**

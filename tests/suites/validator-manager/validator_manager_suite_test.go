@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	validatorManagerFlows "github.com/ava-labs/teleporter/tests/flows/validator-manager"
-	localnetwork "github.com/ava-labs/teleporter/tests/network"
+	validatorManagerFlows "github.com/ava-labs/icm-contracts/tests/flows/validator-manager"
+	localnetwork "github.com/ava-labs/icm-contracts/tests/network"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

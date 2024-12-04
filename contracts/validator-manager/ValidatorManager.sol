@@ -29,7 +29,7 @@ import {Initializable} from
 /**
  * @dev Implementation of the {IValidatorManager} interface.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/icm-contracts/blob/main/SECURITY.md
  */
 abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValidatorManager {
     // solhint-disable private-vars-leading-underscore

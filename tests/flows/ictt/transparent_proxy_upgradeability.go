@@ -4,12 +4,12 @@ import (
 	"context"
 	"math/big"
 
+	erc20tokenhome "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
+	erc20tokenhomeupgradeable "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/TokenHome/ERC20TokenHomeUpgradeable"
+	erc20tokenremote "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/TokenRemote/ERC20TokenRemote"
+	localnetwork "github.com/ava-labs/icm-contracts/tests/network"
+	"github.com/ava-labs/icm-contracts/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	erc20tokenhome "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
-	erc20tokenhomeupgradeable "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenHome/ERC20TokenHomeUpgradeable"
-	erc20tokenremote "github.com/ava-labs/teleporter/abi-bindings/go/ictt/TokenRemote/ERC20TokenRemote"
-	localnetwork "github.com/ava-labs/teleporter/tests/network"
-	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
