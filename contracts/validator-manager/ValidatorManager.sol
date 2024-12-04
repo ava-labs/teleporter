@@ -88,6 +88,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     // solhint-disable ordering
     /**
      * @dev This storage is visible to child contracts for convenience.
+     *      External getters would be better practice, but code size limitations are preventing this.
      *      Child contracts should probably never write to this storage.
      */
     function _getValidatorManagerStorage()
