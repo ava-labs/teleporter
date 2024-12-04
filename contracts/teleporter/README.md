@@ -14,6 +14,7 @@
 - [Upgradability](#upgradability)
 - [Deploy TeleporterMessenger to an L1](#deploy-teleportermessenger-to-an-avalanche-l1)
 - [Deploy TeleporterRegistry to an L1](#deploy-teleporterregistry-to-an-avalanche-l1)
+- [Verify a Deployment of TeleporterMessenger](#verify-a-deployment-of-teleporterMessenger)
 
 ## Overview
 
@@ -174,3 +175,21 @@ Required arguments:
 - `--private-key <private_key>` Funds the deployer address with the account held by `<private_key>`
 
 `deploy_registry.sh` will deploy a new `TeleporterRegistry` contract for the intended release version, and will also have the corresponding `TeleporterMessenger` contract registered as the initial protocol version.
+
+## Verify a Deployment of TeleporterMessenger
+
+`TeleporterMessenger` can be verified on L1s using sourcify. `v1.0.0` of this repository must be checked out in order to match the source code properly.
+
+```bash
+git checkout v1.0.0
+git submodule update --init --recursive
+cd contracts
+
+forge verify-contract 0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf \
+ src/teleporter/TeleporterMessenger.sol:TeleporterMessenger \
+ --chain-id <YOUR_CHAIN_ID> \
+ --rpc-url <YOUR_RPC_URL>    \
+ --verifier sourcify \
+ --compiler-version v0.8.18+commit.87f61d96 \
+ --num-of-optimizations 200 \
+```
