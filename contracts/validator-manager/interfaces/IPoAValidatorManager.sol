@@ -5,12 +5,12 @@
 
 pragma solidity 0.8.25;
 
-import {IValidatorManager, ValidatorRegistrationInput} from "./IValidatorManager.sol";
+import {ValidatorRegistrationInput} from "./IACP99ValidatorManager.sol";
 
 /**
  * @notice Interface for Proof of Authority Validator Manager contracts
  */
-interface IPoAValidatorManager is IValidatorManager {
+interface IPoAValidatorManager {
     /**
      * @notice Begins the validator registration process, and sets the {weight} of the validator.
      * @param registrationInput The inputs for a validator registration.

@@ -7,15 +7,9 @@ pragma solidity 0.8.25;
 
 import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {
-    InitialValidator,
     IValidatorManager,
-    PChainOwner,
-    ConversionData,
-    Validator,
     ValidatorChurnPeriod,
-    ValidatorManagerSettings,
-    ValidatorRegistrationInput,
-    ValidatorStatus
+    ValidatorManagerSettings
 } from "./interfaces/IValidatorManager.sol";
 import {
     IWarpMessenger,
@@ -25,17 +19,19 @@ import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
-
+import {IACP99ValidatorManager, Validator, ValidatorStatus, ValidatorRegistrationInput, ConversionData, PChainOwner, InitialValidator} from "./interfaces/IACP99ValidatorManager.sol";
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 /**
  * @dev Implementation of the {IValidatorManager} interface.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValidatorManager {
+contract ValidatorManager is IACP99ValidatorManager, Initializable, ContextUpgradeable, IValidatorManager {
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
 
     struct ValidatorManagerStorage {
+        address securityModule;
         /// @notice The subnetID associated with this validator manager.
         bytes32 _subnetID;
         /// @notice The number of seconds after which to reset the churn tracker.
@@ -103,17 +99,27 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     IWarpMessenger public constant WARP_MESSENGER =
         IWarpMessenger(0x0200000000000000000000000000000000000005);
 
+    constructor(ICMInitializable init) {
+        if (init == ICMInitializable.Disallowed) {
+            _disableInitializers();
+        }
+    }
+
+    function initialize(ValidatorManagerSettings calldata settings, address securityModule) external initializer {
+        __ValidatorManager_init(settings, securityModule);
+    }
+
     // solhint-disable-next-line func-name-mixedcase
-    function __ValidatorManager_init(ValidatorManagerSettings calldata settings)
+    function __ValidatorManager_init(ValidatorManagerSettings calldata settings, address securityModule)
         internal
         onlyInitializing
     {
         __Context_init();
-        __ValidatorManager_init_unchained(settings);
+        __ValidatorManager_init_unchained(settings, securityModule);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __ValidatorManager_init_unchained(ValidatorManagerSettings calldata settings)
+    function __ValidatorManager_init_unchained(ValidatorManagerSettings calldata settings, address securityModule)
         internal
         onlyInitializing
     {
@@ -129,6 +135,35 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
 
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
         $._churnPeriodSeconds = settings.churnPeriodSeconds;
+        $.securityModule = securityModule;
+    }
+
+    // ACP-99 methods
+    // TODO: calling this should be restricted to...who?
+    function setSecurityModule(address securityModule) external {
+        _getValidatorManagerStorage().securityModule = securityModule;
+    }
+
+    function getSecurityModule() external view returns (address) {
+        return _getValidatorManagerStorage().securityModule;
+    }
+
+    modifier onlySecurityModule() {
+        require(msg.sender == _getValidatorManagerStorage().securityModule, "ACP99ValidatorManager: caller is not the security module");
+        _;
+    }
+
+    function initializeEndValidation(bytes32 validationID) external onlySecurityModule{
+        _initializeEndValidation(validationID);
+    }
+
+    function initializeValidatorWeightChange(bytes32 validationID, uint64 weight) external onlySecurityModule returns (uint64) {
+        (uint64 nonce, ) = _setValidatorWeight(validationID, weight);
+        return nonce;
+    }
+
+    function completeValidatorWeightChange(bytes32 validationID) external onlySecurityModule {
+        // TODO: implement
     }
 
     modifier initializedValidatorSet() {
@@ -139,7 +174,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     }
 
     /**
-     * @notice See {IValidatorManager-initializeValidatorSet}.
+     * @notice See {IACP99ValidatorManager-initializeValidatorSet}.
      */
     function initializeValidatorSet(
         ConversionData calldata conversionData,
@@ -233,10 +268,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
      * @param input The inputs for a validator registration.
      * @param weight The weight of the validator being registered.
      */
-    function _initializeValidatorRegistration(
+    function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata input,
         uint64 weight
-    ) internal virtual initializedValidatorSet returns (bytes32) {
+    ) external onlySecurityModule initializedValidatorSet returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         if (
@@ -319,9 +354,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     }
 
     /**
-     * @notice See {IValidatorManager-completeValidatorRegistration}.
+     * @notice See {IACP99ValidatorManager-completeValidatorRegistration}.
      */
-    function completeValidatorRegistration(uint32 messageIndex) external {
+    function completeValidatorRegistration(uint32 messageIndex) external onlySecurityModule returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         (bytes32 validationID, bool validRegistration) = ValidatorMessages
             .unpackL1ValidatorRegistrationMessage(_getPChainWarpMessage(messageIndex).payload);
@@ -343,6 +378,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         emit ValidationPeriodRegistered(
             validationID, $._validationPeriods[validationID].weight, block.timestamp
         );
+        return validationID;
     }
 
     /**
@@ -427,9 +463,10 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
      * {registrationExpiry} being reached.
      * @return (Validation ID, Validator instance) representing the completed validation period.
      */
-    function _completeEndValidation(uint32 messageIndex)
-        internal
-        returns (bytes32, Validator memory)
+    function completeEndValidation(uint32 messageIndex)
+        external
+        onlySecurityModule
+        returns (bytes32)
     {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
@@ -466,7 +503,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         // Emit event.
         emit ValidationPeriodEnded(validationID, validator.status);
 
-        return (validationID, validator);
+        return validationID;
     }
 
     /**
@@ -532,7 +569,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         return (nonce, messageID);
     }
 
-    function _getChurnPeriodSeconds() internal view returns (uint64) {
+    function getChurnPeriodSeconds() external view returns (uint64) {
         return _getValidatorManagerStorage()._churnPeriodSeconds;
     }
 

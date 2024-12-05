@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {ValidatorRegistrationInput} from "./IValidatorManager.sol";
+import {ValidatorRegistrationInput} from "./IACP99ValidatorManager.sol";
 import {IPoSValidatorManager} from "./IPoSValidatorManager.sol";
 
 /**
