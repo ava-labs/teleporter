@@ -8,10 +8,8 @@ pragma solidity 0.8.25;
 import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {
     IValidatorManager,
-    Validator,
     ValidatorChurnPeriod,
-    ValidatorManagerSettings,
-    ValidatorStatus
+    ValidatorManagerSettings
 } from "./interfaces/IValidatorManager.sol";
 import {
     IWarpMessenger,
@@ -21,19 +19,20 @@ import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
+import {IACP99ValidatorManager, Validator, ValidatorStatus, ValidatorRegistrationInput, ConversionData, PChainOwner, InitialValidator} from "./interfaces/IACP99ValidatorManager.sol";
 import {IACP99SecurityModule} from "./interfaces/IACP99SecurityModule.sol";
-import {ValidatorRegistrationInput, ConversionData, PChainOwner, InitialValidator} from "./interfaces/IACP99ValidatorManager.sol";
-
+import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 /**
  * @dev Implementation of the {IValidatorManager} interface.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-contract ValidatorManager is Initializable, ContextUpgradeable, IValidatorManager {
+contract ValidatorManager is IACP99ValidatorManager, Initializable, ContextUpgradeable, IValidatorManager {
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
 
     struct ValidatorManagerStorage {
+        IACP99SecurityModule securityModule;
         /// @notice The subnetID associated with this validator manager.
         bytes32 _subnetID;
         /// @notice The number of seconds after which to reset the churn tracker.
@@ -101,17 +100,27 @@ contract ValidatorManager is Initializable, ContextUpgradeable, IValidatorManage
     IWarpMessenger public constant WARP_MESSENGER =
         IWarpMessenger(0x0200000000000000000000000000000000000005);
 
+    constructor(ICMInitializable init) {
+        if (init == ICMInitializable.Disallowed) {
+            _disableInitializers();
+        }
+    }
+
+    function initialize(ValidatorManagerSettings calldata settings, IACP99SecurityModule securityModule) external initializer {
+        __ValidatorManager_init(settings, securityModule);
+    }
+
     // solhint-disable-next-line func-name-mixedcase
-    function __ValidatorManager_init(ValidatorManagerSettings calldata settings)
+    function __ValidatorManager_init(ValidatorManagerSettings calldata settings, IACP99SecurityModule securityModule)
         internal
         onlyInitializing
     {
         __Context_init();
-        __ValidatorManager_init_unchained(settings);
+        __ValidatorManager_init_unchained(settings, securityModule);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __ValidatorManager_init_unchained(ValidatorManagerSettings calldata settings)
+    function __ValidatorManager_init_unchained(ValidatorManagerSettings calldata settings, IACP99SecurityModule securityModule)
         internal
         onlyInitializing
     {
@@ -127,6 +136,56 @@ contract ValidatorManager is Initializable, ContextUpgradeable, IValidatorManage
 
         $._maximumChurnPercentage = settings.maximumChurnPercentage;
         $._churnPeriodSeconds = settings.churnPeriodSeconds;
+        $.securityModule = securityModule;
+    }
+
+    // ACP-99 methods
+    // TODO: calling this should be restricted to...who?
+    function setSecurityModule(IACP99SecurityModule securityModule) external {
+        _getValidatorManagerStorage().securityModule = securityModule;
+    }
+
+    function getSecurityModule() external view returns (IACP99SecurityModule) {
+        return _getValidatorManagerStorage().securityModule;
+    }
+
+    modifier onlySecurityModule() {
+        require(msg.sender == address(_getValidatorManagerStorage().securityModule), "ACP99ValidatorManager: caller is not the security module");
+        _;
+    }
+
+    function initializeValidatorSet(
+        ConversionData calldata conversionData,
+        uint32 messageIndex
+    ) external {
+        _initializeValidatorSet(conversionData, messageIndex);
+    }
+
+    function initializeValidatorRegistration(
+        ValidatorRegistrationInput calldata input,
+        uint64 weight
+    ) external onlySecurityModule returns (bytes32){
+        return _initializeValidatorRegistration(input, weight);
+    }
+
+    function completeValidatorRegistration(uint32 messageIndex) external onlySecurityModule returns (bytes32) {
+        return _completeValidatorRegistration(messageIndex);
+    }
+
+    function initializeEndValidation(bytes32 validationID) external onlySecurityModule{
+        _initializeEndValidation(validationID);
+    }
+
+    function completeEndValidation(uint32 messageIndex) external onlySecurityModule returns (bytes32){
+        return _completeEndValidation(messageIndex);
+    }
+
+    function initializeValidatorWeightChange(bytes32 validationID, uint64 weight) external onlySecurityModule returns (uint64) {
+        (uint64 nonce, ) = _setValidatorWeight(validationID, weight);
+        return nonce;
+    }
+
+    function completeValidatorWeightChange(bytes32 validationID) external onlySecurityModule {
     }
 
     modifier initializedValidatorSet() {

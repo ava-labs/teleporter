@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {IValidatorManager} from "./IValidatorManager.sol";
+import {IACP99ValidatorManager} from "./IACP99ValidatorManager.sol";
 import {IRewardCalculator} from "./IRewardCalculator.sol";
 
 /**
@@ -32,7 +32,7 @@ enum DelegatorStatus {
  * This must be a blockchain validated by the subnetID that this contract manages.
  */
 struct PoSValidatorManagerSettings {
-    IValidatorManager validatorManager;
+    IACP99ValidatorManager validatorManager;
     uint256 minimumStakeAmount;
     uint256 maximumStakeAmount;
     uint64 minimumStakeDuration;

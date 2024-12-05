@@ -13,7 +13,7 @@ import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
-
+import {ValidatorRegistrationInput} from "./interfaces/IACP99ValidatorManager.sol";
 
 /**
  * @dev Implementation of the {IERC20TokenStakingManager} interface.
@@ -93,6 +93,27 @@ contract ERC20TokenStakingManager is
         $._token = token;
     }
 
+    function initializeValidatorRegistration(
+        ValidatorRegistrationInput calldata registrationInput,
+        uint16 delegationFeeBips,
+        uint64 minStakeDuration,
+        uint256 stakeAmount
+    ) external nonReentrant returns (bytes32 validationID) {
+        return _initializeValidatorRegistration(
+            registrationInput, delegationFeeBips, minStakeDuration, stakeAmount
+        );
+    }
+
+    /**
+     * @notice See {IERC20TokenStakingManager-initializeDelegatorRegistration}
+     */
+    function initializeDelegatorRegistration(
+        bytes32 validationID,
+        uint256 delegationAmount
+    ) external nonReentrant returns (bytes32) {
+        return _initializeDelegatorRegistration(validationID, _msgSender(), delegationAmount);
+    }
+
     /**
      * @notice Returns the ERC20 token being staked
      */
@@ -104,8 +125,8 @@ contract ERC20TokenStakingManager is
      * @notice See {PoSValidatorManager-_lock}
      * Note: Must be guarded with reentrancy guard for safe transfer from.
      */
-    function _lock(address sender, uint256 value) internal virtual override returns (uint256) {
-        return _getERC20StakingManagerStorage()._token.safeTransferFrom(sender, value);
+    function _lock(uint256 value) internal virtual override returns (uint256) {
+        return _getERC20StakingManagerStorage()._token.safeTransferFrom(value);
     }
 
     /**

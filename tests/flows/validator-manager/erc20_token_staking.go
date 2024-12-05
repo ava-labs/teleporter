@@ -8,8 +8,8 @@ import (
 	"github.com/ava-labs/avalanchego/utils/units"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
-	acp99validatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ACP99ValidatorManager"
 	erc20stakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20TokenStakingManager"
+	validatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ValidatorManager"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
@@ -54,19 +54,19 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		fundedKey,
 		false,
 	)
-	stakingManagerAddress := network.GetValidatorManager(subnetAInfo.SubnetID)
-	acp99ValidatorManager, err := acp99validatormanager.NewACP99ValidatorManager(
-		stakingManagerAddress,
+	validatorManagerAddress := network.GetValidatorManager(subnetAInfo.SubnetID)
+	validatorManager, err := validatormanager.NewValidatorManager(
+		validatorManagerAddress,
 		subnetAInfo.RPCClient,
 	)
 	Expect(err).Should(BeNil())
-	securityModule, err := acp99ValidatorManager.GetSecurityModule(&bind.CallOpts{})
+	securityModuleAddress, err := validatorManager.GetSecurityModule(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	erc20StakingManager, err := erc20stakingmanager.NewERC20TokenStakingManager(securityModule, subnetAInfo.RPCClient)
+	securityModule, err := erc20stakingmanager.NewERC20TokenStakingManager(securityModuleAddress, subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
 
-	erc20Address, err := erc20StakingManager.Erc20(&bind.CallOpts{})
+	erc20Address, err := securityModule.Erc20(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	erc20, err := exampleerc20.NewExampleERC20(erc20Address, subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
@@ -80,8 +80,9 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		acp99ValidatorManager,
-		stakingManagerAddress,
+		securityModule,
+		securityModuleAddress,
+		validatorManager,
 		initialValidationIDs[0],
 		0,
 		nodes[0].Weight,
@@ -99,8 +100,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		acp99ValidatorManager,
-		stakingManagerAddress,
+		validatorManager,
 		erc20,
 		expiry,
 		nodes[0],
@@ -108,6 +108,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		network.GetNetworkID(),
 	)
 	validatorStartTime := time.Now()
+	time.Sleep(5 * time.Second)
 
 	//
 	// Register a delegator
@@ -270,8 +271,9 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		acp99ValidatorManager,
-		stakingManagerAddress,
+		securityModule,
+		securityModuleAddress,
+		validatorManager,
 		validationID,
 		expiry,
 		nodes[0],

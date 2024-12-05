@@ -5,32 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {ConversionData} from "./IACP99ValidatorManager.sol";
-
-/**
- * @dev Validator status
- */
-enum ValidatorStatus {
-    Unknown,
-    PendingAdded,
-    Active,
-    PendingRemoved,
-    Completed,
-    Invalidated
-}
-
-/**
- * @dev Contains the active state of a Validator
- */
-struct Validator {
-    ValidatorStatus status;
-    bytes nodeID;
-    uint64 startingWeight;
-    uint64 messageNonce;
-    uint64 weight;
-    uint64 startedAt;
-    uint64 endedAt;
-}
+import {ConversionData,ValidatorStatus} from "./IACP99ValidatorManager.sol";
 
 /**
  * @dev Describes the current churn period
@@ -144,8 +119,4 @@ interface IValidatorManager {
      * @param validationID The ID of the validation period being ended.
      */
     function resendEndValidatorMessage(bytes32 validationID) external;
-
-    function getValidator(bytes32 validationID) external view returns (Validator memory);
-
-    function getChurnPeriodSeconds() external view returns (uint64);
 }

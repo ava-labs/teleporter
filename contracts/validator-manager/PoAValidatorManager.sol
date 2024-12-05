@@ -9,7 +9,6 @@ import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 import {IACP99SecurityModule} from "./interfaces/IACP99SecurityModule.sol";
-import {ACP99ValidatorManager} from "./ACP99ValidatorManager.sol";
 
 /**
  * @dev Implementation of the {IPoAValidatorManager} interface.

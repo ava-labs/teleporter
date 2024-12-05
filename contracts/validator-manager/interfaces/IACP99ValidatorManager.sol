@@ -5,6 +5,33 @@
 
 pragma solidity 0.8.25;
 
+import {IACP99SecurityModule} from "./IACP99SecurityModule.sol";
+
+/**
+ * @dev Validator status
+ */
+enum ValidatorStatus {
+    Unknown,
+    PendingAdded,
+    Active,
+    PendingRemoved,
+    Completed,
+    Invalidated
+}
+
+/**
+ * @dev Contains the active state of a Validator
+ */
+struct Validator {
+    ValidatorStatus status;
+    bytes nodeID;
+    uint64 startingWeight;
+    uint64 messageNonce;
+    uint64 weight;
+    uint64 startedAt;
+    uint64 endedAt;
+}
+
 /**
  * @dev Specifies the owner of a validator's remaining balance or disable owner on the P-Chain.
  * P-Chain addresses are also 20-bytes, so we use the address type to represent them.
@@ -48,6 +75,8 @@ struct ValidatorRegistrationInput {
 }
 
 interface IACP99ValidatorManager {
+    function getSecurityModule() external view returns (IACP99SecurityModule);
+
     function initializeValidatorSet(
         ConversionData calldata conversionData,
         uint32 messageIndex
@@ -55,17 +84,20 @@ interface IACP99ValidatorManager {
 
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata input,
-        uint64 weight,
-        bytes calldata args
+        uint64 weight
     ) external returns (bytes32);
 
-    function completeValidatorRegistration(uint32 messageIndex) external;
+    function completeValidatorRegistration(uint32 messageIndex) external  returns (bytes32) ;
 
-    function initializeEndValidation(bytes32 validationID, bytes calldata args) external;
+    function initializeEndValidation(bytes32 validationID) external;
 
-    function completeEndValidation(uint32 messageIndex) external;
+    function completeEndValidation(uint32 messageIndex) external returns (bytes32);
 
-    function initializeValidatorWeightChange(bytes32 validationID, uint64 weight, bytes calldata args) external;
+    function initializeValidatorWeightChange(bytes32 validationID, uint64 weight) external returns (uint64) ;
 
-    function completeValidatorWeightChange(bytes32 validationID, bytes calldata args) external;
+    function completeValidatorWeightChange(bytes32 validationID) external;
+
+    function getValidator(bytes32 validationID) external view returns (Validator memory);
+
+    function getChurnPeriodSeconds() external view returns (uint64);
 }

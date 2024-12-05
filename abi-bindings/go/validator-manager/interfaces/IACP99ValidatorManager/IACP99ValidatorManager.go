@@ -50,6 +50,17 @@ type PChainOwner struct {
 	Addresses []common.Address
 }
 
+// Validator is an auto generated low-level Go binding around an user-defined struct.
+type Validator struct {
+	Status         uint8
+	NodeID         []byte
+	StartingWeight uint64
+	MessageNonce   uint64
+	Weight         uint64
+	StartedAt      uint64
+	EndedAt        uint64
+}
+
 // ValidatorRegistrationInput is an auto generated low-level Go binding around an user-defined struct.
 type ValidatorRegistrationInput struct {
 	NodeID                []byte
@@ -61,7 +72,7 @@ type ValidatorRegistrationInput struct {
 
 // IACP99ValidatorManagerMetaData contains all meta data concerning the IACP99ValidatorManager contract.
 var IACP99ValidatorManagerMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeValidatorRegistration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"completeValidatorWeightChange\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"initializeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"remainingBalanceOwner\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"disableOwner\",\"type\":\"tuple\"}],\"internalType\":\"structValidatorRegistrationInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"initializeValidatorRegistration\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"validatorManagerBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"validatorManagerAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structInitialValidator[]\",\"name\":\"initialValidators\",\"type\":\"tuple[]\"}],\"internalType\":\"structConversionData\",\"name\":\"conversionData\",\"type\":\"tuple\"},{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"initializeValidatorSet\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"initializeValidatorWeightChange\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeEndValidation\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeValidatorRegistration\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"completeValidatorWeightChange\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getChurnPeriodSeconds\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getSecurityModule\",\"outputs\":[{\"internalType\":\"contractIACP99SecurityModule\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"getValidator\",\"outputs\":[{\"components\":[{\"internalType\":\"enumValidatorStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"startingWeight\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"messageNonce\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"startedAt\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"endedAt\",\"type\":\"uint64\"}],\"internalType\":\"structValidator\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"initializeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"remainingBalanceOwner\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"disableOwner\",\"type\":\"tuple\"}],\"internalType\":\"structValidatorRegistrationInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"initializeValidatorRegistration\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"subnetID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"validatorManagerBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"validatorManagerAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"internalType\":\"structInitialValidator[]\",\"name\":\"initialValidators\",\"type\":\"tuple[]\"}],\"internalType\":\"structConversionData\",\"name\":\"conversionData\",\"type\":\"tuple\"},{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"initializeValidatorSet\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"initializeValidatorWeightChange\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // IACP99ValidatorManagerABI is the input ABI used to generate the binding from.
@@ -210,109 +221,202 @@ func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorRaw) Transact(opt
 	return _IACP99ValidatorManager.Contract.contract.Transact(opts, method, params...)
 }
 
+// GetChurnPeriodSeconds is a free data retrieval call binding the contract method 0x09c1df66.
+//
+// Solidity: function getChurnPeriodSeconds() view returns(uint64)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerCaller) GetChurnPeriodSeconds(opts *bind.CallOpts) (uint64, error) {
+	var out []interface{}
+	err := _IACP99ValidatorManager.contract.Call(opts, &out, "getChurnPeriodSeconds")
+
+	if err != nil {
+		return *new(uint64), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint64)).(*uint64)
+
+	return out0, err
+
+}
+
+// GetChurnPeriodSeconds is a free data retrieval call binding the contract method 0x09c1df66.
+//
+// Solidity: function getChurnPeriodSeconds() view returns(uint64)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) GetChurnPeriodSeconds() (uint64, error) {
+	return _IACP99ValidatorManager.Contract.GetChurnPeriodSeconds(&_IACP99ValidatorManager.CallOpts)
+}
+
+// GetChurnPeriodSeconds is a free data retrieval call binding the contract method 0x09c1df66.
+//
+// Solidity: function getChurnPeriodSeconds() view returns(uint64)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerCallerSession) GetChurnPeriodSeconds() (uint64, error) {
+	return _IACP99ValidatorManager.Contract.GetChurnPeriodSeconds(&_IACP99ValidatorManager.CallOpts)
+}
+
+// GetSecurityModule is a free data retrieval call binding the contract method 0xcdeea3c9.
+//
+// Solidity: function getSecurityModule() view returns(address)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerCaller) GetSecurityModule(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _IACP99ValidatorManager.contract.Call(opts, &out, "getSecurityModule")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// GetSecurityModule is a free data retrieval call binding the contract method 0xcdeea3c9.
+//
+// Solidity: function getSecurityModule() view returns(address)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) GetSecurityModule() (common.Address, error) {
+	return _IACP99ValidatorManager.Contract.GetSecurityModule(&_IACP99ValidatorManager.CallOpts)
+}
+
+// GetSecurityModule is a free data retrieval call binding the contract method 0xcdeea3c9.
+//
+// Solidity: function getSecurityModule() view returns(address)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerCallerSession) GetSecurityModule() (common.Address, error) {
+	return _IACP99ValidatorManager.Contract.GetSecurityModule(&_IACP99ValidatorManager.CallOpts)
+}
+
+// GetValidator is a free data retrieval call binding the contract method 0xd5f20ff6.
+//
+// Solidity: function getValidator(bytes32 validationID) view returns((uint8,bytes,uint64,uint64,uint64,uint64,uint64))
+func (_IACP99ValidatorManager *IACP99ValidatorManagerCaller) GetValidator(opts *bind.CallOpts, validationID [32]byte) (Validator, error) {
+	var out []interface{}
+	err := _IACP99ValidatorManager.contract.Call(opts, &out, "getValidator", validationID)
+
+	if err != nil {
+		return *new(Validator), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(Validator)).(*Validator)
+
+	return out0, err
+
+}
+
+// GetValidator is a free data retrieval call binding the contract method 0xd5f20ff6.
+//
+// Solidity: function getValidator(bytes32 validationID) view returns((uint8,bytes,uint64,uint64,uint64,uint64,uint64))
+func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) GetValidator(validationID [32]byte) (Validator, error) {
+	return _IACP99ValidatorManager.Contract.GetValidator(&_IACP99ValidatorManager.CallOpts, validationID)
+}
+
+// GetValidator is a free data retrieval call binding the contract method 0xd5f20ff6.
+//
+// Solidity: function getValidator(bytes32 validationID) view returns((uint8,bytes,uint64,uint64,uint64,uint64,uint64))
+func (_IACP99ValidatorManager *IACP99ValidatorManagerCallerSession) GetValidator(validationID [32]byte) (Validator, error) {
+	return _IACP99ValidatorManager.Contract.GetValidator(&_IACP99ValidatorManager.CallOpts, validationID)
+}
+
 // CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
 //
-// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+// Solidity: function completeEndValidation(uint32 messageIndex) returns(bytes32)
 func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactor) CompleteEndValidation(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
 	return _IACP99ValidatorManager.contract.Transact(opts, "completeEndValidation", messageIndex)
 }
 
 // CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
 //
-// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+// Solidity: function completeEndValidation(uint32 messageIndex) returns(bytes32)
 func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
 	return _IACP99ValidatorManager.Contract.CompleteEndValidation(&_IACP99ValidatorManager.TransactOpts, messageIndex)
 }
 
 // CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
 //
-// Solidity: function completeEndValidation(uint32 messageIndex) returns()
+// Solidity: function completeEndValidation(uint32 messageIndex) returns(bytes32)
 func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
 	return _IACP99ValidatorManager.Contract.CompleteEndValidation(&_IACP99ValidatorManager.TransactOpts, messageIndex)
 }
 
 // CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
 //
-// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns(bytes32)
 func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactor) CompleteValidatorRegistration(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
 	return _IACP99ValidatorManager.contract.Transact(opts, "completeValidatorRegistration", messageIndex)
 }
 
 // CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
 //
-// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns(bytes32)
 func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
 	return _IACP99ValidatorManager.Contract.CompleteValidatorRegistration(&_IACP99ValidatorManager.TransactOpts, messageIndex)
 }
 
 // CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
 //
-// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
+// Solidity: function completeValidatorRegistration(uint32 messageIndex) returns(bytes32)
 func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
 	return _IACP99ValidatorManager.Contract.CompleteValidatorRegistration(&_IACP99ValidatorManager.TransactOpts, messageIndex)
 }
 
-// CompleteValidatorWeightChange is a paid mutator transaction binding the contract method 0x670301ae.
+// CompleteValidatorWeightChange is a paid mutator transaction binding the contract method 0x5fb0236c.
 //
-// Solidity: function completeValidatorWeightChange(bytes32 validationID, bytes args) returns()
-func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactor) CompleteValidatorWeightChange(opts *bind.TransactOpts, validationID [32]byte, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.contract.Transact(opts, "completeValidatorWeightChange", validationID, args)
+// Solidity: function completeValidatorWeightChange(bytes32 validationID) returns()
+func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactor) CompleteValidatorWeightChange(opts *bind.TransactOpts, validationID [32]byte) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.contract.Transact(opts, "completeValidatorWeightChange", validationID)
 }
 
-// CompleteValidatorWeightChange is a paid mutator transaction binding the contract method 0x670301ae.
+// CompleteValidatorWeightChange is a paid mutator transaction binding the contract method 0x5fb0236c.
 //
-// Solidity: function completeValidatorWeightChange(bytes32 validationID, bytes args) returns()
-func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) CompleteValidatorWeightChange(validationID [32]byte, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.Contract.CompleteValidatorWeightChange(&_IACP99ValidatorManager.TransactOpts, validationID, args)
+// Solidity: function completeValidatorWeightChange(bytes32 validationID) returns()
+func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) CompleteValidatorWeightChange(validationID [32]byte) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.Contract.CompleteValidatorWeightChange(&_IACP99ValidatorManager.TransactOpts, validationID)
 }
 
-// CompleteValidatorWeightChange is a paid mutator transaction binding the contract method 0x670301ae.
+// CompleteValidatorWeightChange is a paid mutator transaction binding the contract method 0x5fb0236c.
 //
-// Solidity: function completeValidatorWeightChange(bytes32 validationID, bytes args) returns()
-func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorSession) CompleteValidatorWeightChange(validationID [32]byte, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.Contract.CompleteValidatorWeightChange(&_IACP99ValidatorManager.TransactOpts, validationID, args)
+// Solidity: function completeValidatorWeightChange(bytes32 validationID) returns()
+func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorSession) CompleteValidatorWeightChange(validationID [32]byte) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.Contract.CompleteValidatorWeightChange(&_IACP99ValidatorManager.TransactOpts, validationID)
 }
 
-// InitializeEndValidation is a paid mutator transaction binding the contract method 0xd492edfc.
+// InitializeEndValidation is a paid mutator transaction binding the contract method 0x97fb70d4.
 //
-// Solidity: function initializeEndValidation(bytes32 validationID, bytes args) returns()
-func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactor) InitializeEndValidation(opts *bind.TransactOpts, validationID [32]byte, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.contract.Transact(opts, "initializeEndValidation", validationID, args)
+// Solidity: function initializeEndValidation(bytes32 validationID) returns()
+func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactor) InitializeEndValidation(opts *bind.TransactOpts, validationID [32]byte) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.contract.Transact(opts, "initializeEndValidation", validationID)
 }
 
-// InitializeEndValidation is a paid mutator transaction binding the contract method 0xd492edfc.
+// InitializeEndValidation is a paid mutator transaction binding the contract method 0x97fb70d4.
 //
-// Solidity: function initializeEndValidation(bytes32 validationID, bytes args) returns()
-func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) InitializeEndValidation(validationID [32]byte, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.Contract.InitializeEndValidation(&_IACP99ValidatorManager.TransactOpts, validationID, args)
+// Solidity: function initializeEndValidation(bytes32 validationID) returns()
+func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) InitializeEndValidation(validationID [32]byte) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.Contract.InitializeEndValidation(&_IACP99ValidatorManager.TransactOpts, validationID)
 }
 
-// InitializeEndValidation is a paid mutator transaction binding the contract method 0xd492edfc.
+// InitializeEndValidation is a paid mutator transaction binding the contract method 0x97fb70d4.
 //
-// Solidity: function initializeEndValidation(bytes32 validationID, bytes args) returns()
-func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorSession) InitializeEndValidation(validationID [32]byte, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.Contract.InitializeEndValidation(&_IACP99ValidatorManager.TransactOpts, validationID, args)
+// Solidity: function initializeEndValidation(bytes32 validationID) returns()
+func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorSession) InitializeEndValidation(validationID [32]byte) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.Contract.InitializeEndValidation(&_IACP99ValidatorManager.TransactOpts, validationID)
 }
 
-// InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x7db1dd48.
+// InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x9ba96b86.
 //
-// Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) input, uint64 weight, bytes args) returns(bytes32)
-func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactor) InitializeValidatorRegistration(opts *bind.TransactOpts, input ValidatorRegistrationInput, weight uint64, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.contract.Transact(opts, "initializeValidatorRegistration", input, weight, args)
+// Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) input, uint64 weight) returns(bytes32)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactor) InitializeValidatorRegistration(opts *bind.TransactOpts, input ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.contract.Transact(opts, "initializeValidatorRegistration", input, weight)
 }
 
-// InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x7db1dd48.
+// InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x9ba96b86.
 //
-// Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) input, uint64 weight, bytes args) returns(bytes32)
-func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) InitializeValidatorRegistration(input ValidatorRegistrationInput, weight uint64, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.Contract.InitializeValidatorRegistration(&_IACP99ValidatorManager.TransactOpts, input, weight, args)
+// Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) input, uint64 weight) returns(bytes32)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) InitializeValidatorRegistration(input ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.Contract.InitializeValidatorRegistration(&_IACP99ValidatorManager.TransactOpts, input, weight)
 }
 
-// InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x7db1dd48.
+// InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x9ba96b86.
 //
-// Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) input, uint64 weight, bytes args) returns(bytes32)
-func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorSession) InitializeValidatorRegistration(input ValidatorRegistrationInput, weight uint64, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.Contract.InitializeValidatorRegistration(&_IACP99ValidatorManager.TransactOpts, input, weight, args)
+// Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) input, uint64 weight) returns(bytes32)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorSession) InitializeValidatorRegistration(input ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.Contract.InitializeValidatorRegistration(&_IACP99ValidatorManager.TransactOpts, input, weight)
 }
 
 // InitializeValidatorSet is a paid mutator transaction binding the contract method 0x20d91b7a.
@@ -336,23 +440,23 @@ func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorSession) Initiali
 	return _IACP99ValidatorManager.Contract.InitializeValidatorSet(&_IACP99ValidatorManager.TransactOpts, conversionData, messageIndex)
 }
 
-// InitializeValidatorWeightChange is a paid mutator transaction binding the contract method 0x3d89e86f.
+// InitializeValidatorWeightChange is a paid mutator transaction binding the contract method 0xe3bb1234.
 //
-// Solidity: function initializeValidatorWeightChange(bytes32 validationID, uint64 weight, bytes args) returns()
-func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactor) InitializeValidatorWeightChange(opts *bind.TransactOpts, validationID [32]byte, weight uint64, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.contract.Transact(opts, "initializeValidatorWeightChange", validationID, weight, args)
+// Solidity: function initializeValidatorWeightChange(bytes32 validationID, uint64 weight) returns(uint64)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactor) InitializeValidatorWeightChange(opts *bind.TransactOpts, validationID [32]byte, weight uint64) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.contract.Transact(opts, "initializeValidatorWeightChange", validationID, weight)
 }
 
-// InitializeValidatorWeightChange is a paid mutator transaction binding the contract method 0x3d89e86f.
+// InitializeValidatorWeightChange is a paid mutator transaction binding the contract method 0xe3bb1234.
 //
-// Solidity: function initializeValidatorWeightChange(bytes32 validationID, uint64 weight, bytes args) returns()
-func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) InitializeValidatorWeightChange(validationID [32]byte, weight uint64, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.Contract.InitializeValidatorWeightChange(&_IACP99ValidatorManager.TransactOpts, validationID, weight, args)
+// Solidity: function initializeValidatorWeightChange(bytes32 validationID, uint64 weight) returns(uint64)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerSession) InitializeValidatorWeightChange(validationID [32]byte, weight uint64) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.Contract.InitializeValidatorWeightChange(&_IACP99ValidatorManager.TransactOpts, validationID, weight)
 }
 
-// InitializeValidatorWeightChange is a paid mutator transaction binding the contract method 0x3d89e86f.
+// InitializeValidatorWeightChange is a paid mutator transaction binding the contract method 0xe3bb1234.
 //
-// Solidity: function initializeValidatorWeightChange(bytes32 validationID, uint64 weight, bytes args) returns()
-func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorSession) InitializeValidatorWeightChange(validationID [32]byte, weight uint64, args []byte) (*types.Transaction, error) {
-	return _IACP99ValidatorManager.Contract.InitializeValidatorWeightChange(&_IACP99ValidatorManager.TransactOpts, validationID, weight, args)
+// Solidity: function initializeValidatorWeightChange(bytes32 validationID, uint64 weight) returns(uint64)
+func (_IACP99ValidatorManager *IACP99ValidatorManagerTransactorSession) InitializeValidatorWeightChange(validationID [32]byte, weight uint64) (*types.Transaction, error) {
+	return _IACP99ValidatorManager.Contract.InitializeValidatorWeightChange(&_IACP99ValidatorManager.TransactOpts, validationID, weight)
 }
