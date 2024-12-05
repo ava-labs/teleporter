@@ -27,6 +27,7 @@ import {IACP99SecurityModule} from "./interfaces/IACP99SecurityModule.sol";
 import {IValidatorManager} from "./interfaces/IValidatorManager.sol";
 import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
+import {InitializeValidatorRegistrationArgs, InitializeEndValidationArgs, Arguments} from "./Arguments.sol";
 
 /**
  * @dev Implementation of the {IPoSValidatorManager} interface.
@@ -135,6 +136,7 @@ abstract contract PoSValidatorManager is
     {
         __ReentrancyGuard_init();
         __POS_Validator_Manager_init_unchained({
+            validatorManager: settings.validatorManager,
             minimumStakeAmount: settings.minimumStakeAmount,
             maximumStakeAmount: settings.maximumStakeAmount,
             minimumStakeDuration: settings.minimumStakeDuration,
@@ -148,6 +150,7 @@ abstract contract PoSValidatorManager is
 
     // solhint-disable-next-line func-name-mixedcase
     function __POS_Validator_Manager_init_unchained(
+        IValidatorManager validatorManager,
         uint256 minimumStakeAmount,
         uint256 maximumStakeAmount,
         uint64 minimumStakeDuration,
@@ -170,7 +173,7 @@ abstract contract PoSValidatorManager is
             revert InvalidStakeMultiplier(maximumStakeMultiplier);
         }
         // Minimum stake duration should be at least one churn period in order to prevent churn tracker abuse.
-        if (minimumStakeDuration < $.validatorManager.getChurnPeriodSeconds()) {
+        if (minimumStakeDuration < validatorManager.getChurnPeriodSeconds()) {
             revert InvalidMinStakeDuration(minimumStakeDuration);
         }
         if (weightToValueFactor == 0) {
@@ -180,6 +183,7 @@ abstract contract PoSValidatorManager is
             revert InvalidUptimeBlockchainID(uptimeBlockchainID);
         }
 
+        $.validatorManager = validatorManager;
         $._minimumStakeAmount = minimumStakeAmount;
         $._maximumStakeAmount = maximumStakeAmount;
         $._minimumStakeDuration = minimumStakeDuration;
@@ -192,8 +196,8 @@ abstract contract PoSValidatorManager is
 
     function handleInitializeValidatorRegistration(bytes32 validationID, uint64 weight, bytes calldata args) external {
         uint256 stakeAmount = weightToValue(weight);
-        (uint16 delegationFeeBips, uint64 minStakeDuration) = abi.decode(args, (uint16, uint64));
-        _initializeValidatorRegistration(validationID, stakeAmount, delegationFeeBips, minStakeDuration);
+        InitializeValidatorRegistrationArgs memory decoded = abi.decode(args, (InitializeValidatorRegistrationArgs));
+        _initializeValidatorRegistration(validationID, stakeAmount, decoded.delegationFeeBips, decoded.minStakeDuration);
     }
 
     function handleCompleteValidatorRegistration(bytes32 validationID) external {
@@ -201,12 +205,12 @@ abstract contract PoSValidatorManager is
     }
 
     function handleInitializeEndValidation(bytes32 validationID, bytes calldata args) external {
-        (bool force, bool includeUptimeProof, uint32 messageIndex, address rewardRecipient) = abi.decode(args, (bool, bool, uint32, address));
+        InitializeEndValidationArgs memory decoded = Arguments.decodeInitializeEndValidationArgs(args);
 
         bool success = _initializeEndPoSValidation(
-            validationID, includeUptimeProof, messageIndex, rewardRecipient
+            validationID, decoded.includeUptimeProof, decoded.messageIndex, decoded.rewardRecipient
         );
-        if (force) {
+        if (decoded.force) {
             return;
         }
 

@@ -5,9 +5,6 @@
 
 pragma solidity 0.8.25;
 
-import {
-    ValidatorManagerSettings
-} from "./interfaces/IValidatorManager.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
@@ -27,15 +24,13 @@ contract PoAValidatorManager is IACP99SecurityModule, OwnableUpgradeable {
     }
 
     function initialize(
-        ValidatorManagerSettings calldata settings,
         address initialOwner
     ) external initializer {
-        __PoAValidatorManager_init(settings, initialOwner);
+        __PoAValidatorManager_init(initialOwner);
     }
 
     // solhint-disable func-name-mixedcase, ordering
     function __PoAValidatorManager_init(
-        ValidatorManagerSettings calldata,
         address initialOwner
     ) internal onlyInitializing {
         __Ownable_init(initialOwner);

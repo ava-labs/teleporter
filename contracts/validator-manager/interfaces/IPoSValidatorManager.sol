@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {IValidatorManager, ValidatorManagerSettings} from "./IValidatorManager.sol";
+import {IValidatorManager} from "./IValidatorManager.sol";
 import {IRewardCalculator} from "./IRewardCalculator.sol";
 
 /**
@@ -20,7 +20,6 @@ enum DelegatorStatus {
 
 /**
  * @notice PoS Validator Manager settings, used to initialize the PoS Validator Manager
- * @notice baseSettings specified the base settings for the Validator Manager. See {IValidatorManager-ValidatorManagerSettings}
  * @notice minimumStakeAmount is the minimum amount of stake required to stake to a validator
  * @notice maximumStakeAmount is the maximum amount of stake that can be staked to a validator
  * @notice minimumStakeDuration is the minimum duration that validators must stake for
@@ -33,7 +32,7 @@ enum DelegatorStatus {
  * This must be a blockchain validated by the subnetID that this contract manages.
  */
 struct PoSValidatorManagerSettings {
-    ValidatorManagerSettings baseSettings;
+    IValidatorManager validatorManager;
     uint256 minimumStakeAmount;
     uint256 maximumStakeAmount;
     uint64 minimumStakeDuration;
