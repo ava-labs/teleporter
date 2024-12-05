@@ -47,7 +47,7 @@ contract PoAValidatorManager is IACP99SecurityModule, OwnableUpgradeable {
     /**
      * @notice See {IValidatorManager-completeEndValidation}.
      */
-    function handleInitializeValidatorRegistration(bytes32 validationID, uint64 weight, bytes calldata args) external {
+    function handleInitializeValidatorRegistration(bytes32 validationID, address sender, uint64 weight, bytes calldata args) external {
     }
 
     function handleCompleteValidatorRegistration(bytes32 validationID) external {

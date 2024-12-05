@@ -31,7 +31,7 @@ var (
 
 // IACP99SecurityModuleMetaData contains all meta data concerning the IACP99SecurityModule contract.
 var IACP99SecurityModuleMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"handleCompleteEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"handleCompleteValidatorRegistration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"handleCompleteValidatorWeightChange\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"handleInitializeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"handleInitializeValidatorRegistration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"nonce\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"handleInitializeValidatorWeightChange\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"handleCompleteEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"handleCompleteValidatorRegistration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"handleCompleteValidatorWeightChange\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"handleInitializeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"handleInitializeValidatorRegistration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"nonce\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"name\":\"handleInitializeValidatorWeightChange\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // IACP99SecurityModuleABI is the input ABI used to generate the binding from.
@@ -264,25 +264,25 @@ func (_IACP99SecurityModule *IACP99SecurityModuleTransactorSession) HandleInitia
 	return _IACP99SecurityModule.Contract.HandleInitializeEndValidation(&_IACP99SecurityModule.TransactOpts, validationID, args)
 }
 
-// HandleInitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x004050c8.
+// HandleInitializeValidatorRegistration is a paid mutator transaction binding the contract method 0xd8761f4c.
 //
-// Solidity: function handleInitializeValidatorRegistration(bytes32 validationID, uint64 weight, bytes args) returns()
-func (_IACP99SecurityModule *IACP99SecurityModuleTransactor) HandleInitializeValidatorRegistration(opts *bind.TransactOpts, validationID [32]byte, weight uint64, args []byte) (*types.Transaction, error) {
-	return _IACP99SecurityModule.contract.Transact(opts, "handleInitializeValidatorRegistration", validationID, weight, args)
+// Solidity: function handleInitializeValidatorRegistration(bytes32 validationID, address sender, uint64 weight, bytes args) returns()
+func (_IACP99SecurityModule *IACP99SecurityModuleTransactor) HandleInitializeValidatorRegistration(opts *bind.TransactOpts, validationID [32]byte, sender common.Address, weight uint64, args []byte) (*types.Transaction, error) {
+	return _IACP99SecurityModule.contract.Transact(opts, "handleInitializeValidatorRegistration", validationID, sender, weight, args)
 }
 
-// HandleInitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x004050c8.
+// HandleInitializeValidatorRegistration is a paid mutator transaction binding the contract method 0xd8761f4c.
 //
-// Solidity: function handleInitializeValidatorRegistration(bytes32 validationID, uint64 weight, bytes args) returns()
-func (_IACP99SecurityModule *IACP99SecurityModuleSession) HandleInitializeValidatorRegistration(validationID [32]byte, weight uint64, args []byte) (*types.Transaction, error) {
-	return _IACP99SecurityModule.Contract.HandleInitializeValidatorRegistration(&_IACP99SecurityModule.TransactOpts, validationID, weight, args)
+// Solidity: function handleInitializeValidatorRegistration(bytes32 validationID, address sender, uint64 weight, bytes args) returns()
+func (_IACP99SecurityModule *IACP99SecurityModuleSession) HandleInitializeValidatorRegistration(validationID [32]byte, sender common.Address, weight uint64, args []byte) (*types.Transaction, error) {
+	return _IACP99SecurityModule.Contract.HandleInitializeValidatorRegistration(&_IACP99SecurityModule.TransactOpts, validationID, sender, weight, args)
 }
 
-// HandleInitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x004050c8.
+// HandleInitializeValidatorRegistration is a paid mutator transaction binding the contract method 0xd8761f4c.
 //
-// Solidity: function handleInitializeValidatorRegistration(bytes32 validationID, uint64 weight, bytes args) returns()
-func (_IACP99SecurityModule *IACP99SecurityModuleTransactorSession) HandleInitializeValidatorRegistration(validationID [32]byte, weight uint64, args []byte) (*types.Transaction, error) {
-	return _IACP99SecurityModule.Contract.HandleInitializeValidatorRegistration(&_IACP99SecurityModule.TransactOpts, validationID, weight, args)
+// Solidity: function handleInitializeValidatorRegistration(bytes32 validationID, address sender, uint64 weight, bytes args) returns()
+func (_IACP99SecurityModule *IACP99SecurityModuleTransactorSession) HandleInitializeValidatorRegistration(validationID [32]byte, sender common.Address, weight uint64, args []byte) (*types.Transaction, error) {
+	return _IACP99SecurityModule.Contract.HandleInitializeValidatorRegistration(&_IACP99SecurityModule.TransactOpts, validationID, sender, weight, args)
 }
 
 // HandleInitializeValidatorWeightChange is a paid mutator transaction binding the contract method 0x98d9fa7c.

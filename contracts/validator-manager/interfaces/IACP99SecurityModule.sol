@@ -8,6 +8,7 @@ pragma solidity 0.8.25;
 interface IACP99SecurityModule {
     function handleInitializeValidatorRegistration(
         bytes32 validationID,
+        address sender,
         uint64 weight,
         bytes calldata args
     ) external;

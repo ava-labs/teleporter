@@ -104,8 +104,8 @@ contract ERC20TokenStakingManager is
      * @notice See {PoSValidatorManager-_lock}
      * Note: Must be guarded with reentrancy guard for safe transfer from.
      */
-    function _lock(uint256 value) internal virtual override returns (uint256) {
-        return _getERC20StakingManagerStorage()._token.safeTransferFrom(value);
+    function _lock(address sender, uint256 value) internal virtual override returns (uint256) {
+        return _getERC20StakingManagerStorage()._token.safeTransferFrom(sender, value);
     }
 
     /**

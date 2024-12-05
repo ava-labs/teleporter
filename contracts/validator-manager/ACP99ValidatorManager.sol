@@ -78,8 +78,8 @@ contract ACP99ValidatorManager is IACP99ValidatorManager, ValidatorManager {
         // // Delegate call so that the sender can approval ERC20 transfers by the validator manager
         // (bool success, bytes memory data) = securityModule.delegatecall(abi.encodeWithSelector($.securityModule.handleInitializeValidatorRegistration.selector, validationID, weight, args));
         // require(success, string(data));
-        
-        $.securityModule.handleInitializeValidatorRegistration(validationID, weight, args);
+
+        $.securityModule.handleInitializeValidatorRegistration(validationID, _msgSender(), weight, args);
         return validationID;
     }
 

@@ -438,7 +438,7 @@ func InitializeACP99ERC20ValidatorRegistration(
 	ERC20Approve(
 		ctx,
 		token,
-		stakingManagerAddress,
+		securityModule,
 		stakeAmount,
 		subnet,
 		senderKey,

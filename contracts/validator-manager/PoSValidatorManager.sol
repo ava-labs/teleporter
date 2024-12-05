@@ -194,10 +194,10 @@ abstract contract PoSValidatorManager is
         $._uptimeBlockchainID = uptimeBlockchainID;
     }
 
-    function handleInitializeValidatorRegistration(bytes32 validationID, uint64 weight, bytes calldata args) external {
+    function handleInitializeValidatorRegistration(bytes32 validationID, address sender, uint64 weight, bytes calldata args) external {
         uint256 stakeAmount = weightToValue(weight);
         InitializeValidatorRegistrationArgs memory decoded = abi.decode(args, (InitializeValidatorRegistrationArgs));
-        _initializeValidatorRegistration(validationID, stakeAmount, decoded.delegationFeeBips, decoded.minStakeDuration);
+        _initializeValidatorRegistration(validationID, sender, stakeAmount, decoded.delegationFeeBips, decoded.minStakeDuration);
     }
 
     function handleCompleteValidatorRegistration(bytes32 validationID) external {
@@ -457,6 +457,7 @@ abstract contract PoSValidatorManager is
 
     function _initializeValidatorRegistration(
         bytes32 validationID,
+        address sender,
         uint256 stakeAmount,
         uint16 delegationFeeBips,
         uint64 minStakeDuration
@@ -480,7 +481,7 @@ abstract contract PoSValidatorManager is
         }
 
         // Lock the stake in the contract.
-        _lock(stakeAmount);
+        _lock(sender, stakeAmount);
 
         $._posValidatorInfo[validationID].owner = _msgSender();
         $._posValidatorInfo[validationID].delegationFeeBips = delegationFeeBips;
@@ -512,7 +513,7 @@ abstract contract PoSValidatorManager is
      * @notice Locks tokens in this contract.
      * @param value Number of tokens to lock.
      */
-    function _lock(uint256 value) internal virtual returns (uint256);
+    function _lock(address sender, uint256 value) internal virtual returns (uint256);
 
     /**
      * @notice Unlocks token to a specific address.
@@ -528,7 +529,7 @@ abstract contract PoSValidatorManager is
         uint256 delegationAmount
     ) internal returns (bytes32) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        uint64 weight = valueToWeight(_lock(delegationAmount));
+        uint64 weight = valueToWeight(_lock(address(0), delegationAmount)); // TODONOW: Use the sender's address
 
         // Ensure the validation period is active
         Validator memory validator = _getPoSValidatorManagerStorage().validatorManager.getValidator(validationID);

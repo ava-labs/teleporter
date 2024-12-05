@@ -58,7 +58,7 @@ contract NativeTokenStakingManager is
     /**
      * @notice See {PoSValidatorManager-_lock}
      */
-    function _lock(uint256 value) internal virtual override returns (uint256) {
+    function _lock(address, uint256 value) internal virtual override returns (uint256) {
         return value;
     }
 
