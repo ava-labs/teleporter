@@ -32,13 +32,13 @@ import (
 	"github.com/ava-labs/subnet-evm/warp/messages"
 	proxyadmin "github.com/ava-labs/teleporter/abi-bindings/go/ProxyAdmin"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
-	erc20tokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20TokenStakingManager"
+	erc20securitymodule "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20SecurityModule"
 	examplerewardcalculator "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ExampleRewardCalculator"
-	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
-	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
+	nativetokensecuritymodule "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenSecurityModule"
+	poasecuritymodule "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoASecurityModule"
 	validatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ValidatorManager"
 	iacp99validatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IACP99ValidatorManager"
-	iposvalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IPoSValidatorManager"
+	ipossecuritymodule "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IPoSSecurityModule"
 	ivalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IValidatorManager"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
@@ -61,9 +61,9 @@ const (
 type ValidatorManagerConcreteType int
 
 const (
-	PoAValidatorManager ValidatorManagerConcreteType = iota
-	ERC20TokenStakingManager
-	NativeTokenStakingManager
+	PoASecurityModule ValidatorManagerConcreteType = iota
+	ERC20SecurityModule
+	NativeTokenSecurityModule
 )
 
 //
@@ -100,7 +100,7 @@ func DeployValidatorManager(
 	return address, validatorManager
 }
 
-// The senderKey is used as the owner of proxy and PoAValidatorManager contracts
+// The senderKey is used as the owner of proxy and PoASecurityModule contracts
 func DeployAndInitializeValidatorManager(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
@@ -118,10 +118,10 @@ func DeployAndInitializeValidatorManager(
 		validatorManager        *validatormanager.ValidatorManager
 	)
 	switch managerType {
-	case PoAValidatorManager:
-		poavalidatormanager.PoAValidatorManagerBin = poavalidatormanager.PoAValidatorManagerMetaData.Bin
-		var poaValidatorManager *poavalidatormanager.PoAValidatorManager
-		securityModuleAddress, tx, poaValidatorManager, err = poavalidatormanager.DeployPoAValidatorManager(opts, subnet.RPCClient, 0)
+	case PoASecurityModule:
+		poasecuritymodule.PoASecurityModuleBin = poasecuritymodule.PoASecurityModuleMetaData.Bin
+		var poaValidatorManager *poasecuritymodule.PoASecurityModule
+		securityModuleAddress, tx, poaValidatorManager, err = poasecuritymodule.DeployPoASecurityModule(opts, subnet.RPCClient, 0)
 		Expect(err).Should(BeNil())
 		WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
@@ -139,7 +139,7 @@ func DeployAndInitializeValidatorManager(
 			validatorManagerAddress,
 		)
 		Expect(err).Should(BeNil())
-	case ERC20TokenStakingManager:
+	case ERC20SecurityModule:
 		erc20Address, _ := DeployExampleERC20(ctx, senderKey, subnet)
 		rewardCalculatorAddress, _ := DeployExampleRewardCalculator(
 			ctx,
@@ -147,9 +147,9 @@ func DeployAndInitializeValidatorManager(
 			subnet,
 			uint64(10),
 		)
-		erc20tokenstakingmanager.ERC20TokenStakingManagerBin = erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.Bin
-		var erc20StakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager
-		securityModuleAddress, tx, erc20StakingManager, err = erc20tokenstakingmanager.DeployERC20TokenStakingManager(
+		erc20securitymodule.ERC20SecurityModuleBin = erc20securitymodule.ERC20SecurityModuleMetaData.Bin
+		var erc20StakingManager *erc20securitymodule.ERC20SecurityModule
+		securityModuleAddress, tx, erc20StakingManager, err = erc20securitymodule.DeployERC20SecurityModule(
 			opts,
 			subnet.RPCClient,
 			0,
@@ -167,7 +167,7 @@ func DeployAndInitializeValidatorManager(
 
 		tx, err = erc20StakingManager.Initialize(
 			opts,
-			erc20tokenstakingmanager.PoSValidatorManagerSettings{
+			erc20securitymodule.PoSSecurityModuleSettings{
 				ValidatorManager:         validatorManagerAddress,
 				MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
 				MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
@@ -181,16 +181,16 @@ func DeployAndInitializeValidatorManager(
 			erc20Address,
 		)
 		Expect(err).Should(BeNil())
-	case NativeTokenStakingManager:
+	case NativeTokenSecurityModule:
 		rewardCalculatorAddress, _ := DeployExampleRewardCalculator(
 			ctx,
 			senderKey,
 			subnet,
 			uint64(10),
 		)
-		nativetokenstakingmanager.NativeTokenStakingManagerBin = nativetokenstakingmanager.NativeTokenStakingManagerMetaData.Bin
-		var nativeStakingManager *nativetokenstakingmanager.NativeTokenStakingManager
-		securityModuleAddress, tx, nativeStakingManager, err = nativetokenstakingmanager.DeployNativeTokenStakingManager(
+		nativetokensecuritymodule.NativeTokenSecurityModuleBin = nativetokensecuritymodule.NativeTokenSecurityModuleMetaData.Bin
+		var nativeStakingManager *nativetokensecuritymodule.NativeTokenSecurityModule
+		securityModuleAddress, tx, nativeStakingManager, err = nativetokensecuritymodule.DeployNativeTokenSecurityModule(
 			opts,
 			subnet.RPCClient,
 			0,
@@ -208,7 +208,7 @@ func DeployAndInitializeValidatorManager(
 
 		tx, err = nativeStakingManager.Initialize(
 			opts,
-			nativetokenstakingmanager.PoSValidatorManagerSettings{
+			nativetokensecuritymodule.PoSSecurityModuleSettings{
 				ValidatorManager:         validatorManagerAddress,
 				MinimumStakeAmount:       big.NewInt(0).SetUint64(DefaultMinStakeAmount),
 				MaximumStakeAmount:       big.NewInt(0).SetUint64(DefaultMaxStakeAmount),
@@ -386,7 +386,7 @@ func DeliverSubnetConversion(
 // 	stakeAmount *big.Int,
 // 	node Node,
 // 	expiry uint64,
-// 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
+// 	stakingManager *nativetokensecuritymodule.NativeTokenSecurityModule,
 // ) (*types.Receipt, ids.ID) {
 // 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 // 	Expect(err).Should(BeNil())
@@ -394,7 +394,7 @@ func DeliverSubnetConversion(
 
 // 	tx, err := stakingManager.InitializeValidatorRegistration(
 // 		opts,
-// 		nativetokenstakingmanager.ValidatorRegistrationInput{
+// 		nativetokensecuritymodule.ValidatorRegistrationInput{
 // 			NodeID:             node.NodeID[:],
 // 			RegistrationExpiry: expiry,
 // 			BlsPublicKey:       node.NodePoP.PublicKey[:],
@@ -420,7 +420,7 @@ func InitializeACP99ERC20ValidatorRegistration(
 	token *exampleerc20.ExampleERC20,
 	node Node,
 	expiry uint64,
-	securityModule *erc20tokenstakingmanager.ERC20TokenStakingManager,
+	securityModule *erc20securitymodule.ERC20SecurityModule,
 	securityModuleAddress common.Address,
 	validatorManager *validatormanager.ValidatorManager,
 ) (*types.Receipt, ids.ID) {
@@ -445,7 +445,7 @@ func InitializeACP99ERC20ValidatorRegistration(
 
 	tx, err := securityModule.InitializeValidatorRegistration(
 		opts,
-		erc20tokenstakingmanager.ValidatorRegistrationInput{
+		erc20securitymodule.ValidatorRegistrationInput{
 			NodeID:             node.NodeID[:],
 			RegistrationExpiry: expiry,
 			BlsPublicKey:       node.NodePoP.PublicKey[:],
@@ -473,7 +473,7 @@ func InitializeACP99ERC20ValidatorRegistration(
 // 	stakingManagerAddress common.Address,
 // 	node Node,
 // 	expiry uint64,
-// 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
+// 	stakingManager *erc20securitymodule.ERC20SecurityModule,
 // ) (*types.Receipt, ids.ID) {
 // 	ERC20Approve(
 // 		ctx,
@@ -489,7 +489,7 @@ func InitializeACP99ERC20ValidatorRegistration(
 
 // 	tx, err := stakingManager.InitializeValidatorRegistration(
 // 		opts,
-// 		erc20tokenstakingmanager.ValidatorRegistrationInput{
+// 		erc20securitymodule.ValidatorRegistrationInput{
 // 			NodeID:             node.NodeID[:],
 // 			RegistrationExpiry: expiry,
 // 			BlsPublicKey:       node.NodePoP.PublicKey[:],
@@ -514,14 +514,14 @@ func InitializeACP99ERC20ValidatorRegistration(
 // 	subnet interfaces.SubnetTestInfo,
 // 	node Node,
 // 	expiry uint64,
-// 	validatorManager *poavalidatormanager.PoAValidatorManager,
+// 	validatorManager *poasecuritymodule.PoASecurityModule,
 // ) (*types.Receipt, ids.ID) {
 // 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 // 	Expect(err).Should(BeNil())
 
 // 	tx, err := validatorManager.InitializeValidatorRegistration(
 // 		opts,
-// 		poavalidatormanager.ValidatorRegistrationInput{
+// 		poasecuritymodule.ValidatorRegistrationInput{
 // 			NodeID:             node.NodeID[:],
 // 			RegistrationExpiry: expiry,
 // 			BlsPublicKey:       node.NodePoP.PublicKey[:],
@@ -545,7 +545,7 @@ func CompleteValidatorRegistration(
 	securityModuleAddress common.Address,
 	registrationSignedMessage *avalancheWarp.Message,
 ) *types.Receipt {
-	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
+	abi, err := erc20securitymodule.ERC20SecurityModuleMetaData.GetAbi()
 	Expect(err).Should(BeNil())
 	callData, err := abi.Pack("completeValidatorRegistration", uint32(0))
 	Expect(err).Should(BeNil())
@@ -592,7 +592,7 @@ func CallWarpReceiver(
 // 	fundedKey *ecdsa.PrivateKey,
 // 	subnetInfo interfaces.SubnetTestInfo,
 // 	pChainInfo interfaces.SubnetTestInfo,
-// 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
+// 	stakingManager *nativetokensecuritymodule.NativeTokenSecurityModule,
 // 	stakingManagerContractAddress common.Address,
 // 	expiry uint64,
 // 	node Node,
@@ -678,7 +678,7 @@ func InitializeAndCompleteACP99ERC20ValidatorRegistration(
 	log.Println("Initializing validator  v registration")
 	securityModuleAddress, err := stakingManager.GetSecurityModule(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
-	securityModule, err := erc20tokenstakingmanager.NewERC20TokenStakingManager(securityModuleAddress, subnetInfo.RPCClient)
+	securityModule, err := erc20securitymodule.NewERC20SecurityModule(securityModuleAddress, subnetInfo.RPCClient)
 	Expect(err).Should(BeNil())
 
 	receipt, validationID := InitializeACP99ERC20ValidatorRegistration(
@@ -744,7 +744,7 @@ func InitializeAndCompleteACP99ERC20ValidatorRegistration(
 // 	fundedKey *ecdsa.PrivateKey,
 // 	subnetInfo interfaces.SubnetTestInfo,
 // 	pChainInfo interfaces.SubnetTestInfo,
-// 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
+// 	stakingManager *erc20securitymodule.ERC20SecurityModule,
 // 	stakingManagerAddress common.Address,
 // 	erc20 *exampleerc20.ExampleERC20,
 // 	expiry uint64,
@@ -823,7 +823,7 @@ func InitializeAndCompleteACP99ERC20ValidatorRegistration(
 // 	fundedKey *ecdsa.PrivateKey,
 // 	subnetInfo interfaces.SubnetTestInfo,
 // 	pChainInfo interfaces.SubnetTestInfo,
-// 	validatorManager *poavalidatormanager.PoAValidatorManager,
+// 	validatorManager *poasecuritymodule.PoASecurityModule,
 // 	validatorManagerAddress common.Address,
 // 	expiry uint64,
 // 	node Node,
@@ -888,7 +888,7 @@ func InitializeAndCompleteACP99ERC20ValidatorRegistration(
 // 	ctx context.Context,
 // 	senderKey *ecdsa.PrivateKey,
 // 	subnet interfaces.SubnetTestInfo,
-// 	stakingManager *iposvalidatormanager.IPoSValidatorManager,
+// 	stakingManager *ipossecuritymodule.IPoSSecurityModule,
 // 	validationID ids.ID,
 // ) *types.Receipt {
 // 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
@@ -907,7 +907,7 @@ func InitializeEndACP99PoSValidation(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
-	securityModule *erc20tokenstakingmanager.ERC20TokenStakingManager,
+	securityModule *erc20securitymodule.ERC20SecurityModule,
 	validationID ids.ID,
 	includeUptime bool,
 	messageIndex uint32,
@@ -930,7 +930,7 @@ func InitializeEndACP99PoSValidation(
 // 	ctx context.Context,
 // 	senderKey *ecdsa.PrivateKey,
 // 	subnet interfaces.SubnetTestInfo,
-// 	stakingManager *iposvalidatormanager.IPoSValidatorManager,
+// 	stakingManager *ipossecuritymodule.IPoSSecurityModule,
 // 	validationID ids.ID,
 // ) *types.Receipt {
 // 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
@@ -991,7 +991,7 @@ func InitializeEndACP99PoSValidationWithUptime(
 		signatureAggregator,
 	)
 
-	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
+	abi, err := erc20securitymodule.ERC20SecurityModuleMetaData.GetAbi()
 	Expect(err).Should(BeNil())
 	callData, err := abi.Pack("forceInitializeEndValidation", validationID, true, uint32(0))
 	Expect(err).Should(BeNil())
@@ -1023,7 +1023,7 @@ func ForceInitializeEndPoSValidationWithUptime(
 		signatureAggregator,
 	)
 
-	abi, err := iposvalidatormanager.IPoSValidatorManagerMetaData.GetAbi()
+	abi, err := ipossecuritymodule.IPoSSecurityModuleMetaData.GetAbi()
 	Expect(err).Should(BeNil())
 	callData, err := abi.Pack("forceInitializeEndValidation", validationID, true, uint32(0))
 	Expect(err).Should(BeNil())
@@ -1055,7 +1055,7 @@ func InitializeEndPoSValidationWithUptime(
 		signatureAggregator,
 	)
 
-	abi, err := iposvalidatormanager.IPoSValidatorManagerMetaData.GetAbi()
+	abi, err := ipossecuritymodule.IPoSSecurityModuleMetaData.GetAbi()
 	Expect(err).Should(BeNil())
 	callData, err := abi.Pack("initializeEndValidation", validationID, true, uint32(0))
 	Expect(err).Should(BeNil())
@@ -1073,7 +1073,7 @@ func InitializeEndPoSValidationWithUptime(
 // 	ctx context.Context,
 // 	senderKey *ecdsa.PrivateKey,
 // 	subnet interfaces.SubnetTestInfo,
-// 	validatorManager *poavalidatormanager.PoAValidatorManager,
+// 	validatorManager *poasecuritymodule.PoASecurityModule,
 // 	validationID ids.ID,
 // ) *types.Receipt {
 // 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
@@ -1093,7 +1093,7 @@ func CompleteEndValidation(
 	securityModuleAddress common.Address,
 	registrationSignedMessage *avalancheWarp.Message,
 ) *types.Receipt {
-	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
+	abi, err := erc20securitymodule.ERC20SecurityModuleMetaData.GetAbi()
 	Expect(err).Should(BeNil())
 	callData, err := abi.Pack("completeEndValidation", uint32(0))
 	Expect(err).Should(BeNil())
@@ -1115,7 +1115,7 @@ func CompleteEndValidation(
 // 	delegationAmount *big.Int,
 // 	token *exampleerc20.ExampleERC20,
 // 	stakingManagerAddress common.Address,
-// 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
+// 	stakingManager *erc20securitymodule.ERC20SecurityModule,
 // ) *types.Receipt {
 // 	ERC20Approve(
 // 		ctx,
@@ -1151,7 +1151,7 @@ func CompleteEndValidation(
 // 	validationID ids.ID,
 // 	delegationAmount *big.Int,
 // 	stakingManagerAddress common.Address,
-// 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
+// 	stakingManager *nativetokensecuritymodule.NativeTokenSecurityModule,
 // ) *types.Receipt {
 // 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 // 	Expect(err).Should(BeNil())
@@ -1179,7 +1179,7 @@ func CompleteDelegatorRegistration(
 	stakingManagerContractAddress common.Address,
 	signedMessage *avalancheWarp.Message,
 ) *types.Receipt {
-	abi, err := iposvalidatormanager.IPoSValidatorManagerMetaData.GetAbi()
+	abi, err := ipossecuritymodule.IPoSSecurityModuleMetaData.GetAbi()
 	Expect(err).Should(BeNil())
 	callData, err := abi.Pack("completeDelegatorRegistration", delegationID, uint32(0))
 	Expect(err).Should(BeNil())
@@ -1200,7 +1200,7 @@ func CompleteDelegatorRegistration(
 // 	stakingManagerAddress common.Address,
 // 	delegationID ids.ID,
 // ) *types.Receipt {
-// 	stakingManager, err := iposvalidatormanager.NewIPoSValidatorManager(stakingManagerAddress, subnet.RPCClient)
+// 	stakingManager, err := ipossecuritymodule.NewIPoSSecurityModule(stakingManagerAddress, subnet.RPCClient)
 // 	Expect(err).Should(BeNil())
 // 	WaitMinStakeDuration(ctx, subnet, senderKey)
 // 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
@@ -1223,7 +1223,7 @@ func CompleteEndDelegation(
 	stakingManagerContractAddress common.Address,
 	signedMessage *avalancheWarp.Message,
 ) *types.Receipt {
-	abi, err := iposvalidatormanager.IPoSValidatorManagerMetaData.GetAbi()
+	abi, err := ipossecuritymodule.IPoSSecurityModuleMetaData.GetAbi()
 	Expect(err).Should(BeNil())
 	callData, err := abi.Pack("completeEndDelegation", delegationID, uint32(0))
 	Expect(err).Should(BeNil())
@@ -1243,7 +1243,7 @@ func InitializeAndCompleteEndInitialACP99PoSValidation(
 	fundedKey *ecdsa.PrivateKey,
 	subnetInfo interfaces.SubnetTestInfo,
 	pChainInfo interfaces.SubnetTestInfo,
-	securityModule *erc20tokenstakingmanager.ERC20TokenStakingManager,
+	securityModule *erc20securitymodule.ERC20SecurityModule,
 	securityModuleAddress common.Address,
 	validatorManager *validatormanager.ValidatorManager,
 	validationID ids.ID,
@@ -1325,7 +1325,7 @@ func InitializeAndCompleteEndInitialACP99PoSValidation(
 // 	fundedKey *ecdsa.PrivateKey,
 // 	subnetInfo interfaces.SubnetTestInfo,
 // 	pChainInfo interfaces.SubnetTestInfo,
-// 	stakingManager *iposvalidatormanager.IPoSValidatorManager,
+// 	stakingManager *ipossecuritymodule.IPoSSecurityModule,
 // 	stakingManagerAddress common.Address,
 // 	validationID ids.ID,
 // 	index uint32,
@@ -1402,7 +1402,7 @@ func InitializeAndCompleteEndACP99PoSValidation(
 	fundedKey *ecdsa.PrivateKey,
 	subnetInfo interfaces.SubnetTestInfo,
 	pChainInfo interfaces.SubnetTestInfo,
-	securityModule *erc20tokenstakingmanager.ERC20TokenStakingManager,
+	securityModule *erc20securitymodule.ERC20SecurityModule,
 	securityModuleAddress common.Address,
 	validatorManager *validatormanager.ValidatorManager,
 	validationID ids.ID,
@@ -1503,7 +1503,7 @@ func InitializeAndCompleteEndACP99PoSValidation(
 // 	fundedKey *ecdsa.PrivateKey,
 // 	subnetInfo interfaces.SubnetTestInfo,
 // 	pChainInfo interfaces.SubnetTestInfo,
-// 	stakingManager *iposvalidatormanager.IPoSValidatorManager,
+// 	stakingManager *ipossecuritymodule.IPoSSecurityModule,
 // 	stakingManagerAddress common.Address,
 // 	validationID ids.ID,
 // 	expiry uint64,
@@ -1601,7 +1601,7 @@ func InitializeAndCompleteEndACP99PoSValidation(
 // 	fundedKey *ecdsa.PrivateKey,
 // 	subnetInfo interfaces.SubnetTestInfo,
 // 	pChainInfo interfaces.SubnetTestInfo,
-// 	stakingManager *poavalidatormanager.PoAValidatorManager,
+// 	stakingManager *poasecuritymodule.PoASecurityModule,
 // 	stakingManagerAddress common.Address,
 // 	validationID ids.ID,
 // 	index uint32,
@@ -1679,7 +1679,7 @@ func InitializeAndCompleteEndACP99PoSValidation(
 // 	fundedKey *ecdsa.PrivateKey,
 // 	subnetInfo interfaces.SubnetTestInfo,
 // 	pChainInfo interfaces.SubnetTestInfo,
-// 	validatorManager *poavalidatormanager.PoAValidatorManager,
+// 	validatorManager *poasecuritymodule.PoASecurityModule,
 // 	validatorManagerAddress common.Address,
 // 	validationID ids.ID,
 // 	weight uint64,

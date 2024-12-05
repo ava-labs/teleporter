@@ -8,9 +8,9 @@ package staking
 // 	"github.com/ava-labs/avalanchego/ids"
 // 	"github.com/ava-labs/avalanchego/utils/units"
 // 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-// 	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
-// 	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
-// 	iposvalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IPoSValidatorManager"
+// 	nativetokensecuritymodule "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenSecurityModule"
+// 	poasecuritymodule "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoASecurityModule"
+// 	ipossecuritymodule "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IPoSSecurityModule"
 // 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 // 	"github.com/ava-labs/teleporter/tests/utils"
 // 	"github.com/ethereum/go-ethereum/crypto"
@@ -22,15 +22,15 @@ package staking
 //  * Register a PoA validator manager on a L1 with a proxy. The steps are as follows:
 //  * - Generate random address to be the owner address
 //  * - Fund native assets to the owner address
-//  * - Deploy the PoAValidatorManager contract
-//  * - Deploy a TransparentUpgradeableProxy contract that points to the PoAValidatorManager
-//  * - Call initialize on the PoAValidatorManager through the proxy
+//  * - Deploy the PoASecurityModule contract
+//  * - Deploy a TransparentUpgradeableProxy contract that points to the PoASecurityModule
+//  * - Call initialize on the PoASecurityModule through the proxy
 //  * - Initialize and complete PoA validator registration
 //  *
 //  * Migrates the proxy to a PoS validator manager. The steps are as follows:
-//  * - Deploy the PoSValidatorManager contract
-//  * - Upgrade the TransparentUpgradeableProxy to point to the PoSValidatorManager
-//  * - Call initialize on the PoSValidatorManager through the proxy
+//  * - Deploy the PoSSecurityModule contract
+//  * - Upgrade the TransparentUpgradeableProxy to point to the PoSSecurityModule
+//  * - Call initialize on the PoSSecurityModule through the proxy
 //  * - Check that previous validator is still active
 //  * - Initialize and complete PoS validator registration
 //  * - Attempt to delist previous PoA validator with wrong owner and check that it fails
@@ -67,17 +67,17 @@ package staking
 // 		fundAmount,
 // 	)
 
-// 	// Deploy PoAValidatorManager contract with a proxy
+// 	// Deploy PoASecurityModule contract with a proxy
 // 	nodes, initialValidationIDs, proxyAdmin := network.ConvertSubnet(
 // 		ctx,
 // 		subnetAInfo,
-// 		utils.PoAValidatorManager,
+// 		utils.PoASecurityModule,
 // 		[]uint64{units.Schmeckle, 1000 * units.Schmeckle}, // Choose weights to avoid validator churn limits
 // 		ownerKey,
 // 		true,
 // 	)
 // 	proxyAddress := network.GetValidatorManager(subnetAInfo.SubnetID)
-// 	poaValidatorManager, err := poavalidatormanager.NewPoAValidatorManager(proxyAddress, subnetAInfo.RPCClient)
+// 	poaValidatorManager, err := poasecuritymodule.NewPoASecurityModule(proxyAddress, subnetAInfo.RPCClient)
 // 	Expect(err).Should(BeNil())
 
 // 	//
@@ -105,7 +105,7 @@ package staking
 
 // 	_, err = poaValidatorManager.InitializeValidatorRegistration(
 // 		opts,
-// 		poavalidatormanager.ValidatorRegistrationInput{
+// 		poasecuritymodule.ValidatorRegistrationInput{
 // 			NodeID:             nodes[0].NodeID[:],
 // 			RegistrationExpiry: uint64(time.Now().Add(24 * time.Hour).Unix()),
 // 			BlsPublicKey:       nodes[0].NodePoP.PublicKey[:],
@@ -138,16 +138,16 @@ package staking
 
 // 	/*
 // 	 ******************
-// 	 * Migrate PoAValidatorManager to PoSValidatorManager
+// 	 * Migrate PoASecurityModule to PoSSecurityModule
 // 	 ******************
 // 	 */
 
-// 	// Deploy PoSValidatorManager contract
+// 	// Deploy PoSSecurityModule contract
 // 	newImplAddress, _ := utils.DeployValidatorManager(
 // 		ctx,
 // 		fundedKey,
 // 		subnetAInfo,
-// 		utils.NativeTokenStakingManager,
+// 		utils.NativeTokenSecurityModule,
 // 	)
 
 // 	// Upgrade the TransparentUpgradeableProxy contract to use the new logic contract
@@ -157,8 +157,8 @@ package staking
 // 	Expect(err).Should(BeNil())
 // 	utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
-// 	// Change the proxy contract type to NativeTokenStakingManager and initialize it
-// 	nativeStakingManager, err := nativetokenstakingmanager.NewNativeTokenStakingManager(
+// 	// Change the proxy contract type to NativeTokenSecurityModule and initialize it
+// 	nativeStakingManager, err := nativetokensecuritymodule.NewNativeTokenSecurityModule(
 // 		proxyAddress,
 // 		subnetAInfo.RPCClient,
 // 	)
@@ -175,8 +175,8 @@ package staking
 
 // 	tx, err = nativeStakingManager.Initialize(
 // 		opts,
-// 		nativetokenstakingmanager.PoSValidatorManagerSettings{
-// 			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
+// 		nativetokensecuritymodule.PoSSecurityModuleSettings{
+// 			BaseSettings: nativetokensecuritymodule.ValidatorManagerSettings{
 // 				SubnetID:               subnetAInfo.SubnetID,
 // 				ChurnPeriodSeconds:     utils.DefaultChurnPeriodSeconds,
 // 				MaximumChurnPercentage: utils.DefaultMaxChurnPercentage,
@@ -202,7 +202,7 @@ package staking
 // 	//
 // 	// Remove the PoA validator and re-register as a PoS validator
 // 	//
-// 	posStakingManager, err := iposvalidatormanager.NewIPoSValidatorManager(proxyAddress, subnetAInfo.RPCClient)
+// 	posStakingManager, err := ipossecuritymodule.NewIPoSSecurityModule(proxyAddress, subnetAInfo.RPCClient)
 // 	Expect(err).Should(BeNil())
 // 	utils.InitializeAndCompleteEndPoSValidation(
 // 		ctx,

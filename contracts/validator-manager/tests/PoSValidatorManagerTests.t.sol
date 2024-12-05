@@ -7,10 +7,10 @@ pragma solidity 0.8.25;
 
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
-import {PoSValidatorManager} from "../PoSValidatorManager.sol";
+import {PoSSecurityModule} from "../PoSSecurityModule.sol";
 import {
-    DelegatorStatus, PoSValidatorManagerSettings
-} from "../interfaces/IPoSValidatorManager.sol";
+    DelegatorStatus, PoSSecurityModuleSettings
+} from "../interfaces/IPoSSecurityModule.sol";
 import {ValidatorManager} from "../ValidatorManager.sol";
 import {
     ValidatorManagerSettings,
@@ -23,7 +23,7 @@ import {
     IWarpMessenger
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 
-abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
+abstract contract PoSSecurityModuleTest is ValidatorManagerTest {
     uint64 public constant DEFAULT_UPTIME = uint64(100);
     uint64 public constant DEFAULT_DELEGATOR_WEIGHT = uint64(1e5);
     uint64 public constant DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP =
@@ -44,7 +44,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     uint256 public constant DEFAULT_WEIGHT_TO_VALUE_FACTOR = 1e12;
     uint256 public constant SECONDS_IN_YEAR = 31536000;
 
-    PoSValidatorManager public posValidatorManager;
+    PoSSecurityModule public posValidatorManager;
     IRewardCalculator public rewardCalculator;
 
     ValidatorRegistrationInput public defaultRegistrationInput = ValidatorRegistrationInput({
@@ -89,7 +89,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testDelegationFeeBipsTooLow() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidDelegationFee.selector,
+                PoSSecurityModule.InvalidDelegationFee.selector,
                 DEFAULT_MINIMUM_DELEGATION_FEE_BIPS - 1
             )
         );
@@ -105,7 +105,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint16 delegationFeeBips = posValidatorManager.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidDelegationFee.selector, delegationFeeBips
+                PoSSecurityModule.InvalidDelegationFee.selector, delegationFeeBips
             )
         );
 
@@ -120,7 +120,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testInvalidMinStakeDuration() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidMinStakeDuration.selector,
+                PoSSecurityModule.InvalidMinStakeDuration.selector,
                 DEFAULT_MINIMUM_STAKE_DURATION - 1
             )
         );
@@ -135,7 +135,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testStakeAmountTooLow() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidStakeAmount.selector, DEFAULT_MINIMUM_STAKE_AMOUNT - 1
+                PoSSecurityModule.InvalidStakeAmount.selector, DEFAULT_MINIMUM_STAKE_AMOUNT - 1
             )
         );
         _initializeValidatorRegistration(
@@ -149,7 +149,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testStakeAmountTooHigh() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidStakeAmount.selector, DEFAULT_MAXIMUM_STAKE_AMOUNT + 1
+                PoSSecurityModule.InvalidStakeAmount.selector, DEFAULT_MAXIMUM_STAKE_AMOUNT + 1
             )
         );
         _initializeValidatorRegistration(
@@ -165,7 +165,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.MinStakeDurationNotPassed.selector, block.timestamp
+                PoSSecurityModule.MinStakeDurationNotPassed.selector, block.timestamp
             )
         );
         posValidatorManager.initializeEndValidation(validationID, false, 0);
@@ -304,7 +304,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
         vm.warp(DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP);
-        vm.expectRevert(abi.encodeWithSelector(PoSValidatorManager.InvalidNonce.selector, nonce));
+        vm.expectRevert(abi.encodeWithSelector(PoSSecurityModule.InvalidNonce.selector, nonce));
         posValidatorManager.completeDelegatorRegistration(delegationID2, 0);
     }
 
@@ -348,7 +348,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.prank(address(1));
         vm.expectRevert(
-            abi.encodeWithSelector(PoSValidatorManager.UnauthorizedOwner.selector, address(1))
+            abi.encodeWithSelector(PoSSecurityModule.UnauthorizedOwner.selector, address(1))
         );
         posValidatorManager.initializeEndValidation(validationID, false, 0);
     }
@@ -396,7 +396,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 invalidEndTime = DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP + 1 hours;
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.MinStakeDurationNotPassed.selector, invalidEndTime
+                PoSSecurityModule.MinStakeDurationNotPassed.selector, invalidEndTime
             )
         );
         _initializeEndDelegation({
@@ -417,7 +417,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP + DEFAULT_MINIMUM_STAKE_DURATION - 1;
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.MinStakeDurationNotPassed.selector, invalidEndTime
+                PoSSecurityModule.MinStakeDurationNotPassed.selector, invalidEndTime
             )
         );
         _initializeEndDelegation({
@@ -460,7 +460,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.MinStakeDurationNotPassed.selector, invalidEndTime
+                PoSSecurityModule.MinStakeDurationNotPassed.selector, invalidEndTime
             )
         );
 
@@ -481,7 +481,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.DelegatorIneligibleForRewards.selector, delegationID
+                PoSSecurityModule.DelegatorIneligibleForRewards.selector, delegationID
             )
         );
         vm.warp(DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP);
@@ -598,7 +598,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _endDefaultValidatorWithChecks(validationID, 2);
 
         vm.expectRevert(
-            abi.encodeWithSelector(PoSValidatorManager.UnauthorizedOwner.selector, address(123))
+            abi.encodeWithSelector(PoSSecurityModule.UnauthorizedOwner.selector, address(123))
         );
 
         vm.prank(address(123));
@@ -703,7 +703,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidRewardRecipient.selector, newRewardRecipient
+                PoSSecurityModule.InvalidRewardRecipient.selector, newRewardRecipient
             )
         );
 
@@ -732,7 +732,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         vm.prank(badActor);
 
         vm.expectRevert(
-            abi.encodeWithSelector(PoSValidatorManager.UnauthorizedOwner.selector, badActor)
+            abi.encodeWithSelector(PoSSecurityModule.UnauthorizedOwner.selector, badActor)
         );
 
         posValidatorManager.changeDelegatorRewardRecipient(delegationID, badActor);
@@ -1173,7 +1173,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         );
         _mockGetPChainWarpMessage(setValidatorWeightPayload, true);
 
-        vm.expectRevert(abi.encodeWithSelector(PoSValidatorManager.InvalidNonce.selector, nonce));
+        vm.expectRevert(abi.encodeWithSelector(PoSSecurityModule.InvalidNonce.selector, nonce));
         posValidatorManager.completeEndDelegation(delegationID2, 0);
     }
 
@@ -1427,7 +1427,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidRewardRecipient.selector, newRecipient
+                PoSSecurityModule.InvalidRewardRecipient.selector, newRecipient
             )
         );
 
@@ -1457,7 +1457,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         vm.prank(badActor);
 
         vm.expectRevert(
-            abi.encodeWithSelector(PoSValidatorManager.UnauthorizedOwner.selector, badActor)
+            abi.encodeWithSelector(PoSSecurityModule.UnauthorizedOwner.selector, badActor)
         );
 
         posValidatorManager.changeValidatorRewardRecipient(validationID, badActor);
@@ -1566,7 +1566,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.ValidatorIneligibleForRewards.selector, validationID
+                PoSSecurityModule.ValidatorIneligibleForRewards.selector, validationID
             )
         );
 
@@ -1578,7 +1578,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.ValidatorNotPoS.selector, defaultInitialValidationID
+                PoSSecurityModule.ValidatorNotPoS.selector, defaultInitialValidationID
             )
         );
         posValidatorManager.submitUptimeProof(defaultInitialValidationID, 0);
@@ -1645,7 +1645,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.ValidatorNotPoS.selector, defaultInitialValidationID
+                PoSSecurityModule.ValidatorNotPoS.selector, defaultInitialValidationID
             )
         );
 
@@ -1663,7 +1663,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.MaxWeightExceeded.selector, delegatorWeight + DEFAULT_WEIGHT
+                PoSSecurityModule.MaxWeightExceeded.selector, delegatorWeight + DEFAULT_WEIGHT
             )
         );
 
@@ -1676,7 +1676,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidDelegatorStatus.selector, DelegatorStatus.Active
+                PoSSecurityModule.InvalidDelegatorStatus.selector, DelegatorStatus.Active
             )
         );
 
@@ -1734,7 +1734,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidDelegatorStatus.selector, DelegatorStatus.PendingAdded
+                PoSSecurityModule.InvalidDelegatorStatus.selector, DelegatorStatus.PendingAdded
             )
         );
 
@@ -1746,7 +1746,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         bytes32 delegationID = _registerDefaultDelegator(validationID);
 
         vm.expectRevert(
-            abi.encodeWithSelector(PoSValidatorManager.UnauthorizedOwner.selector, address(123))
+            abi.encodeWithSelector(PoSSecurityModule.UnauthorizedOwner.selector, address(123))
         );
 
         vm.prank(address(123));
@@ -1805,7 +1805,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidDelegatorStatus.selector, DelegatorStatus.Active
+                PoSSecurityModule.InvalidDelegatorStatus.selector, DelegatorStatus.Active
             )
         );
 
@@ -1850,7 +1850,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidDelegatorStatus.selector, DelegatorStatus.Active
+                PoSSecurityModule.InvalidDelegatorStatus.selector, DelegatorStatus.Active
             )
         );
 
@@ -1901,7 +1901,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testValueToWeightTruncated() public {
         // default weightToValueFactor is 1e12
         vm.expectRevert(
-            abi.encodeWithSelector(PoSValidatorManager.InvalidStakeAmount.selector, 1e11)
+            abi.encodeWithSelector(PoSSecurityModule.InvalidStakeAmount.selector, 1e11)
         );
         posValidatorManager.valueToWeight(1e11);
     }
@@ -1909,7 +1909,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function testValueToWeightExceedsUInt64Max() public {
         // default weightToValueFactor is 1e12
         vm.expectRevert(
-            abi.encodeWithSelector(PoSValidatorManager.InvalidStakeAmount.selector, 1e40)
+            abi.encodeWithSelector(PoSSecurityModule.InvalidStakeAmount.selector, 1e40)
         );
         posValidatorManager.valueToWeight(1e40);
     }
@@ -1934,9 +1934,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         assertEq(v3, 1e27);
     }
 
-    function testPoSValidatorManagerStorageSlot() public view {
+    function testPoSSecurityModuleStorageSlot() public view {
         assertEq(
-            _erc7201StorageSlot("PoSValidatorManager"),
+            _erc7201StorageSlot("PoSSecurityModule"),
             posValidatorManager.POS_VALIDATOR_MANAGER_STORAGE_LOCATION()
         );
     }
@@ -2450,8 +2450,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
     }
 
-    function _defaultPoSSettings() internal pure returns (PoSValidatorManagerSettings memory) {
-        return PoSValidatorManagerSettings({
+    function _defaultPoSSettings() internal pure returns (PoSSecurityModuleSettings memory) {
+        return PoSSecurityModuleSettings({
             baseSettings: ValidatorManagerSettings({
                 subnetID: DEFAULT_SUBNET_ID,
                 churnPeriodSeconds: DEFAULT_CHURN_PERIOD,

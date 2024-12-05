@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {PoAValidatorManager} from "../PoAValidatorManager.sol";
+import {PoASecurityModule} from "../PoASecurityModule.sol";
 import {
     ValidatorManagerSettings,
     ValidatorRegistrationInput,
@@ -18,8 +18,8 @@ import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
-contract PoAValidatorManagerTest is ValidatorManagerTest {
-    PoAValidatorManager public app;
+contract PoASecurityModuleTest is ValidatorManagerTest {
+    PoASecurityModule public app;
 
     address public constant DEFAULT_OWNER = address(0x1);
 
@@ -33,7 +33,7 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
     }
 
     function testDisableInitialization() public {
-        app = new PoAValidatorManager(ICMInitializable.Disallowed);
+        app = new PoASecurityModule(ICMInitializable.Disallowed);
         vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         app.initialize(
             ValidatorManagerSettings({
@@ -65,7 +65,7 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
     }
 
     // This test applies to all ValidatorManagers, but we test it here to avoid
-    // having to source UINT64MAX funds for PoSValidatorManagers.
+    // having to source UINT64MAX funds for PoSSecurityModules.
     function testTotalWeightOverflow() public {
         uint64 weight = type(uint64).max;
 
@@ -110,7 +110,7 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
     }
 
     function _setUp() internal override returns (IValidatorManager) {
-        app = new PoAValidatorManager(ICMInitializable.Allowed);
+        app = new PoASecurityModule(ICMInitializable.Allowed);
         app.initialize(
             ValidatorManagerSettings({
                 subnetID: DEFAULT_SUBNET_ID,

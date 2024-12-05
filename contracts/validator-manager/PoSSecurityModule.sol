@@ -9,10 +9,10 @@ import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {
     Delegator,
     DelegatorStatus,
-    IPoSValidatorManager,
+    IPoSSecurityModule,
     PoSValidatorInfo,
-    PoSValidatorManagerSettings
-} from "./interfaces/IPoSValidatorManager.sol";
+    PoSSecurityModuleSettings
+} from "./interfaces/IPoSSecurityModule.sol";
 import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 import {IWarpMessenger, WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
@@ -24,18 +24,18 @@ import {ContextUpgradeable} from
 import {Validator, ValidatorStatus, ValidatorRegistrationInput, IACP99ValidatorManager} from "./interfaces/IACP99ValidatorManager.sol";
 
 /**
- * @dev Implementation of the {IPoSValidatorManager} interface.
+ * @dev Implementation of the {IPoSSecurityModule} interface.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-abstract contract PoSValidatorManager is
-    IPoSValidatorManager,
+abstract contract PoSSecurityModule is
+    IPoSSecurityModule,
     ContextUpgradeable,
     ReentrancyGuardUpgradeable
 {
     // solhint-disable private-vars-leading-underscore
-    /// @custom:storage-location erc7201:avalanche-icm.storage.PoSValidatorManager
-    struct PoSValidatorManagerStorage {
+    /// @custom:storage-location erc7201:avalanche-icm.storage.PoSSecurityModule
+    struct PoSSecurityModuleStorage {
         IACP99ValidatorManager validatorManager;
         /// @notice The minimum amount of stake required to be a validator.
         uint256 _minimumStakeAmount;
@@ -71,7 +71,7 @@ abstract contract PoSValidatorManager is
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.PoSValidatorManager")) - 1)) & ~bytes32(uint256(0xff));
+    // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.PoSSecurityModule")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 public constant POS_VALIDATOR_MANAGER_STORAGE_LOCATION =
         0x4317713f7ecbdddd4bc99e95d903adedaa883b2e7c2551610bd13e2c7e473d00;
 
@@ -111,10 +111,10 @@ abstract contract PoSValidatorManager is
 
 
     // solhint-disable ordering
-    function _getPoSValidatorManagerStorage()
+    function _getPoSSecurityModuleStorage()
         private
         pure
-        returns (PoSValidatorManagerStorage storage $)
+        returns (PoSSecurityModuleStorage storage $)
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
@@ -123,7 +123,7 @@ abstract contract PoSValidatorManager is
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __POS_Validator_Manager_init(PoSValidatorManagerSettings calldata settings)
+    function __POS_Validator_Manager_init(PoSSecurityModuleSettings calldata settings)
         internal
         onlyInitializing
     {
@@ -153,7 +153,7 @@ abstract contract PoSValidatorManager is
         IRewardCalculator rewardCalculator,
         bytes32 uptimeBlockchainID
     ) internal onlyInitializing {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         if (minimumDelegationFeeBips == 0 || minimumDelegationFeeBips > MAXIMUM_DELEGATION_FEE_BIPS)
         {
             revert InvalidDelegationFee(minimumDelegationFeeBips);
@@ -188,25 +188,25 @@ abstract contract PoSValidatorManager is
     }
 
     function completeValidatorRegistration(uint32 messageIndex) external {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         $.validatorManager.completeValidatorRegistration(messageIndex);
     }
 
     function completeEndValidation(uint32 messageIndex) external {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         bytes32 validationID = $.validatorManager.completeEndValidation(messageIndex);
 
         _completeEndValidation(validationID);
     }
 
     /**
-     * @notice See {IPoSValidatorManager-submitUptimeProof}.
+     * @notice See {IPoSSecurityModule-submitUptimeProof}.
      */
     function submitUptimeProof(bytes32 validationID, uint32 messageIndex) external {
         if (!_isPoSValidator(validationID)) {
             revert ValidatorNotPoS(validationID);
         }
-        ValidatorStatus status = _getPoSValidatorManagerStorage().validatorManager.getValidator(validationID).status;
+        ValidatorStatus status = _getPoSSecurityModuleStorage().validatorManager.getValidator(validationID).status;
         if (status != ValidatorStatus.Active) {
             revert InvalidValidatorStatus(status);
         }
@@ -216,12 +216,12 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-claimDelegationFees}.
+     * @notice See {IPoSSecurityModule-claimDelegationFees}.
      */
     function claimDelegationFees(bytes32 validationID) external {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
 
-        ValidatorStatus status = _getPoSValidatorManagerStorage().validatorManager.getValidator(validationID).status;
+        ValidatorStatus status = _getPoSSecurityModuleStorage().validatorManager.getValidator(validationID).status;
         if (status != ValidatorStatus.Completed) {
             revert InvalidValidatorStatus(status);
         }
@@ -234,7 +234,7 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-initializeEndValidation}.
+     * @notice See {IPoSSecurityModule-initializeEndValidation}.
      */
     function initializeEndValidation(
         bytes32 validationID,
@@ -247,7 +247,7 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-initializeEndValidation}.
+     * @notice See {IPoSSecurityModule-initializeEndValidation}.
      */
     function initializeEndValidation(
         bytes32 validationID,
@@ -266,7 +266,7 @@ abstract contract PoSValidatorManager is
         uint32 messageIndex,
         address rewardRecipient
     ) internal {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         $.validatorManager.initializeEndValidation(validationID);
 
         if (
@@ -279,14 +279,14 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-forceInitializeEndValidation}.
+     * @notice See {IPoSSecurityModule-forceInitializeEndValidation}.
      */
     function forceInitializeEndValidation(
         bytes32 validationID,
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         $.validatorManager.initializeEndValidation(validationID);
 
         // Ignore the return value here to force end validation, regardless of possible missed rewards
@@ -294,7 +294,7 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-forceInitializeEndValidation}.
+     * @notice See {IPoSSecurityModule-forceInitializeEndValidation}.
      */
     function forceInitializeEndValidation(
         bytes32 validationID,
@@ -302,7 +302,7 @@ abstract contract PoSValidatorManager is
         uint32 messageIndex,
         address rewardRecipient
     ) external {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         $.validatorManager.initializeEndValidation(validationID);
 
         // Ignore the return value here to force end validation, regardless of possible missed rewards
@@ -313,7 +313,7 @@ abstract contract PoSValidatorManager is
         bytes32 validationID,
         address rewardRecipient
     ) external {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
 
         if (rewardRecipient == address(0)) {
             revert InvalidRewardRecipient(rewardRecipient);
@@ -338,7 +338,7 @@ abstract contract PoSValidatorManager is
             revert InvalidRewardRecipient(rewardRecipient);
         }
 
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
 
         if ($._delegatorStakes[delegationID].owner != _msgSender()) {
             revert UnauthorizedOwner(_msgSender());
@@ -363,9 +363,9 @@ abstract contract PoSValidatorManager is
         uint32 messageIndex,
         address rewardRecipient
     ) internal returns (bool) {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
 
-        Validator memory validator = _getPoSValidatorManagerStorage().validatorManager.getValidator(validationID);
+        Validator memory validator = _getPoSSecurityModuleStorage().validatorManager.getValidator(validationID);
 
         // Non-PoS validators are required to boostrap the network, but are not eligible for rewards.
         if (!_isPoSValidator(validationID)) {
@@ -410,9 +410,9 @@ abstract contract PoSValidatorManager is
     }
 
     function _completeEndValidation(bytes32 validationID) internal {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
 
-        Validator memory validator = _getPoSValidatorManagerStorage().validatorManager.getValidator(validationID);
+        Validator memory validator = _getPoSSecurityModuleStorage().validatorManager.getValidator(validationID);
 
         // Return now if this was originally a PoA validator that was later migrated to this PoS manager,
         // or the validator was part of the initial validator set.
@@ -450,7 +450,7 @@ abstract contract PoSValidatorManager is
             revert InvalidWarpMessage();
         }
 
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         // The uptime proof must be from the specifed uptime blockchain
         if (warpMessage.sourceChainID != $._uptimeBlockchainID) {
             revert InvalidWarpSourceChainID(warpMessage.sourceChainID);
@@ -487,7 +487,7 @@ abstract contract PoSValidatorManager is
         uint64 minStakeDuration,
         uint256 stakeAmount
     ) internal returns (bytes32) {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         // Validate and save the validator requirements
         if (
             delegationFeeBips < $._minimumDelegationFeeBips
@@ -523,7 +523,7 @@ abstract contract PoSValidatorManager is
      * @param value Token value to convert.
      */
     function valueToWeight(uint256 value) public view returns (uint64) {
-        uint256 weight = value / _getPoSValidatorManagerStorage()._weightToValueFactor;
+        uint256 weight = value / _getPoSSecurityModuleStorage()._weightToValueFactor;
         if (weight == 0 || weight > type(uint64).max) {
             revert InvalidStakeAmount(value);
         }
@@ -535,7 +535,7 @@ abstract contract PoSValidatorManager is
      * @param weight weight to convert.
      */
     function weightToValue(uint64 weight) public view returns (uint256) {
-        return uint256(weight) * _getPoSValidatorManagerStorage()._weightToValueFactor;
+        return uint256(weight) * _getPoSSecurityModuleStorage()._weightToValueFactor;
     }
 
     /**
@@ -556,11 +556,11 @@ abstract contract PoSValidatorManager is
         address delegatorAddress,
         uint256 delegationAmount
     ) internal returns (bytes32) {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         uint64 weight = valueToWeight(_lock(delegationAmount)); // TODONOW: Use the sender's address
 
         // Ensure the validation period is active
-        Validator memory validator = _getPoSValidatorManagerStorage().validatorManager.getValidator(validationID);
+        Validator memory validator = _getPoSSecurityModuleStorage().validatorManager.getValidator(validationID);
         // Check that the validation ID is a PoS validator
         if (!_isPoSValidator(validationID)) {
             revert ValidatorNotPoS(validationID);
@@ -601,14 +601,14 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-completeDelegatorRegistration}.
+     * @notice See {IPoSSecurityModule-completeDelegatorRegistration}.
      */
     function completeDelegatorRegistration(bytes32 delegationID, uint32 messageIndex) external {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
         bytes32 validationID = delegator.validationID;
-        Validator memory validator = _getPoSValidatorManagerStorage().validatorManager.getValidator(validationID);
+        Validator memory validator = _getPoSSecurityModuleStorage().validatorManager.getValidator(validationID);
 
         // Ensure the delegator is pending added. Since anybody can call this function once
         // delegator registration has been initialized, we need to make sure that this function is only
@@ -651,7 +651,7 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-initializeEndDelegation}.
+     * @notice See {IPoSSecurityModule-initializeEndDelegation}.
      */
     function initializeEndDelegation(
         bytes32 delegationID,
@@ -664,7 +664,7 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-initializeEndDelegation}.
+     * @notice See {IPoSSecurityModule-initializeEndDelegation}.
      */
     function initializeEndDelegation(
         bytes32 delegationID,
@@ -693,7 +693,7 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-forceInitializeEndDelegation}.
+     * @notice See {IPoSSecurityModule-forceInitializeEndDelegation}.
      */
     function forceInitializeEndDelegation(
         bytes32 delegationID,
@@ -705,7 +705,7 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-forceInitializeEndDelegation}.
+     * @notice See {IPoSSecurityModule-forceInitializeEndDelegation}.
      */
     function forceInitializeEndDelegation(
         bytes32 delegationID,
@@ -728,11 +728,11 @@ abstract contract PoSValidatorManager is
         uint32 messageIndex,
         address rewardRecipient
     ) internal returns (bool) {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
         bytes32 validationID = delegator.validationID;
-        Validator memory validator = _getPoSValidatorManagerStorage().validatorManager.getValidator(validationID);
+        Validator memory validator = _getPoSSecurityModuleStorage().validatorManager.getValidator(validationID);
 
         // Ensure the delegator is active
         if (delegator.status != DelegatorStatus.Active) {
@@ -799,9 +799,9 @@ abstract contract PoSValidatorManager is
         address rewardRecipient,
         bytes32 delegationID
     ) private returns (uint256) {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
 
-        Validator memory validator = _getPoSValidatorManagerStorage().validatorManager.getValidator(delegator.validationID);
+        Validator memory validator = _getPoSSecurityModuleStorage().validatorManager.getValidator(delegator.validationID);
 
         uint64 delegationEndTime;
         if (
@@ -839,12 +839,12 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-resendUpdateDelegation}.
+     * @notice See {IPoSSecurityModule-resendUpdateDelegation}.
      * @dev Resending the latest validator weight with the latest nonce is safe because all weight changes are
      * cumulative, so the latest weight change will always include the weight change for any added delegators.
      */
     function resendUpdateDelegation(bytes32 delegationID) external {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         Delegator memory delegator = $._delegatorStakes[delegationID];
         if (
             delegator.status != DelegatorStatus.PendingAdded
@@ -853,7 +853,7 @@ abstract contract PoSValidatorManager is
             revert InvalidDelegatorStatus(delegator.status);
         }
 
-        Validator memory validator = _getPoSValidatorManagerStorage().validatorManager.getValidator(delegator.validationID);
+        Validator memory validator = _getPoSSecurityModuleStorage().validatorManager.getValidator(delegator.validationID);
         if (validator.messageNonce == 0) {
             // Should be unreachable.
             revert InvalidDelegationID(delegationID);
@@ -889,13 +889,13 @@ abstract contract PoSValidatorManager is
     }
 
     /**
-     * @notice See {IPoSValidatorManager-completeEndDelegation}.
+     * @notice See {IPoSSecurityModule-completeEndDelegation}.
      */
     function completeEndDelegation(
         bytes32 delegationID,
         uint32 messageIndex
     ) external nonReentrant {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         Delegator memory delegator = $._delegatorStakes[delegationID];
 
         // Ensure the delegator is pending removed. Since anybody can call this function once
@@ -905,7 +905,7 @@ abstract contract PoSValidatorManager is
             revert InvalidDelegatorStatus(delegator.status);
         }
 
-        if (_getPoSValidatorManagerStorage().validatorManager.getValidator(delegator.validationID).status != ValidatorStatus.Completed) {
+        if (_getPoSSecurityModuleStorage().validatorManager.getValidator(delegator.validationID).status != ValidatorStatus.Completed) {
             // Unpack the Warp message
             WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
             (bytes32 validationID, uint64 nonce,) =
@@ -928,7 +928,7 @@ abstract contract PoSValidatorManager is
     }
 
     function _completeEndDelegation(bytes32 delegationID) internal {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
 
         Delegator memory delegator = $._delegatorStakes[delegationID];
         bytes32 validationID = delegator.validationID;
@@ -969,12 +969,12 @@ abstract contract PoSValidatorManager is
      * validator that was later migrated to this PoS manager, or the validator was part of the initial validator set.
      */
     function _isPoSValidator(bytes32 validationID) internal view returns (bool) {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
         return $._posValidatorInfo[validationID].owner != address(0);
     }
 
     function _withdrawValidationRewards(address rewardRecipient, bytes32 validationID) internal {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
 
         uint256 rewards = $._redeemableValidatorRewards[validationID];
         delete $._redeemableValidatorRewards[validationID];
@@ -987,7 +987,7 @@ abstract contract PoSValidatorManager is
         bytes32 delegationID,
         bytes32 validationID
     ) internal returns (uint256, uint256) {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        PoSSecurityModuleStorage storage $ = _getPoSSecurityModuleStorage();
 
         uint256 delegationRewards;
         uint256 validatorFees;

@@ -1,7 +1,7 @@
 // Code generated - DO NOT EDIT.
 // This file is a generated binding and any manual changes will be lost.
 
-package poavalidatormanager
+package poasecuritymodule
 
 import (
 	"errors"
@@ -70,23 +70,23 @@ type ValidatorRegistrationInput struct {
 	DisableOwner          PChainOwner
 }
 
-// PoAValidatorManagerMetaData contains all meta data concerning the PoAValidatorManager contract.
-var PoAValidatorManagerMetaData = &bind.MetaData{
+// PoASecurityModuleMetaData contains all meta data concerning the PoASecurityModule contract.
+var PoASecurityModuleMetaData = &bind.MetaData{
 	ABI: "[{\"inputs\":[{\"internalType\":\"enumICMInitializable\",\"name\":\"init\",\"type\":\"uint8\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"POA_VALIDATOR_MANAGER_STORAGE_LOCATION\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"completeValidatorRegistration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"initialOwner\",\"type\":\"address\"},{\"internalType\":\"contractIACP99ValidatorManager\",\"name\":\"validatorManager\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"name\":\"initializeEndValidation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes\",\"name\":\"nodeID\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"blsPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"registrationExpiry\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"remainingBalanceOwner\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"addresses\",\"type\":\"address[]\"}],\"internalType\":\"structPChainOwner\",\"name\":\"disableOwner\",\"type\":\"tuple\"}],\"internalType\":\"structValidatorRegistrationInput\",\"name\":\"registrationInput\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"initializeValidatorRegistration\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"validationID\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-	Bin: "0x608060405234801561000f575f80fd5b50604051610af9380380610af983398101604081905261002e91610107565b60018160018111156100425761004261012c565b0361004f5761004f610055565b50610140565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00805468010000000000000000900460ff16156100a55760405163f92ee8a960e01b815260040160405180910390fd5b80546001600160401b03908116146101045780546001600160401b0319166001600160401b0390811782556040519081527fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d29060200160405180910390a15b50565b5f60208284031215610117575f80fd5b815160028110610125575f80fd5b9392505050565b634e487b7160e01b5f52602160045260245ffd5b6109ac8061014d5f395ff3fe608060405234801561000f575f80fd5b5060043610610090575f3560e01c806397fb70d41161006357806397fb70d4146101035780639ba96b8614610116578063a3a65e4814610137578063bd5607df1461014a578063f2fde38b1461015e575f80fd5b8063467ef06f14610094578063485cc955146100a9578063715018a6146100bc5780638da5cb5b146100c4575b5f80fd5b6100a76100a236600461063a565b610171565b005b6100a76100b736600461066e565b6101f5565b6100a7610305565b7f9016d09d72d40fdae2fd8ceac6b6234c7706214fd39c1cd1e609a0528c199300546040516001600160a01b0390911681526020015b60405180910390f35b6100a76101113660046106a5565b610318565b6101296101243660046106d3565b61038c565b6040519081526020016100fa565b6100a761014536600461063a565b61041c565b6101295f8051602061095783398151915281565b6100a761016c366004610722565b61045f565b5f80516020610957833981519152805460405163467ef06f60e01b815263ffffffff841660048201526001600160a01b039091169063467ef06f906024015b6020604051808303815f875af11580156101cc573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906101f0919061073d565b505050565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a008054600160401b810460ff16159067ffffffffffffffff165f8115801561023a5750825b90505f8267ffffffffffffffff1660011480156102565750303b155b905081158015610264575080155b156102825760405163f92ee8a960e01b815260040160405180910390fd5b845467ffffffffffffffff1916600117855583156102ac57845460ff60401b1916600160401b1785555b6102b687876104a1565b83156102fc57845460ff60401b19168555604051600181527fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d29060200160405180910390a15b50505050505050565b61030d6104bf565b6103165f61051a565b565b6103206104bf565b5f5f8051602061095783398151915280546040516325fedc3560e21b8152600481018590529192506001600160a01b0316906397fb70d4906024015f604051808303815f87803b158015610372575f80fd5b505af1158015610384573d5f803e3d5ffd5b505050505050565b5f6103956104bf565b5f805160206109578339815191528054604051634dd4b5c360e11b81526001600160a01b0390911690639ba96b86906103d4908790879060040161088a565b6020604051808303815f875af11580156103f0573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610414919061073d565b949350505050565b5f805160206109578339815191528054604051631474cbc960e31b815263ffffffff841660048201526001600160a01b039091169063a3a65e48906024016101b0565b6104676104bf565b6001600160a01b03811661049557604051631e4fbdf760e01b81525f60048201526024015b60405180910390fd5b61049e8161051a565b50565b6104a961058a565b6104b2826105d3565b6104bb816105e4565b5050565b336104f17f9016d09d72d40fdae2fd8ceac6b6234c7706214fd39c1cd1e609a0528c199300546001600160a01b031690565b6001600160a01b0316146103165760405163118cdaa760e01b815233600482015260240161048c565b7f9016d09d72d40fdae2fd8ceac6b6234c7706214fd39c1cd1e609a0528c19930080546001600160a01b031981166001600160a01b03848116918217845560405192169182907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0905f90a3505050565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a0054600160401b900460ff1661031657604051631afcd79f60e31b815260040160405180910390fd5b6105db61058a565b61049e8161061a565b6105ec61058a565b5f8051602061095783398151915280546001600160a01b0319166001600160a01b0392909216919091179055565b61046761058a565b803563ffffffff81168114610635575f80fd5b919050565b5f6020828403121561064a575f80fd5b61065382610622565b9392505050565b6001600160a01b038116811461049e575f80fd5b5f806040838503121561067f575f80fd5b823561068a8161065a565b9150602083013561069a8161065a565b809150509250929050565b5f602082840312156106b5575f80fd5b5035919050565b803567ffffffffffffffff81168114610635575f80fd5b5f80604083850312156106e4575f80fd5b823567ffffffffffffffff8111156106fa575f80fd5b830160a0818603121561070b575f80fd5b9150610719602084016106bc565b90509250929050565b5f60208284031215610732575f80fd5b81356106538161065a565b5f6020828403121561074d575f80fd5b5051919050565b5f808335601e19843603018112610769575f80fd5b830160208101925035905067ffffffffffffffff811115610788575f80fd5b803603821315610796575f80fd5b9250929050565b81835281816020850137505f828201602090810191909152601f909101601f19169091010190565b5f8235603e198336030181126107d9575f80fd5b90910192915050565b5f6040830163ffffffff6107f584610622565b168452602080840135601e1985360301811261080f575f80fd5b840160208101903567ffffffffffffffff81111561082b575f80fd5b8060051b360382131561083c575f80fd5b6040602088015292839052915f90606087015b8183101561087f5784356108628161065a565b6001600160a01b031681529383019360019290920191830161084f565b979650505050505050565b604081525f6108998485610754565b60a060408501526108ae60e08501828461079d565b9150506108be6020860186610754565b603f19808685030160608701526108d684838561079d565b93506108e4604089016106bc565b925067ffffffffffffffff9150818316608087015261090660608901896107c5565b9250808685030160a087015261091c84846107e2565b935061092b60808901896107c5565b9250808685030160c08701525061094283836107e2565b93508086166020860152505050939250505056fe81773fca73a14ca21edf1cadc6ec0b26d6a44966f6e97607e90422658d423500a26469706673582212200a2a20208285517447dafc91b64e589ee1471dbf6c57e91b8bba62b32da4683764736f6c63430008190033",
+	Bin: "0x608060405234801561000f575f80fd5b50604051610af9380380610af983398101604081905261002e91610107565b60018160018111156100425761004261012c565b0361004f5761004f610055565b50610140565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00805468010000000000000000900460ff16156100a55760405163f92ee8a960e01b815260040160405180910390fd5b80546001600160401b03908116146101045780546001600160401b0319166001600160401b0390811782556040519081527fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d29060200160405180910390a15b50565b5f60208284031215610117575f80fd5b815160028110610125575f80fd5b9392505050565b634e487b7160e01b5f52602160045260245ffd5b6109ac8061014d5f395ff3fe608060405234801561000f575f80fd5b5060043610610090575f3560e01c806397fb70d41161006357806397fb70d4146101035780639ba96b8614610116578063a3a65e4814610137578063bd5607df1461014a578063f2fde38b1461015e575f80fd5b8063467ef06f14610094578063485cc955146100a9578063715018a6146100bc5780638da5cb5b146100c4575b5f80fd5b6100a76100a236600461063a565b610171565b005b6100a76100b736600461066e565b6101f5565b6100a7610305565b7f9016d09d72d40fdae2fd8ceac6b6234c7706214fd39c1cd1e609a0528c199300546040516001600160a01b0390911681526020015b60405180910390f35b6100a76101113660046106a5565b610318565b6101296101243660046106d3565b61038c565b6040519081526020016100fa565b6100a761014536600461063a565b61041c565b6101295f8051602061095783398151915281565b6100a761016c366004610722565b61045f565b5f80516020610957833981519152805460405163467ef06f60e01b815263ffffffff841660048201526001600160a01b039091169063467ef06f906024015b6020604051808303815f875af11580156101cc573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906101f0919061073d565b505050565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a008054600160401b810460ff16159067ffffffffffffffff165f8115801561023a5750825b90505f8267ffffffffffffffff1660011480156102565750303b155b905081158015610264575080155b156102825760405163f92ee8a960e01b815260040160405180910390fd5b845467ffffffffffffffff1916600117855583156102ac57845460ff60401b1916600160401b1785555b6102b687876104a1565b83156102fc57845460ff60401b19168555604051600181527fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d29060200160405180910390a15b50505050505050565b61030d6104bf565b6103165f61051a565b565b6103206104bf565b5f5f8051602061095783398151915280546040516325fedc3560e21b8152600481018590529192506001600160a01b0316906397fb70d4906024015f604051808303815f87803b158015610372575f80fd5b505af1158015610384573d5f803e3d5ffd5b505050505050565b5f6103956104bf565b5f805160206109578339815191528054604051634dd4b5c360e11b81526001600160a01b0390911690639ba96b86906103d4908790879060040161088a565b6020604051808303815f875af11580156103f0573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610414919061073d565b949350505050565b5f805160206109578339815191528054604051631474cbc960e31b815263ffffffff841660048201526001600160a01b039091169063a3a65e48906024016101b0565b6104676104bf565b6001600160a01b03811661049557604051631e4fbdf760e01b81525f60048201526024015b60405180910390fd5b61049e8161051a565b50565b6104a961058a565b6104b2826105d3565b6104bb816105e4565b5050565b336104f17f9016d09d72d40fdae2fd8ceac6b6234c7706214fd39c1cd1e609a0528c199300546001600160a01b031690565b6001600160a01b0316146103165760405163118cdaa760e01b815233600482015260240161048c565b7f9016d09d72d40fdae2fd8ceac6b6234c7706214fd39c1cd1e609a0528c19930080546001600160a01b031981166001600160a01b03848116918217845560405192169182907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0905f90a3505050565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a0054600160401b900460ff1661031657604051631afcd79f60e31b815260040160405180910390fd5b6105db61058a565b61049e8161061a565b6105ec61058a565b5f8051602061095783398151915280546001600160a01b0319166001600160a01b0392909216919091179055565b61046761058a565b803563ffffffff81168114610635575f80fd5b919050565b5f6020828403121561064a575f80fd5b61065382610622565b9392505050565b6001600160a01b038116811461049e575f80fd5b5f806040838503121561067f575f80fd5b823561068a8161065a565b9150602083013561069a8161065a565b809150509250929050565b5f602082840312156106b5575f80fd5b5035919050565b803567ffffffffffffffff81168114610635575f80fd5b5f80604083850312156106e4575f80fd5b823567ffffffffffffffff8111156106fa575f80fd5b830160a0818603121561070b575f80fd5b9150610719602084016106bc565b90509250929050565b5f60208284031215610732575f80fd5b81356106538161065a565b5f6020828403121561074d575f80fd5b5051919050565b5f808335601e19843603018112610769575f80fd5b830160208101925035905067ffffffffffffffff811115610788575f80fd5b803603821315610796575f80fd5b9250929050565b81835281816020850137505f828201602090810191909152601f909101601f19169091010190565b5f8235603e198336030181126107d9575f80fd5b90910192915050565b5f6040830163ffffffff6107f584610622565b168452602080840135601e1985360301811261080f575f80fd5b840160208101903567ffffffffffffffff81111561082b575f80fd5b8060051b360382131561083c575f80fd5b6040602088015292839052915f90606087015b8183101561087f5784356108628161065a565b6001600160a01b031681529383019360019290920191830161084f565b979650505050505050565b604081525f6108998485610754565b60a060408501526108ae60e08501828461079d565b9150506108be6020860186610754565b603f19808685030160608701526108d684838561079d565b93506108e4604089016106bc565b925067ffffffffffffffff9150818316608087015261090660608901896107c5565b9250808685030160a087015261091c84846107e2565b935061092b60808901896107c5565b9250808685030160c08701525061094283836107e2565b93508086166020860152505050939250505056fe81773fca73a14ca21edf1cadc6ec0b26d6a44966f6e97607e90422658d423500a2646970667358221220019e973e2faa0088dbb15d77bd25f1526c561032cc773245d45c583eb374607b64736f6c63430008190033",
 }
 
-// PoAValidatorManagerABI is the input ABI used to generate the binding from.
-// Deprecated: Use PoAValidatorManagerMetaData.ABI instead.
-var PoAValidatorManagerABI = PoAValidatorManagerMetaData.ABI
+// PoASecurityModuleABI is the input ABI used to generate the binding from.
+// Deprecated: Use PoASecurityModuleMetaData.ABI instead.
+var PoASecurityModuleABI = PoASecurityModuleMetaData.ABI
 
-// PoAValidatorManagerBin is the compiled bytecode used for deploying new contracts.
-// Deprecated: Use PoAValidatorManagerMetaData.Bin instead.
-var PoAValidatorManagerBin = PoAValidatorManagerMetaData.Bin
+// PoASecurityModuleBin is the compiled bytecode used for deploying new contracts.
+// Deprecated: Use PoASecurityModuleMetaData.Bin instead.
+var PoASecurityModuleBin = PoASecurityModuleMetaData.Bin
 
-// DeployPoAValidatorManager deploys a new Ethereum contract, binding an instance of PoAValidatorManager to it.
-func DeployPoAValidatorManager(auth *bind.TransactOpts, backend bind.ContractBackend, init uint8) (common.Address, *types.Transaction, *PoAValidatorManager, error) {
-	parsed, err := PoAValidatorManagerMetaData.GetAbi()
+// DeployPoASecurityModule deploys a new Ethereum contract, binding an instance of PoASecurityModule to it.
+func DeployPoASecurityModule(auth *bind.TransactOpts, backend bind.ContractBackend, init uint8) (common.Address, *types.Transaction, *PoASecurityModule, error) {
+	parsed, err := PoASecurityModuleMetaData.GetAbi()
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
@@ -94,111 +94,111 @@ func DeployPoAValidatorManager(auth *bind.TransactOpts, backend bind.ContractBac
 		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
 	}
 
-	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(PoAValidatorManagerBin), backend, init)
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(PoASecurityModuleBin), backend, init)
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
-	return address, tx, &PoAValidatorManager{PoAValidatorManagerCaller: PoAValidatorManagerCaller{contract: contract}, PoAValidatorManagerTransactor: PoAValidatorManagerTransactor{contract: contract}, PoAValidatorManagerFilterer: PoAValidatorManagerFilterer{contract: contract}}, nil
+	return address, tx, &PoASecurityModule{PoASecurityModuleCaller: PoASecurityModuleCaller{contract: contract}, PoASecurityModuleTransactor: PoASecurityModuleTransactor{contract: contract}, PoASecurityModuleFilterer: PoASecurityModuleFilterer{contract: contract}}, nil
 }
 
-// PoAValidatorManager is an auto generated Go binding around an Ethereum contract.
-type PoAValidatorManager struct {
-	PoAValidatorManagerCaller     // Read-only binding to the contract
-	PoAValidatorManagerTransactor // Write-only binding to the contract
-	PoAValidatorManagerFilterer   // Log filterer for contract events
+// PoASecurityModule is an auto generated Go binding around an Ethereum contract.
+type PoASecurityModule struct {
+	PoASecurityModuleCaller     // Read-only binding to the contract
+	PoASecurityModuleTransactor // Write-only binding to the contract
+	PoASecurityModuleFilterer   // Log filterer for contract events
 }
 
-// PoAValidatorManagerCaller is an auto generated read-only Go binding around an Ethereum contract.
-type PoAValidatorManagerCaller struct {
+// PoASecurityModuleCaller is an auto generated read-only Go binding around an Ethereum contract.
+type PoASecurityModuleCaller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// PoAValidatorManagerTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type PoAValidatorManagerTransactor struct {
+// PoASecurityModuleTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type PoASecurityModuleTransactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// PoAValidatorManagerFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type PoAValidatorManagerFilterer struct {
+// PoASecurityModuleFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type PoASecurityModuleFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// PoAValidatorManagerSession is an auto generated Go binding around an Ethereum contract,
+// PoASecurityModuleSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type PoAValidatorManagerSession struct {
-	Contract     *PoAValidatorManager // Generic contract binding to set the session for
-	CallOpts     bind.CallOpts        // Call options to use throughout this session
-	TransactOpts bind.TransactOpts    // Transaction auth options to use throughout this session
+type PoASecurityModuleSession struct {
+	Contract     *PoASecurityModule // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts      // Call options to use throughout this session
+	TransactOpts bind.TransactOpts  // Transaction auth options to use throughout this session
 }
 
-// PoAValidatorManagerCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// PoASecurityModuleCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type PoAValidatorManagerCallerSession struct {
-	Contract *PoAValidatorManagerCaller // Generic contract caller binding to set the session for
-	CallOpts bind.CallOpts              // Call options to use throughout this session
+type PoASecurityModuleCallerSession struct {
+	Contract *PoASecurityModuleCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts            // Call options to use throughout this session
 }
 
-// PoAValidatorManagerTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// PoASecurityModuleTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type PoAValidatorManagerTransactorSession struct {
-	Contract     *PoAValidatorManagerTransactor // Generic contract transactor binding to set the session for
-	TransactOpts bind.TransactOpts              // Transaction auth options to use throughout this session
+type PoASecurityModuleTransactorSession struct {
+	Contract     *PoASecurityModuleTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts            // Transaction auth options to use throughout this session
 }
 
-// PoAValidatorManagerRaw is an auto generated low-level Go binding around an Ethereum contract.
-type PoAValidatorManagerRaw struct {
-	Contract *PoAValidatorManager // Generic contract binding to access the raw methods on
+// PoASecurityModuleRaw is an auto generated low-level Go binding around an Ethereum contract.
+type PoASecurityModuleRaw struct {
+	Contract *PoASecurityModule // Generic contract binding to access the raw methods on
 }
 
-// PoAValidatorManagerCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type PoAValidatorManagerCallerRaw struct {
-	Contract *PoAValidatorManagerCaller // Generic read-only contract binding to access the raw methods on
+// PoASecurityModuleCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type PoASecurityModuleCallerRaw struct {
+	Contract *PoASecurityModuleCaller // Generic read-only contract binding to access the raw methods on
 }
 
-// PoAValidatorManagerTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type PoAValidatorManagerTransactorRaw struct {
-	Contract *PoAValidatorManagerTransactor // Generic write-only contract binding to access the raw methods on
+// PoASecurityModuleTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type PoASecurityModuleTransactorRaw struct {
+	Contract *PoASecurityModuleTransactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewPoAValidatorManager creates a new instance of PoAValidatorManager, bound to a specific deployed contract.
-func NewPoAValidatorManager(address common.Address, backend bind.ContractBackend) (*PoAValidatorManager, error) {
-	contract, err := bindPoAValidatorManager(address, backend, backend, backend)
+// NewPoASecurityModule creates a new instance of PoASecurityModule, bound to a specific deployed contract.
+func NewPoASecurityModule(address common.Address, backend bind.ContractBackend) (*PoASecurityModule, error) {
+	contract, err := bindPoASecurityModule(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &PoAValidatorManager{PoAValidatorManagerCaller: PoAValidatorManagerCaller{contract: contract}, PoAValidatorManagerTransactor: PoAValidatorManagerTransactor{contract: contract}, PoAValidatorManagerFilterer: PoAValidatorManagerFilterer{contract: contract}}, nil
+	return &PoASecurityModule{PoASecurityModuleCaller: PoASecurityModuleCaller{contract: contract}, PoASecurityModuleTransactor: PoASecurityModuleTransactor{contract: contract}, PoASecurityModuleFilterer: PoASecurityModuleFilterer{contract: contract}}, nil
 }
 
-// NewPoAValidatorManagerCaller creates a new read-only instance of PoAValidatorManager, bound to a specific deployed contract.
-func NewPoAValidatorManagerCaller(address common.Address, caller bind.ContractCaller) (*PoAValidatorManagerCaller, error) {
-	contract, err := bindPoAValidatorManager(address, caller, nil, nil)
+// NewPoASecurityModuleCaller creates a new read-only instance of PoASecurityModule, bound to a specific deployed contract.
+func NewPoASecurityModuleCaller(address common.Address, caller bind.ContractCaller) (*PoASecurityModuleCaller, error) {
+	contract, err := bindPoASecurityModule(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &PoAValidatorManagerCaller{contract: contract}, nil
+	return &PoASecurityModuleCaller{contract: contract}, nil
 }
 
-// NewPoAValidatorManagerTransactor creates a new write-only instance of PoAValidatorManager, bound to a specific deployed contract.
-func NewPoAValidatorManagerTransactor(address common.Address, transactor bind.ContractTransactor) (*PoAValidatorManagerTransactor, error) {
-	contract, err := bindPoAValidatorManager(address, nil, transactor, nil)
+// NewPoASecurityModuleTransactor creates a new write-only instance of PoASecurityModule, bound to a specific deployed contract.
+func NewPoASecurityModuleTransactor(address common.Address, transactor bind.ContractTransactor) (*PoASecurityModuleTransactor, error) {
+	contract, err := bindPoASecurityModule(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &PoAValidatorManagerTransactor{contract: contract}, nil
+	return &PoASecurityModuleTransactor{contract: contract}, nil
 }
 
-// NewPoAValidatorManagerFilterer creates a new log filterer instance of PoAValidatorManager, bound to a specific deployed contract.
-func NewPoAValidatorManagerFilterer(address common.Address, filterer bind.ContractFilterer) (*PoAValidatorManagerFilterer, error) {
-	contract, err := bindPoAValidatorManager(address, nil, nil, filterer)
+// NewPoASecurityModuleFilterer creates a new log filterer instance of PoASecurityModule, bound to a specific deployed contract.
+func NewPoASecurityModuleFilterer(address common.Address, filterer bind.ContractFilterer) (*PoASecurityModuleFilterer, error) {
+	contract, err := bindPoASecurityModule(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &PoAValidatorManagerFilterer{contract: contract}, nil
+	return &PoASecurityModuleFilterer{contract: contract}, nil
 }
 
-// bindPoAValidatorManager binds a generic wrapper to an already deployed contract.
-func bindPoAValidatorManager(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := PoAValidatorManagerMetaData.GetAbi()
+// bindPoASecurityModule binds a generic wrapper to an already deployed contract.
+func bindPoASecurityModule(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := PoASecurityModuleMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
@@ -209,46 +209,46 @@ func bindPoAValidatorManager(address common.Address, caller bind.ContractCaller,
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_PoAValidatorManager *PoAValidatorManagerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _PoAValidatorManager.Contract.PoAValidatorManagerCaller.contract.Call(opts, result, method, params...)
+func (_PoASecurityModule *PoASecurityModuleRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _PoASecurityModule.Contract.PoASecurityModuleCaller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_PoAValidatorManager *PoAValidatorManagerRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.PoAValidatorManagerTransactor.contract.Transfer(opts)
+func (_PoASecurityModule *PoASecurityModuleRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.PoASecurityModuleTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_PoAValidatorManager *PoAValidatorManagerRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.PoAValidatorManagerTransactor.contract.Transact(opts, method, params...)
+func (_PoASecurityModule *PoASecurityModuleRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.PoASecurityModuleTransactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_PoAValidatorManager *PoAValidatorManagerCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _PoAValidatorManager.Contract.contract.Call(opts, result, method, params...)
+func (_PoASecurityModule *PoASecurityModuleCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _PoASecurityModule.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_PoAValidatorManager *PoAValidatorManagerTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.contract.Transfer(opts)
+func (_PoASecurityModule *PoASecurityModuleTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_PoAValidatorManager *PoAValidatorManagerTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.contract.Transact(opts, method, params...)
+func (_PoASecurityModule *PoASecurityModuleTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.contract.Transact(opts, method, params...)
 }
 
 // POAVALIDATORMANAGERSTORAGELOCATION is a free data retrieval call binding the contract method 0xbd5607df.
 //
 // Solidity: function POA_VALIDATOR_MANAGER_STORAGE_LOCATION() view returns(bytes32)
-func (_PoAValidatorManager *PoAValidatorManagerCaller) POAVALIDATORMANAGERSTORAGELOCATION(opts *bind.CallOpts) ([32]byte, error) {
+func (_PoASecurityModule *PoASecurityModuleCaller) POAVALIDATORMANAGERSTORAGELOCATION(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
-	err := _PoAValidatorManager.contract.Call(opts, &out, "POA_VALIDATOR_MANAGER_STORAGE_LOCATION")
+	err := _PoASecurityModule.contract.Call(opts, &out, "POA_VALIDATOR_MANAGER_STORAGE_LOCATION")
 
 	if err != nil {
 		return *new([32]byte), err
@@ -263,23 +263,23 @@ func (_PoAValidatorManager *PoAValidatorManagerCaller) POAVALIDATORMANAGERSTORAG
 // POAVALIDATORMANAGERSTORAGELOCATION is a free data retrieval call binding the contract method 0xbd5607df.
 //
 // Solidity: function POA_VALIDATOR_MANAGER_STORAGE_LOCATION() view returns(bytes32)
-func (_PoAValidatorManager *PoAValidatorManagerSession) POAVALIDATORMANAGERSTORAGELOCATION() ([32]byte, error) {
-	return _PoAValidatorManager.Contract.POAVALIDATORMANAGERSTORAGELOCATION(&_PoAValidatorManager.CallOpts)
+func (_PoASecurityModule *PoASecurityModuleSession) POAVALIDATORMANAGERSTORAGELOCATION() ([32]byte, error) {
+	return _PoASecurityModule.Contract.POAVALIDATORMANAGERSTORAGELOCATION(&_PoASecurityModule.CallOpts)
 }
 
 // POAVALIDATORMANAGERSTORAGELOCATION is a free data retrieval call binding the contract method 0xbd5607df.
 //
 // Solidity: function POA_VALIDATOR_MANAGER_STORAGE_LOCATION() view returns(bytes32)
-func (_PoAValidatorManager *PoAValidatorManagerCallerSession) POAVALIDATORMANAGERSTORAGELOCATION() ([32]byte, error) {
-	return _PoAValidatorManager.Contract.POAVALIDATORMANAGERSTORAGELOCATION(&_PoAValidatorManager.CallOpts)
+func (_PoASecurityModule *PoASecurityModuleCallerSession) POAVALIDATORMANAGERSTORAGELOCATION() ([32]byte, error) {
+	return _PoASecurityModule.Contract.POAVALIDATORMANAGERSTORAGELOCATION(&_PoASecurityModule.CallOpts)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
-func (_PoAValidatorManager *PoAValidatorManagerCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
+func (_PoASecurityModule *PoASecurityModuleCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _PoAValidatorManager.contract.Call(opts, &out, "owner")
+	err := _PoASecurityModule.contract.Call(opts, &out, "owner")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -294,167 +294,167 @@ func (_PoAValidatorManager *PoAValidatorManagerCaller) Owner(opts *bind.CallOpts
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
-func (_PoAValidatorManager *PoAValidatorManagerSession) Owner() (common.Address, error) {
-	return _PoAValidatorManager.Contract.Owner(&_PoAValidatorManager.CallOpts)
+func (_PoASecurityModule *PoASecurityModuleSession) Owner() (common.Address, error) {
+	return _PoASecurityModule.Contract.Owner(&_PoASecurityModule.CallOpts)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
-func (_PoAValidatorManager *PoAValidatorManagerCallerSession) Owner() (common.Address, error) {
-	return _PoAValidatorManager.Contract.Owner(&_PoAValidatorManager.CallOpts)
+func (_PoASecurityModule *PoASecurityModuleCallerSession) Owner() (common.Address, error) {
+	return _PoASecurityModule.Contract.Owner(&_PoASecurityModule.CallOpts)
 }
 
 // CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
 //
 // Solidity: function completeEndValidation(uint32 messageIndex) returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactor) CompleteEndValidation(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
-	return _PoAValidatorManager.contract.Transact(opts, "completeEndValidation", messageIndex)
+func (_PoASecurityModule *PoASecurityModuleTransactor) CompleteEndValidation(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
+	return _PoASecurityModule.contract.Transact(opts, "completeEndValidation", messageIndex)
 }
 
 // CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
 //
 // Solidity: function completeEndValidation(uint32 messageIndex) returns()
-func (_PoAValidatorManager *PoAValidatorManagerSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.CompleteEndValidation(&_PoAValidatorManager.TransactOpts, messageIndex)
+func (_PoASecurityModule *PoASecurityModuleSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.CompleteEndValidation(&_PoASecurityModule.TransactOpts, messageIndex)
 }
 
 // CompleteEndValidation is a paid mutator transaction binding the contract method 0x467ef06f.
 //
 // Solidity: function completeEndValidation(uint32 messageIndex) returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactorSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.CompleteEndValidation(&_PoAValidatorManager.TransactOpts, messageIndex)
+func (_PoASecurityModule *PoASecurityModuleTransactorSession) CompleteEndValidation(messageIndex uint32) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.CompleteEndValidation(&_PoASecurityModule.TransactOpts, messageIndex)
 }
 
 // CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
 //
 // Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactor) CompleteValidatorRegistration(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
-	return _PoAValidatorManager.contract.Transact(opts, "completeValidatorRegistration", messageIndex)
+func (_PoASecurityModule *PoASecurityModuleTransactor) CompleteValidatorRegistration(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
+	return _PoASecurityModule.contract.Transact(opts, "completeValidatorRegistration", messageIndex)
 }
 
 // CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
 //
 // Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
-func (_PoAValidatorManager *PoAValidatorManagerSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.CompleteValidatorRegistration(&_PoAValidatorManager.TransactOpts, messageIndex)
+func (_PoASecurityModule *PoASecurityModuleSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.CompleteValidatorRegistration(&_PoASecurityModule.TransactOpts, messageIndex)
 }
 
 // CompleteValidatorRegistration is a paid mutator transaction binding the contract method 0xa3a65e48.
 //
 // Solidity: function completeValidatorRegistration(uint32 messageIndex) returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactorSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.CompleteValidatorRegistration(&_PoAValidatorManager.TransactOpts, messageIndex)
+func (_PoASecurityModule *PoASecurityModuleTransactorSession) CompleteValidatorRegistration(messageIndex uint32) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.CompleteValidatorRegistration(&_PoASecurityModule.TransactOpts, messageIndex)
 }
 
 // Initialize is a paid mutator transaction binding the contract method 0x485cc955.
 //
 // Solidity: function initialize(address initialOwner, address validatorManager) returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactor) Initialize(opts *bind.TransactOpts, initialOwner common.Address, validatorManager common.Address) (*types.Transaction, error) {
-	return _PoAValidatorManager.contract.Transact(opts, "initialize", initialOwner, validatorManager)
+func (_PoASecurityModule *PoASecurityModuleTransactor) Initialize(opts *bind.TransactOpts, initialOwner common.Address, validatorManager common.Address) (*types.Transaction, error) {
+	return _PoASecurityModule.contract.Transact(opts, "initialize", initialOwner, validatorManager)
 }
 
 // Initialize is a paid mutator transaction binding the contract method 0x485cc955.
 //
 // Solidity: function initialize(address initialOwner, address validatorManager) returns()
-func (_PoAValidatorManager *PoAValidatorManagerSession) Initialize(initialOwner common.Address, validatorManager common.Address) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.Initialize(&_PoAValidatorManager.TransactOpts, initialOwner, validatorManager)
+func (_PoASecurityModule *PoASecurityModuleSession) Initialize(initialOwner common.Address, validatorManager common.Address) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.Initialize(&_PoASecurityModule.TransactOpts, initialOwner, validatorManager)
 }
 
 // Initialize is a paid mutator transaction binding the contract method 0x485cc955.
 //
 // Solidity: function initialize(address initialOwner, address validatorManager) returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactorSession) Initialize(initialOwner common.Address, validatorManager common.Address) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.Initialize(&_PoAValidatorManager.TransactOpts, initialOwner, validatorManager)
+func (_PoASecurityModule *PoASecurityModuleTransactorSession) Initialize(initialOwner common.Address, validatorManager common.Address) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.Initialize(&_PoASecurityModule.TransactOpts, initialOwner, validatorManager)
 }
 
 // InitializeEndValidation is a paid mutator transaction binding the contract method 0x97fb70d4.
 //
 // Solidity: function initializeEndValidation(bytes32 validationID) returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactor) InitializeEndValidation(opts *bind.TransactOpts, validationID [32]byte) (*types.Transaction, error) {
-	return _PoAValidatorManager.contract.Transact(opts, "initializeEndValidation", validationID)
+func (_PoASecurityModule *PoASecurityModuleTransactor) InitializeEndValidation(opts *bind.TransactOpts, validationID [32]byte) (*types.Transaction, error) {
+	return _PoASecurityModule.contract.Transact(opts, "initializeEndValidation", validationID)
 }
 
 // InitializeEndValidation is a paid mutator transaction binding the contract method 0x97fb70d4.
 //
 // Solidity: function initializeEndValidation(bytes32 validationID) returns()
-func (_PoAValidatorManager *PoAValidatorManagerSession) InitializeEndValidation(validationID [32]byte) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.InitializeEndValidation(&_PoAValidatorManager.TransactOpts, validationID)
+func (_PoASecurityModule *PoASecurityModuleSession) InitializeEndValidation(validationID [32]byte) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.InitializeEndValidation(&_PoASecurityModule.TransactOpts, validationID)
 }
 
 // InitializeEndValidation is a paid mutator transaction binding the contract method 0x97fb70d4.
 //
 // Solidity: function initializeEndValidation(bytes32 validationID) returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactorSession) InitializeEndValidation(validationID [32]byte) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.InitializeEndValidation(&_PoAValidatorManager.TransactOpts, validationID)
+func (_PoASecurityModule *PoASecurityModuleTransactorSession) InitializeEndValidation(validationID [32]byte) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.InitializeEndValidation(&_PoASecurityModule.TransactOpts, validationID)
 }
 
 // InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x9ba96b86.
 //
 // Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) registrationInput, uint64 weight) returns(bytes32 validationID)
-func (_PoAValidatorManager *PoAValidatorManagerTransactor) InitializeValidatorRegistration(opts *bind.TransactOpts, registrationInput ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
-	return _PoAValidatorManager.contract.Transact(opts, "initializeValidatorRegistration", registrationInput, weight)
+func (_PoASecurityModule *PoASecurityModuleTransactor) InitializeValidatorRegistration(opts *bind.TransactOpts, registrationInput ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
+	return _PoASecurityModule.contract.Transact(opts, "initializeValidatorRegistration", registrationInput, weight)
 }
 
 // InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x9ba96b86.
 //
 // Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) registrationInput, uint64 weight) returns(bytes32 validationID)
-func (_PoAValidatorManager *PoAValidatorManagerSession) InitializeValidatorRegistration(registrationInput ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.InitializeValidatorRegistration(&_PoAValidatorManager.TransactOpts, registrationInput, weight)
+func (_PoASecurityModule *PoASecurityModuleSession) InitializeValidatorRegistration(registrationInput ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.InitializeValidatorRegistration(&_PoASecurityModule.TransactOpts, registrationInput, weight)
 }
 
 // InitializeValidatorRegistration is a paid mutator transaction binding the contract method 0x9ba96b86.
 //
 // Solidity: function initializeValidatorRegistration((bytes,bytes,uint64,(uint32,address[]),(uint32,address[])) registrationInput, uint64 weight) returns(bytes32 validationID)
-func (_PoAValidatorManager *PoAValidatorManagerTransactorSession) InitializeValidatorRegistration(registrationInput ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.InitializeValidatorRegistration(&_PoAValidatorManager.TransactOpts, registrationInput, weight)
+func (_PoASecurityModule *PoASecurityModuleTransactorSession) InitializeValidatorRegistration(registrationInput ValidatorRegistrationInput, weight uint64) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.InitializeValidatorRegistration(&_PoASecurityModule.TransactOpts, registrationInput, weight)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
 //
 // Solidity: function renounceOwnership() returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactor) RenounceOwnership(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _PoAValidatorManager.contract.Transact(opts, "renounceOwnership")
+func (_PoASecurityModule *PoASecurityModuleTransactor) RenounceOwnership(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _PoASecurityModule.contract.Transact(opts, "renounceOwnership")
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
 //
 // Solidity: function renounceOwnership() returns()
-func (_PoAValidatorManager *PoAValidatorManagerSession) RenounceOwnership() (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.RenounceOwnership(&_PoAValidatorManager.TransactOpts)
+func (_PoASecurityModule *PoASecurityModuleSession) RenounceOwnership() (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.RenounceOwnership(&_PoASecurityModule.TransactOpts)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
 //
 // Solidity: function renounceOwnership() returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactorSession) RenounceOwnership() (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.RenounceOwnership(&_PoAValidatorManager.TransactOpts)
+func (_PoASecurityModule *PoASecurityModuleTransactorSession) RenounceOwnership() (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.RenounceOwnership(&_PoASecurityModule.TransactOpts)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
 //
 // Solidity: function transferOwnership(address newOwner) returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactor) TransferOwnership(opts *bind.TransactOpts, newOwner common.Address) (*types.Transaction, error) {
-	return _PoAValidatorManager.contract.Transact(opts, "transferOwnership", newOwner)
+func (_PoASecurityModule *PoASecurityModuleTransactor) TransferOwnership(opts *bind.TransactOpts, newOwner common.Address) (*types.Transaction, error) {
+	return _PoASecurityModule.contract.Transact(opts, "transferOwnership", newOwner)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
 //
 // Solidity: function transferOwnership(address newOwner) returns()
-func (_PoAValidatorManager *PoAValidatorManagerSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.TransferOwnership(&_PoAValidatorManager.TransactOpts, newOwner)
+func (_PoASecurityModule *PoASecurityModuleSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.TransferOwnership(&_PoASecurityModule.TransactOpts, newOwner)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
 //
 // Solidity: function transferOwnership(address newOwner) returns()
-func (_PoAValidatorManager *PoAValidatorManagerTransactorSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
-	return _PoAValidatorManager.Contract.TransferOwnership(&_PoAValidatorManager.TransactOpts, newOwner)
+func (_PoASecurityModule *PoASecurityModuleTransactorSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
+	return _PoASecurityModule.Contract.TransferOwnership(&_PoASecurityModule.TransactOpts, newOwner)
 }
 
-// PoAValidatorManagerInitializedIterator is returned from FilterInitialized and is used to iterate over the raw logs and unpacked data for Initialized events raised by the PoAValidatorManager contract.
-type PoAValidatorManagerInitializedIterator struct {
-	Event *PoAValidatorManagerInitialized // Event containing the contract specifics and raw log
+// PoASecurityModuleInitializedIterator is returned from FilterInitialized and is used to iterate over the raw logs and unpacked data for Initialized events raised by the PoASecurityModule contract.
+type PoASecurityModuleInitializedIterator struct {
+	Event *PoASecurityModuleInitialized // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -468,7 +468,7 @@ type PoAValidatorManagerInitializedIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *PoAValidatorManagerInitializedIterator) Next() bool {
+func (it *PoASecurityModuleInitializedIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -477,7 +477,7 @@ func (it *PoAValidatorManagerInitializedIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(PoAValidatorManagerInitialized)
+			it.Event = new(PoASecurityModuleInitialized)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -492,7 +492,7 @@ func (it *PoAValidatorManagerInitializedIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(PoAValidatorManagerInitialized)
+		it.Event = new(PoASecurityModuleInitialized)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -508,19 +508,19 @@ func (it *PoAValidatorManagerInitializedIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *PoAValidatorManagerInitializedIterator) Error() error {
+func (it *PoASecurityModuleInitializedIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *PoAValidatorManagerInitializedIterator) Close() error {
+func (it *PoASecurityModuleInitializedIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// PoAValidatorManagerInitialized represents a Initialized event raised by the PoAValidatorManager contract.
-type PoAValidatorManagerInitialized struct {
+// PoASecurityModuleInitialized represents a Initialized event raised by the PoASecurityModule contract.
+type PoASecurityModuleInitialized struct {
 	Version uint64
 	Raw     types.Log // Blockchain specific contextual infos
 }
@@ -528,21 +528,21 @@ type PoAValidatorManagerInitialized struct {
 // FilterInitialized is a free log retrieval operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
 //
 // Solidity: event Initialized(uint64 version)
-func (_PoAValidatorManager *PoAValidatorManagerFilterer) FilterInitialized(opts *bind.FilterOpts) (*PoAValidatorManagerInitializedIterator, error) {
+func (_PoASecurityModule *PoASecurityModuleFilterer) FilterInitialized(opts *bind.FilterOpts) (*PoASecurityModuleInitializedIterator, error) {
 
-	logs, sub, err := _PoAValidatorManager.contract.FilterLogs(opts, "Initialized")
+	logs, sub, err := _PoASecurityModule.contract.FilterLogs(opts, "Initialized")
 	if err != nil {
 		return nil, err
 	}
-	return &PoAValidatorManagerInitializedIterator{contract: _PoAValidatorManager.contract, event: "Initialized", logs: logs, sub: sub}, nil
+	return &PoASecurityModuleInitializedIterator{contract: _PoASecurityModule.contract, event: "Initialized", logs: logs, sub: sub}, nil
 }
 
 // WatchInitialized is a free log subscription operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
 //
 // Solidity: event Initialized(uint64 version)
-func (_PoAValidatorManager *PoAValidatorManagerFilterer) WatchInitialized(opts *bind.WatchOpts, sink chan<- *PoAValidatorManagerInitialized) (event.Subscription, error) {
+func (_PoASecurityModule *PoASecurityModuleFilterer) WatchInitialized(opts *bind.WatchOpts, sink chan<- *PoASecurityModuleInitialized) (event.Subscription, error) {
 
-	logs, sub, err := _PoAValidatorManager.contract.WatchLogs(opts, "Initialized")
+	logs, sub, err := _PoASecurityModule.contract.WatchLogs(opts, "Initialized")
 	if err != nil {
 		return nil, err
 	}
@@ -552,8 +552,8 @@ func (_PoAValidatorManager *PoAValidatorManagerFilterer) WatchInitialized(opts *
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(PoAValidatorManagerInitialized)
-				if err := _PoAValidatorManager.contract.UnpackLog(event, "Initialized", log); err != nil {
+				event := new(PoASecurityModuleInitialized)
+				if err := _PoASecurityModule.contract.UnpackLog(event, "Initialized", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -577,18 +577,18 @@ func (_PoAValidatorManager *PoAValidatorManagerFilterer) WatchInitialized(opts *
 // ParseInitialized is a log parse operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
 //
 // Solidity: event Initialized(uint64 version)
-func (_PoAValidatorManager *PoAValidatorManagerFilterer) ParseInitialized(log types.Log) (*PoAValidatorManagerInitialized, error) {
-	event := new(PoAValidatorManagerInitialized)
-	if err := _PoAValidatorManager.contract.UnpackLog(event, "Initialized", log); err != nil {
+func (_PoASecurityModule *PoASecurityModuleFilterer) ParseInitialized(log types.Log) (*PoASecurityModuleInitialized, error) {
+	event := new(PoASecurityModuleInitialized)
+	if err := _PoASecurityModule.contract.UnpackLog(event, "Initialized", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
 	return event, nil
 }
 
-// PoAValidatorManagerOwnershipTransferredIterator is returned from FilterOwnershipTransferred and is used to iterate over the raw logs and unpacked data for OwnershipTransferred events raised by the PoAValidatorManager contract.
-type PoAValidatorManagerOwnershipTransferredIterator struct {
-	Event *PoAValidatorManagerOwnershipTransferred // Event containing the contract specifics and raw log
+// PoASecurityModuleOwnershipTransferredIterator is returned from FilterOwnershipTransferred and is used to iterate over the raw logs and unpacked data for OwnershipTransferred events raised by the PoASecurityModule contract.
+type PoASecurityModuleOwnershipTransferredIterator struct {
+	Event *PoASecurityModuleOwnershipTransferred // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -602,7 +602,7 @@ type PoAValidatorManagerOwnershipTransferredIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *PoAValidatorManagerOwnershipTransferredIterator) Next() bool {
+func (it *PoASecurityModuleOwnershipTransferredIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -611,7 +611,7 @@ func (it *PoAValidatorManagerOwnershipTransferredIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(PoAValidatorManagerOwnershipTransferred)
+			it.Event = new(PoASecurityModuleOwnershipTransferred)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -626,7 +626,7 @@ func (it *PoAValidatorManagerOwnershipTransferredIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(PoAValidatorManagerOwnershipTransferred)
+		it.Event = new(PoASecurityModuleOwnershipTransferred)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -642,19 +642,19 @@ func (it *PoAValidatorManagerOwnershipTransferredIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *PoAValidatorManagerOwnershipTransferredIterator) Error() error {
+func (it *PoASecurityModuleOwnershipTransferredIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *PoAValidatorManagerOwnershipTransferredIterator) Close() error {
+func (it *PoASecurityModuleOwnershipTransferredIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// PoAValidatorManagerOwnershipTransferred represents a OwnershipTransferred event raised by the PoAValidatorManager contract.
-type PoAValidatorManagerOwnershipTransferred struct {
+// PoASecurityModuleOwnershipTransferred represents a OwnershipTransferred event raised by the PoASecurityModule contract.
+type PoASecurityModuleOwnershipTransferred struct {
 	PreviousOwner common.Address
 	NewOwner      common.Address
 	Raw           types.Log // Blockchain specific contextual infos
@@ -663,7 +663,7 @@ type PoAValidatorManagerOwnershipTransferred struct {
 // FilterOwnershipTransferred is a free log retrieval operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
-func (_PoAValidatorManager *PoAValidatorManagerFilterer) FilterOwnershipTransferred(opts *bind.FilterOpts, previousOwner []common.Address, newOwner []common.Address) (*PoAValidatorManagerOwnershipTransferredIterator, error) {
+func (_PoASecurityModule *PoASecurityModuleFilterer) FilterOwnershipTransferred(opts *bind.FilterOpts, previousOwner []common.Address, newOwner []common.Address) (*PoASecurityModuleOwnershipTransferredIterator, error) {
 
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
@@ -674,17 +674,17 @@ func (_PoAValidatorManager *PoAValidatorManagerFilterer) FilterOwnershipTransfer
 		newOwnerRule = append(newOwnerRule, newOwnerItem)
 	}
 
-	logs, sub, err := _PoAValidatorManager.contract.FilterLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
+	logs, sub, err := _PoASecurityModule.contract.FilterLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
 	if err != nil {
 		return nil, err
 	}
-	return &PoAValidatorManagerOwnershipTransferredIterator{contract: _PoAValidatorManager.contract, event: "OwnershipTransferred", logs: logs, sub: sub}, nil
+	return &PoASecurityModuleOwnershipTransferredIterator{contract: _PoASecurityModule.contract, event: "OwnershipTransferred", logs: logs, sub: sub}, nil
 }
 
 // WatchOwnershipTransferred is a free log subscription operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
-func (_PoAValidatorManager *PoAValidatorManagerFilterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sink chan<- *PoAValidatorManagerOwnershipTransferred, previousOwner []common.Address, newOwner []common.Address) (event.Subscription, error) {
+func (_PoASecurityModule *PoASecurityModuleFilterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sink chan<- *PoASecurityModuleOwnershipTransferred, previousOwner []common.Address, newOwner []common.Address) (event.Subscription, error) {
 
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
@@ -695,7 +695,7 @@ func (_PoAValidatorManager *PoAValidatorManagerFilterer) WatchOwnershipTransferr
 		newOwnerRule = append(newOwnerRule, newOwnerItem)
 	}
 
-	logs, sub, err := _PoAValidatorManager.contract.WatchLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
+	logs, sub, err := _PoASecurityModule.contract.WatchLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
 	if err != nil {
 		return nil, err
 	}
@@ -705,8 +705,8 @@ func (_PoAValidatorManager *PoAValidatorManagerFilterer) WatchOwnershipTransferr
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(PoAValidatorManagerOwnershipTransferred)
-				if err := _PoAValidatorManager.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
+				event := new(PoASecurityModuleOwnershipTransferred)
+				if err := _PoASecurityModule.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -730,9 +730,9 @@ func (_PoAValidatorManager *PoAValidatorManagerFilterer) WatchOwnershipTransferr
 // ParseOwnershipTransferred is a log parse operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
-func (_PoAValidatorManager *PoAValidatorManagerFilterer) ParseOwnershipTransferred(log types.Log) (*PoAValidatorManagerOwnershipTransferred, error) {
-	event := new(PoAValidatorManagerOwnershipTransferred)
-	if err := _PoAValidatorManager.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
+func (_PoASecurityModule *PoASecurityModuleFilterer) ParseOwnershipTransferred(log types.Log) (*PoASecurityModuleOwnershipTransferred, error) {
+	event := new(PoASecurityModuleOwnershipTransferred)
+	if err := _PoASecurityModule.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

@@ -111,7 +111,7 @@ var _ = ginkgo.BeforeSuite(func() {
 		LocalNetworkInstance.ConvertSubnet(
 			ctx,
 			subnet,
-			utils.PoAValidatorManager,
+			utils.PoASecurityModule,
 			[]uint64{units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle, units.Schmeckle},
 			fundedKey,
 			false)

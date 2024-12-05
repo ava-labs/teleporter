@@ -9,7 +9,7 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoAValidatorManager"
+	poasecuritymodule "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/PoASecurityModule"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -80,7 +80,7 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	defer cancel()
 	newNodes := network.GetExtraNodes(newNodeCount)
 	validatorManagerAddress := network.GetValidatorManager(subnetAInfo.SubnetID)
-	validatorManager, err := poavalidatormanager.NewPoAValidatorManager(validatorManagerAddress, subnetAInfo.RPCClient)
+	validatorManager, err := poasecuritymodule.NewPoASecurityModule(validatorManagerAddress, subnetAInfo.RPCClient)
 	pChainInfo := utils.GetPChainInfo(network.GetPrimaryNetworkInfo())
 	Expect(err).Should(BeNil())
 

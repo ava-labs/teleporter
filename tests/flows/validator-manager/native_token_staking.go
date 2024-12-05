@@ -9,8 +9,8 @@ package staking
 // 	"github.com/ava-labs/avalanchego/ids"
 // 	"github.com/ava-labs/avalanchego/utils/units"
 // 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-// 	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenStakingManager"
-// 	iposvalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IPoSValidatorManager"
+// 	nativetokensecuritymodule "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/NativeTokenSecurityModule"
+// 	ipossecuritymodule "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/interfaces/IPoSSecurityModule"
 // 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 // 	"github.com/ava-labs/teleporter/tests/utils"
 // 	. "github.com/onsi/gomega"
@@ -18,7 +18,7 @@ package staking
 
 // /*
 //  * Registers a native token staking validator on a subnet. The steps are as follows:
-//  * - Deploy the NativeTokenStakingManager
+//  * - Deploy the NativeTokenSecurityModule
 //  * - Initiate validator registration
 //  * - Deliver the Warp message to the P-Chain (not implemented)
 //  * - Aggregate P-Chain signatures on the response Warp message
@@ -32,7 +32,7 @@ package staking
 //  * - Deliver the Warp message to the subnet
 //  * - Verify that the validator is delisted from the staking contract
 //  */
-// func NativeTokenStakingManager(network *localnetwork.LocalNetwork) {
+// func NativeTokenSecurityModule(network *localnetwork.LocalNetwork) {
 // 	// Get the subnets info
 // 	cChainInfo := network.GetPrimaryNetworkInfo()
 // 	subnetAInfo, _ := network.GetTwoSubnets()
@@ -50,13 +50,13 @@ package staking
 // 	nodes, initialValidationIDs, _ := network.ConvertSubnet(
 // 		ctx,
 // 		subnetAInfo,
-// 		utils.NativeTokenStakingManager,
+// 		utils.NativeTokenSecurityModule,
 // 		[]uint64{units.Schmeckle, 1000 * units.Schmeckle}, // Choose weights to avoid validator churn limits
 // 		fundedKey,
 // 		false,
 // 	)
 // 	stakingManagerAddress := network.GetValidatorManager(subnetAInfo.SubnetID)
-// 	nativeStakingManager, err := nativetokenstakingmanager.NewNativeTokenStakingManager(
+// 	nativeStakingManager, err := nativetokensecuritymodule.NewNativeTokenSecurityModule(
 // 		stakingManagerAddress,
 // 		subnetAInfo.RPCClient,
 // 	)
@@ -66,7 +66,7 @@ package staking
 // 	//
 // 	// Delist one initial validator
 // 	//
-// 	posStakingManager, err := iposvalidatormanager.NewIPoSValidatorManager(stakingManagerAddress, subnetAInfo.RPCClient)
+// 	posStakingManager, err := ipossecuritymodule.NewIPoSSecurityModule(stakingManagerAddress, subnetAInfo.RPCClient)
 // 	Expect(err).Should(BeNil())
 // 	utils.InitializeAndCompleteEndInitialPoSValidation(
 // 		ctx,

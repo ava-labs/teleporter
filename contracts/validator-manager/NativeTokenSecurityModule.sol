@@ -5,9 +5,9 @@
 
 pragma solidity 0.8.25;
 
-import {PoSValidatorManager} from "./PoSValidatorManager.sol";
-import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
-import {INativeTokenStakingManager} from "./interfaces/INativeTokenStakingManager.sol";
+import {PoSSecurityModule} from "./PoSSecurityModule.sol";
+import {PoSSecurityModuleSettings} from "./interfaces/IPoSSecurityModule.sol";
+import {INativeTokenSecurityModule} from "./interfaces/INativeTokenSecurityModule.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
@@ -17,14 +17,14 @@ import {Initializable} from
 import {ValidatorRegistrationInput} from "./interfaces/IACP99ValidatorManager.sol";
 
 /**
- * @dev Implementation of the {INativeTokenStakingManager} interface.
+ * @dev Implementation of the {INativeTokenSecurityModule} interface.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-contract NativeTokenStakingManager is
+contract NativeTokenSecurityModule is
     Initializable,
-    PoSValidatorManager,
-    INativeTokenStakingManager
+    PoSSecurityModule,
+    INativeTokenSecurityModule
 {
     using Address for address payable;
 
@@ -43,12 +43,12 @@ contract NativeTokenStakingManager is
      * @param settings Initial settings for the PoS validator manager
      */
     // solhint-disable ordering
-    function initialize(PoSValidatorManagerSettings calldata settings) external reinitializer(2) {
-        __NativeTokenStakingManager_init(settings);
+    function initialize(PoSSecurityModuleSettings calldata settings) external reinitializer(2) {
+        __NativeTokenSecurityModule_init(settings);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __NativeTokenStakingManager_init(PoSValidatorManagerSettings calldata settings)
+    function __NativeTokenSecurityModule_init(PoSSecurityModuleSettings calldata settings)
         internal
         onlyInitializing
     {
@@ -56,10 +56,10 @@ contract NativeTokenStakingManager is
     }
 
     // solhint-disable-next-line func-name-mixedcase, no-empty-blocks
-    function __NativeTokenStakingManager_init_unchained() internal onlyInitializing {}
+    function __NativeTokenSecurityModule_init_unchained() internal onlyInitializing {}
 
     /**
-     * @notice See {INativeTokenStakingManager-initializeValidatorRegistration}.
+     * @notice See {INativeTokenSecurityModule-initializeValidatorRegistration}.
      */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
@@ -72,7 +72,7 @@ contract NativeTokenStakingManager is
     }
 
     /**
-     * @notice See {INativeTokenStakingManager-initializeDelegatorRegistration}.
+     * @notice See {INativeTokenSecurityModule-initializeDelegatorRegistration}.
      */
     function initializeDelegatorRegistration(bytes32 validationID)
         external
@@ -84,21 +84,21 @@ contract NativeTokenStakingManager is
     }
 
     /**
-     * @notice See {PoSValidatorManager-_lock}
+     * @notice See {PoSSecurityModule-_lock}
      */
     function _lock(uint256 value) internal virtual override returns (uint256) {
         return value;
     }
 
     /**
-     * @notice See {PoSValidatorManager-_unlock}
+     * @notice See {PoSSecurityModule-_unlock}
      */
     function _unlock(address to, uint256 value) internal virtual override {
         payable(to).sendValue(value);
     }
 
     /**
-     * @notice See {PoSValidatorManager-_reward}
+     * @notice See {PoSSecurityModule-_reward}
      */
     function _reward(address account, uint256 amount) internal virtual override {
         NATIVE_MINTER.mintNativeCoin(account, amount);

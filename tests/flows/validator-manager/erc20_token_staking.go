@@ -8,7 +8,7 @@ import (
 	"github.com/ava-labs/avalanchego/utils/units"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
-	erc20stakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20TokenStakingManager"
+	erc20securitymodule "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ERC20SecurityModule"
 	validatormanager "github.com/ava-labs/teleporter/abi-bindings/go/validator-manager/ValidatorManager"
 	localnetwork "github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -31,7 +31,7 @@ import (
  * - Deliver the Warp message to the subnet
  * - Verify that the validator is delisted from the staking contract
  */
-func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
+func ERC20SecurityModule(network *localnetwork.LocalNetwork) {
 	// Get the subnets info
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := network.GetTwoSubnets()
@@ -49,7 +49,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 	nodes, initialValidationIDs, _ := network.ConvertSubnet(
 		ctx,
 		subnetAInfo,
-		utils.ERC20TokenStakingManager,
+		utils.ERC20SecurityModule,
 		[]uint64{units.Schmeckle, 1000 * units.Schmeckle}, // Choose weights to avoid validator churn limits
 		fundedKey,
 		false,
@@ -63,7 +63,7 @@ func ERC20TokenStakingManager(network *localnetwork.LocalNetwork) {
 	securityModuleAddress, err := validatorManager.GetSecurityModule(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	securityModule, err := erc20stakingmanager.NewERC20TokenStakingManager(securityModuleAddress, subnetAInfo.RPCClient)
+	securityModule, err := erc20securitymodule.NewERC20SecurityModule(securityModuleAddress, subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
 
 	erc20Address, err := securityModule.Erc20(&bind.CallOpts{})

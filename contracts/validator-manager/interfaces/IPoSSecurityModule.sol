@@ -31,7 +31,7 @@ enum DelegatorStatus {
  * @notice uptimeBlockchainID is the ID of the blockchain that submits uptime proofs.
  * This must be a blockchain validated by the subnetID that this contract manages.
  */
-struct PoSValidatorManagerSettings {
+struct PoSSecurityModuleSettings {
     IACP99ValidatorManager validatorManager;
     uint256 minimumStakeAmount;
     uint256 maximumStakeAmount;
@@ -69,7 +69,7 @@ struct PoSValidatorInfo {
 /**
  * @notice Interface for Proof of Stake Validator Managers
  */
-interface IPoSValidatorManager {
+interface IPoSSecurityModule {
     /**
      * @notice Event emitted when a delegator registration is initiated
      * @param delegationID The ID of the delegation
@@ -149,7 +149,7 @@ interface IPoSValidatorManager {
     ) external;
 
     /**
-     * @notice See {IPoSValidatorManager-initializeEndValidation} for details of the first three parameters
+     * @notice See {IPoSSecurityModule-initializeEndValidation} for details of the first three parameters
      * @param recipientAddress The address to receive the rewards
      */
     function initializeEndValidation(
@@ -177,7 +177,7 @@ interface IPoSValidatorManager {
     ) external;
 
     /**
-     * @notice See {IPoSValidatorManager-forceInitializeEndValidation} for details of the first three parameters
+     * @notice See {IPoSSecurityModule-forceInitializeEndValidation} for details of the first three parameters
      * @param recipientAddress Address to receive the rewards.
      */
     function forceInitializeEndValidation(
@@ -222,7 +222,7 @@ interface IPoSValidatorManager {
     ) external;
 
     /**
-     * @notice See {IPoSValidatorManager-initializeEndDelegation} for details of the first three parameters
+     * @notice See {IPoSSecurityModule-initializeEndDelegation} for details of the first three parameters
      * @param recipientAddress The address to receive the rewards.
      */
     function initializeEndDelegation(
@@ -253,7 +253,7 @@ interface IPoSValidatorManager {
     ) external;
 
     /**
-     * @notice See {IPoSValidatorManager-forceInitializeEndDelegation} for details of the first three parameters
+     * @notice See {IPoSSecurityModule-forceInitializeEndDelegation} for details of the first three parameters
      * @param recipientAddress The address to receive the rewards.
      */
     function forceInitializeEndDelegation(

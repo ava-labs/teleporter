@@ -6,9 +6,9 @@
 pragma solidity 0.8.25;
 
 import {Test} from "@forge-std/Test.sol";
-import {PoSValidatorManagerTest} from "./PoSValidatorManagerTests.t.sol";
-import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
-import {PoSValidatorManager, PoSValidatorManagerSettings} from "../PoSValidatorManager.sol";
+import {PoSSecurityModuleTest} from "./PoSSecurityModuleTests.t.sol";
+import {NativeTokenSecurityModule} from "../NativeTokenSecurityModule.sol";
+import {PoSSecurityModule, PoSSecurityModuleSettings} from "../PoSSecurityModule.sol";
 import {ValidatorRegistrationInput, IValidatorManager} from "../interfaces/IValidatorManager.sol";
 import {ExampleRewardCalculator} from "../ExampleRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
@@ -17,8 +17,8 @@ import {INativeMinter} from
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
-contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
-    NativeTokenStakingManager public app;
+contract NativeTokenSecurityModuleTest is PoSSecurityModuleTest {
+    NativeTokenSecurityModule public app;
 
     function setUp() public override {
         ValidatorManagerTest.setUp();
@@ -30,97 +30,97 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     }
 
     function testDisableInitialization() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Disallowed);
+        app = new NativeTokenSecurityModule(ICMInitializable.Disallowed);
         vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
 
         app.initialize(_defaultPoSSettings());
     }
 
     function testZeroMinimumDelegationFee() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new NativeTokenSecurityModule(ICMInitializable.Allowed);
         vm.expectRevert(
-            abi.encodeWithSelector(PoSValidatorManager.InvalidDelegationFee.selector, 0)
+            abi.encodeWithSelector(PoSSecurityModule.InvalidDelegationFee.selector, 0)
         );
 
-        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        PoSSecurityModuleSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.minimumDelegationFeeBips = 0;
         app.initialize(defaultPoSSettings);
     }
 
     function testMaxMinimumDelegationFee() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new NativeTokenSecurityModule(ICMInitializable.Allowed);
         uint16 minimumDelegationFeeBips = app.MAXIMUM_DELEGATION_FEE_BIPS() + 1;
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidDelegationFee.selector, minimumDelegationFeeBips
+                PoSSecurityModule.InvalidDelegationFee.selector, minimumDelegationFeeBips
             )
         );
 
-        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        PoSSecurityModuleSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.minimumDelegationFeeBips = minimumDelegationFeeBips;
         app.initialize(defaultPoSSettings);
     }
 
     function testInvalidStakeAmountRange() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new NativeTokenSecurityModule(ICMInitializable.Allowed);
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidStakeAmount.selector, DEFAULT_MAXIMUM_STAKE_AMOUNT
+                PoSSecurityModule.InvalidStakeAmount.selector, DEFAULT_MAXIMUM_STAKE_AMOUNT
             )
         );
 
-        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        PoSSecurityModuleSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.minimumStakeAmount = DEFAULT_MAXIMUM_STAKE_AMOUNT;
         defaultPoSSettings.maximumStakeAmount = DEFAULT_MINIMUM_STAKE_AMOUNT;
         app.initialize(defaultPoSSettings);
     }
 
     function testZeroMaxStakeMultiplier() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new NativeTokenSecurityModule(ICMInitializable.Allowed);
         vm.expectRevert(
-            abi.encodeWithSelector(PoSValidatorManager.InvalidStakeMultiplier.selector, 0)
+            abi.encodeWithSelector(PoSSecurityModule.InvalidStakeMultiplier.selector, 0)
         );
 
-        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        PoSSecurityModuleSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.maximumStakeMultiplier = 0;
         app.initialize(defaultPoSSettings);
     }
 
     function testMaxStakeMultiplierOverLimit() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new NativeTokenSecurityModule(ICMInitializable.Allowed);
         uint8 maximumStakeMultiplier = app.MAXIMUM_STAKE_MULTIPLIER_LIMIT() + 1;
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidStakeMultiplier.selector, maximumStakeMultiplier
+                PoSSecurityModule.InvalidStakeMultiplier.selector, maximumStakeMultiplier
             )
         );
 
-        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        PoSSecurityModuleSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.maximumStakeMultiplier = maximumStakeMultiplier;
         app.initialize(defaultPoSSettings);
     }
 
     function testZeroWeightToValueFactor() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new NativeTokenSecurityModule(ICMInitializable.Allowed);
         vm.expectRevert(
-            abi.encodeWithSelector(PoSValidatorManager.ZeroWeightToValueFactor.selector)
+            abi.encodeWithSelector(PoSSecurityModule.ZeroWeightToValueFactor.selector)
         );
 
-        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        PoSSecurityModuleSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.weightToValueFactor = 0;
         app.initialize(defaultPoSSettings);
     }
 
     function testMinStakeDurationTooLow() public {
-        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new NativeTokenSecurityModule(ICMInitializable.Allowed);
         uint64 minStakeDuration = DEFAULT_CHURN_PERIOD - 1;
         vm.expectRevert(
             abi.encodeWithSelector(
-                PoSValidatorManager.InvalidMinStakeDuration.selector, minStakeDuration
+                PoSSecurityModule.InvalidMinStakeDuration.selector, minStakeDuration
             )
         );
 
-        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        PoSSecurityModuleSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.minimumStakeDuration = minStakeDuration;
         app.initialize(defaultPoSSettings);
     }
@@ -177,10 +177,10 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
 
     function _setUp() internal override returns (IValidatorManager) {
         // Construct the object under test
-        app = new TestableNativeTokenStakingManager(ICMInitializable.Allowed);
+        app = new TestableNativeTokenSecurityModule(ICMInitializable.Allowed);
         rewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_RATE);
 
-        PoSValidatorManagerSettings memory defaultPoSSettings = _defaultPoSSettings();
+        PoSSecurityModuleSettings memory defaultPoSSettings = _defaultPoSSettings();
         defaultPoSSettings.rewardCalculator = rewardCalculator;
         app.initialize(defaultPoSSettings);
 
@@ -194,8 +194,8 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
     }
 }
 
-contract TestableNativeTokenStakingManager is NativeTokenStakingManager, Test {
-    constructor(ICMInitializable init) NativeTokenStakingManager(init) {}
+contract TestableNativeTokenSecurityModule is NativeTokenSecurityModule, Test {
+    constructor(ICMInitializable init) NativeTokenSecurityModule(init) {}
 
     function _reward(address account, uint256 amount) internal virtual override {
         super._reward(account, amount);

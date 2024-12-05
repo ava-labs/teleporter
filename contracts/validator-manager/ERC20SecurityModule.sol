@@ -5,9 +5,9 @@
 
 pragma solidity 0.8.25;
 
-import {PoSValidatorManager} from "./PoSValidatorManager.sol";
-import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
-import {IERC20TokenStakingManager} from "./interfaces/IERC20TokenStakingManager.sol";
+import {PoSSecurityModule} from "./PoSSecurityModule.sol";
+import {PoSSecurityModuleSettings} from "./interfaces/IPoSSecurityModule.sol";
+import {IERC20SecurityModule} from "./interfaces/IERC20SecurityModule.sol";
 import {IERC20Mintable} from "./interfaces/IERC20Mintable.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
@@ -17,27 +17,27 @@ import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC
 import {ValidatorRegistrationInput} from "./interfaces/IACP99ValidatorManager.sol";
 
 /**
- * @dev Implementation of the {IERC20TokenStakingManager} interface.
+ * @dev Implementation of the {IERC20SecurityModule} interface.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-contract ERC20TokenStakingManager is
+contract ERC20SecurityModule is
     Initializable,
-    PoSValidatorManager,
-    IERC20TokenStakingManager
+    PoSSecurityModule,
+    IERC20SecurityModule
 {
     using SafeERC20 for IERC20Mintable;
     using SafeERC20TransferFrom for IERC20Mintable;
 
     // solhint-disable private-vars-leading-underscore
-    /// @custom:storage-location erc7201:avalanche-icm.storage.ERC20TokenStakingManager
-    struct ERC20TokenStakingManagerStorage {
+    /// @custom:storage-location erc7201:avalanche-icm.storage.ERC20SecurityModule
+    struct ERC20SecurityModuleStorage {
         IERC20Mintable _token;
         uint8 _tokenDecimals;
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.ERC20TokenStakingManager")) - 1)) & ~bytes32(uint256(0xff));
+    // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.ERC20SecurityModule")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 public constant ERC20_STAKING_MANAGER_STORAGE_LOCATION =
         0x6e5bdfcce15e53c3406ea67bfce37dcd26f5152d5492824e43fd5e3c8ac5ab00;
 
@@ -47,7 +47,7 @@ contract ERC20TokenStakingManager is
     function _getERC20StakingManagerStorage()
         private
         pure
-        returns (ERC20TokenStakingManagerStorage storage $)
+        returns (ERC20SecurityModuleStorage storage $)
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
@@ -68,27 +68,27 @@ contract ERC20TokenStakingManager is
      * @param token The ERC20 token to be staked
      */
     function initialize(
-        PoSValidatorManagerSettings calldata settings,
+        PoSSecurityModuleSettings calldata settings,
         IERC20Mintable token
     ) external reinitializer(2) {
-        __ERC20TokenStakingManager_init(settings, token);
+        __ERC20SecurityModule_init(settings, token);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __ERC20TokenStakingManager_init(
-        PoSValidatorManagerSettings calldata settings,
+    function __ERC20SecurityModule_init(
+        PoSSecurityModuleSettings calldata settings,
         IERC20Mintable token
     ) internal onlyInitializing {
         __POS_Validator_Manager_init(settings);
-        __ERC20TokenStakingManager_init_unchained(token);
+        __ERC20SecurityModule_init_unchained(token);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __ERC20TokenStakingManager_init_unchained(IERC20Mintable token)
+    function __ERC20SecurityModule_init_unchained(IERC20Mintable token)
         internal
         onlyInitializing
     {
-        ERC20TokenStakingManagerStorage storage $ = _getERC20StakingManagerStorage();
+        ERC20SecurityModuleStorage storage $ = _getERC20StakingManagerStorage();
         if (address(token) == address(0)) {
             revert InvalidTokenAddress(address(token));
         }
@@ -96,7 +96,7 @@ contract ERC20TokenStakingManager is
     }
 
     /**
-     * @notice See {IERC20TokenStakingManager-initializeValidatorRegistration}
+     * @notice See {IERC20SecurityModule-initializeValidatorRegistration}
      */
     function initializeValidatorRegistration(
         ValidatorRegistrationInput calldata registrationInput,
@@ -110,7 +110,7 @@ contract ERC20TokenStakingManager is
     }
 
     /**
-     * @notice See {IERC20TokenStakingManager-initializeDelegatorRegistration}
+     * @notice See {IERC20SecurityModule-initializeDelegatorRegistration}
      */
     function initializeDelegatorRegistration(
         bytes32 validationID,
@@ -127,7 +127,7 @@ contract ERC20TokenStakingManager is
     }
 
     /**
-     * @notice See {PoSValidatorManager-_lock}
+     * @notice See {PoSSecurityModule-_lock}
      * Note: Must be guarded with reentrancy guard for safe transfer from.
      */
     function _lock(uint256 value) internal virtual override returns (uint256) {
@@ -135,7 +135,7 @@ contract ERC20TokenStakingManager is
     }
 
     /**
-     * @notice See {PoSValidatorManager-_unlock}
+     * @notice See {PoSSecurityModule-_unlock}
      * Note: Must be guarded with reentrancy guard for safe transfer.
      */
     function _unlock(address to, uint256 value) internal virtual override {
@@ -143,10 +143,10 @@ contract ERC20TokenStakingManager is
     }
 
     /**
-     * @notice See {PoSValidatorManager-_reward}
+     * @notice See {PoSSecurityModule-_reward}
      */
     function _reward(address account, uint256 amount) internal virtual override {
-        ERC20TokenStakingManagerStorage storage $ = _getERC20StakingManagerStorage();
+        ERC20SecurityModuleStorage storage $ = _getERC20StakingManagerStorage();
         $._token.mint(account, amount);
     }
 }

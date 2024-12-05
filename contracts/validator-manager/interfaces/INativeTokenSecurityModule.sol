@@ -6,12 +6,12 @@
 pragma solidity 0.8.25;
 
 import {ValidatorRegistrationInput} from "./IACP99ValidatorManager.sol";
-import {IPoSValidatorManager} from "./IPoSValidatorManager.sol";
+import {IPoSSecurityModule} from "./IPoSSecurityModule.sol";
 
 /**
  * Proof of Stake Validator Manager that stakes the blockchain's native tokens.
  */
-interface INativeTokenStakingManager is IPoSValidatorManager {
+interface INativeTokenSecurityModule is IPoSSecurityModule {
     /**
      * @notice Begins the validator registration process. Locks the provided native asset in the contract as the stake.
      * @param registrationInput The inputs for a validator registration.
