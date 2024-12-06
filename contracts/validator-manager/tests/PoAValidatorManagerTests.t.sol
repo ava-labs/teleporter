@@ -36,12 +36,7 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
         app = new PoAValidatorManager(ICMInitializable.Disallowed);
         vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         app.initialize(
-            ValidatorManagerSettings({
-                l1ID: DEFAULT_L1_ID,
-                churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-            }),
-            address(this)
+            ValidatorManagerSettings({l1ID: DEFAULT_L1_ID, churnTracker: address(0)}), address(this)
         );
     }
 
@@ -112,12 +107,7 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
     function _setUp() internal override returns (IValidatorManager) {
         app = new PoAValidatorManager(ICMInitializable.Allowed);
         app.initialize(
-            ValidatorManagerSettings({
-                l1ID: DEFAULT_L1_ID,
-                churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
-                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE
-            }),
-            address(this)
+            ValidatorManagerSettings({l1ID: DEFAULT_L1_ID, churnTracker: address(0)}), address(this)
         );
         validatorManager = app;
 
