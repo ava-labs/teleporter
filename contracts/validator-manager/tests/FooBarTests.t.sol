@@ -2,13 +2,15 @@
 pragma solidity 0.8.25;
 
 import "../Foo.sol";
+import {Test} from "@forge-std/Test.sol";
 
-contract TestFooBar {
+contract TestFooBar is Test {
     Foo public foo;
 
-    constructor() {
+    function setUp() public {
         // Deploy Foo
         foo = new Foo();
+        foo.initialize();
     }
 
     // Test: Setting and Getting varFoo
