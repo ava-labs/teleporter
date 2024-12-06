@@ -1,15 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import "../Foo.sol";
+import "./Foo.sol";
 import {Test} from "@forge-std/Test.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts@5.0.2/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-contract TestFooBar is Test {
+contract TestFooBarUpgradeable is Test {
     Foo public foo;
 
     function setUp() public {
         // Deploy Foo
-        foo = new Foo();
+        Foo impl = new Foo();
+
+        // Deploy a transparent upgradeable proxy
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(address(impl), address(this), "");
+
+        foo = Foo(address(proxy));
         foo.initialize();
     }
 
