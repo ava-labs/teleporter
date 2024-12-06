@@ -2,18 +2,24 @@
 pragma solidity 0.8.25;
 
 import "./Foo.sol";
+import "./FooV2.sol";
 import {Test} from "@forge-std/Test.sol";
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts@5.0.2/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {ITransparentUpgradeableProxy, TransparentUpgradeableProxy} from "@openzeppelin/contracts@5.0.2/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {ProxyAdmin} from "@openzeppelin/contracts@5.0.2/proxy/transparent/ProxyAdmin.sol";
 
 contract TestFooBarUpgradeable is Test {
     Foo public foo;
+    TransparentUpgradeableProxy public proxy;
+    ProxyAdmin public admin;
 
     function setUp() public {
         // Deploy Foo
         Foo impl = new Foo();
 
         // Deploy a transparent upgradeable proxy
-        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(address(impl), address(this), "");
+        proxy = new TransparentUpgradeableProxy(address(impl), address(this), "");
+
+        admin = new ProxyAdmin(address(this));
 
         foo = Foo(address(proxy));
         foo.initialize();

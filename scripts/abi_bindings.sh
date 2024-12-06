@@ -18,12 +18,12 @@ echo "ARCH set to $ARCH"
 
 DEFAULT_CONTRACT_LIST="TeleporterMessenger TeleporterRegistry ExampleERC20 ExampleRewardCalculator TestMessenger ValidatorSetSig NativeTokenStakingManager ERC20TokenStakingManager PoAValidatorManager
 TokenHome TokenRemote ERC20TokenHome ERC20TokenHomeUpgradeable ERC20TokenRemote ERC20TokenRemoteUpgradeable NativeTokenHome NativeTokenHomeUpgradeable NativeTokenRemote NativeTokenRemoteUpgradeable
-WrappedNativeToken MockERC20SendAndCallReceiver MockNativeSendAndCallReceiver ExampleERC20Decimals IValidatorManager IPoSValidatorManager"
+WrappedNativeToken MockERC20SendAndCallReceiver MockNativeSendAndCallReceiver ExampleERC20Decimals IValidatorManager IPoSValidatorManager Foo Bar FooV2"
 PROXY_LIST="TransparentUpgradeableProxy ProxyAdmin"
 
 SUBNET_EVM_LIST="INativeMinter"
 
-EXTERNAL_LIBS="ValidatorMessages"
+EXTERNAL_LIBS="ValidatorMessages BarLibrary"
 
 CONTRACT_LIST=
 HELP=
