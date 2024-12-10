@@ -1,6 +1,6 @@
 # Audits
 
-Below is the list of most recent audit for contracts in this repo. Please check out __only__ listed audited versions for production code. Code used should be the final commit audited.
+Below is the list of most recent audit for each smart contract application in this repository. Please exercise caution when using code newer than the audited commit.
 
 See `audits/historical` for older audits. These audits may now be obsolete, and legacy code superseded by new versions are __not__ recommended for production deployments.
 

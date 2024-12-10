@@ -13,7 +13,4 @@ This repository is set up as a [Foundry](https://github.com/foundry-rs/foundry) 
 
 ## Audits
 
-In general, the contracts in this repository have been audited. Any unaudited contracts will be explicitly marked as such. Note that the `main` branch may contain unaudited code. Please check [here](../audits/README.md) for which versions of each contract have been audited.
-
-> [!CAUTION]
-> DO NOT USE UN-AUDITED CODE IN PRODUCTION!
+In general, the contracts in this repository have been audited. Any contracts that have not undergone at least one audit will be explicitly marked as such. Please note that audits capture the state of code at a point in time, and the code is subject to change in the meantime. Please check [here](../audits/README.md) for the full list of audits.

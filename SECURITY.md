@@ -18,4 +18,4 @@ Please use the most recently released version to perform testing and to validate
 
 ## Audit Reports
 
-All complete audit reports for `TeleporterMessenger` can be found in the [audits](./audits/) directory.
+All complete audit reports for the contracts in this repository can be found in the [audits](./audits/) directory.
