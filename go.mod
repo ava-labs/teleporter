@@ -3,12 +3,12 @@ module github.com/ava-labs/icm-contracts
 go 1.22.10
 
 require (
-	github.com/ava-labs/avalanchego v1.12.1-0.20241210035517-714dfa0c3942
+	github.com/ava-labs/avalanchego v1.12.1-0.20241210172525-c7ebd8fbae88
 	github.com/supranational/blst v0.3.13 // indirect
 )
 
 require (
-	github.com/ava-labs/icm-services v1.4.1-0.20241210044204-a8fbd559ac77
+	github.com/ava-labs/icm-services v1.4.1-0.20241210180248-25d5c7f6c877
 	github.com/ava-labs/subnet-evm v0.6.13-0.20241205165027-6c98da796f35
 	github.com/ethereum/go-ethereum v1.13.14
 	github.com/onsi/ginkgo/v2 v2.22.0
