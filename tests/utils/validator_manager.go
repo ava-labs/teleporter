@@ -277,10 +277,10 @@ func InitializeValidatorSet(
 	nodes []Node,
 ) []ids.ID {
 	log.Println("Initializing validator set", "l1", l1Info.L1ID)
-	initialValidators := make([]warpMessage.SubnetToL1ConverstionValidatorData, len(nodes))
+	initialValidators := make([]warpMessage.SubnetToL1ConversionValidatorData, len(nodes))
 	initialValidatorsABI := make([]ivalidatormanager.InitialValidator, len(nodes))
 	for i, node := range nodes {
-		initialValidators[i] = warpMessage.SubnetToL1ConverstionValidatorData{
+		initialValidators[i] = warpMessage.SubnetToL1ConversionValidatorData{
 			NodeID:       node.NodeID.Bytes(),
 			BLSPublicKey: node.NodePoP.PublicKey,
 			Weight:       nodes[i].Weight,

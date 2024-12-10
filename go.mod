@@ -3,7 +3,7 @@ module github.com/ava-labs/icm-contracts
 go 1.22.10
 
 require (
-	github.com/ava-labs/avalanchego v1.12.0-initial-poc.9.0.20241122192639-7c3ad181c928
+	github.com/ava-labs/avalanchego v1.12.1-0.20241210035517-714dfa0c3942
 	github.com/supranational/blst v0.3.13 // indirect
 )
 
