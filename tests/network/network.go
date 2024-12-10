@@ -17,6 +17,7 @@ import (
 	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/utils/formatting/address"
+	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/utils/units"
 	"github.com/ava-labs/avalanchego/vms/platformvm"
 	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
@@ -24,10 +25,10 @@ import (
 	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
 	pwallet "github.com/ava-labs/avalanchego/wallet/chain/p/wallet"
 	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
-	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	proxyadmin "github.com/ava-labs/icm-contracts/abi-bindings/go/ProxyAdmin"
 	"github.com/ava-labs/icm-contracts/tests/interfaces"
 	"github.com/ava-labs/icm-contracts/tests/utils"
+	"github.com/ava-labs/icm-services/signature-aggregator/aggregator"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetEvmTestUtils "github.com/ava-labs/subnet-evm/tests/utils"
 
@@ -45,6 +46,7 @@ type LocalNetwork struct {
 	primaryNetworkValidators []*tmpnet.Node
 	globalFundedKey          *secp256k1.PrivateKey
 	validatorManagers        map[ids.ID]common.Address
+	logger                   logging.Logger
 }
 
 const (
@@ -135,9 +137,11 @@ func NewLocalNetwork(
 
 	ctx, cancelBootstrap := context.WithCancel(ctx)
 	defer cancelBootstrap()
+
+	logger := logging.NewLogger("tmpnet")
 	err = tmpnet.BootstrapNewNetwork(
 		ctx,
-		os.Stdout,
+		logger,
 		network,
 		"",
 		avalancheGoBuildPath+"/avalanchego",
@@ -161,6 +165,7 @@ func NewLocalNetwork(
 		globalFundedKey:          globalFundedKey,
 		primaryNetworkValidators: primaryNetworkValidators,
 		validatorManagers:        make(map[ids.ID]common.Address),
+		logger:                   logger,
 	}
 
 	return localNetwork
@@ -256,7 +261,7 @@ func (n *LocalNetwork) ConvertSubnet(
 		for _, node := range n.Network.Nodes {
 			if node.NodeID == vdr.NodeID {
 				goLog.Println("Restarting bootstrap node", node.NodeID)
-				n.Network.RestartNode(ctx, os.Stdout, node)
+				n.Network.RestartNode(ctx, n.logger, node)
 			}
 		}
 	}
@@ -284,7 +289,7 @@ func (n *LocalNetwork) AddSubnetValidators(
 		// Add the node to the network
 		n.Network.Nodes = append(n.Network.Nodes, node)
 	}
-	err := n.Network.StartNodes(context.Background(), os.Stdout, nodes...)
+	err := n.Network.StartNodes(context.Background(), n.logger, nodes...)
 	Expect(err).Should(BeNil())
 
 	// Update the tmpnet Subnet struct
@@ -476,7 +481,7 @@ func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 	// Restart the network to apply the new chain configs
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(60*len(n.Network.Nodes))*time.Second)
 	defer cancel()
-	err = n.Network.Restart(ctx, os.Stdout)
+	err = n.Network.Restart(ctx, n.logger)
 	Expect(err).Should(BeNil())
 }
 
@@ -495,12 +500,14 @@ func (n *LocalNetwork) GetPChainWallet() pwallet.Wallet {
 	for _, l1 := range n.GetL1Infos() {
 		l1IDs = append(l1IDs, l1.L1ID)
 	}
-	wallet, err := primary.MakeWallet(context.Background(), &primary.WalletConfig{
-		URI:          n.GetPrimaryNetworkInfo().NodeURIs[0],
-		AVAXKeychain: kc,
-		EthKeychain:  kc,
-		SubnetIDs:    l1IDs,
-	})
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		n.GetPrimaryNetworkInfo().NodeURIs[0],
+		kc,
+		kc,
+		primary.WalletConfig{
+			SubnetIDs: l1IDs,
+		})
 	Expect(err).Should(BeNil())
 	return wallet.P()
 }

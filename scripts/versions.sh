@@ -35,7 +35,7 @@ AWM_RELAYER_VERSION=${AWM_RELAYER_VERSION:-'v1.0.0'}
 # Don't export them as they're used in the context of other calls
 AVALANCHEGO_VERSION=${AVALANCHEGO_VERSION:-$(extract_commit "$(getDepVersion github.com/ava-labs/avalanchego)")}
 # Temporarily hardcode the Avalanchego version until outbound networking relaxation is available
-AVALANCHEGO_VERSION=v1.12.0-fuji
+AVALANCHEGO_VERSION=v1.12.0
 GINKGO_VERSION=${GINKGO_VERSION:-$(extract_commit "$(getDepVersion github.com/onsi/ginkgo/v2)")}
 SUBNET_EVM_VERSION=${SUBNET_EVM_VERSION:-$(extract_commit "$(getDepVersion github.com/ava-labs/subnet-evm)")}
 

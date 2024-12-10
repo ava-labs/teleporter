@@ -23,7 +23,6 @@ import (
 	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
 	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
 	pwallet "github.com/ava-labs/avalanchego/wallet/chain/p/wallet"
-	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	proxyadmin "github.com/ava-labs/icm-contracts/abi-bindings/go/ProxyAdmin"
 	exampleerc20 "github.com/ava-labs/icm-contracts/abi-bindings/go/mocks/ExampleERC20"
 	erc20tokenstakingmanager "github.com/ava-labs/icm-contracts/abi-bindings/go/validator-manager/ERC20TokenStakingManager"
@@ -33,6 +32,7 @@ import (
 	iposvalidatormanager "github.com/ava-labs/icm-contracts/abi-bindings/go/validator-manager/interfaces/IPoSValidatorManager"
 	ivalidatormanager "github.com/ava-labs/icm-contracts/abi-bindings/go/validator-manager/interfaces/IValidatorManager"
 	"github.com/ava-labs/icm-contracts/tests/interfaces"
+	"github.com/ava-labs/icm-services/signature-aggregator/aggregator"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
@@ -277,10 +277,10 @@ func InitializeValidatorSet(
 	nodes []Node,
 ) []ids.ID {
 	log.Println("Initializing validator set", "l1", l1Info.L1ID)
-	initialValidators := make([]warpMessage.SubnetToL1ConverstionValidatorData, len(nodes))
+	initialValidators := make([]warpMessage.SubnetToL1ConversionValidatorData, len(nodes))
 	initialValidatorsABI := make([]ivalidatormanager.InitialValidator, len(nodes))
 	for i, node := range nodes {
-		initialValidators[i] = warpMessage.SubnetToL1ConverstionValidatorData{
+		initialValidators[i] = warpMessage.SubnetToL1ConversionValidatorData{
 			NodeID:       node.NodeID.Bytes(),
 			BLSPublicKey: node.NodePoP.PublicKey,
 			Weight:       nodes[i].Weight,

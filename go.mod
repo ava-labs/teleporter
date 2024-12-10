@@ -3,13 +3,13 @@ module github.com/ava-labs/icm-contracts
 go 1.22.10
 
 require (
-	github.com/ava-labs/avalanchego v1.12.0-initial-poc.9.0.20241122192639-7c3ad181c928
+	github.com/ava-labs/avalanchego v1.12.1-0.20241210035517-714dfa0c3942
 	github.com/supranational/blst v0.3.13 // indirect
 )
 
 require (
-	github.com/ava-labs/awm-relayer v1.4.1-0.20241122202209-75359d908260
-	github.com/ava-labs/subnet-evm v0.6.12
+	github.com/ava-labs/icm-services v1.4.1-0.20241210044204-a8fbd559ac77
+	github.com/ava-labs/subnet-evm v0.6.13-0.20241205165027-6c98da796f35
 	github.com/ethereum/go-ethereum v1.13.14
 	github.com/onsi/ginkgo/v2 v2.22.0
 	github.com/onsi/gomega v1.36.0
@@ -159,7 +159,7 @@ require (
 	gonum.org/v1/gonum v0.11.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
-	google.golang.org/grpc v1.68.0 // indirect
+	google.golang.org/grpc v1.68.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
