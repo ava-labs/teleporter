@@ -549,6 +549,7 @@ func NewSignatureAggregator(apiUri string, l1IDs []ids.ID) *aggregator.Signature
 		InfoAPI: &relayerConfig.APIConfig{
 			BaseURL: apiUri,
 		},
+		AllowPrivateIPs: true,
 	}
 	trackedL1s := set.NewSet[ids.ID](len(l1IDs))
 	trackedL1s.Add(l1IDs...)
