@@ -8,7 +8,7 @@ require (
 )
 
 require (
-	github.com/ava-labs/awm-relayer v1.4.1-0.20241122202209-75359d908260
+	github.com/ava-labs/icm-services v1.4.1-0.20241209154800-183c5882d896
 	github.com/ava-labs/subnet-evm v0.6.13-0.20241205165027-6c98da796f35
 	github.com/ethereum/go-ethereum v1.13.14
 	github.com/onsi/ginkgo/v2 v2.22.0

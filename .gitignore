@@ -17,6 +17,7 @@ subnetGenesis_*
 vars.sh
 NETWORK_READY
 .awm-relayer-storage/
+.icm-relayer-storage/
 
 # Raw Contract Deployment Transaction
 UniversalTeleporterDeployerTransaction.txt

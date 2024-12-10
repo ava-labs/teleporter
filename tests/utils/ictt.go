@@ -10,7 +10,6 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
 	erc20tokenhome "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/TokenHome/ERC20TokenHome"
 	nativetokenhome "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/TokenHome/NativeTokenHome"
 	tokenhome "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/TokenHome/TokenHome"
@@ -22,6 +21,7 @@ import (
 	mockERC20SACR "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/mocks/MockERC20SendAndCallReceiver"
 	mockNSACR "github.com/ava-labs/icm-contracts/abi-bindings/go/ictt/mocks/MockNativeSendAndCallReceiver"
 	"github.com/ava-labs/icm-contracts/tests/interfaces"
+	"github.com/ava-labs/icm-services/signature-aggregator/aggregator"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ethereum/go-ethereum/common"
