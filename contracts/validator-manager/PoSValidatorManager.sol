@@ -24,6 +24,7 @@ import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {ReentrancyGuardUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
+import {PoSValidatorManagerLibrary} from "./PoSValidatorManagerLibrary.sol";
 
 /**
  * @dev Implementation of the {IPoSValidatorManager} interface.
@@ -35,6 +36,8 @@ abstract contract PoSValidatorManager is
     ValidatorManager,
     ReentrancyGuardUpgradeable
 {
+    using PoSValidatorManagerLibrary for PoSValidatorManagerStorage;
+
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.PoSValidatorManager
     struct PoSValidatorManagerStorage {
@@ -183,16 +186,9 @@ abstract contract PoSValidatorManager is
      * @notice See {IPoSValidatorManager-submitUptimeProof}.
      */
     function submitUptimeProof(bytes32 validationID, uint32 messageIndex) external {
-        if (!_isPoSValidator(validationID)) {
-            revert ValidatorNotPoS(validationID);
-        }
-        ValidatorStatus status = getValidator(validationID).status;
-        if (status != ValidatorStatus.Active) {
-            revert InvalidValidatorStatus(status);
-        }
-
-        // Uptime proofs include the absolute number of seconds the validator has been active.
-        _updateUptime(validationID, messageIndex);
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        Validator memory validator = getValidator(validationID);
+        $.submitUptimeProof(WARP_MESSENGER, validator, validationID, messageIndex);
     }
 
     /**
@@ -330,7 +326,7 @@ abstract contract PoSValidatorManager is
         Validator memory validator = _initializeEndValidation(validationID);
 
         // Non-PoS validators are required to boostrap the network, but are not eligible for rewards.
-        if (!_isPoSValidator(validationID)) {
+        if (!$.isPoSValidator(validationID)) {
             return true;
         }
 
@@ -350,7 +346,7 @@ abstract contract PoSValidatorManager is
         // Uptime proofs include the absolute number of seconds the validator has been active.
         uint64 uptimeSeconds;
         if (includeUptimeProof) {
-            uptimeSeconds = _updateUptime(validationID, messageIndex);
+            uptimeSeconds = $.updateUptime(WARP_MESSENGER, validationID, messageIndex);
         } else {
             uptimeSeconds = $._posValidatorInfo[validationID].uptimeSeconds;
         }
@@ -383,7 +379,7 @@ abstract contract PoSValidatorManager is
 
         // Return now if this was originally a PoA validator that was later migrated to this PoS manager,
         // or the validator was part of the initial validator set.
-        if (!_isPoSValidator(validationID)) {
+        if (!$.isPoSValidator(validationID)) {
             return;
         }
 
@@ -403,48 +399,6 @@ abstract contract PoSValidatorManager is
 
         // The stake is unlocked whether the validation period is completed or invalidated.
         _unlock(owner, weightToValue(validator.startingWeight));
-    }
-
-    /**
-     * @dev Helper function that extracts the uptime from a ValidationUptimeMessage Warp message
-     * If the uptime is greater than the stored uptime, update the stored uptime.
-     */
-    function _updateUptime(bytes32 validationID, uint32 messageIndex) internal returns (uint64) {
-        (WarpMessage memory warpMessage, bool valid) =
-            WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        if (!valid) {
-            revert InvalidWarpMessage();
-        }
-
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        // The uptime proof must be from the specifed uptime blockchain
-        if (warpMessage.sourceChainID != $._uptimeBlockchainID) {
-            revert InvalidWarpSourceChainID(warpMessage.sourceChainID);
-        }
-
-        // The sender is required to be the zero address so that we know the validator node
-        // signed the proof directly, rather than as an arbitrary on-chain message
-        if (warpMessage.originSenderAddress != address(0)) {
-            revert InvalidWarpOriginSenderAddress(warpMessage.originSenderAddress);
-        }
-        if (warpMessage.originSenderAddress != address(0)) {
-            revert InvalidWarpOriginSenderAddress(warpMessage.originSenderAddress);
-        }
-
-        (bytes32 uptimeValidationID, uint64 uptime) =
-            ValidatorMessages.unpackValidationUptimeMessage(warpMessage.payload);
-        if (validationID != uptimeValidationID) {
-            revert InvalidValidationID(validationID);
-        }
-
-        if (uptime > $._posValidatorInfo[validationID].uptimeSeconds) {
-            $._posValidatorInfo[validationID].uptimeSeconds = uptime;
-            emit UptimeUpdated(validationID, uptime);
-        } else {
-            uptime = $._posValidatorInfo[validationID].uptimeSeconds;
-        }
-
-        return uptime;
     }
 
     function _initializeValidatorRegistration(
@@ -532,7 +486,7 @@ abstract contract PoSValidatorManager is
         // Ensure the validation period is active
         Validator memory validator = getValidator(validationID);
         // Check that the validation ID is a PoS validator
-        if (!_isPoSValidator(validationID)) {
+        if (!$.isPoSValidator(validationID)) {
             revert ValidatorNotPoS(validationID);
         }
         if (validator.status != ValidatorStatus.Active) {
@@ -734,7 +688,7 @@ abstract contract PoSValidatorManager is
 
             if (includeUptimeProof) {
                 // Uptime proofs include the absolute number of seconds the validator has been active.
-                _updateUptime(validationID, messageIndex);
+                $.updateUptime(WARP_MESSENGER, validationID, messageIndex);
             }
 
             // Set the delegator status to pending removed, so that it can be properly removed in
@@ -914,15 +868,6 @@ abstract contract PoSValidatorManager is
      * @dev This function must be implemented to mint rewards to validators and delegators.
      */
     function _reward(address account, uint256 amount) internal virtual;
-
-    /**
-     * @dev Return true if this is a PoS validator with locked stake. Returns false if this was originally a PoA
-     * validator that was later migrated to this PoS manager, or the validator was part of the initial validator set.
-     */
-    function _isPoSValidator(bytes32 validationID) internal view returns (bool) {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        return $._posValidatorInfo[validationID].owner != address(0);
-    }
 
     function _withdrawValidationRewards(address rewardRecipient, bytes32 validationID) internal {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
