@@ -561,9 +561,10 @@ func NewSignatureAggregator(apiUri string, l1IDs []ids.ID) *aggregator.Signature
 	)
 	Expect(err).Should(BeNil())
 
+	networkRegistry := prometheus.NewRegistry()
 	appRequestNetwork, err := peers.NewNetwork(
 		logging.Error,
-		registry,
+		networkRegistry,
 		trackedL1s,
 		nil,
 		&cfg,
