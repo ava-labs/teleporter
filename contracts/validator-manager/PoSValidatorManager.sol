@@ -325,48 +325,7 @@ abstract contract PoSValidatorManager is
 
         Validator memory validator = _initializeEndValidation(validationID);
 
-        // Non-PoS validators are required to boostrap the network, but are not eligible for rewards.
-        if (!$.isPoSValidator(validationID)) {
-            return true;
-        }
-
-        // PoS validations can only be ended by their owners.
-        if ($._posValidatorInfo[validationID].owner != _msgSender()) {
-            revert UnauthorizedOwner(_msgSender());
-        }
-
-        // Check that minimum stake duration has passed.
-        if (
-            validator.endedAt
-                < validator.startedAt + $._posValidatorInfo[validationID].minStakeDuration
-        ) {
-            revert MinStakeDurationNotPassed(validator.endedAt);
-        }
-
-        // Uptime proofs include the absolute number of seconds the validator has been active.
-        uint64 uptimeSeconds;
-        if (includeUptimeProof) {
-            uptimeSeconds = $.updateUptime(WARP_MESSENGER, validationID, messageIndex);
-        } else {
-            uptimeSeconds = $._posValidatorInfo[validationID].uptimeSeconds;
-        }
-
-        uint256 reward = $._rewardCalculator.calculateReward({
-            stakeAmount: weightToValue(validator.startingWeight),
-            validatorStartTime: validator.startedAt,
-            stakingStartTime: validator.startedAt,
-            stakingEndTime: validator.endedAt,
-            uptimeSeconds: uptimeSeconds
-        });
-
-        if (rewardRecipient == address(0)) {
-            rewardRecipient = $._posValidatorInfo[validationID].owner;
-        }
-
-        $._redeemableValidatorRewards[validationID] += reward;
-        $._rewardRecipients[validationID] = rewardRecipient;
-
-        return (reward > 0);
+        return $.initializeEndPoSValidation(WARP_MESSENGER, validator, _msgSender(), validationID, includeUptimeProof, messageIndex, rewardRecipient);
     }
 
     /**
@@ -398,7 +357,7 @@ abstract contract PoSValidatorManager is
         }
 
         // The stake is unlocked whether the validation period is completed or invalidated.
-        _unlock(owner, weightToValue(validator.startingWeight));
+        _unlock(owner, $.weightToValue(validator.startingWeight));
     }
 
     function _initializeValidatorRegistration(
@@ -428,7 +387,7 @@ abstract contract PoSValidatorManager is
         // Lock the stake in the contract.
         uint256 lockedValue = _lock(stakeAmount);
 
-        uint64 weight = valueToWeight(lockedValue);
+        uint64 weight = $.valueToWeight(lockedValue);
         bytes32 validationID = _initializeValidatorRegistration(registrationInput, weight);
 
         address owner = _msgSender();
@@ -447,11 +406,8 @@ abstract contract PoSValidatorManager is
      * @param value Token value to convert.
      */
     function valueToWeight(uint256 value) public view returns (uint64) {
-        uint256 weight = value / _getPoSValidatorManagerStorage()._weightToValueFactor;
-        if (weight == 0 || weight > type(uint64).max) {
-            revert InvalidStakeAmount(value);
-        }
-        return uint64(weight);
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        return $.valueToWeight(value);
     }
 
     /**
@@ -459,7 +415,8 @@ abstract contract PoSValidatorManager is
      * @param weight weight to convert.
      */
     function weightToValue(uint64 weight) public view returns (uint256) {
-        return uint256(weight) * _getPoSValidatorManagerStorage()._weightToValueFactor;
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        return $.weightToValue(weight);
     }
 
     /**
@@ -481,7 +438,7 @@ abstract contract PoSValidatorManager is
         uint256 delegationAmount
     ) internal returns (bytes32) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        uint64 weight = valueToWeight(_lock(delegationAmount));
+        uint64 weight = $.valueToWeight(_lock(delegationAmount));
 
         // Ensure the validation period is active
         Validator memory validator = getValidator(validationID);
@@ -748,7 +705,7 @@ abstract contract PoSValidatorManager is
         }
 
         uint256 reward = $._rewardCalculator.calculateReward({
-            stakeAmount: weightToValue(delegator.weight),
+            stakeAmount: $.weightToValue(delegator.weight),
             validatorStartTime: validator.startedAt,
             stakingStartTime: delegator.startedAt,
             stakingEndTime: delegationEndTime,
@@ -859,7 +816,7 @@ abstract contract PoSValidatorManager is
             _withdrawDelegationRewards(rewardRecipient, delegationID, validationID);
 
         // Unlock the delegator's stake.
-        _unlock(delegator.owner, weightToValue(delegator.weight));
+        _unlock(delegator.owner, $.weightToValue(delegator.weight));
 
         emit DelegationEnded(delegationID, validationID, delegationRewards, validatorFees);
     }
