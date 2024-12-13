@@ -47,6 +47,7 @@ type LocalNetwork struct {
 	globalFundedKey          *secp256k1.PrivateKey
 	validatorManagers        map[ids.ID]common.Address
 	logger                   logging.Logger
+	deployedL1Specs          map[string]L1Spec
 }
 
 const (
@@ -60,9 +61,10 @@ type L1Spec struct {
 	NodeCount  int
 
 	// Optional fields
-	TeleporterContractAddress  common.Address
-	TeleporterDeployedBytecode string
-	TeleporterDeployerAddress  common.Address
+	TeleporterContractAddress    common.Address
+	TeleporterDeployedBytecode   string
+	TeleporterDeployerAddress    common.Address
+	RequirePrimaryNetworkSigners bool
 }
 
 func NewLocalNetwork(
@@ -88,6 +90,7 @@ func NewLocalNetwork(
 	Expect(err).Should(BeNil())
 
 	var l1s []*tmpnet.Subnet
+	deployedL1Specs := make(map[string]L1Spec)
 	bootstrapNodes := subnetEvmTestUtils.NewTmpnetNodes(numPrimaryNetworkValidators)
 	for i, l1Spec := range l1Specs {
 		// Create a single bootstrap node. This will be removed from the L1 validator set after it is converted,
@@ -106,10 +109,12 @@ func NewLocalNetwork(
 				l1Spec.TeleporterContractAddress,
 				l1Spec.TeleporterDeployedBytecode,
 				l1Spec.TeleporterDeployerAddress,
+				l1Spec.RequirePrimaryNetworkSigners,
 			),
 			utils.WarpEnabledChainConfig,
 			initialL1Bootstrapper,
 		)
+		deployedL1Specs[l1Spec.Name] = l1Spec
 		l1.OwningKey = globalFundedKey
 		l1s = append(l1s, l1)
 	}
@@ -166,6 +171,7 @@ func NewLocalNetwork(
 		primaryNetworkValidators: primaryNetworkValidators,
 		validatorManagers:        make(map[ids.ID]common.Address),
 		logger:                   logger,
+		deployedL1Specs:          deployedL1Specs,
 	}
 
 	return localNetwork
@@ -236,7 +242,7 @@ func (n *LocalNetwork) ConvertSubnet(
 	)
 	Expect(err).Should(BeNil())
 
-	l1 = n.AddSubnetValidators(tmpnetNodes, l1)
+	l1 = n.AddSubnetValidators(tmpnetNodes, l1, true)
 
 	utils.PChainProposerVMWorkaround(pChainWallet)
 	utils.AdvanceProposerVM(ctx, l1, senderKey, 5)
@@ -274,6 +280,7 @@ func (n *LocalNetwork) ConvertSubnet(
 func (n *LocalNetwork) AddSubnetValidators(
 	nodes []*tmpnet.Node,
 	l1 interfaces.L1TestInfo,
+	partialSync bool,
 ) interfaces.L1TestInfo {
 	// Modify the each node's config to track the l1
 	for _, node := range nodes {
@@ -285,6 +292,10 @@ func (n *LocalNetwork) AddSubnetValidators(
 			continue
 		}
 		node.Flags[config.TrackSubnetsKey] = l1.L1ID.String()
+
+		if partialSync {
+			node.Flags[config.PartialSyncPrimaryNetworkKey] = true
+		}
 
 		// Add the node to the network
 		n.Network.Nodes = append(n.Network.Nodes, node)
@@ -352,12 +363,13 @@ func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.L1TestInfo {
 	evmChainID, err := rpcClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 	return interfaces.L1TestInfo{
-		L1ID:         ids.Empty,
-		BlockchainID: cChainBlockchainID,
-		NodeURIs:     nodeURIs,
-		WSClient:     wsClient,
-		RPCClient:    rpcClient,
-		EVMChainID:   evmChainID,
+		L1ID:                         ids.Empty,
+		BlockchainID:                 cChainBlockchainID,
+		NodeURIs:                     nodeURIs,
+		WSClient:                     wsClient,
+		RPCClient:                    rpcClient,
+		EVMChainID:                   evmChainID,
+		RequirePrimaryNetworkSigners: false,
 	}
 }
 
@@ -379,13 +391,16 @@ func (n *LocalNetwork) GetL1Info(l1ID ids.ID) interfaces.L1TestInfo {
 			Expect(err).Should(BeNil())
 			evmChainID, err := rpcClient.ChainID(context.Background())
 			Expect(err).Should(BeNil())
+			spec, ok := n.deployedL1Specs[l1.Name]
+			Expect(ok).Should(BeTrue())
 			return interfaces.L1TestInfo{
-				L1ID:         l1ID,
-				BlockchainID: blockchainID,
-				NodeURIs:     nodeURIs,
-				WSClient:     wsClient,
-				RPCClient:    rpcClient,
-				EVMChainID:   evmChainID,
+				L1ID:                         l1ID,
+				BlockchainID:                 blockchainID,
+				NodeURIs:                     nodeURIs,
+				WSClient:                     wsClient,
+				RPCClient:                    rpcClient,
+				EVMChainID:                   evmChainID,
+				RequirePrimaryNetworkSigners: spec.RequirePrimaryNetworkSigners,
 			}
 		}
 	}
@@ -411,13 +426,16 @@ func (n *LocalNetwork) GetL1Infos() []interfaces.L1TestInfo {
 		Expect(err).Should(BeNil())
 		evmChainID, err := rpcClient.ChainID(context.Background())
 		Expect(err).Should(BeNil())
+		spec, ok := n.deployedL1Specs[l1.Name]
+		Expect(ok).Should(BeTrue())
 		l1s[i] = interfaces.L1TestInfo{
-			L1ID:         l1.SubnetID,
-			BlockchainID: blockchainID,
-			NodeURIs:     nodeURIs,
-			WSClient:     wsClient,
-			RPCClient:    rpcClient,
-			EVMChainID:   evmChainID,
+			L1ID:                         l1.SubnetID,
+			BlockchainID:                 blockchainID,
+			NodeURIs:                     nodeURIs,
+			WSClient:                     wsClient,
+			RPCClient:                    rpcClient,
+			EVMChainID:                   evmChainID,
+			RequirePrimaryNetworkSigners: spec.RequirePrimaryNetworkSigners,
 		}
 	}
 	return l1s

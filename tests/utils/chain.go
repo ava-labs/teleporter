@@ -489,6 +489,7 @@ func InstantiateGenesisTemplate(
 	teleporterContractAddress common.Address,
 	teleporterDeployedBytecode string,
 	teleporterDeployerAddress common.Address,
+	requirePrimaryNetworkSigners bool,
 ) string {
 	if teleporterContractAddress.Big().Cmp(big.NewInt(0)) == 0 {
 		teleporterContractAddress = common.HexToAddress("0xffffffffffffffffffffffffffffffffffffffff")
@@ -519,6 +520,10 @@ func InstantiateGenesisTemplate(
 		{
 			"<TELEPORTER_MESSENGER_DEPLOYER_ADDRESS>",
 			teleporterDeployerAddress.Hex(),
+		},
+		{
+			"<REQUIRE_PRIMARY_NETWORK_SIGNERS>",
+			strconv.FormatBool(requirePrimaryNetworkSigners),
 		},
 	}
 
@@ -679,7 +684,7 @@ func GetSignedMessage(
 	signatureAggregator *aggregator.SignatureAggregator,
 ) *avalancheWarp.Message {
 	signingL1ID := source.L1ID
-	if source.L1ID == constants.PrimaryNetworkID {
+	if source.L1ID == constants.PrimaryNetworkID && !destination.RequirePrimaryNetworkSigners {
 		signingL1ID = destination.L1ID
 	}
 

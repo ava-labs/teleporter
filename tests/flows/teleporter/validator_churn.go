@@ -87,7 +87,7 @@ func ValidatorChurn(network *localnetwork.LocalNetwork, teleporter utils.Telepor
 	pChainInfo := utils.GetPChainInfo(network.GetPrimaryNetworkInfo())
 	Expect(err).Should(BeNil())
 
-	l1AInfo = network.AddSubnetValidators(newNodes, l1AInfo)
+	l1AInfo = network.AddSubnetValidators(newNodes, l1AInfo, true)
 
 	for i := 0; i < newNodeCount; i++ {
 		expiry := uint64(time.Now().Add(24 * time.Hour).Unix())

@@ -42,14 +42,16 @@ var _ = ginkgo.BeforeEach(func() {
 		warpGenesisTemplateFile,
 		[]localnetwork.L1Spec{
 			{
-				Name:       "A",
-				EVMChainID: 12345,
-				NodeCount:  2,
+				Name:                         "A",
+				EVMChainID:                   12345,
+				NodeCount:                    2,
+				RequirePrimaryNetworkSigners: true,
 			},
 			{
-				Name:       "B",
-				EVMChainID: 54321,
-				NodeCount:  2,
+				Name:                         "B",
+				EVMChainID:                   54321,
+				NodeCount:                    2,
+				RequirePrimaryNetworkSigners: true,
 			},
 		},
 		2,

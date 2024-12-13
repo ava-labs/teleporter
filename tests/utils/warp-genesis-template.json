@@ -22,7 +22,8 @@
         "blockGasCostStep": 500000
       },
       "warpConfig": {
-        "blockTimestamp": 1719343601
+        "blockTimestamp": 1719343601,
+        "requirePrimaryNetworkSigners" : <REQUIRE_PRIMARY_NETWORK_SIGNERS>
       },
       "contractNativeMinterConfig": {
         "blockTimestamp": 0,
