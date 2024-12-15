@@ -57,8 +57,7 @@ struct ValidatorChurnPeriod {
  */
 struct ValidatorManagerSettings {
     bytes32 l1ID;
-    uint64 churnPeriodSeconds;
-    uint8 maximumChurnPercentage;
+    address churnTracker;
 }
 
 /**
@@ -92,6 +91,15 @@ struct ValidatorRegistrationInput {
     uint64 registrationExpiry;
     PChainOwner remainingBalanceOwner;
     PChainOwner disableOwner;
+}
+
+interface IChurnTracker {
+    function checkAndUpdateChurnTracker(
+        uint64 newValidatorWeight,
+        uint64 oldValidatorWeight
+    ) external;
+    function getChurnPeriodSeconds() external returns (uint64);
+    function setTotalWeight(uint64) external;
 }
 
 /**

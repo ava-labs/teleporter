@@ -9,10 +9,10 @@ import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {
     InitialValidator,
     IValidatorManager,
+    IChurnTracker,
     PChainOwner,
     ConversionData,
     Validator,
-    ValidatorChurnPeriod,
     ValidatorManagerSettings,
     ValidatorRegistrationInput,
     ValidatorStatus
@@ -38,12 +38,9 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     struct ValidatorManagerStorage {
         /// @notice The l1ID associated with this validator manager.
         bytes32 _l1ID;
-        /// @notice The number of seconds after which to reset the churn tracker.
-        uint64 _churnPeriodSeconds;
-        /// @notice The maximum churn rate allowed per churn period.
-        uint8 _maximumChurnPercentage;
+        uint64 _totalWeight;
         /// @notice The churn tracker used to track the amount of stake added or removed in the churn period.
-        ValidatorChurnPeriod _churnTracker;
+        IChurnTracker _churnTracker;
         /// @notice Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
         /// @notice Maps the validationID to the validator information.
@@ -124,16 +121,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
     {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._l1ID = settings.l1ID;
-
-        if (
-            settings.maximumChurnPercentage > MAXIMUM_CHURN_PERCENTAGE_LIMIT
-                || settings.maximumChurnPercentage == 0
-        ) {
-            revert InvalidMaximumChurnPercentage(settings.maximumChurnPercentage);
-        }
-
-        $._maximumChurnPercentage = settings.maximumChurnPercentage;
-        $._churnPeriodSeconds = settings.churnPeriodSeconds;
+        $._churnTracker = IChurnTracker(settings.churnTracker);
     }
 
     modifier initializedValidatorSet() {
@@ -192,13 +180,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
                 validationID, initialValidator.nodeID, initialValidator.weight
             );
         }
-        $._churnTracker.totalWeight = totalWeight;
-
-        // Rearranged equation for totalWeight < (100 / $._maximumChurnPercentage)
-        // Total weight must be above this value in order to not trigger churn limits with an added/removed weight of 1.
-        if (totalWeight * $._maximumChurnPercentage < 100) {
-            revert InvalidTotalWeight(totalWeight);
-        }
+        $._churnTracker.setTotalWeight(totalWeight);
 
         // Verify that the sha256 hash of the L1 conversion data matches with the Warp message's conversionID.
         bytes32 conversionID = ValidatorMessages.unpackSubnetToL1ConversionMessage(
@@ -251,11 +233,6 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             revert InvalidRegistrationExpiry(input.registrationExpiry);
         }
 
-        // Ensure the new validator doesn't overflow the total weight
-        if (uint256(weight) + uint256($._churnTracker.totalWeight) > type(uint64).max) {
-            revert InvalidTotalWeight(weight);
-        }
-
         _validatePChainOwner(input.remainingBalanceOwner);
         _validatePChainOwner(input.disableOwner);
 
@@ -271,8 +248,8 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
             revert NodeAlreadyRegistered(input.nodeID);
         }
 
-        // Check that adding this validator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTracker(weight, 0);
+        // Check that changing the validator weight would not exceed the maximum churn rate.
+        $._churnTracker.checkAndUpdateChurnTracker(weight, 0);
 
         (bytes32 validationID, bytes memory registerL1ValidatorMessage) = ValidatorMessages
             .packRegisterL1ValidatorMessage(
@@ -500,6 +477,11 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         return warpMessage;
     }
 
+    function _getChurnPeriodSeconds() internal returns (uint64) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        return $._churnTracker.getChurnPeriodSeconds();
+    }
+
     function _setValidatorWeight(
         bytes32 validationID,
         uint64 newWeight
@@ -508,7 +490,7 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         uint64 validatorWeight = $._validationPeriods[validationID].weight;
 
         // Check that changing the validator weight would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTracker(newWeight, validatorWeight);
+        $._churnTracker.checkAndUpdateChurnTracker(newWeight, validatorWeight);
 
         uint64 nonce = _incrementAndGetNonce(validationID);
 
@@ -527,61 +509,5 @@ abstract contract ValidatorManager is Initializable, ContextUpgradeable, IValida
         });
 
         return (nonce, messageID);
-    }
-
-    function _getChurnPeriodSeconds() internal view returns (uint64) {
-        return _getValidatorManagerStorage()._churnPeriodSeconds;
-    }
-
-    /**
-     * @dev Helper function to check if the stake weight to be added or removed would exceed the maximum stake churn
-     * rate for the past churn period. If the churn rate is exceeded, the function will revert. If the churn rate is
-     * not exceeded, the function will update the churn tracker with the new weight.
-     */
-    function _checkAndUpdateChurnTracker(
-        uint64 newValidatorWeight,
-        uint64 oldValidatorWeight
-    ) private {
-        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-
-        uint64 weightChange;
-        if (newValidatorWeight > oldValidatorWeight) {
-            weightChange = newValidatorWeight - oldValidatorWeight;
-        } else {
-            weightChange = oldValidatorWeight - newValidatorWeight;
-        }
-
-        uint256 currentTime = block.timestamp;
-        ValidatorChurnPeriod memory churnTracker = $._churnTracker;
-
-        if (
-            churnTracker.startedAt == 0
-                || currentTime >= churnTracker.startedAt + $._churnPeriodSeconds
-        ) {
-            churnTracker.churnAmount = weightChange;
-            churnTracker.startedAt = currentTime;
-            churnTracker.initialWeight = churnTracker.totalWeight;
-        } else {
-            // Churn is always additive whether the weight is being added or removed.
-            churnTracker.churnAmount += weightChange;
-        }
-
-        // Rearranged equation of maximumChurnPercentage >= currentChurnPercentage to avoid integer division truncation.
-        if ($._maximumChurnPercentage * churnTracker.initialWeight < churnTracker.churnAmount * 100)
-        {
-            revert MaxChurnRateExceeded(churnTracker.churnAmount);
-        }
-
-        // Two separate calculations because we're using uints and (newValidatorWeight - oldValidatorWeight) could underflow.
-        churnTracker.totalWeight += newValidatorWeight;
-        churnTracker.totalWeight -= oldValidatorWeight;
-
-        // Rearranged equation for totalWeight < (100 / $._maximumChurnPercentage)
-        // Total weight must be above this value in order to not trigger churn limits with an added/removed weight of 1.
-        if (churnTracker.totalWeight * $._maximumChurnPercentage < 100) {
-            revert InvalidTotalWeight(churnTracker.totalWeight);
-        }
-
-        $._churnTracker = churnTracker;
     }
 }
